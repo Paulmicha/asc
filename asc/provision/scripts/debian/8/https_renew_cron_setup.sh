@@ -1,12 +1,12 @@
 #!/bin/bash
 
 ##
-# LAMP server Letsencrypt HTTPS cron setup.
+# Letsencrypt renew HTTPS certificate (certbot) cron setup.
 #
 # Run as root or sudo.
 #
 # Usage :
-# $ . asc/stack/lamp_deb/cron_apache_https_setup.sh
+# $ . asc/provision/scripts/debian/8/https_renew_cron_setup.sh
 #
 
 . asc/env/load.sh

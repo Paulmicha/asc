@@ -4,7 +4,7 @@
 # Restore DB dump.
 #
 # Usage example from project root dir :
-# $ . asc/db/import_initial.sh
+# $ . asc/db/drush/import_initial.sh
 #
 
 . asc/env/load.sh

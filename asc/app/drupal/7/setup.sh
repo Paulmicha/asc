@@ -15,17 +15,17 @@
 # Run as root or sudo.
 #
 # Usage :
-# $ . asc/app/drupal_setup.sh
+# $ . asc/app/drupal/7/setup.sh
 #
 
 . asc/env/load.sh
 
-. asc/app/write_settings.sh
+. asc/app/drupal/7/write_settings.sh
 
 mkdir -p $APP_DOCROOT/$DRUPAL_FILES_FOLDER
 mkdir -p $APP_DOCROOT/$DRUPAL_TMP_FOLDER
 
 . asc/fixperms.sh
 
-. asc/db/setup.sh
-. asc/db/import_initial.sh
+. asc/db/mysql/setup.sh
+. asc/db/drush/import_initial.sh
