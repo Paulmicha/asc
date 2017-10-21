@@ -1,5 +1,7 @@
 # Agnostic Shell Controller (ASC)
 
+WIP / not ready for use yet (re-organization + evaluation stage, documentation-driven).
+
 ## WHAT
 
 Scripts bash for usual devops tasks aimed at relatively small web projects.
@@ -20,7 +22,7 @@ Abstracting differences to streamline recurrent devops needs. There already are 
 1. docker-compose (e.g. wodby/docker4drupal)
 1. Ansistrano, Portainer, Swarm, Helm, draft.sh, Dokku, Jenkins, Drone, Rancher, Mesos...
 
-The approach here is to provide a minimal base for abstracting out usual tasks (maintain a common set of commands with varying implementations), while allowing to complement, combine, replace or add specific operations **with or without** existing tools.
+The approach here is to provide a minimal base for abstracting usual tasks (maintain a common set of commands with varying implementations), while allowing to complement, combine, replace or add specific operations **with or without** existing tools.
 
 ## WHY
 
@@ -69,7 +71,7 @@ See section *Frequent tasks (howtos / FAQ)* for details.
 ```txt
 /path/to/project/
   ├── asc/
-  │   ├── app/                  <- App setup + [wip] samples.
+  │   ├── app/                  <- App setup / watch / (re)build scripts + [wip] samples.
   │   ├── db/                   <- Database-related scripts.
   │   ├── env/
   │   │   ├── current/          <- Generated values specific to current, local instance.
@@ -83,7 +85,7 @@ See section *Frequent tasks (howtos / FAQ)* for details.
   │   ├── remote/
   │   │   └── deploy/           <- Deployment-related scripts + [wip] samples.
   │   ├── specific/             <- [optional] Custom ASC scripts overrides.
-  │   ├── stack/                <- Scripts to (re)launch containers, watch / (re)build / CI tasks, workers, etc.
+  │   ├── stack/                <- Manage required services and/or containers, CI tasks, workers + [wip] samples.
   │   └── test/                 <- Automated tests related scripts + [wip] samples.
   │       ├── behat/
   │       └── gemini/
@@ -93,7 +95,7 @@ See section *Frequent tasks (howtos / FAQ)* for details.
 
 ## Frequent tasks (howtos / FAQ)
 
-Unless otherwise stated, all the examples below are run from `/path/to/project/` as sudo or root.
+Unless otherwise stated, all the examples below are to be run on *local* host from `/path/to/project/` as sudo or root.
 
 ### Initialize local instance parameters
 
@@ -117,7 +119,7 @@ Unless otherwise stated, all the examples below are run from `/path/to/project/`
 # To provision local host :
 ./asc/stack/setup.sh
 
-# To provision remote host :
+# To provision a remote host :
 ./asc/remote/setup.sh
 ```
 
@@ -133,6 +135,30 @@ Unless otherwise stated, all the examples below are run from `/path/to/project/`
 ./asc/remote/add_host.sh
 ```
 
+### Manage host services
+
+*Purpose* : Starts, stops, restarts the necessary host services.
+
+*When to run* : on-demand.
+
+*Prerequisites* :
+
+- Local : `asc/stack/setup.sh
+- Remote : `asc/remote/setup.sh`
+
+```sh
+./asc/stack/start.sh
+./asc/stack/restart.sh
+./asc/stack/stop.sh
+./asc/stack/rebuild.sh # For docker-compose, e.g. when modifying images.
+
+# On remote (1st arg = instance domain) :
+./asc/remote/start.sh test.example.com
+./asc/remote/restart.sh test.example.com
+./asc/remote/stop.sh test.example.com
+./asc/remote/rebuild.sh test.example.com # For docker-compose, e.g. when modifying images.
+```
+
 ### Initialize application instance
 
 *Purpose* : Includes all steps necessary to produce a working instance of the project, ready to be started. For example, this would include tasks like local database creation, writing specific settings files, etc.
@@ -141,13 +167,80 @@ Unless otherwise stated, all the examples below are run from `/path/to/project/`
 
 *Prerequisites* :
 
-- `asc/stack/init.sh`
-- `asc/stack/setup.sh`
+- Local : `asc/stack/start.sh`
+- Remote : `asc/remote/start.sh`
 
 ```sh
 # To initialize local project instance :
 ./asc/app/init.sh
 
-# To initialize remote project instance :
-./asc/remote/init.sh
+# To initialize a remote project instance (1st arg = instance domain) :
+./asc/remote/init.sh test.example.com
+```
+
+### Reset application instance
+
+*Purpose* : Restores an instance to its "factory" / default state. Typically wipes the database and relaunches `asc/app/init.sh`.
+
+*When to run* : on-demand.
+
+*Prerequisites* : `asc/app/init.sh`
+
+```sh
+# To reset local project instance :
+./asc/app/reset.sh
+
+# To reset a remote project instance (1st arg = instance domain) :
+./asc/remote/reset.sh test.example.com
+```
+
+### Manage specific application tasks
+
+*Purpose* : Builds, watches app sources (for auto-compilation on save), runs tests.
+
+*When to run* : on-demand.
+
+*Prerequisites* :
+
+- Local : `asc/stack/init.sh`
+- Remote : `asc/remote/init.sh`
+
+```sh
+./asc/app/watch.sh
+./asc/app/build.sh
+./asc/app/rebuild.sh
+./asc/app/test.sh
+
+# On remote (1st arg = instance domain) :
+./asc/remote/build.sh test.example.com
+./asc/remote/rebuild.sh test.example.com
+./asc/remote/test.sh test.example.com
+```
+
+### Deploy to remote
+
+*Purpose* : Depending on specified instance parameters, deployment typically executes tests and/or custom scripts. It should result in an updated remote instance.
+
+*When to run* : on-demand.
+
+*Prerequisites* : `asc/remote/init.sh`
+
+```sh
+# Target remote using 1st arg (instance domain) :
+./asc/remote/deploy.sh test.example.com
+```
+
+### 2-way Sync
+
+*Purpose* : Some projects use a database and/or require files (e.g. media) to be synchronized between remote and local instances. This makes sure these can easily be fetched and/or sent.
+
+*When to run* : on-demand.
+
+*Prerequisites* :
+
+- Local : `asc/stack/init.sh`
+- Remote : `asc/remote/init.sh`
+
+```sh
+# TODO
 ```
