@@ -19,6 +19,11 @@
 # $ . asc/provision/scripts/debian/8/lamp_setup.sh
 #
 
+. asc/env/load.sh
+
+# Make sure this script only runs once per host.
+eval `u_run_once_per_host "$BASH_SOURCE"`
+
 # Host-level dependencies.
 . asc/provision/scripts/debian/8/system/utils.sh
 . asc/provision/scripts/debian/8/system/unattended_upgrades.sh
