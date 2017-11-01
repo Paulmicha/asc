@@ -10,8 +10,8 @@
 # this one are to be manually edited.
 #
 # TODO figure out how to handle optional extensions, like :
-# - application-specific dependencies (e.g. drush)
-# - custom tools for local dev (e.g. adminer, opcode status page, etc)
+# - application-specific dependencies (e.g. drush, redis, etc.)
+# - custom tools for local dev (e.g. adminer, opcode status page, etc.)
 #
 # Run as root or sudo.
 #
@@ -26,20 +26,17 @@ eval `u_autoload_override "$BASH_SOURCE"`
 . asc/provision/scripts/debian/8/system/utils.sh
 . asc/provision/scripts/debian/8/system/unattended_upgrades.sh
 
-# Web server.
+# Lamp-based application dependencies.
 . asc/provision/scripts/debian/8/programs/apache/install.sh
-
-# Database.
 . asc/provision/scripts/debian/8/programs/mariadb.sh
-
-# Application dependencies.
 . asc/provision/scripts/debian/8/programs/php/5/install.sh
 . asc/provision/scripts/debian/8/programs/php/5/imagemagik.sh
-. asc/provision/scripts/debian/8/programs/php/5/redis.sh
 . asc/provision/scripts/debian/8/programs/php/5/composer.sh
 
 # Specific application dependencies.
 . asc/provision/scripts/debian/8/programs/drush/8/install.sh
+. asc/provision/scripts/debian/8/programs/redis.sh
+. asc/provision/scripts/debian/8/programs/php/5/redis.sh
 
 # [optional] Custom tools for local dev.
 
