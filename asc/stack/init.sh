@@ -1,25 +1,14 @@
 #!/bin/bash
 
 ##
-# [wip] Init environment settings for this project intance.
+# (Re)inits environment settings for this project intance.
 #
-# Prerequisites:
-# Local Git repo initialized. See main README.md - section "Usage".
-#
-# This script will dynamically generate and (over)write settings based on
-# the following values :
-# 1. type of storage to use for ASC env settings on current host
-# 2. provisioning method
-# 3. project stack
-# 4. instance type
-# 5. instance domain
-# 6. [wip] deploy method
-# 7. [wip] testing (preset)
+# @see asc/env/README.md
 #
 # Usage examples :
 # $ . asc/stack/init.sh                 # Will prompt to confirm/edit every default value
-# $ . asc/stack/init.sh -y              # Will use default values
 # $ . asc/stack/init.sh -s drupal-7     # Short name/value argument syntax
+# $ . asc/stack/init.sh -s nodejs -y    # "-y" will use default values, no prompts
 # $ . asc/stack/init.sh --stack=drupal-7 --yes      # Longer name/value argument syntax (equivalent)
 #
 
@@ -38,23 +27,15 @@ export PROJECT_STACK="$P_PROJECT_STACK"
 export PROVISION_USING="$P_PROVISION_USING"
 export CURRENT_ENV_SETTINGS_FILE='asc/env/current/vars.sh'
 
-# For now, we consider that it's possible to use return in main shell scope to
-# stop the whole script immediately.
-# We are evaluating the recommended pattern to wrap everything inside a main()
-# function instead, used as the single entry point for a given task.
+if [[ (-z "$PROJECT_STACK") && ($P_YES == 0) ]]; then
+  read -p "Enter PROJECT_STACK value : " PROJECT_STACK
+fi
+
 if [[ -z "$PROJECT_STACK" ]]; then
-  echo "Warning in $BASH_SOURCE line $LINENO: cannot carry on without a value for \$P_PROJECT_STACK."
+  echo "Warning in $BASH_SOURCE line $LINENO: cannot carry on without a value for \$PROJECT_STACK."
+  # TODO use exit instead or conditionally handle both.
   return
 fi
-
-# This default value is required before env vars aggregation, so it's hardcoded.
-# TODO : not necessary - see asc/stack/init/aggregate_env_vars.sh
-if [[ -z "$PROVISION_USING" ]]; then
-  PROVISION_USING='scripts'
-fi
-
-# Arguments matching + default value fallback.
-. asc/stack/init/match_args_w_env_vars.sh
 
 # (Re)start env vars aggregation.
 unset ENV_VARS
