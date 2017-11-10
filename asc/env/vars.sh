@@ -4,10 +4,12 @@
 # Env (settings) model file.
 #
 # This file is dynamically included during stack init.
-# @see u_env_vars_aggregate()
+# @see asc/stack/init.sh
+# @see asc/stack/init/aggregate_env_vars.sh
+# @see asc/utilities/env.sh
 #
 # Matching rules and syntax are explained in documentation :
-# @see asc/stack/init/aggregate_env_vars.sh
+# @see asc/env/README.md
 #
 
 define PROJECT_STACK
