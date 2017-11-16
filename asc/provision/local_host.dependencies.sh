@@ -12,7 +12,7 @@
 # @see asc/env/README.md
 #
 
-softwares+='php-7,..db,..webserver'
-
-alternatives['..db']='mariadb-10,mysql-5,postgresql-10'
-alternatives['..webserver']='apache-2.4,nginx-1'
+declare -a instance_types_mailhog_arr=("dev" "test" "stage")
+if u_in_array "$INSTANCE_TYPE" instance_types_mailhog_arr; then
+  softwares+='mailhog'
+fi
