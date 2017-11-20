@@ -11,28 +11,16 @@
 # . asc/env/load.sh
 #
 
-if [ ! -f .env ]; then
-  echo "ERROR : .env file does not exist. Run the env/write script first."
-  echo "Example : \$ . asc/env/write.sh live"
-  echo "(replace the first argument with namespace, e.g. dev, test, live)"
-  return
+if [ ! -f "asc/env/current/vars.sh" ]; then
+  echo
+  echo "Error in $BASH_SOURCE line $LINENO: no env settings found."
+  echo "-> Run asc/stack/init.sh first."
+  echo "Aborting (1)."
+  return 1
 fi
 
-. .env
-. .app.env
-. .git.env
-
-# Load env-type-specific vars (if exists).
-if [ -f ".$INSTANCE_TYPE.env" ]; then
-  echo ".$INSTANCE_TYPE.env exists and is loaded."
-  . .$INSTANCE_TYPE.env
-fi
-
-# Load project's remote host.
-# @evol manage several hosts (per instance type ?)
-if [ -f ".remote_hosts.env" ]; then
-  . .remote_hosts.env
-fi
+# Load current instance env settings (globals) + ignore readonly errors.
+. asc/env/current/vars.sh 2> /dev/null
 
 # Load global bash utils and aliases.
 . asc/bash_utils.sh
