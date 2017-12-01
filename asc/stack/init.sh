@@ -46,23 +46,20 @@ ENV_VARS_UNIQUE_KEYS=()
 
 # Get ASC globals required for aggregating dependencies and env vars.
 . asc/env/vars.sh
-u_exec_foreach_env_vars u_assign_env_value
 
 # Aggregate dependencies and env vars.
 . asc/stack/init/aggregate_deps.sh
 . asc/stack/init/aggregate_env_vars.sh
 
-# Write env vars in current instance's settings file.
+# Write env vars in current instance's git-ignored settings file.
 . asc/env/write.sh
 
-# Apply git-related settings.
-. asc/git/apply_config.sh
-
 # Apply correct ownership and permissions.
-u_hook_app_call 'apply' 'ownership_and_perms'
+u_hook_app_call 'apply' 'ownership_and_perms' '' 'stack'
 
 # Allow custom complements for this script.
+# TODO evaluate removal of the 'complement' customization method.
 u_autoload_get_complement "$BASH_SOURCE"
 
-# Trigger post-init hooks.
+# Trigger stack/post-init hook.
 u_hook_call 'stack' 'init' 'post'

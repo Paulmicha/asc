@@ -21,6 +21,10 @@ define INSTANCE_TYPE "[default]=dev"
 define INSTANCE_DOMAIN "[default]='$(u_get_instance_domain)'"
 define INSTANCE_ALIAS
 
+define ASC_MODE "[default]=separate"
+define APP_GIT_ORIGIN "[if-ASC_MODE]=separate"
+define APP_GIT_DIR "[default]=\$APP_DOCROOT [if-ASC_MODE]=separate"
+
 define HOST_TYPE "[default]=local"
 define HOST_OS "[default]='$(u_host_get_os)'"
 define PROVISION_USING "[default]=docker-compose"
