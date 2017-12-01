@@ -128,7 +128,7 @@ u_autoload_override() {
     operand="$p_operand"
   fi
 
-  local override=${p_script_path/asc/"asc/custom/overrides"}
+  local override=${p_script_path/asc/"$(u_autoload_get_custom_dir)/overrides"}
   if [[ -f "$override" ]]; then
     echo ". $override ; $operand"
   fi
@@ -147,9 +147,25 @@ u_autoload_override() {
 #
 u_autoload_get_complement() {
   local p_script_path="$1"
-  local complement=${p_script_path/asc/"asc/custom/complements"}
+  local complement=${p_script_path/asc/"$(u_autoload_get_custom_dir)/complements"}
 
   if [[ -f "$complement" ]]; then
     . "$complement"
   fi
+}
+
+##
+# Returns customizations base dir.
+#
+# If global ASC_CUSTOM_DIR exists in calling scope, it will be used. Otherwise,
+# it will return the hardcoded default value 'asc/custom'.
+#
+# @see asc/custom/README.md
+#
+u_autoload_get_custom_dir() {
+  local base_dir='asc/custom'
+  if [[ -n "$ASC_CUSTOM_DIR" ]]; then
+    base_dir="$ASC_CUSTOM_DIR"
+  fi
+  echo "$base_dir"
 }
