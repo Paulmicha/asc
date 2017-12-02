@@ -16,18 +16,29 @@ Briefly explains basic architectural aspects of ASC.
 
 ## "Autoload" (dynamic sourcing)
 
-Basic example: `asc/bash_utils.sh`
+Notably used in:
 
-**Purpose**:
+- `asc/bash_utils.sh`
+- `asc/stack/init.sh`
+- `asc/utilities/hook.sh`
 
-- Leaziness (no manual inclusions to think about)
-- When used in combination with naming conventions, allows automatic overrides and/or complements - i.e. when adding your custom scripts in the `asc/custom` subdir following the same dir/file structure. See `asc/utilities/autoload.sh`
+- **Purpose**:
+    - Leaziness (not really dependency management)
+    - Convention over configuration
+- **Caveats**:
+    - relies on global antipattern (See *Systematic sourcing from project root dir*)
+    - wasteful performance-wise
+    - no accidental infinite recursion prevention
+- **How to mitigate**:
+    - Provide [ASC self tests](https://github.com/sstephenson/bats) in `asc/test/self`
 
 This pattern might be used to integrate some [existing (and more elaborate) Bash projects](https://github.com/awesome-lists/awesome-bash).
 
 ## Folders & files naming
 
-The principle is : *file structure* should indicate intent. ASC's organization is task-oriented by subject.
+The general principle is : *file structure* should indicate intent. ASC's organization follows task (action), subject and/or facts, and the [semver convention](https://semver.org/).
+
+The order or imbrication is still under study, but given ASC's minimalist ambition, it probably will remain just a principle (guideline).
 
 This is not really a pattern and more a basic guideline to name folders, scripts or functions. It may also help deciding how to split or group operations and inform folder structure choices.
 
