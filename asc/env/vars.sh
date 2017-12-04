@@ -31,9 +31,9 @@ global REG_BACKEND "[default]=file"
 # TODO else consider using a separate store for secrets, see asc/env/README.md.
 # global SECRETS_BACKEND
 
-global ASC_CUSTOM_DIR "[default]=asc/custom"
+# [wip] TODO streamline lookup paths (reuse abstraction in hooks, globals and deps).
+global ASC_SUBJECTS 'app env git provision remote stack service task worker logger asc'
+global ASC_ACTIONS 'bootstrap init load reload unload install reinstall uninstall build rebuild start restart stop add remove process trigger watch compile test plan delay deploy destroy'
+global ASC_HOOK_TYPES 'pre post'
 
-# TODO streamline lookup paths (reuse abstraction in hooks, globals and deps).
-# global ASC_SUBJECTS 'app env git provision remote stack'
-# global ASC_ACTIONS 'bootstrap load make build rebuild start restart stop deploy destroy process'
-# global ASC_HOOK_TYPES 'pre post'
+global ASC_CUSTOM_DIR "[default]=asc/custom"
