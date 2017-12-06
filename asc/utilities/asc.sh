@@ -8,15 +8,15 @@
 #
 
 ##
-# [debug] Triggers ASC_ACTIONS by ASC_SUBJECTS + ASC_HOOK_TYPES.
+# [debug] Triggers ASC_ACTIONS by ASC_SUBJECTS + ASC_VARIANTS.
 #
 # TODO fragment hooks in a predictable manner (function name convention) ?
-# e.g. ${ASC_SUBJECTS}[_${ASC_HOOK_TYPES}]_${ASC_ACTIONS}() { ... }
+# e.g. ${ASC_SUBJECTS}[_${ASC_VARIANTS}]_${ASC_ACTIONS}() { ... }
 #
 # @requires the following globals in calling scope (main shell) :
 # - $ASC_SUBJECTS
 # - $ASC_ACTIONS
-# - $ASC_HOOK_TYPES
+# - $ASC_VARIANTS
 #
 # @example
 #   u_asc_trigger
@@ -29,7 +29,7 @@ u_asc_trigger() {
   for subject in $ASC_SUBJECTS; do
     for action in $ASC_ACTIONS; do
       u_hook "$subject" "$action"
-      for hook_type in $ASC_HOOK_TYPES; do
+      for hook_type in $ASC_VARIANTS; do
         u_hook "$subject" "$action" "$hook_type"
       done
     done
@@ -39,7 +39,7 @@ u_asc_trigger() {
 ##
 # [wip] TODO wrap action calls by subject for "free" extensibility ?
 #
-# Idea: wrap all calls to ${ASC_SUBJECTS}[_${ASC_HOOK_TYPES}]_${ASC_ACTIONS} to
+# Idea: wrap all calls to ${ASC_SUBJECTS}[_${ASC_VARIANTS}]_${ASC_ACTIONS} to
 # avoid having to manually implement u_autoload_complement() or
 # u_autoload_override() or u_hook() + u_hook_${ASC_SUBJECTS} every time we need
 # those includes.
