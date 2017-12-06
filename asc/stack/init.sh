@@ -45,7 +45,7 @@ GLOBALS_COUNT=0
 GLOBALS_UNIQUE_NAMES=()
 GLOBALS_UNIQUE_KEYS=()
 
-# Get ASC core globals required for aggregating dependencies and env vars.
+# Get ASC globals required for aggregating dependencies and env vars.
 . asc/env/vars.sh
 
 # Aggregate dependencies and env vars.
