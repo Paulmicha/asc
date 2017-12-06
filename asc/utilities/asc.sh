@@ -44,10 +44,22 @@ u_asc_trigger() {
 # u_autoload_override() or u_hook() + u_hook_${ASC_SUBJECTS} every time we need
 # those includes.
 #
-# This could theoretically allow self-contained "presets" (bunch of includes
+# This could theoretically allow isolated "contexts" (bunch of includes
 # loosely bundled in a single dir) by temporarily prefixing current (main)
 # shell's relative file path.
 # + simple lists ("piles" of ASC_SUBJECTS) -> implement offset or index ?
 #
 # u_asc_preset_wrapper() {
 # }
+
+##
+# Determines if a function exists in current shell scope.
+#
+u_asc_function_exists() {
+  typeset TYPE_RESULT="`type -t $1`"
+  if [ "$TYPE_RESULT" == 'function' ]; then
+    return 0
+  else
+    return 1
+  fi
+}
