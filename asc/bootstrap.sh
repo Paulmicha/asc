@@ -18,23 +18,17 @@ export ASC_EXTENSIONS
 # Include required utilities.
 . asc/utilities/autoload.sh
 for file in $(find asc/utilities/* -type f -print0 | xargs -0); do
-  eval $(u_autoload_override "$file" 'continue')
-
   . "$file"
-
   u_autoload_get_complement "$file"
 done
 
-# Get ASC core "objects".
+# Initializes hooks and lookups (ASC extension mecanisms).
 u_asc_extend
 
 # Load optional additional includes.
 if [[ -n "$ASC_INC" ]]; then
   for file in $ASC_INC; do
-    eval $(u_autoload_override "$file" 'continue')
-
     . "$file"
-
     u_autoload_get_complement "$file"
   done
 fi
