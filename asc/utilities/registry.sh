@@ -46,6 +46,6 @@ if [[ -n "$REG_BACKEND" ]]; then
 fi
 
 # Load implementation corresponding to the backend type env setting.
-if [[ -f "asc/utilities/registry/${rb}.sh" ]]; then
-  . "asc/utilities/registry/${rb}.sh"
+if [[ -f "asc/utilities/inc/registry_backend.${rb}.sh" ]]; then
+  . "asc/utilities/inc/registry_backend.${rb}.sh"
 fi

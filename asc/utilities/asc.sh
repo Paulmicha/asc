@@ -29,11 +29,12 @@
 # 1. By default, contains the list of depth 1 folders names in ./asc (w/o slashes).
 #   If the dotfile '.asc_subjects' is present in current level, it overrides
 #   the entire list and may introduce values that are not folders (see below).
-#   If the dotfile '.asc_subjects.append' exists, its values are added.
+#   If the dotfile '.asc_subjects_append' exists, its values are added.
+#   If the dotfile '.asc_subjects_ignore' exists, its values are removed from
+#     the list of subjects (level 1 folders by default).
 #
-# 2. These variables names are based on the default asc/.asc_extensions file.
-#   They declare how to look for files to include in hooks (events) PER SUBJECT.
-#   Here's an example, given subject='stack' :
+# 2. These variables determine how to look for files to include during hooks
+#   (events) PER SUBJECT. Here's an example, given subject='stack' :
 #
 #   - 2.1 actions : provide list of all *.sh files in 'asc/stack' by default (no
 #     extension - values are only the 'name' of the file, see Conventions doc).
