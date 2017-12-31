@@ -4,7 +4,10 @@
 # [wip] Run tests.
 #
 # Usage :
-# $ . asc/test/run.sh
+# $ asc/test/run.sh
 #
 
-# TODO
+# [wip] debug.
+for file in $(find asc/test/asc -maxdepth 1 -type f -print0 | xargs -0); do
+  bats "$file"
+done
