@@ -11,5 +11,7 @@
 
 . asc/bootstrap.sh
 
+echo "ASC_INC = $ASC_INC" >&2
+
 # TODO [wip] debug OK.
 # exit 1
