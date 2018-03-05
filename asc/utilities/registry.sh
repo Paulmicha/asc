@@ -3,7 +3,7 @@
 ##
 # Local project registry.
 #
-# This script is dynamically loaded.
+# This file is sourced during core ASC bootstrap.
 # @see asc/bootstrap.sh
 #
 # Loads the file containing registry Bash utility functions corresponding to

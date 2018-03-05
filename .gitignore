@@ -46,9 +46,6 @@
 # TODO (wip) keep third-party code in this repo for now (until "incubation" of a few examples is done).
 !/asc/custom/extensions
 
-# TODO (wip) use shunit2 instead of bats for asc self-tests.
-asc/vendor/shunit2
-
 # DB dumps.
 /dumps/*
 !/dumps/README.md

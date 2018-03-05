@@ -12,10 +12,10 @@
 #
 
 # Make sure bootstrap runs only once in current shell scope.
-if [[ -z "$asc_bs_flag" ]]; then
-  asc_bs_flag=1
+if [[ -z "$ASC_BS_FLAG" ]]; then
+  ASC_BS_FLAG=1
 
-  # Include "core" utilities.
+  # Include ASC core utilities.
   . "asc/utilities/array.sh"
   . "asc/utilities/autoload.sh"
   . "asc/utilities/asc.sh"
