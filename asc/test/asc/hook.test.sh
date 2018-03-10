@@ -14,4 +14,14 @@
 
 . asc/bootstrap.sh
 
-# TODO (wip)
+##
+# Single arg hook : action.
+#
+test_asc_hook_single_action() {
+  local dry_run_hook=1
+  hook -a 'install'
+  assertFalse 'Global ASC_INC is empty (bootstrap test failed)' "[ -e \"$ASC_INC\" ]"
+}
+
+# Load and run shUnit2.
+. asc/vendor/shunit2/shunit2
