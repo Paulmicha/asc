@@ -8,7 +8,7 @@
 # Checks per host and/or app instance.
 # TODO local and/or remote (2 ways).
 #
-# This file is dynamically loaded.
+# This file is sourced during core ASC bootstrap.
 # @see asc/bootstrap.sh
 #
 # Convention : functions names are all prefixed by "u" (for "utility").
