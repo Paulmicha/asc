@@ -34,7 +34,8 @@ ASC "core" (i.e. this repo - as opposed to ASC *extensions*) provides a minimal 
 
 The organization of these scripts relies on file structure, naming conventions, and a few concepts :
 
-- **Bootstrap** is the entry point of any task's execution. It deals with the inclusion of all the relevant scripts and initializes global variables for the current project's isntance (e.g. host type, instance type, etc.)
+- **Globals** are the environment variables related to current project instance. They may be declared using the `global` function in files named `env.vars.sh` aggregated during initialization.
+- **Bootstrap** is the entry point of any task's execution. It deals with the inclusion of all the relevant scripts and loads global variables (e.g. host type, instance type, etc).
 - **Primitives** are fundamental values for ASC extension mecanisms. These are **subjects**, **actions**, and **extensions**. TODO insert here links to documentation.
 - **Hooks** are function calls mimicking events (optionally filtered by primitives), where "listening" entails creating some specific file(s) in certain path(s) corresponding to its arguments. TODO insert here links to documentation.
 
@@ -63,11 +64,9 @@ That choice has more to do with personal interest, self-teaching, and minimalism
 
 ## What could an ideal solution look like (high-level & secondary goals)
 
-The ideal solution would be measured in cognitive ressource - i.e. how do I quickly get these problems out of the way, *everytime* ?
+ASC only cares about testing and making [different tools](https://paulmicha.github.io/asc/about/tools-considerations.html) work together, so it should be as invisible / simple as possible and require minimal effort. The ideal solution would be measured in cognitive ressource - i.e. how quickly / cheaply can I try these tools together to see if they fit my needs ?
 
-It can seem titanesque to evaluate many [tools available nowadays](https://paulmicha.github.io/asc/about/tools-considerations.html), so patterns like *extensions* (or *recipes*) / declarative approaches (i.e. `*.yml` files) could be concepts simple enough to quickly "get".
-
-My current intuition of an "ideal" scaffolding tool is to apply focus on [language](https://pierrelevyblog.com/2017/10/06/the-next-platform) and communication (information design) - that's the ultimate goal.
+My current intuition of an "ideal" scaffolding tool is to apply focus on [language](https://pierrelevyblog.com/2017/10/06/the-next-platform) and communication (naming things as transparently as possible, information design, terse documentation and code comments).
 
 Among secondary goals are :
 
@@ -76,9 +75,11 @@ Among secondary goals are :
 
 ## Preprequisites
 
-- Local & remote hosts or VMs with bash support
+- Bash version 4+ (e.g. MacOS : `brew update && brew install bash && sudo bash -c 'echo /usr/local/bin/bash >> /etc/shells' && chsh -s /usr/local/bin/bash`)
+- Local host or VM with bash support
 - Git
 - Existing project (new or old)
+- [optional] Remote host accessible via SSH
 
 ASC is currently only tested on Debian and/or Ubuntu Linux hosts.
 
@@ -89,15 +90,15 @@ There are 2 ways to use ASC in existing or new projects :
 1. Use a single, "monolothic" repo for everything
 1. Keep application code in a separate Git repo (default, see `.gitignore`)
 
-### Option 1 first steps
+### Option 1 first steps ("monolothic" repo)
 
 - Download and/or copy&paste ASC files into project root dir (existing or new Git repo)
 - Undo default ignored subfolders in `.gitignore` file if/as needed
 
-### Option 2 first steps
+### Option 2 first steps (separate Git repo)
 
-- Download ASC in desired location (aka the project root dir)
-- Clone the application into a subfolder named e.g. `web`, `public`, etc.
+- Download ASC in desired location (aka the project root dir `$PROJECT_DOCROOT`)
+- Clone the application into a subfolder named e.g. `web`, `public`, etc. (`$APP_DOCROOT`)
 - Gitignore that subfolder by updating the `.gitignore` file accordingly
 - [optional] Make any alterations necessary
 - [optional] Maintain as a separate repo
@@ -114,38 +115,27 @@ When ASC files are in place alongside the rest of the project :
 
 See section *Frequent tasks (howtos / FAQ)* for details.
 
-## File structure (and status)
-
-ASC is under construction. Folders might still move around depending on its use, until I feel it can start proper versionning. Consider this repo a scratchpad for now.
-
-ASC essentially relies on a relative global namepace. Its creation process involves building it "on the fly" in other side projects in which each step listed above (*Next steps*) is achieved by specific, custom scripts placed in a different `scripts` dir alongside `asc` in `PROJECT_DOCROOT`. In such cases, `ASC_CUSTOM_DIR` is also set to `$PROJECT_DOCROOT/scripts` (See the *Alter / Extend ASC* section).
-
-Ultimately, it should not compete with [other projects](https://paulmicha.github.io/asc/about/tools-considerations.html) (and I couldn't find a better word than "glue" for now, sorry).
-
-This section illustrates a minimalist approach to organizational problems. It's still under study. Long-term considerations involve code generators, IEML, and the relationship between philosophy and programming ("naming things", "no language exists in isolation" - i.e. [schema.org](http://schema.org/docs/full.html)). Short-term : makefile integration ?
-
-The file structure follows [loose naming and folder structure conventions](https://paulmicha.github.io/asc/about/patterns.html). Typically facts, actions, subjects are used to categorize includes of bash scripts meant to be sourced directly inside custom scripts (not included in the ASC project).
+## ASC 'core' file structure
 
 ```txt
 /path/to/project/           ← Project root dir ($PROJECT_DOCROOT).
   ├── asc/
-  │   ├── app/              ← [WIP] App init / (re)build / watch.
-  │   ├── cron/             ← [WIP] Periodical / scheduled actions.
+  │   ├── app/              ← App init / (re)build / watch.
+  │   ├── cron/             ← Periodical / scheduled actions.
   │   ├── custom/           ← [configurable] default alterations dir ($ASC_CUSTOM_DIR).
-  │   ├── db/               ← [WIP] Database-related actions (TODO implement as ASC extension).
   │   ├── env/              ← Environment settings (global variables) actions (e.g. (re)write).
   │   │   └── current/      ← Generated settings specific to local instance (git-ignored).
   │   ├── git/              ← Versionning-related includes.
-  │   │   └── hooks/        ← [WIP] Entry points for auto-exec (tests, code linting, etc.)
-  │   ├── instance/         ← [WIP] Actions related to the entire project instance (init, (re)build, destroy, etc.)
-  │   ├── remote/           ← [WIP] Remote operations (e.g. instance tasks, but can be any action)
-  │   ├── service/          ← [TODO] Actions related to individual stack services (start, stop, remove, etc.)
-  │   ├── stack/            ← [WIP] Manage all services and/or workers for current project instance at once.
+  │   │   └── hooks/        ← Entry points for auto-exec (tests, code linting, etc.)
+  │   ├── instance/         ← Actions related to the entire project instance (init, (re)build, destroy, etc.)
+  │   ├── remote/           ← Remote operations (e.g. instance tasks, but can be any action)
+  │   │   └── instances/    ← Generated settings for each remote instance (git-ignored).
+  │   ├── service/          ← Actions related to individual stack services (start, stop, remove, etc.)
+  │   ├── stack/            ← Manage all services and/or workers for current project instance at once.
   │   ├── test/             ← Automated tests and actions.
-  │   │   └── self/         ← [WIP] ASC 'core' internal tests.
+  │   │   └── self/         ← ASC 'core' internal tests (uses shunit2 - see 'vendor' dir).
   │   ├── utilities/        ← ASC internal functions (hides complexity).
-  │   └── vendor/           ← Bundled ASC third-party dependencies.
-  ├── dumps/                ← [configurable] Database dump files (git-ignored + TODO implement as ASC extension).
+  │   └── vendor/           ← Bundled third-party dependencies.
   ├── web/                  ← [configurable] The app dir - can be outside project dir ($APP_DOCROOT).
   └── .gitignore            ← Replace with your own and/or edit.
 ```
@@ -161,51 +151,30 @@ Notable alteration/extension entry points :
 - `asc/bash_utils.sh`
 - `asc/stack/init.sh`
 
-### Complements
+### Overrides and Complements
 
-Given any bash include (sourced script include), the **complement** pattern simply attempts to include another corresponding file. The correspondance matches the relative path from `$PROJECT_DOCROOT/asc` in `$ASC_CUSTOM_DIR` : if the complementary file exists, it is included (sourced) right where `u_autoload_get_complement()` is called.
+These mecanisms consist respectively in loading an additional script or replacing it by another corresponding script. The correspondance matches the relative path from `$PROJECT_DOCROOT/asc` in `$ASC_CUSTOM_DIR` : if the complementary file exists, it is included (sourced) - either instead of the original include, or simply as an extra.
 
-Simple example from `asc/bash_utils.sh` :
+Example use case from `asc/bootstrap.sh` :
 
 ```sh
-for file in $(find asc/utilities/* -type f -print0 | xargs -0); do
+for file in $ASC_INC; do
+  # Any additional include may be overridden.
+  u_autoload_override "$file" 'continue'
+  eval "$inc_override_evaled_code"
+
   . "$file"
+
+  # Any additional include may be altered using the 'complement' pattern.
   u_autoload_get_complement "$file"
 done
 ```
 
-### Hooks
+### Extensions
 
 TODO
 
-### Overrides
-
-Same as the **complement** pattern, but this only includes the corresponding file :
-
-Given any bash include (sourced script include), the **override** pattern attempts to include another corresponding file. The correspondance matches the relative path from `$PROJECT_DOCROOT/asc` in `$ASC_CUSTOM_DIR` : if the overriding file exists, it is included (sourced) instead.
-
-Example in `asc/git/apply_config.sh` :
-
-```sh
-# When called in current shell scope, this will prevent the rest of the script
-# to run - return early - if an override for the current file (calling this) was
-# found and sourced.
-eval $(u_autoload_override "$BASH_SOURCE")
-```
-
-Example in `u_hook()` :
-
-```sh
-for hook_script in "${lookup_paths[@]}"; do
-  if [[ -f "$hook_script" ]]; then
-    eval $(u_autoload_override "$hook_script" 'continue')
-    . "$hook_script"
-  fi
-  u_autoload_get_complement "$hook_script"
-done
-```
-
-### Presets
+### Hooks
 
 TODO
 
@@ -227,7 +196,7 @@ Regarding ways to alter existing scripts, [the pattern "Autoload"](https://paulm
 *When to run* : initially + on-demand to **add, remove, change** project specifications (overwrites local env settings).
 
 ```sh
-. asc/stack/init.sh
+# TODO rewrite example code.
 ```
 
 ### Install host-level dependencies
@@ -239,11 +208,7 @@ Regarding ways to alter existing scripts, [the pattern "Autoload"](https://paulm
 *Prerequisites* : `asc/stack/init.sh`
 
 ```sh
-# To provision local host :
-. asc/stack/setup.sh
-
-# To provision a remote host :
-. asc/remote/setup.sh
+# TODO rewrite example code.
 ```
 
 ### Specify remote host
@@ -255,7 +220,7 @@ Regarding ways to alter existing scripts, [the pattern "Autoload"](https://paulm
 *Prerequisites* : SSH keys must already be set up & loaded in current user's bash session.
 
 ```sh
-. asc/remote/add_host.sh
+# TODO rewrite example code.
 ```
 
 ### Manage host services
@@ -270,16 +235,7 @@ Regarding ways to alter existing scripts, [the pattern "Autoload"](https://paulm
 - Remote : `asc/remote/add_host.sh` + `asc/remote/setup.sh`
 
 ```sh
-. asc/stack/start.sh
-. asc/stack/restart.sh
-. asc/stack/stop.sh
-. asc/stack/rebuild.sh # For docker-compose, e.g. when modifying images.
-
-# On remote (1st arg = instance domain) :
-. asc/remote/start.sh test.example.com
-. asc/remote/restart.sh test.example.com
-. asc/remote/stop.sh test.example.com
-. asc/remote/rebuild.sh test.example.com # For docker-compose, e.g. when modifying images.
+# TODO rewrite example code.
 ```
 
 ### Initialize application instance
@@ -294,11 +250,7 @@ Regarding ways to alter existing scripts, [the pattern "Autoload"](https://paulm
 - Remote : `asc/remote/start.sh`
 
 ```sh
-# To initialize local project instance :
-. asc/app/init.sh
-
-# To initialize a remote project instance (1st arg = instance domain) :
-. asc/remote/init.sh test.example.com
+# TODO rewrite example code.
 ```
 
 ### Reset application instance
@@ -313,11 +265,7 @@ Regarding ways to alter existing scripts, [the pattern "Autoload"](https://paulm
 - Remote : `asc/remote/init.sh`
 
 ```sh
-# To reset local project instance :
-. asc/app/reset.sh
-
-# To reset a remote project instance (1st arg = instance domain) :
-. asc/remote/reset.sh test.example.com
+# TODO rewrite example code.
 ```
 
 ### Manage specific application tasks
@@ -332,15 +280,7 @@ Regarding ways to alter existing scripts, [the pattern "Autoload"](https://paulm
 - Remote : `asc/remote/init.sh`
 
 ```sh
-. asc/app/watch.sh
-. asc/app/build.sh
-. asc/app/rebuild.sh
-. asc/app/test.sh
-
-# On remote (1st arg = instance domain) :
-. asc/remote/build.sh test.example.com
-. asc/remote/rebuild.sh test.example.com
-. asc/remote/test.sh test.example.com
+# TODO rewrite example code.
 ```
 
 ### Deploy to remote
@@ -352,8 +292,7 @@ Regarding ways to alter existing scripts, [the pattern "Autoload"](https://paulm
 *Prerequisites* : `asc/remote/init.sh`
 
 ```sh
-# Target remote using 1st arg (instance domain) :
-. asc/remote/deploy.sh test.example.com
+# TODO rewrite example code.
 ```
 
 ### 2-way Sync
