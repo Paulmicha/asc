@@ -142,14 +142,7 @@ See section *Frequent tasks (howtos / FAQ)* for details.
 
 ## Alter / Extend ASC
 
-There a different ways to alter or extend ASC. They usually consist in providing your own bash files in `ASC_CUSTOM_DIR` following the conventions listed below.
-
-It relies on [a minimalist "autoload" pattern](https://paulmicha.github.io/asc/about/patterns.html) (see **caveats** and **ways to mitigate** in documentation).
-
-Notable alteration/extension entry points :
-
-- `asc/bash_utils.sh`
-- `asc/stack/init.sh`
+Altering or extending ASC happens in `asc/custom` by default, but this path may be overridden using the `ASC_CUSTOM_DIR` global.
 
 ### Overrides and Complements
 
@@ -170,11 +163,7 @@ for file in $ASC_INC; do
 done
 ```
 
-### Extensions
-
-TODO
-
-### Hooks
+### Extensions and hooks
 
 TODO
 
