@@ -1,30 +1,27 @@
 #!/usr/bin/env bash
 
 ##
-# Global env settings declaration.
+# ASC core global env vars.
 #
-# This file is dynamically included during stack init. Matching rules and syntax
-# are explained in documentation.
-# @see asc/env/README.md
+# This file (and every others named like it in ASC extensions and in the ASC
+# customization dir) is used during "instance init" to generate a single script :
 #
-# TODO provide tests / CI examples.
+# asc/env/current/global.vars.sh
 #
-# These global variables are essential ASC internal values. Each should have a
-# corresponding argument in the asc/stack/init.sh script.
-# @see asc/stack/init/get_args.sh
+# That script file will contain declarations for every global variables found in
+# this project instance as readonly. It is git-ignored and loaded on every
+# bootstrap - if it exists, that is if "instance init" was already launched once
+# in current project instance.
 #
-
-# TODO remove or make opt-in.
-# Scripts should consider that any STATE value is an error, except for OK_STATES.
-# NB : the INSTANCE_STATE global variable is first defined during bootstrap.
+# Unless the "instance init" command is set to bypass prompts, every call to
+# global() will prompt for confirming or replacing default values or for simply
+# entering a value if no default is declared.
+#
+# @see asc/env/current/global.vars.sh
+# @see asc/instance/instance.inc.sh
+# @see asc/utilities/global.sh
 # @see asc/bootstrap.sh
-global OK_STATES "[default]='installed initialized running'"
-
-# TODO remove or make opt-in.
-# When this file is processed, it means "stack init" is run -> INSTANCE_STATE is
-# then set by default to 'initialized'.
-# TODO [wip] workaround instance state limitations (e.g. unhandled shutdown).
-global DEFAULT_STATE "[default]=initialized"
+#
 
 global PROJECT_STACK
 global PROJECT_DOCROOT "[default]=$PWD"
