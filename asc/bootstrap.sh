@@ -12,7 +12,7 @@
 #
 
 # Make sure bootstrap runs only once in current shell scope.
-if [ $ASC_BS_FLAG -ne 1 ]; then
+if [[ $ASC_BS_FLAG -ne 1 ]]; then
   ASC_BS_FLAG=1
 
   # Include ASC core utilities.

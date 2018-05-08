@@ -10,7 +10,8 @@
 # @requires global $INSTANCE_DOMAIN in scope.
 #
 # Usage :
-# $ . asc/db/get_credentials.sh
+# $ . asc/extensions/mysql/db/get_credentials.sh
 #
 
-u_db_get_credentials
+# TODO [wip] refacto in progress.
+# u_db_get_credentials
