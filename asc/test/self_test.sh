@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+##
+# ASC test self_test action.
+#
+# This generic implementation is meant for providing self-checking tests
+# concerning current project instance whose services may not necessarily be
+# running. For automated tests aimed at deployment / at runtime, see
+# $DEPLOY_USING-related hooks instead (e.g. git).
+#
+# @see hook()
+#
+# @example
+#   asc/test/self_test.sh
+#
+
+. asc/bootstrap.sh
+. asc/test/self_test.inc.sh
+
+hook -s 'test' -a 'self_test' -v 'HOST_TYPE PROVISION_USING'

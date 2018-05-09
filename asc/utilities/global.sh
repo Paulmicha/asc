@@ -80,70 +80,28 @@ EOF
 }
 
 ##
-# Aggregates global env vars for this instance.
+# Buils the lookup path list for global env vars declarations.
 #
 # This produces lookup paths by subject, action, and extensions.
 #
+# NB : this function writes its result to a variable subject to collision in
+# calling scope.
+#
+# @var global_lookup_paths
+#
 # @see u_instance_init()
+# @see u_global_aggregate()
 #
 # @example
-#   u_global_aggregate
+#   global_lookup_paths=''
+#   u_global_lookup_paths
+#   echo "$global_lookup_paths" # <- Yields the following lookup paths :
+#   # - asc/<ASC_SUBJECTS>/global.vars.sh
+#   # - asc/extensions/<ASC_EXTENSIONS>/<EXT_SUBJECTS>/global.vars.sh
+#   # - asc/extensions/<ASC_EXTENSIONS>/global.vars.sh
+#   # - $PROJECT_SCRIPTS/global.vars.sh
 #
-#   # May trigger the following lookup paths (depending if optional extensions
-#   # are present in current project instance) :
-#
-#   # - asc/app/global.vars.sh
-#   # - asc/extensions/docker4drupal/app/global.vars.sh
-#   # - asc/extensions/docker-compose/app/global.vars.sh
-#   # - asc/extensions/mysql/app/global.vars.sh
-#
-#   # - asc/git/global.vars.sh
-#   # - asc/extensions/docker4drupal/git/global.vars.sh
-#   # - asc/extensions/docker-compose/git/global.vars.sh
-#   # - asc/extensions/mysql/git/global.vars.sh
-#
-#   # - asc/host/global.vars.sh
-#   # - asc/extensions/docker4drupal/host/global.vars.sh
-#   # - asc/extensions/docker-compose/host/global.vars.sh
-#   # - asc/extensions/mysql/host/global.vars.sh
-#
-#   # - asc/instance/global.vars.sh
-#   # - asc/extensions/docker4drupal/instance/global.vars.sh
-#   # - asc/extensions/docker-compose/instance/global.vars.sh
-#   # - asc/extensions/mysql/instance/global.vars.sh
-#
-#   # - asc/remote/global.vars.sh
-#   # - asc/extensions/docker4drupal/remote/global.vars.sh
-#   # - asc/extensions/docker-compose/remote/global.vars.sh
-#   # - asc/extensions/mysql/remote/global.vars.sh
-#
-#   # - asc/stack/global.vars.sh
-#   # - asc/extensions/docker4drupal/stack/global.vars.sh
-#   # - asc/extensions/docker-compose/stack/global.vars.sh
-#   # - asc/extensions/mysql/stack/global.vars.sh
-#
-#   # - asc/drush/global.vars.sh
-#   # - asc/extensions/docker4drupal/drush/global.vars.sh
-#   # - asc/extensions/docker-compose/drush/global.vars.sh
-#   # - asc/extensions/mysql/drush/global.vars.sh
-#
-#   # - asc/test/global.vars.sh
-#   # - asc/extensions/docker4drupal/test/global.vars.sh
-#   # - asc/extensions/docker-compose/test/global.vars.sh
-#   # - asc/extensions/mysql/test/global.vars.sh
-#
-#   # - asc/db/global.vars.sh
-#   # - asc/extensions/docker4drupal/db/global.vars.sh
-#   # - asc/extensions/docker-compose/db/global.vars.sh
-#   # - asc/extensions/mysql/db/global.vars.sh
-#
-#   # - asc/extensions/mysql/global.vars.sh
-#   # - asc/extensions/docker4drupal/global.vars.sh
-#   # - asc/extensions/docker-compose/global.vars.sh
-#
-#   # - scripts/global.vars.sh
-#
-u_global_aggregate() {
+u_global_lookup_paths() {
   local f
   local inc_dry_run_files_list
 
@@ -154,7 +112,7 @@ u_global_aggregate() {
   hook -a 'global' -c 'vars.sh' -v '_NO_VARIANTS' -t
 
   for f in $inc_dry_run_files_list; do
-    . "$f"
+    global_lookup_paths+="$f "
   done
 
   # Allow extra lookup paths at the root of extensions.
@@ -162,7 +120,7 @@ u_global_aggregate() {
     local extension
     for extension in $ASC_EXTENSIONS; do
       if [ -f "$extension/global.vars.sh" ]; then
-        . "$extension/global.vars.sh"
+        global_lookup_paths+="$extension/global.vars.sh "
       fi
     done
   fi
@@ -170,8 +128,32 @@ u_global_aggregate() {
   # Allow extra lookup path at the root of project's scripts, *after* all
   # dynamic lookups above.
   if [ -f "$PROJECT_SCRIPTS/global.vars.sh" ]; then
-    . "$PROJECT_SCRIPTS/global.vars.sh"
+    global_lookup_paths+="$PROJECT_SCRIPTS/global.vars.sh"
   fi
+}
+
+##
+# Aggregates global env vars for this instance.
+#
+# @see u_instance_init()
+# @see u_global_lookup_paths()
+#
+# @example
+#   u_global_aggregate
+#
+u_global_aggregate() {
+  local inc
+  local global_lookup_paths=''
+
+  u_global_lookup_paths
+
+  for inc in $global_lookup_paths; do
+    # Allow overrides for any "global.vars.sh" lookup path.
+    u_autoload_override "$inc" 'continue'
+    eval "$inc_override_evaled_code"
+
+    . "$inc"
+  done
 
   # Support deferred value assignation.
   # @see global()

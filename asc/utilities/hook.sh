@@ -68,8 +68,8 @@
 #   # (given INSTANCE_TYPE='prod')
 #   # - asc/<ASC_SUBJECTS>/bootstrap.hook.sh
 #   # - asc/<ASC_SUBJECTS>/bootstrap.prod.hook.sh
-#   # - $PROJECT_SCRIPTS/<ASC_EXTENSIONS>/<EXT_SUBJECTS>/bootstrap.hook.sh
-#   # - $PROJECT_SCRIPTS/<ASC_EXTENSIONS>/<EXT_SUBJECTS>/bootstrap.prod.hook.sh
+#   # - asc/extensions/<ASC_EXTENSIONS>/<EXT_SUBJECTS>/bootstrap.hook.sh
+#   # - asc/extensions/<ASC_EXTENSIONS>/<EXT_SUBJECTS>/bootstrap.prod.hook.sh
 #
 #   # 2. When providing an action + a filter by subject :
 #   hook -a 'init' -s 'stack'
@@ -77,8 +77,8 @@
 #   # (given INSTANCE_TYPE='prod')
 #   # - asc/stack/init.hook.sh
 #   # - asc/stack/init.prod.hook.sh
-#   # - $PROJECT_SCRIPTS/<ASC_EXTENSIONS>/stack/init.hook.sh
-#   # - $PROJECT_SCRIPTS/<ASC_EXTENSIONS>/stack/init.prod.hook.sh
+#   # - asc/extensions/<ASC_EXTENSIONS>/stack/init.hook.sh
+#   # - asc/extensions/<ASC_EXTENSIONS>/stack/init.prod.hook.sh
 #
 #   # 3. When providing an action + a filter by 1 or several subjects + 1 or
 #   #   several variants filter :
@@ -89,10 +89,10 @@
 #   # - asc/stack/init.dev.hook.sh
 #   # - asc/stack/init.local.hook.sh
 #   # - asc/stack/init.dev.local.hook.sh
-#   # - $PROJECT_SCRIPTS/<ASC_EXTENSIONS>/stack/init.hook.sh
-#   # - $PROJECT_SCRIPTS/<ASC_EXTENSIONS>/stack/init.dev.hook.sh
-#   # - $PROJECT_SCRIPTS/<ASC_EXTENSIONS>/stack/init.local.hook.sh
-#   # - $PROJECT_SCRIPTS/<ASC_EXTENSIONS>/stack/init.dev.local.hook.sh
+#   # - asc/extensions/<ASC_EXTENSIONS>/stack/init.hook.sh
+#   # - asc/extensions/<ASC_EXTENSIONS>/stack/init.dev.hook.sh
+#   # - asc/extensions/<ASC_EXTENSIONS>/stack/init.local.hook.sh
+#   # - asc/extensions/<ASC_EXTENSIONS>/stack/init.dev.local.hook.sh
 #
 #   # 4. Extensions filter :
 #   hook -e 'nodejs'
@@ -107,8 +107,8 @@
 #   # (given INSTANCE_TYPE='prod')
 #   # - asc/<ASC_SUBJECTS>/pre_bootstrap.hook.sh
 #   # - asc/<ASC_SUBJECTS>/pre_bootstrap.prod.hook.sh
-#   # - $PROJECT_SCRIPTS/<ASC_EXTENSIONS>/<EXT_SUBJECTS>/pre_bootstrap.hook.sh
-#   # - $PROJECT_SCRIPTS/<ASC_EXTENSIONS>/<EXT_SUBJECTS>/pre_bootstrap.prod.hook.sh
+#   # - asc/extensions/<ASC_EXTENSIONS>/<EXT_SUBJECTS>/pre_bootstrap.hook.sh
+#   # - asc/extensions/<ASC_EXTENSIONS>/<EXT_SUBJECTS>/pre_bootstrap.prod.hook.sh
 #
 # We exceptionally name that function without following the usual convention.
 #

@@ -1,17 +1,16 @@
 #!/usr/bin/env bash
 
 ##
-# Run ASC core tests (checks ASC itself).
+# Implements hook -s 'test' -a 'self_test' -v 'HOST_TYPE PROVISION_USING'.
 #
-# Verifies that the generic ASC functions can successfully run on current host.
+# Runs ASC core tests (checks ASC itself). Verifies that the generic ASC
+# functions can successfully run on current host.
 #
 # @requires running the tests with the same user that will use ASC.
 #
 # @example
-#   asc/test/self.sh
+#   asc/test/self_test.sh
 #
-
-. asc/bootstrap.sh
 
 u_fs_file_list asc/test/asc '*.test.sh'
 
