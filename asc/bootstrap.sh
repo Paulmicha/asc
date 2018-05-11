@@ -16,17 +16,15 @@ if [[ $ASC_BS_FLAG -ne 1 ]]; then
   ASC_BS_FLAG=1
 
   # Include ASC core utilities.
-  . asc/utilities/array.sh
-  . asc/utilities/autoload.sh
   . asc/utilities/asc.sh
-  . asc/utilities/fs.sh
   . asc/utilities/global.sh
   . asc/utilities/hook.sh
-  . asc/utilities/once.sh # TODO remove or make opt-in.
-  . asc/utilities/registry.sh # TODO remove or make opt-in.
+  . asc/utilities/autoload.sh
+  . asc/utilities/fs.sh
+  . asc/utilities/array.sh
   . asc/utilities/string.sh
 
-  # If stack init was run at least once, automatically load global env vars.
+  # If instance init was run at least once, automatically load global env vars.
   # NB : this must happen before u_asc_extend() gets called because it uses the
   # customizable global var PROJECT_SCRIPTS to populate primitive values.
   if [ -f "asc/env/current/global.vars.sh" ]; then
