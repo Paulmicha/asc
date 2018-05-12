@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ##
-# ASC host provision action.
+# [abstract] ASC host provision action.
 #
 # This generic implementation provides entry points for installing some software
 # on current host. It supports variants by :
