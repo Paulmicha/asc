@@ -12,3 +12,5 @@
 . asc/bootstrap.sh
 
 # TODO [wip] refacto in progress.
+
+echo "TODO [wip] implement asc/extensions/docker4drupal/test/self_test.hook.sh"
