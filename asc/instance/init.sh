@@ -18,6 +18,4 @@ ASC_BS_SKIP_GLOBALS=1
 
 . asc/bootstrap.sh
 
-# TODO [wip] Makefile debug :
-echo "u_instance_init $@"
-# u_instance_init "$@"
+u_instance_init "$@"
