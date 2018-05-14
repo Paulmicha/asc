@@ -51,10 +51,6 @@ global PROVISION_USING "[default]=docker-compose"
 # @see u_autoload_get_complement()
 global PROJECT_SCRIPTS "[default]=scripts"
 
-# [optional] Allows extensions to provide their own makefile includes (after
-# instance init). This global must contain a list of paths relative to
-# PROJECT_DOCROOT separated by space.
-# @see https://www.gnu.org/software/make/manual/html_node/Include.html
-# @see asc/env/current/README.md
+# [optional] Provide additional custom makefile includes.
 # @see Makefile
-global ASC_MAKE_INC
+global ASC_MAKE_INC "[append]='$PROJECT_SCRIPTS/make.mk'"
