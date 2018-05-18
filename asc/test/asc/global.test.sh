@@ -17,6 +17,7 @@
 #
 
 . asc/bootstrap.sh
+. asc/test/self_test.inc.sh
 
 ##
 # Creates temporary files for verification purposes in current test case.

@@ -14,6 +14,5 @@
 #
 
 . asc/bootstrap.sh
-. asc/test/self_test.inc.sh
 
 hook -s 'test' -a 'self_test' -v 'HOST_TYPE PROVISION_USING'

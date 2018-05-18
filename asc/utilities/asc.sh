@@ -54,8 +54,6 @@
 #   asc/bootstrap.sh scope directly. They are meant to contain bash functions
 #   organized by subject. E.g. given subject = git : "$p_path/git/git.inc.sh".
 #
-# @see "conventions" + "extensibility" documentation.
-#
 u_asc_extend() {
   local p_path="$1"
   local p_namespace="$2"
@@ -66,9 +64,7 @@ u_asc_extend() {
 
   # Namespace defaults to the "$p_path" sanitized folder name (uppercase).
   if [[ -z "$p_namespace" ]]; then
-    p_namespace="${p_path##*/}"
-    u_str_sanitize_var_name "$p_namespace" 'p_namespace'
-    u_str_uppercase "$p_namespace" 'p_namespace'
+    u_asc_extension_namespace "${p_path##*/}" 'p_namespace'
   fi
 
   # Always reinit as empty strings on every call to u_asc_extend().
@@ -290,30 +286,67 @@ u_asc_primitive_values() {
 }
 
 ##
-# Checks if an extension has given subject.
+# Gets a ASC extension namespace.
+#
+# @param 1 String : extension folder name or path.
+# @param 2 [optional] String : the variable name in calling scope which will be
+#   assigned the result. Defaults to 'extension_namespace'.
+#
+# @var [default] extension_namespace
+#
+# @example
+#   u_asc_extension_namespace "asc/extensions/docker-compose"
+#   echo "$extension_namespace" # <- Prints DOCKER_COMPOSE.
+#
+#   # Using a custom variable name :
+#   my_ns_var=""
+#   for extension in $ASC_EXTENSIONS; do
+#     u_asc_extension_namespace "$extension" 'my_ns_var'
+#     echo "$my_ns_var"
+#   done
+#
+u_asc_extension_namespace() {
+  local p_ext="$1"
+  local p_asc_ext_ns_var_name="$2"
+  local asc_ext_ns_result
+
+  if [[ -z "$p_asc_ext_ns_var_name" ]]; then
+    p_asc_ext_ns_var_name='extension_namespace'
+  fi
+
+  asc_ext_ns_result="${p_ext##*/}"
+  u_str_sanitize_var_name "$asc_ext_ns_result" 'asc_ext_ns_result'
+  u_str_uppercase "$asc_ext_ns_result" 'asc_ext_ns_result'
+
+  printf -v "$p_asc_ext_ns_var_name" '%s' "$asc_ext_ns_result"
+}
+
+##
+# Checks if a namespace has given subject.
+#
+# @param 1 String : extension path (or folder name).
+# @param 2 String : the subject to check against.
 #
 # @example
 #   for extension in $ASC_EXTENSIONS; do
-#     if u_asc_extension_has_subject "asc/extensions/$extension" 'db' ; then
+#     if u_asc_namespace_has_subject "asc/extensions/$extension" 'db' ; then
 #       echo "extension '$extension' has the 'db' subject"
 #     fi
 #   done
 #
-u_asc_extension_has_subject() {
+u_asc_namespace_has_subject() {
   local p_extension_path="$1"
   local p_subject="$2"
 
-  local ext_namespace
-  local ext_subjects
+  local extension_subjects
+  local extension_namespace
 
-  ext_namespace="${p_extension_path##*/}"
-  u_str_sanitize_var_name "$ext_namespace" 'ext_namespace'
-  u_str_uppercase "$ext_namespace" ext_namespace
-  eval "ext_subjects=\"\$${ext_namespace}_SUBJECTS\""
+  u_asc_extension_namespace "$p_extension_path"
+  eval "extension_subjects=\"\$${extension_namespace}_SUBJECTS\""
 
-  if [[ -n "$ext_subjects" ]]; then
+  if [[ -n "$extension_subjects" ]]; then
     local s
-    for s in $ext_subjects; do
+    for s in $extension_subjects; do
       case "$p_subject" in "$s")
         return
       esac

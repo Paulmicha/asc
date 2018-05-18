@@ -20,6 +20,7 @@
 #
 
 . asc/bootstrap.sh
+. asc/test/self_test.inc.sh
 
 ##
 # Creates temporary files for verification purposes in current test case.
@@ -38,6 +39,7 @@ oneTimeSetUp() {
       echo "-> aborting" >&2
       echo >&2
       exit 2
+    fi
   done
 
   # Also test with a dummy extension (requires bootstrap reload, see below).
@@ -75,9 +77,9 @@ oneTimeSetUp() {
   touch "asc/extensions/nftaschdehnc/test/nftaschhnc_dry_run.sh"
 
   # Variants tests require the following globals. We set them with dummy values
-  # if stack init hasn't been run in current instance yet.
-  # @see asc/stack/init.sh
-  # @see asc/env/write.sh
+  # if instance init hasn't been run in current instance yet.
+  # @see u_instance_init()
+  # @see asc/instance/init.sh
   if [[ -z "$INSTANCE_TYPE" ]]; then
     INSTANCE_TYPE='dev'
   fi
@@ -106,19 +108,15 @@ test_asc_hook_single_action() {
   local hook_dry_run_matches=''
   local expected_list="asc/app/nftaschhnc_dry_run.hook.sh
 asc/extensions/nftaschdehnc/app/nftaschhnc_dry_run.hook.sh
-asc/cron/nftaschhnc_dry_run.hook.sh
-asc/db/nftaschhnc_dry_run.hook.sh
-asc/env/nftaschhnc_dry_run.hook.sh
 asc/git/nftaschhnc_dry_run.hook.sh
+asc/host/nftaschhnc_dry_run.hook.sh
 asc/instance/nftaschhnc_dry_run.hook.sh
 asc/remote/nftaschhnc_dry_run.hook.sh
 asc/extensions/nftaschdehnc/remote/nftaschhnc_dry_run.hook.sh
-asc/service/nftaschhnc_dry_run.hook.sh
-asc/stack/nftaschhnc_dry_run.hook.sh
-asc/extensions/nftaschdehnc/stack/nftaschhnc_dry_run.hook.sh
+asc/test/nftaschhnc_dry_run.hook.sh
 asc/extensions/nftaschdehnc/test/nftaschhnc_dry_run.$INSTANCE_TYPE.hook.sh
+asc/extensions/nftaschdehnc/stack/nftaschhnc_dry_run.hook.sh
 "
-
   hook -a 'nftaschhnc_dry_run' -t
 
   u_test_compare_expected_lookup_paths
@@ -130,7 +128,8 @@ asc/extensions/nftaschdehnc/test/nftaschhnc_dry_run.$INSTANCE_TYPE.hook.sh
 #
 test_asc_hook_subject() {
   local hook_dry_run_matches=''
-  local expected_list="asc/extensions/nftaschdehnc/test/nftaschhnc_dry_run.$INSTANCE_TYPE.hook.sh"
+  local expected_list="asc/test/nftaschhnc_dry_run.hook.sh
+asc/extensions/nftaschdehnc/test/nftaschhnc_dry_run.$INSTANCE_TYPE.hook.sh"
 
   hook -a 'nftaschhnc_dry_run' -s 'test' -t
 
