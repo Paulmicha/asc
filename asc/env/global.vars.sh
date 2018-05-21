@@ -52,4 +52,4 @@ global PROJECT_SCRIPTS "[default]=scripts [help]='Path to custom scripts ~ commo
 # @see u_instance_task_name()
 # @see Makefile
 global ASC_MAKE_INC "[append]='$PROJECT_SCRIPTS/make.mk'"
-global ASC_MAKE_TASKS_SHORTER "[append]='registry/reg lookup-path/lp'"
+global ASC_MAKE_TASKS_SHORTER "[append]='registry/reg lookup-path/lp test-self-test/test-self'"

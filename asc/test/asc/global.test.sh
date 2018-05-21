@@ -26,8 +26,14 @@
 #
 oneTimeSetUp() {
   local s
+  local s_upper
+
   for s in $ASC_SUBJECTS; do
-    touch "asc/$s/global.vars.sh"
+    u_str_uppercase "$s" 's_upper'
+    cat > "asc/$s/global.vars.sh" <<EOF
+#!/usr/bin/env bash
+global NFTASCGEVHNC_VAR_ASC_$s_upper 'test'
+EOF
 
     # Failsafe : cannot carry on if touch did not complete without error.
     if [[ $? -ne 0 ]]; then
@@ -78,12 +84,30 @@ EOF
 # Does the initial aggregation process work ?
 #
 test_asc_global_aggregate() {
-  local inc
   local global_lookup_paths=''
+  local p_ascii_dry_run=1
+  local p_ascii_yes=1
 
-  # TODO [wip] This is not possible to test the same way as asc/test/asc/hook.test.sh
-  # u_global_lookup_paths
-  # assertTrue 'Directory missing (creation test failed)' "[ -d '_asc_dir_test' ]"
+  unset GLOBALS
+  declare -A GLOBALS
+  GLOBALS_COUNT=0
+  GLOBALS_UNIQUE_NAMES=()
+  GLOBALS_UNIQUE_KEYS=()
+
+  u_global_aggregate
+  u_global_debug
+
+  local s
+  local s_upper
+  local s_test_val
+  for s in $ASC_SUBJECTS; do
+    u_str_uppercase "$s" 's_upper'
+    eval "s_test_val=\"\$$NFTASCGEVHNC_VAR_ASC_$s_upper\""
+    assertEquals "Value of NFTASCGEVHNC_VAR_ASC_$s_upper is missing or incorrect." "test" "$s_test_val"
+  done
+
+  assertEquals 'Value of NFTASCGEVHNC_VAR_1 is missing or incorrect.' "test" "$NFTASCGEVHNC_VAR_1"
+  assertEquals 'Value of NFTASCGEVHNC_APP_VAR_1 is missing or incorrect.' "test" "$NFTASCGEVHNC_APP_VAR_1"
 }
 
 ##
