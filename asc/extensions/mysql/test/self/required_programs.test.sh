@@ -15,8 +15,6 @@
 # @see asc/extensions/mysql/test/self_test.hook.sh
 #
 # @example
-#   make self-test
-#   asc/test/self_test.sh
 #   asc/extensions/mysql/test/mysql/required_programs.test.sh
 #
 
