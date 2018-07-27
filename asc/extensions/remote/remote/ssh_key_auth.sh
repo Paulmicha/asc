@@ -4,7 +4,9 @@
 # ASC remote ssh key auth action.
 #
 # @example
-#   asc/remote/ssh_key_auth.sh 'my_short_id'
+#   make remote-ssh-key-auth 'my_short_id'
+#   # Or :
+#   asc/extensions/remote/remote/ssh_key_auth.sh 'my_short_id'
 #
 
 . asc/bootstrap.sh

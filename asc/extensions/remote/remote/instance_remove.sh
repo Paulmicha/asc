@@ -4,7 +4,9 @@
 # ASC remote instance remove action.
 #
 # @example
-#   asc/remote/instance_remove.sh 'my_short_id'
+#   make remote-instance-remove 'my_short_id'
+#   # Or :
+#   asc/extensions/remote/remote/instance_remove.sh 'my_short_id'
 #
 
 . asc/bootstrap.sh

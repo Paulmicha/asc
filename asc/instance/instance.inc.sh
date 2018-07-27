@@ -186,6 +186,21 @@ u_instance_write_mk() {
   for sa_pair in $ASC_ACTIONS; do
     task=''
     u_instance_task_name "$sa_pair"
+
+    # The 'instance' subject is a special case : we remove it for ASC core tasks
+    # to explicitly make it the default subject. All actions belonging to the
+    # 'instance' subject from ASC core are transformed to the action part alone.
+    # Exception : instance-init -> init = already hardcoded, so prevent adding
+    # it twice.
+    # @see asc/instance/init.make.sh
+    # @see Makefile (the one in PROJECT_DOCROOT path).
+    case "$task" in instance-*)
+      case "$task" in instance-init)
+        continue
+      esac
+      task="${task#*instance-}"
+    esac
+
     mk_tasks+=("$task")
     mk_entry_points+=("asc/$sa_pair.sh")
   done

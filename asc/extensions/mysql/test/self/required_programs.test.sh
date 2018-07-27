@@ -15,7 +15,7 @@
 # @see asc/extensions/mysql/test/self_test.hook.sh
 #
 # @example
-#   asc/extensions/mysql/test/mysql/required_programs.test.sh
+#   asc/extensions/mysql/test/self/required_programs.test.sh
 #
 
 . asc/bootstrap.sh
