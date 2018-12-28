@@ -14,4 +14,3 @@
 global ASC_DB_MODE "[default]=none [help]='Specifies if ASC should handle DB credentials, and how. Possible values are none = credentials are handled externally, auto = local instance DB credentials are automatically generated (using random password), or manual = requests values once (using interactive terminal prompts).'"
 
 global ASC_DB_DUMPS_BASE_PATH "[default]=$PROJECT_DOCROOT/dumps"
-global WRITEABLE_DIRS "[append]=$ASC_DB_DUMPS_BASE_PATH"
