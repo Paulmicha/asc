@@ -7,9 +7,9 @@
 # @see asc/instance/fs_ownership_set.hook.sh
 #
 # @example
-#   make fix_ownership
+#   sudo make fix_ownership
 #   # Or :
-#   asc/instance/fix_ownership.sh
+#   sudo asc/instance/fix_ownership.sh
 #
 
 . asc/bootstrap.sh

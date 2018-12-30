@@ -44,13 +44,14 @@ test_asc_can_create_file() {
 
 ##
 # Can ASC change ownership ?
+# Update : removed (would require sudoing, not enforceable).
 #
-test_asc_can_chown() {
-  local rtrn
-  chown 81:81 '_asc_dir_test/_asc_file_test.txt'
-  rtrn=$?
-  assertEquals 'Chown failed (returned non-zero code)' 0 $rtrn
-}
+# test_asc_can_chown() {
+#   local rtrn
+#   chown 81:81 '_asc_dir_test/_asc_file_test.txt'
+#   rtrn=$?
+#   assertEquals 'Chown failed (returned non-zero code)' 0 $rtrn
+# }
 
 ##
 # Cleans up any leftovers from previous tests.
