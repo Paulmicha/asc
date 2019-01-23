@@ -29,8 +29,14 @@ if [[ $ASC_BS_FLAG -ne 1 ]]; then
   # customizable global var PROJECT_SCRIPTS to populate primitive values.
   # This can be opted-out by setting the flag ASC_BS_SKIP_GLOBALS to 1.
   # @see asc/instance/init.sh
-  if [[ -f "asc/env/current/global.vars.sh" ]] && [[ $ASC_BS_SKIP_GLOBALS -ne 1 ]]; then
-    . asc/env/current/global.vars.sh
+  if [[ $ASC_BS_SKIP_GLOBALS -ne 1 ]]; then
+    ASC_LOCAL_GLOBALS="scripts/asc/local/global.vars.sh"
+    if [[ -n "$INSTANCE_LOCAL_FILES" ]]; then
+      ASC_LOCAL_GLOBALS="$INSTANCE_LOCAL_FILES/global.vars.sh"
+    fi
+    if [[ -f "$ASC_LOCAL_GLOBALS" ]]; then
+      . "$ASC_LOCAL_GLOBALS"
+    fi
   fi
 
   # Initializes "primitives" for hooks and lookups (ASC extension mecanisms).
@@ -46,9 +52,6 @@ if [[ $ASC_BS_FLAG -ne 1 ]]; then
       eval "$inc_override_evaled_code"
 
       . "$file"
-
-      # Any additional include may be altered using the 'complement' pattern.
-      u_autoload_get_complement "$file"
     done
   fi
 

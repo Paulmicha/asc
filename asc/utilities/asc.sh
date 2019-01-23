@@ -129,6 +129,7 @@ u_asc_extensions() {
   local exclusions_arr
   local exclusions
   local excl
+  local custom_extend_path
 
   # ALlow to deactivate some extensions using dotfile '.asc_extensions_ignore'.
   exclusions_arr=()
@@ -165,6 +166,23 @@ u_asc_extensions() {
       ASC_INC+="$inc "
     fi
   done
+
+  # Consider "$PROJECT_SCRIPTS/asc/extend" as an extension.
+  custom_extend_path="scripts/asc/extend"
+  if [[ -n "$PROJECT_SCRIPTS" ]]; then
+    custom_extend_path="$PROJECT_SCRIPTS/asc/extend"
+  fi
+  if [[ -d "$custom_extend_path" ]]; then
+
+    # TODO [wip] Workaround by using reserved keyword ? -> adapt everywhere ?
+    ASC_EXTENSIONS+="extend "
+
+    u_asc_extend "$custom_extend_path"
+    inc="$custom_extend_path/custom.inc.sh"
+    if [[ -f "$inc" ]]; then
+      ASC_INC+="$inc "
+    fi
+  fi
 }
 
 ##
