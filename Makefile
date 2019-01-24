@@ -22,18 +22,11 @@
 # This '.env' file is generated during instance init.
 -include .env
 
-# Since the path to this project instance's scripts can be altered using a
-# global, and since its value is only available after instance init has run, we
-# attempt to include the default location if that global is not available yet.
-ifndef PROJECT_SCRIPTS
--include scripts/asc/extend/custom.mk
-else
--include $(PROJECT_SCRIPTS)/asc/extend/custom.mk
-endif
-
+# Project-specific tasks.
 ifdef ASC_MAKE_INC
 -include $(ASC_MAKE_INC)
 endif
+-include scripts/asc/extend/custom.mk
 
 # Default ASC tasks.
 -include asc/default.mk

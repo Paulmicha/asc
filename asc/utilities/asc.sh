@@ -47,8 +47,6 @@
 #   to each one of these extensions.
 #   Important notes : extensions' folder names can only contain the following
 #   characters : A-Z a-z 0-9 dots . underscores _ dashes -
-#   Also, if the ASC customization dir (PROJECT_SCRIPTS = 'scripts' by default)
-#   is altered, extensions can only be detected AFTER stack init has been run once.
 #
 # 4. The 'ASC_INC' values are a simple list of files to be sourced in
 #   asc/bootstrap.sh scope directly. They are meant to contain bash functions
@@ -167,13 +165,10 @@ u_asc_extensions() {
     fi
   done
 
-  # Consider "$PROJECT_SCRIPTS/asc/extend" as an extension. This allows to
-  # provide any implementation like "normal" ASC extensions, but dedicated to
-  # current project-specific operations (non-reusable).
+  # Consider "scripts/asc/extend" as an extension. This allows to
+  # provide any implementation like "normal" ASC extensions meant for current
+  # project-specific operations (non-reusable).
   custom_extend_path="scripts/asc/extend"
-  if [[ -n "$PROJECT_SCRIPTS" ]]; then
-    custom_extend_path="$PROJECT_SCRIPTS/asc/extend"
-  fi
   if [[ -d "$custom_extend_path" ]]; then
 
     # TODO [wip] Workaround by using reserved keyword ? -> adapt everywhere ?

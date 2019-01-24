@@ -52,7 +52,6 @@ u_instance_init() {
   # Configurable ASC internals.
   local p_ascii_host_type=''
   local p_ascii_provision_using=''
-  local p_ascii_project_scripts_dir=''
 
   local p_ascii_yes=0
   local p_ascii_dry_run=0
@@ -68,7 +67,6 @@ u_instance_init() {
 
       -h) p_ascii_host_type="$2"; shift 2;;
       -p) p_ascii_provision_using="$2"; shift 2;;
-      -c) p_ascii_project_scripts_dir="$2"; shift 2;;
 
       -y) p_ascii_yes=1; shift 1;;
       -r) p_ascii_dry_run=1; shift 1;;

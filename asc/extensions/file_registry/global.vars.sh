@@ -11,4 +11,4 @@
 # @see asc/bootstrap.sh
 #
 
-global FILE_REGISTRY_PATH "[default]='/opt/asc-registry' [help]='Specifies where the files used as key/value store backend should be written. Important note : when hosting multiple ASC projects and/or project instances on the same host, if this value differs, the host-level values won't be shared (which defeats their purpose)."
+global FILE_REGISTRY_PATH "[default]='/opt/asc-registry' [help]='Specifies where the files used as key/value store backend should be written. Important note : when hosting multiple ASC projects and/or project instances on the same host, if this value differs, the host-level values won’t be shared (which defeats their purpose).'"
