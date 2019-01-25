@@ -58,5 +58,8 @@ hook-debug:
 globals-lp:
 	@ asc/env/global_lookup_paths.make.sh
 
+list-actions:
+	@ asc/instance/list_actions.make.sh
+
 self-test:
 	@ asc/test/self_test.sh

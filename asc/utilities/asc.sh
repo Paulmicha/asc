@@ -487,8 +487,19 @@ u_asc_get_actions() {
 # currently active extensions.
 #
 # @example
-#   u_asc_extensions_get_makefiles
+#   lookup_paths="$(u_asc_extensions_get_makefiles)"
+#   echo "$lookup_paths"
 #
 u_asc_extensions_get_makefiles() {
-  # TODO [wip]
+  local mk_includes_lp
+  local asc_gm_ext
+  local ext_path
+
+  for asc_gm_ext in $ASC_EXTENSIONS; do
+    ext_path=''
+    u_asc_extension_path "$asc_gm_ext"
+    mk_includes_lp+="$ext_path/$asc_gm_ext/make.mk "
+  done
+
+  echo "$mk_includes_lp"
 }
