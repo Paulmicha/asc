@@ -16,3 +16,5 @@ The matching is done by by replacing the leading `asc/` in filepaths with `scrip
 asc/extensions/docker-compose/docker-compose.inc.sh
 -> scripts/asc/override/extensions/docker-compose/docker-compose.inc.sh
 ```
+
+For convenience, `asc/extensions/.asc_extensions_ignore` can be overridden using `scripts/asc/override/.asc_extensions_ignore` (instead of `scripts/asc/override/extensions/.asc_extensions_ignore`).

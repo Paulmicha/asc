@@ -130,11 +130,20 @@ u_asc_extensions() {
   local exclusions
   local excl
   local custom_extend_path
+  local extensions_ignore_filepath
 
   # ALlow to deactivate some extensions using dotfile '.asc_extensions_ignore'.
+  # This file can be overridden in project-specific scripts/asc/override folder.
   exclusions_arr=()
-  if [[ -f 'asc/extensions/.asc_extensions_ignore' ]]; then
-    u_fs_get_file_contents 'asc/extensions/.asc_extensions_ignore' 'exclusions'
+  extensions_ignore_filepath='asc/extensions/.asc_extensions_ignore'
+  if [[ -f 'scripts/asc/override/.asc_extensions_ignore' ]]; then
+    extensions_ignore_filepath='scripts/asc/override/.asc_extensions_ignore'
+  fi
+  if [[ -f 'scripts/asc/override/extensions/.asc_extensions_ignore' ]]; then
+    extensions_ignore_filepath='scripts/asc/override/extensions/.asc_extensions_ignore'
+  fi
+  if [[ -f "$extensions_ignore_filepath" ]]; then
+    u_fs_get_file_contents "$extensions_ignore_filepath" 'exclusions'
     if [[ -n "$exclusions" ]]; then
       for excl in $exclusions; do
         exclusions_arr+=("$excl")
