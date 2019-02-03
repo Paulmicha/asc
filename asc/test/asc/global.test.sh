@@ -103,11 +103,11 @@ test_asc_global_aggregate() {
 
   local s
   local s_upper
-  local s_test_val
+  local s_varname
   for s in $ASC_SUBJECTS; do
     u_str_uppercase "$s" 's_upper'
-    eval "s_test_val=\"\$NFTASCGEVHNC_VAR_ASC_$s_upper\""
-    assertEquals "Value of NFTASCGEVHNC_VAR_ASC_$s_upper is missing or incorrect." "test" "$s_test_val"
+    s_varname="NFTASCGEVHNC_VAR_ASC_${s_upper}"
+    assertEquals "Value of NFTASCGEVHNC_VAR_ASC_$s_upper is missing or incorrect." "test" "${!s_varname}"
   done
 
   assertEquals 'Value of NFTASCGEVHNC_VAR_1 is missing or incorrect.' "test" "$NFTASCGEVHNC_VAR_1"
