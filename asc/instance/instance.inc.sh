@@ -435,9 +435,9 @@ u_instance_write_mk() {
     return
   fi
 
-  echo "Writing generic Makefile include asc/env/current/default.mk ..."
+  echo "Writing generic Makefile include scripts/asc/local/default.mk ..."
 
-  cat > asc/env/current/default.mk <<'EOF'
+  cat > scripts/asc/local/default.mk <<'EOF'
 
 ##
 # Current instance Makefile include.
@@ -459,11 +459,11 @@ EOF
     echo ".PHONY: $task
 $task:
 	@ ${mk_entry_points[index]} \$(filter-out \$@,\$(MAKECMDGOALS))
-" >> asc/env/current/default.mk
+" >> scripts/asc/local/default.mk
 
   done
 
-  echo "Writing generic Makefile include asc/env/current/default.mk : done."
+  echo "Writing generic Makefile include scripts/asc/local/default.mk : done."
   echo
 }
 

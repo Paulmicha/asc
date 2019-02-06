@@ -7,7 +7,7 @@
 # @see u_instance_init() in asc/instance/instance.inc.sh
 #
 
-if [[ ! -d "asc/env/current/remote-instances" ]]; then
-  echo "Creating required dir asc/env/current/remote-instances"
-  mkdir -p "asc/env/current/remote-instances"
+if [[ ! -d "scripts/asc/local/remote-instances" ]]; then
+  echo "Creating required dir scripts/asc/local/remote-instances"
+  mkdir -p "scripts/asc/local/remote-instances"
 fi

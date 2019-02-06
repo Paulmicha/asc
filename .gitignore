@@ -4,7 +4,6 @@
 # using Agnostic Shell Controller.
 #
 
-
 # [customizable] Local environment global variables and other generated files.
 /scripts/asc/local/*
 !/scripts/asc/local/README.md
@@ -23,7 +22,7 @@
 /web
 /www
 
-# [optional] # Instance data.
+# [optional] Instance data.
 /data/db/*
 !/data/db/README.md
 /data/db-dumps/*
