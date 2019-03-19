@@ -15,7 +15,7 @@
 p_id="$1"
 p_id=${p_id//[^a-zA-Z0-9_\-\.]/}
 
-conf="asc/extensions/remote/remote/instances/${p_id}.sh"
+conf="scripts/asc/local/remote-instances/${p_id}.sh"
 
 if [[ -f "$conf" ]]; then
   rm "$conf"
