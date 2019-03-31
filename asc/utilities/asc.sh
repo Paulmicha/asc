@@ -131,17 +131,35 @@ u_asc_extensions() {
   local excl
   local custom_extend_path
   local extensions_ignore_filepath
+  local ei_override_lookup_arr
+  local ei_override
 
   # ALlow to deactivate some extensions using dotfile '.asc_extensions_ignore'.
   # This file can be overridden in project-specific scripts/asc/override folder.
   exclusions_arr=()
   extensions_ignore_filepath='asc/extensions/.asc_extensions_ignore'
-  if [[ -f 'scripts/asc/override/.asc_extensions_ignore' ]]; then
-    extensions_ignore_filepath='scripts/asc/override/.asc_extensions_ignore'
+
+  # The following lookups will be used in this order (the last found takes
+  # precedence) :
+  # - scripts/asc/override/.asc_extensions_ignore (convenience default path)
+  # - scripts/asc/override/extensions/.asc_extensions_ignore (normal override)
+  # - scripts/asc/override/${PROVISION_USING}.asc_extensions_ignore
+  # - scripts/asc/override/${INSTANCE_DOMAIN}.asc_extensions_ignore
+  ei_override_lookup_arr=()
+  ei_override_lookup_arr+=('scripts/asc/override/.asc_extensions_ignore')
+  ei_override_lookup_arr+=('scripts/asc/override/extensions/.asc_extensions_ignore')
+  if [[ -n "$PROVISION_USING" ]]; then
+    ei_override_lookup_arr+=("scripts/asc/override/${PROVISION_USING}.asc_extensions_ignore")
   fi
-  if [[ -f 'scripts/asc/override/extensions/.asc_extensions_ignore' ]]; then
-    extensions_ignore_filepath='scripts/asc/override/extensions/.asc_extensions_ignore'
+  if [[ -n "$INSTANCE_DOMAIN" ]]; then
+    ei_override_lookup_arr+=("scripts/asc/override/${INSTANCE_DOMAIN}.asc_extensions_ignore")
   fi
+  for ei_override in "${ei_override_lookup_arr[@]}"; do
+    if [[ -f "$ei_override" ]]; then
+      extensions_ignore_filepath="$ei_override"
+    fi
+  done
+
   if [[ -f "$extensions_ignore_filepath" ]]; then
     u_fs_get_file_contents "$extensions_ignore_filepath" 'exclusions'
     if [[ -n "$exclusions" ]]; then

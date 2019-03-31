@@ -11,4 +11,6 @@
 # @see u_instance_init() in asc/instance/instance.inc.sh
 #
 
-u_db_get_credentials
+for ASC_DB_ID in $ASC_DB_IDS; do
+  u_db_get_credentials
+done
