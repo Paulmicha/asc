@@ -12,7 +12,7 @@
 # @see asc/extensions/file_registry
 #
 # @example
-#   make reg-del
+#   make reg-del my_key
 #   # Or :
 #   asc/instance/registry_del.sh my_key
 #

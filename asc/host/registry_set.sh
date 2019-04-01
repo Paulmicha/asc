@@ -12,7 +12,7 @@
 # @see asc/extensions/file_registry
 #
 # @example
-#   make host-reg-set
+#   make host-reg-set my_key 'my value'
 #   # Or :
 #   asc/host/registry_set.sh my_key 'my value'
 #

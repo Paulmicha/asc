@@ -12,7 +12,7 @@
 # @see asc/extensions/file_registry
 #
 # @example
-#   make reg-get
+#   make reg-get my_key
 #   # Or :
 #   asc/instance/registry_get.sh my_key
 #
