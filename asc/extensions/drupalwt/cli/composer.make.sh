@@ -5,12 +5,12 @@
 #
 # Depends on composer (or an alias) being operational on current instance.
 #
-# @see asc/extensions/docker4drupal/make.mk
+# @see asc/extensions/drupalwt/make.mk
 #
 # @example
 #   make composer update nothing
 #   # Or :
-#   asc/extensions/docker4drupal/cli/composer.make.sh update nothing
+#   asc/extensions/drupalwt/cli/composer.make.sh update nothing
 #
 
 . asc/bootstrap.sh

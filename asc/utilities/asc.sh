@@ -143,16 +143,16 @@ u_asc_extensions() {
   # precedence) :
   # - scripts/asc/override/.asc_extensions_ignore (convenience default path)
   # - scripts/asc/override/extensions/.asc_extensions_ignore (normal override)
-  # - scripts/asc/override/${PROVISION_USING}.asc_extensions_ignore
-  # - scripts/asc/override/${INSTANCE_DOMAIN}.asc_extensions_ignore
+  # - scripts/asc/override/.${PROVISION_USING}.asc_extensions_ignore
+  # - scripts/asc/override/.${INSTANCE_DOMAIN}.asc_extensions_ignore
   ei_override_lookup_arr=()
   ei_override_lookup_arr+=('scripts/asc/override/.asc_extensions_ignore')
   ei_override_lookup_arr+=('scripts/asc/override/extensions/.asc_extensions_ignore')
   if [[ -n "$PROVISION_USING" ]]; then
-    ei_override_lookup_arr+=("scripts/asc/override/${PROVISION_USING}.asc_extensions_ignore")
+    ei_override_lookup_arr+=("scripts/asc/override/.${PROVISION_USING}.asc_extensions_ignore")
   fi
   if [[ -n "$INSTANCE_DOMAIN" ]]; then
-    ei_override_lookup_arr+=("scripts/asc/override/${INSTANCE_DOMAIN}.asc_extensions_ignore")
+    ei_override_lookup_arr+=("scripts/asc/override/.${INSTANCE_DOMAIN}.asc_extensions_ignore")
   fi
   for ei_override in "${ei_override_lookup_arr[@]}"; do
     if [[ -f "$ei_override" ]]; then
