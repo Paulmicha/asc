@@ -12,7 +12,7 @@ This extension :
 
 ## Getting started ex. : creating a new Drupal 8 project
 
-These steps assume you will use a dedicated Git repo for the Drupal application and docker-compose with the default stack preset provided in `asc/extensions/drupalwt/stack`.
+These steps assume you will use a dedicated Git repo for the Drupal application source code, and `docker-compose` with the default stack preset provided in `asc/extensions/drupalwt/stack`.
 
 ### 1. Prepare the dev stack
 
@@ -21,6 +21,7 @@ cd /path/to/my.project.com
 
 # Get ASC core files.
 git clone https://github.com/Paulmicha/asc.git .
+rm -rf .git
 
 # Enable required ASC extensions (same principle as .gitignore : list the
 # disabled ones in this file).
