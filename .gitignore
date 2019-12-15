@@ -10,6 +10,7 @@
 /app
 
 # Local environment global variables and other generated files.
+.asc-local.*
 /scripts/asc/local/*
 !/scripts/asc/local/README.md
 /.env

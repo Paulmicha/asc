@@ -64,12 +64,12 @@ u_instance_init() {
   # Reads values optionally provided in YAML config file.
   yaml_parsed_sp_init=''
   yaml_parsed_globals=''
-  u_instance_load_yaml_config
+  u_instance_yaml_config_load
   if [[ -n "$yaml_parsed_sp_init" ]]; then
     eval "$yaml_parsed_sp_init"
   fi
-  if [[ -n "$YAML_APP_REPO" ]]; then
-    p_ascii_app_git_origin="$YAML_APP_REPO"
+  if [[ -n "$YAML_APP_GIT_ORIGIN" ]]; then
+    p_ascii_app_git_origin="$YAML_APP_GIT_ORIGIN"
   fi
   if [[ -n "$YAML_SERVER_DOCROOT" ]]; then
     p_ascii_server_docroot="$YAML_SERVER_DOCROOT"
@@ -160,64 +160,111 @@ u_instance_init() {
 }
 
 ##
-# Detects asc_config.yml if it exists and loads its values as defaults.
+# Loads .asc.yml config files (+ variants) and converts them into declarations.
 #
-# This function writes its result in the following variables :
+# @requires the following variables in calling scope :
 # @var yaml_parsed_sp_init
 # @var yaml_parsed_globals
+#
+# @see u_instance_init()
+# @see u_instance_yaml_config_parse()
+#
+# To verify which files can be used (besides ".asc.yml" in this project
+# instance's docroot folder $PROJECT_DOCROOT), run :
+# $ make hook-debug s:instance a:.asc c:yml v:HOST_TYPE INSTANCE_TYPE
+#
+# @example
+#   yaml_parsed_sp_init=''
+#   yaml_parsed_globals=''
+#   u_instance_yaml_config_load
+#   # -> Usage 1 - special args override for u_instance_init() :
+#   eval "$yaml_parsed_sp_init"
+#   echo "$YAML_SERVER_DOCROOT"
+#   echo "$YAML_APP_DOCROOT"
+#   echo "$YAML_APP_GIT_ORIGIN"
+#   # -> Usage 2 - globals declarations :
+#   eval "$yaml_parsed_globals"
+#
+u_instance_yaml_config_load() {
+  local instance_yaml_config_file
+  local instance_yaml_config_root_files
+
+  # Start by looking for any declarations in ASC dirs (with variants).
+  hook_dry_run_matches=''
+  hook -s 'instance' -a '.asc' -c 'yml' -v 'HOST_TYPE INSTANCE_TYPE' -t
+  for instance_yaml_config_file in $hook_dry_run_matches; do
+    u_instance_yaml_config_parse "$instance_yaml_config_file"
+  done
+
+  # Now load the declarations in PROJECT_DOCROOT (so that these take precedence).
+  instance_yaml_config_root_files=".asc.yml
+.asc.$HOST_TYPE.yml
+.asc.$INSTANCE_TYPE.yml
+.asc.$HOST_TYPE.$INSTANCE_TYPE.yml
+.asc-local.yml
+.asc-local.$HOST_TYPE.yml
+.asc-local.$INSTANCE_TYPE.yml
+.asc-local.$HOST_TYPE.$INSTANCE_TYPE.yml"
+  for instance_yaml_config_file in $instance_yaml_config_root_files; do
+    if [[ -f "$instance_yaml_config_file" ]]; then
+      u_instance_yaml_config_parse "$instance_yaml_config_file"
+    fi
+  done
+}
+
+##
+# Converts given YAML config file into declarations code (for eval).
+#
+# @requires the following variables in calling scope :
+# @var yaml_parsed_sp_init
+# @var yaml_parsed_globals
+#
+# @see u_instance_init()
+# @see u_instance_yaml_config_load()
 #
 # For details on the syntax used to determine variable names from the YAML file
 # contents :
 # @see u_str_yaml_parse() in asc/utilities/string.sh
 #
-# To verify which files can be used (besides "asc_config.yml" in this project
-# instance's docroot folder $PROJECT_DOCROOT), run :
-# $ make hook-debug s:instance a:.asc c:yml v:HOST_TYPE INSTANCE_TYPE
-# In case of multiple existing matches, to check which one will be used, run :
-# $ make hook-debug ms s:instance a:.asc c:yml v:HOST_TYPE INSTANCE_TYPE
-#
 # @example
-#   u_instance_load_yaml_config
-#   # Results :
-#   echo "$YAML_APP_REPO"
-#   echo "$YAML_APP_WORKTREE"
+#   yaml_parsed_sp_init=''
+#   yaml_parsed_globals=''
+#   u_instance_yaml_config_parse ./.asc.yml
+#   # -> Usage 1 - special args override for u_instance_init() :
+#   eval "$yaml_parsed_sp_init"
+#   echo "$YAML_SERVER_DOCROOT"
 #   echo "$YAML_APP_DOCROOT"
+#   echo "$YAML_APP_GIT_ORIGIN"
+#   # -> Usage 2 - globals declarations :
+#   eval "$yaml_parsed_globals"
 #
-u_instance_load_yaml_config() {
-  local yaml_config_filepath='.asc.yml'
-  hook_most_specific_dry_run_match=''
+u_instance_yaml_config_parse() {
+  local yaml_config_filepath="$1"
+  local parsed_yaml
+  local parsed_line
 
-  u_hook_most_specific 'dry-run' \
-    -s 'instance' \
-    -a '.asc-config' \
-    -c 'yml' \
-    -v 'HOST_TYPE INSTANCE_TYPE' \
-    -t
-
-  if [[ -f "$hook_most_specific_dry_run_match" ]]; then
-    yaml_config_filepath="$hook_most_specific_dry_run_match"
+  if [[ ! -f "$yaml_config_filepath" ]]; then
+    echo >&2
+    echo "Error in u_instance_yaml_config_parse() - $BASH_SOURCE line $LINENO: given file path '$yaml_config_filepath' does not exist or is not accessible." >&2
+    echo "-> Aborting (1)." >&2
+    echo >&2
+    return 1
   fi
 
-  if [[ -f "$yaml_config_filepath" ]]; then
-    local parsed_yaml
-    local parsed_line
-    yaml_parsed_sp_init=''
-    yaml_parsed_globals=''
-    parsed_yaml="$(u_str_yaml_parse "$yaml_config_filepath" 'yaml_')"
-    for parsed_line in $parsed_yaml; do
-      case "${parsed_line:0:9}" in 'YAML_ENV_')
-        parsed_line="${parsed_line#'YAML_ENV_'}"
-        parsed_line="${parsed_line/'='/' '}"
-        yaml_parsed_globals+="global $parsed_line ; "
-        continue
-      esac
-      case "${parsed_line:0:11}" in 'YAML__ROOTS')
-        continue
-      esac
-      yaml_parsed_sp_init+="$parsed_line
-"
-    done
-  fi
+  parsed_yaml="$(u_str_yaml_parse "$yaml_config_filepath" 'yaml_')"
+
+  for parsed_line in $parsed_yaml; do
+    case "${parsed_line:0:11}" in 'YAML__ROOTS')
+      continue
+    esac
+    case "$parsed_line" in 'YAML_SERVER_DOCROOT'|'YAML_APP_DOCROOT'|'YAML_APP_GIT_ORIGIN')
+      yaml_parsed_sp_init+="$parsed_line ; "
+      continue
+    esac
+    parsed_line="${parsed_line#'YAML_'}"
+    parsed_line="${parsed_line/'='/' '}"
+    yaml_parsed_globals+="global $parsed_line ; "
+  done
 }
 
 ##
