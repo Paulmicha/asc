@@ -175,7 +175,7 @@ u_instance_init() {
 # @see u_instance_yaml_config_parse()
 #
 # To verify which files can be used (besides ".asc.yml" in this project
-# instance's docroot folder $PROJECT_DOCROOT), run :
+# instance's docroot folder $PROJECT_DOCROOT + its variants), run :
 # $ make hook-debug s:instance a:.asc c:yml v:HOST_TYPE INSTANCE_TYPE
 #
 # @example
