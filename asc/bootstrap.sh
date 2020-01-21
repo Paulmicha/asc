@@ -15,6 +15,11 @@
 if [[ $ASC_BS_FLAG -ne 1 ]]; then
   ASC_BS_FLAG=1
 
+  # NB: aliases are not expanded when the shell is not interactive, unless the
+  # expand_aliases shell option is set using shopt.
+  # See https://unix.stackexchange.com/a/1498
+  shopt -s expand_aliases
+
   # Include ASC core utilities.
   . asc/utilities/shell.sh
   . asc/utilities/asc.sh
@@ -41,6 +46,19 @@ if [[ $ASC_BS_FLAG -ne 1 ]]; then
   ASC_INC=''
   u_asc_extend
 
+  # Because aliases are expanded when a function definition is read, *not* when
+  # the function is executed, we need to have the possibility to define aliases
+  # *before* the includes are sourced.
+  # And because aliases may depend on optionally preset variables, we trigger
+  # the "pre_bootstrap" hook before.
+  # To verify which files can be used (and will be sourced) when these hooks are
+  # triggered, use the following commands *in this order* :
+  # $ make hook-debug s:asc a:pre_bootstrap v:PROVISION_USING
+  # $ make hook-debug s:asc a:alias v:PROVISION_USING
+  # $ make hook-debug s:asc a:bootstrap v:PROVISION_USING
+  hook -s 'asc' -a 'pre_bootstrap' -v 'PROVISION_USING'
+  hook -s 'asc' -a 'alias' -v 'PROVISION_USING'
+
   # Load additional includes (including extensions').
   if [[ -n "$ASC_INC" ]]; then
     for file in $ASC_INC; do
@@ -52,15 +70,6 @@ if [[ $ASC_BS_FLAG -ne 1 ]]; then
     done
   fi
 
-  # Allow extensions to implement custom global variables or aliases.
-  # To verify which files can be used (and will be sourced) when these hooks are
-  # triggered, use the following commands in this order :
-  # $ make hook-debug s:asc a:pre_bootstrap v:PROVISION_USING
-  # $ make hook-debug s:asc a:bootstrap v:PROVISION_USING
-  # NB: aliases are not expanded when the shell is not interactive, unless the
-  # expand_aliases shell option is set using shopt.
-  # See https://unix.stackexchange.com/a/1498
-  shopt -s expand_aliases
-  hook -s 'asc' -a 'pre_bootstrap' -v 'PROVISION_USING'
+  # Allow extensions to implement custom additional env. variables.
   hook -s 'asc' -a 'bootstrap' -v 'PROVISION_USING'
 fi
