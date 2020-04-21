@@ -17,8 +17,25 @@
 #
 
 # The only values we're using when re-initializing are ASC 'core' globals.
-if [[ -f scripts/asc/local/global.vars.sh ]]; then
-  . scripts/asc/local/global.vars.sh
+if [[ -f '.env' ]]; then
+  # Can't have read-only variables here, so we need to extract just the
+  # variables we need.
+  while IFS= read -r line _; do
+    case "$line" in
+      'INSTANCE_TYPE='*)
+        eval "$line"
+        ;;
+      'INSTANCE_DOMAIN='*)
+        eval "$line"
+        ;;
+      'HOST_TYPE='*)
+        eval "$line"
+        ;;
+      'PROVISION_USING='*)
+        eval "$line"
+        ;;
+    esac
+  done < '.env'
 fi
 
 # Wipe out env vars to avoid pile-ups for 'append' type globals during reinit.

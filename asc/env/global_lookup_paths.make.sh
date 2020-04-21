@@ -52,20 +52,20 @@ if [[ -n "$PROVISION_USING" ]]; then
   fi
 fi
 
-# 3. Using the .asc.yml method takes precedence.
+# 3. Using the asc.yml method takes precedence.
 echo
 if [[ -n "$HOST_TYPE" ]] && [[ -n "$INSTANCE_TYPE" ]]; then
-  hook -s 'instance' -a '.asc' -c 'yml' -v 'HOST_TYPE INSTANCE_TYPE' -d -t
-  echo ".asc.yml
-.asc.$HOST_TYPE.yml
-.asc.$INSTANCE_TYPE.yml
-.asc.$HOST_TYPE.$INSTANCE_TYPE.yml
+  hook -s 'instance' -a 'asc' -c 'yml' -v 'HOST_TYPE INSTANCE_TYPE' -d -t
+  echo "asc.yml
+asc.$HOST_TYPE.yml
+asc.$INSTANCE_TYPE.yml
+asc.$HOST_TYPE.$INSTANCE_TYPE.yml
 .asc-local.yml
 .asc-local.$HOST_TYPE.yml
 .asc-local.$INSTANCE_TYPE.yml
 .asc-local.$HOST_TYPE.$INSTANCE_TYPE.yml"
 else
-  echo ".asc.yml
+  echo "asc.yml
 .asc-local.yml"
 fi
 
