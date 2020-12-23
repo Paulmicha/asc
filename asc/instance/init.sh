@@ -9,14 +9,16 @@
 #   asc/instance/init.sh
 #
 #   # Initializes an instance of type 'dev', host type 'local', provisionned
-#   # using 'ansible', identified by domain 'dev.asc.com', with git origin
-#   # 'git@my-git-origin.org:my-git-account/asc.git', app sources cloned in 'dist',
-#   # and using 'dist/web' as server docroot - without terminal prompts (-y flag).
-#   asc/instance/init.sh \
+#   # using 'ansible', identified by domain 'dev.asc.com', using 'asc_dev' as
+#   # docker-compose namespace, with git origin
+#   'git@my-git-origin.org:my-git-account/asc.git', app sources cloned in 'dist',
+#   # and using 'dist/web' as app dir - without terminal prompts (-y flag).
+#   u_instance_init \
 #     -t 'dev' \
 #     -h 'local' \
 #     -p 'ansible' \
 #     -d 'dev.asc.com' \
+#     -c 'asc_dev' \
 #     -g 'git@my-git-origin.org:my-git-account/asc.git' \
 #     -a 'dist' \
 #     -s 'dist/web' \
