@@ -14,7 +14,7 @@
 # @example
 #   # Initializes a new remote instance of type 'dev' without interactive
 #   # terminal prompts :
-#   asc/extensions/remote/remote/init.sh 'dev' -t 'dev' -y
+#   asc/extensions/remote/remote/init.sh 'dev' -t 'dev'
 #
 
 . asc/bootstrap.sh
