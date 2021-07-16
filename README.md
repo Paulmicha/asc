@@ -23,12 +23,14 @@ Here's the list of extensions included (in folder `asc/extensions`) :
 | Name | Enabled by default ? | Description |
 |------|:--------------------:|-------------|
 | `apache` |  | Apache web server VHost generation (and deletion) utilities. Very basic implementations for more traditional LAMP stacks (not using docker-compose). |
+| `arangodb` |  | For now, this extension only contains an alias and a Docker image tag default value. |
 | `db` |  | Abstract hooks and entry points for database-related tasks. See the 'mysql' extension for an implementation example. |
 | `docker-compose` |  | Implements instance start, stop, build, and destroy actions. Can be used in different ways : see `DC_MODE` help text (`asc/extensions/docker-compose/global.vars.sh`). |
 | `drupalwt` |  | Provides generic Drupal-related tasks. See [documentation with a "getting started" step-by-step example](asc/extensions/drupalwt/README.md). |
 | `drupalwt_d4d` |  | Provides Drupal projects with a default "stack" using `docker-compose` and [docker4drupal](https://github.com/wodby/docker4drupal) containers. |
 | `file_registry` | ✔ | Default storage for ASC "registry" (minimal file-based key/value store scoped by project instance or host). |
 | `mysql` |  | Provides mysql implementations of the abstractions provided by the `db` extension such as database creation, dumps import/export, etc. |
+| `node` |  | For now, this extension only contains a few aliases and a default port value (3000). |
 | `pgsql` |  | Same as `mysql` but for Postgres. |
 | `remote` |  | Utilities to synchronize local instance with remote instance(s). Uses SSH keys loaded in current terminal session. |
 | `remote_db` |  | Uses the `db` and `remote` extensions to provide DB dumps 2-way sync capabilities. |
@@ -309,6 +311,7 @@ By default, ASC generates the following *make* shortcuts correponding to these *
 |------|--------|----------|
 | *app git* | `asc/app/git.sh` | `make app-git` |
 | *app install* | `asc/app/install.sh` | `make app-install` |
+| *app update* | `asc/app/update.sh` | `make app-update` |
 | *git write-hooks* | `asc/git/write_hooks.sh` | `make git-write-hooks` |
 | *host provision* | `asc/host/provision.sh` | `make host-provision` |
 | *host registry-del* | `asc/host/registry_del.sh` | `make host-reg-del` * |
@@ -482,11 +485,10 @@ For convenience, `asc/extensions/.asc_extensions_ignore` can be overridden using
 
 ## Roadmap
 
-The following improvements or ideas crossed my mind. Who knows, maybe one day I'll give it a go :
-
+- Self-tests must be kept up to date
+- Fix MacOS-specific errors
 - Generally, look for ways to offload more tasks to third-party projects
 - Remove bashisms / make POSIX-compliant for extending compatibility
-- So bash was fun. Use Python - or Rust / C / [Wasm+Wasi](https://twitter.com/solomonstre/status/1111004913222324225) instead
 
 ## License
 

@@ -21,5 +21,13 @@
 
 asc/extensions/remote/remote/init.sh $@
 
+if [[ $? -ne 0 ]]; then
+  echo >&2
+  echo "Error in $BASH_SOURCE line $LINENO: remote project initialization failed." >&2
+  echo "-> Aborting (1)." >&2
+  echo >&2
+  exit 1
+fi
+
 asc/extensions/remote/remote/exec.sh "$1" \
   'asc/instance/start.sh && asc/app/install.sh'

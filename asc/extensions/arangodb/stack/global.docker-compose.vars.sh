@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 
 ##
-# Global (env) vars for mysql extension provisionned using docker-compose.
+# Stack-specific custom ASC globals for instances using docker-compose.
 #
-# Provides service name (container) for use in bash aliases.
-# @see asc/extensions/mysql/asc/bootstrap.docker-compose.hook.sh
+# See https://hub.docker.com/_/arangodb/
 #
 # This file is used during "instance init" to generate the global environment
 # variables specific to current project instance.
@@ -14,4 +13,4 @@
 # @see asc/bootstrap.sh
 #
 
-global MYSQL_SNAME "[default]=mariadb"
+global ARANGODB_TAG "[default]='3.7.12'"
