@@ -15,9 +15,9 @@
 #   make db-dl-from my_remote_id new
 #   make db-dl-from my_remote_id path/to/remote/dump/file.sql.tgz
 #   # Or :
-#   asc/extensions/remote/db/dl_from.sh my_remote_id
-#   asc/extensions/remote/db/dl_from.sh my_remote_id new
-#   asc/extensions/remote/db/dl_from.sh my_remote_id path/to/remote/dump/file.sql.tgz
+#   asc/extensions/remote_db/db/dl_from.sh my_remote_id
+#   asc/extensions/remote_db/db/dl_from.sh my_remote_id new
+#   asc/extensions/remote_db/db/dl_from.sh my_remote_id path/to/remote/dump/file.sql.tgz
 #
 
 . asc/bootstrap.sh
