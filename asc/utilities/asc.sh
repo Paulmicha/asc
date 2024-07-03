@@ -118,18 +118,20 @@ u_asc_extend() {
   # local actions_var="${p_namespace}_ACTIONS"
   # echo "$actions_var = '${!actions_var}'"
 
-  # Convenience additional INC lookup for project-specific functions.
-  if [[ -d scripts/asc ]]; then
-    for inc in scripts/asc/*.inc.sh; do
-      ASC_INC+="$inc "
-    done
-  fi
-
   # If extensions are detected, loop through each of them to aggregate namespaced
   # primitives + restrict this to ASC namespace only.
   if [[ "$p_namespace" == 'ASC' ]]; then
     export ASC_EXTENSIONS
     u_asc_extensions
+
+    # Convenience additional INC lookup for project-specific functions.
+    if [[ -d scripts/asc ]]; then
+      for inc in scripts/asc/*.inc.sh; do
+        if [[ -f "$inc" ]]; then
+          ASC_INC+="$inc "
+        fi
+      done
+    fi
 
     # Update 2024-06 cache results.
     # @see asc/bootstrap.sh

@@ -33,6 +33,4 @@ for f in $asc_instance_uninit_purge_list; do
 done
 
 # Update 2024-06 cache results.
-if [[ -d scripts/asc/local/cache ]]; then
-  rm -rf scripts/asc/local/cache
-fi
+. asc/cache/clear.sh

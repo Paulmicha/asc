@@ -19,9 +19,7 @@
 #
 
 # Update 2024-06 cache results.
-if [[ -d scripts/asc/local/cache ]]; then
-  rm -rf scripts/asc/local/cache
-fi
+. asc/cache/clear.sh
 
 # Can't have read-only variables here, so we need to extract just the
 # variables we need.
