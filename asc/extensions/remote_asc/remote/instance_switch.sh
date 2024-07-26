@@ -12,17 +12,17 @@
 #   # Switches the 'prod' remote instance to type 'prod'.
 #   make remote-instance-switch
 #   # Or :
-#   asc/extensions/remote/remote/instance_switch.sh
+#   asc/extensions/remote_asc/remote/instance_switch.sh
 #
 #   # Switches the 'stage' remote instance to type 'prod'.
 #   make remote-instance-switch 'stage'
 #   # Or :
-#   asc/extensions/remote/remote/instance_switch.sh 'stage'
+#   asc/extensions/remote_asc/remote/instance_switch.sh 'stage'
 #
 #   # Switches the 'dev' remote instance to type 'stage'.
 #   make remote-instance-switch 'dev' 'stage'
 #   # Or :
-#   asc/extensions/remote/remote/instance_switch.sh 'dev' 'stage'
+#   asc/extensions/remote_asc/remote/instance_switch.sh 'dev' 'stage'
 #
 
 . asc/bootstrap.sh
@@ -37,5 +37,5 @@ if [[ -z "$p_new_type" ]]; then
   p_new_type='prod'
 fi
 
-. asc/extensions/remote/remote/exec.sh "$p_remote_id" \
+. asc/extensions/remote_asc/remote/exec.sh "$p_remote_id" \
   "asc/instance/switch_type.sh $p_new_type && asc/instance/restart.sh"

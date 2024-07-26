@@ -16,10 +16,10 @@
 #   # prompts, overriding the host type to 'local' (to avoid being assigned
 #   # the 'prod remote' INSTANCE_DOMAIN when we're using the local YAML settings
 #   # overrides - i.e. scripts/asc/override/.asc-local.remote.prod.yml):
-#   asc/extensions/remote/remote/setup.sh 'lan' -t 'prod' -h 'local'
+#   asc/extensions/remote_asc/remote/setup.sh 'lan' -t 'prod' -h 'local'
 #
 
-asc/extensions/remote/remote/init.sh $@
+asc/extensions/remote_asc/remote/init.sh $@
 
 if [[ $? -ne 0 ]]; then
   echo >&2
@@ -29,5 +29,5 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
-asc/extensions/remote/remote/exec.sh "$1" \
+asc/extensions/remote_asc/remote/exec.sh "$1" \
   'asc/instance/start.sh && asc/app/install.sh'

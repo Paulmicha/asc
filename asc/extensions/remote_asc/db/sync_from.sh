@@ -15,9 +15,9 @@
 #   make db-sync-from prod new
 #   make db-sync-from prod path/to/remote/dump/file.sql.tgz
 #   # Or :
-#   asc/extensions/remote_db/db/sync_from.sh prod
-#   asc/extensions/remote_db/db/sync_from.sh prod new
-#   asc/extensions/remote_db/db/sync_from.sh prod path/to/remote/dump/file.sql.tgz
+#   asc/extensions/remote_asc/db/sync_from.sh prod
+#   asc/extensions/remote_asc/db/sync_from.sh prod new
+#   asc/extensions/remote_asc/db/sync_from.sh prod path/to/remote/dump/file.sql.tgz
 #
 
 . asc/bootstrap.sh

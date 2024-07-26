@@ -12,12 +12,12 @@
 #   # Deploy target defaults to the 'prod' remote instance.
 #   make app-deploy
 #   # Or :
-#   asc/extensions/remote/app/deploy.sh
+#   asc/extensions/remote_asc/app/deploy.sh
 #
 #   # Deploy to the 'dev' remote instance.
 #   make app-deploy 'dev'
 #   # Or :
-#   asc/extensions/remote/app/deploy.sh 'dev'
+#   asc/extensions/remote_asc/app/deploy.sh 'dev'
 #
 
 p_remote_id="$1"
@@ -26,5 +26,5 @@ if [[ -z "$p_remote_id" ]]; then
   p_remote_id='prod'
 fi
 
-asc/extensions/remote/remote/exec.sh "$p_remote_id" \
+asc/extensions/remote_asc/remote/exec.sh "$p_remote_id" \
   'asc/app/update.sh'

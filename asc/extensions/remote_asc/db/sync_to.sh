@@ -15,9 +15,9 @@
 #   make db-sync-to dev new
 #   make db-sync-to dev path/to/local/dump/file.sql.tgz
 #   # Or :
-#   asc/extensions/remote_db/db/sync_to.sh dev
-#   asc/extensions/remote_db/db/sync_to.sh dev new
-#   asc/extensions/remote_db/db/sync_to.sh dev path/to/local/dump/file.sql.tgz
+#   asc/extensions/remote_asc/db/sync_to.sh dev
+#   asc/extensions/remote_asc/db/sync_to.sh dev new
+#   asc/extensions/remote_asc/db/sync_to.sh dev path/to/local/dump/file.sql.tgz
 #
 
 . asc/bootstrap.sh

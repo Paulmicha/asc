@@ -11,10 +11,10 @@
 # @example
 #   make remote-destroy 'my_short_id'
 #   # Or :
-#   asc/extensions/remote/remote/destroy.sh 'my_short_id'
+#   asc/extensions/remote_asc/remote/destroy.sh 'my_short_id'
 #
 
 . asc/bootstrap.sh
 
-asc/extensions/remote/remote/exec.sh "$1" \
+asc/extensions/remote_asc/remote/exec.sh "$1" \
   'asc/instance/destroy.sh && find . -delete'
