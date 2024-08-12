@@ -40,26 +40,30 @@
 #   make self-test
 #
 
-.PHONY: init init-debug setup hook hook-debug globals-lp self-test debug
+# .PHONY: init init-debug setup hook hook-debug globals-lp self-test debug
+.PHONY: init init-debug setup hook hook-debug globals-lp self-test
 
 init:
-	@ asc/instance/init.make.sh $(filter-out $@,$(MAKECMDGOALS))
+	@ asc/make/default.hardcoded_check_args.make.sh $(MAKECMDGOALS) && instance/init.sh $(filter-out $@,$(MAKECMDGOALS))
 
 init-debug:
-	@ asc/instance/init.make.sh -d -r $(filter-out $@,$(MAKECMDGOALS))
+	@ asc/make/default.hardcoded_check_args.make.sh $(MAKECMDGOALS) && instance/init.sh -d -r $(filter-out $@,$(MAKECMDGOALS))
 
 # Make this shortcut available before instance init.
 setup:
-	@ asc/instance/setup.sh $(filter-out $@,$(MAKECMDGOALS))
+	@ asc/make/default.hardcoded_check_args.make.sh $(MAKECMDGOALS) && instance/setup.sh $(filter-out $@,$(MAKECMDGOALS))
 
 hook:
-	@ asc/instance/hook.make.sh $(filter-out $@,$(MAKECMDGOALS))
+	@ asc/make/default.hardcoded_check_args.make.sh $(MAKECMDGOALS) && instance/hook.make.sh $(filter-out $@,$(MAKECMDGOALS))
 
 hook-debug:
-	@ asc/instance/hook.make.sh -d -t $(filter-out $@,$(MAKECMDGOALS))
+	@ asc/make/default.hardcoded_check_args.make.sh $(MAKECMDGOALS) && instance/hook.make.sh -d -t $(filter-out $@,$(MAKECMDGOALS))
 
 globals-lp:
-	@ asc/env/global_lookup_paths.make.sh $(filter-out $@,$(MAKECMDGOALS))
+	@ asc/make/default.hardcoded_check_args.make.sh $(MAKECMDGOALS) && env/global_lookup_paths.make.sh $(filter-out $@,$(MAKECMDGOALS))
 
 self-test:
-	@ asc/test/self_test.sh $(filter-out $@,$(MAKECMDGOALS))
+	@ asc/make/default.hardcoded_check_args.make.sh $(MAKECMDGOALS) && test/self_test.sh $(filter-out $@,$(MAKECMDGOALS))
+
+# debug:
+# 	@ asc/make/default.hardcoded_check_args.make.sh $(MAKECMDGOALS) && scripts/asc/local/debug.sh $(filter-out $@,$(MAKECMDGOALS))

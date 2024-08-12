@@ -7,6 +7,7 @@
 # for current project instance.
 #
 # @see Makefile
+# @see asc/make/default.mk
 #
 # @example
 #   make globals-lp
