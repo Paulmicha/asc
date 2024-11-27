@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ##
-# Implements u_hook_most_specific -s 'db' -a 'exec' -v 'DB_DRIVER HOST_TYPE INSTANCE_TYPE'
+# Implements u_hook_most_specific -s 'db' -a 'exec' -v 'DB_DRIVER DB_ID INSTANCE_TYPE PROVISION_USING'
 #
 # This file is dynamically included when the "hook" is triggered.
 # @see u_db_exec() in asc/extensions/db/db.inc.sh

@@ -29,6 +29,11 @@
 #   # Or :
 #   asc/app/install.sh
 #
+#   # To debug the DB operations that this would trigger :
+#   ASC_DB_DEBUG=1 make app-install
+#   # Or :
+#   ASC_DB_DEBUG=1 asc/app/install.sh
+#
 
 . asc/bootstrap.sh
 

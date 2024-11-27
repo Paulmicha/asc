@@ -25,14 +25,28 @@
 #   asc/extensions/db/db/exec.sh
 #
 
+# Debug.
+# echo
+# echo "db_dump_file (before) :"
+# echo "  $db_dump_file"
+# echo "  ASC_DB_DUMPS_BASE_PATH = $ASC_DB_DUMPS_BASE_PATH"
+# echo "  ASC_DB_DUMPS_BASE_PATH_C = $ASC_DB_DUMPS_BASE_PATH_C"
+# echo
+
 # When using docker-compose (executing drush inside container), this yields :
 # Error : "mysql: command not found".
 # @see asc/extensions/drush/asc/alias.docker-compose.hook.sh
 # $(drush sql:connect) < "$db_dump_file"
 
 # So we need Docker compose paths conversion.
-# -> use a dedicated (more specific) hook implementation :
-# @see asc/extensions/drush/db/exec.drush.docker-compose.hook.sh
+db_dump_file="${db_dump_file//$ASC_DB_DUMPS_BASE_PATH/$ASC_DB_DUMPS_BASE_PATH_C}"
+
+# Debug.
+# echo
+# echo "db_dump_file (after) :"
+# echo "  $db_dump_file"
+# echo
+
 drush sql:query --file="$db_dump_file"
 
 if [[ $? -ne 0 ]]; then

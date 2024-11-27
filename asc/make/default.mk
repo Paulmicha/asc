@@ -12,17 +12,6 @@
 # Like :
 # $ make drush ev '$test = "Hello Drupal php"; print $test;'
 #
-# By default, ASC provides the following tasks for all project instances :
-# - [default] 'init': the 1st common step necessary to actually make ASC & its
-#   extensions useful;
-# - 'hook', a convenience wrapper to ASC hook() calls;
-# - 'hook-debug', the same except it will just print out the lookup paths.
-#   Useful for looking up positive matches to then provide overrides and/or
-#   complements;
-# - 'globals-lp', to show every globals lookup paths checked for aggregation
-#   during instance init for current project instance;
-# - 'self-test', to execute a few tests locally.
-#
 # @example
 #   # Initialize current project instance = trigger "instance init" :
 #   make
@@ -57,7 +46,7 @@ init:
 	@ asc/make/call_wrap.make.sh asc/instance/init.sh $(MAKECMDGOALS)
 
 init-debug:
-	@ asc/make/call_wrap.make.sh asc/instance/init.sh -d -r $(MAKECMDGOALS)
+	@ asc/make/call_wrap.make.sh asc/instance/init.sh $@ -d -r $(filter-out $@,$(MAKECMDGOALS))
 
 # TODO [evol] is this really overridden by scripts/asc/local/generated.mk ?
 # reinit:
@@ -70,7 +59,7 @@ hook:
 	@ asc/make/call_wrap.make.sh asc/instance/hook.make.sh $(MAKECMDGOALS)
 
 hook-debug:
-	@ asc/make/call_wrap.make.sh asc/instance/hook.make.sh -d -t $(MAKECMDGOALS)
+	@ asc/make/call_wrap.make.sh asc/instance/hook.make.sh $@ -d -t $(filter-out $@,$(MAKECMDGOALS))
 
 globals-lp:
 	@ asc/make/call_wrap.make.sh asc/env/global_lookup_paths.make.sh $(MAKECMDGOALS)
@@ -79,5 +68,5 @@ self-test:
 	@ asc/make/call_wrap.make.sh asc/test/self_test.sh $(MAKECMDGOALS)
 
 debug:
-	@ echo "debug MAKECMDGOALS (unescaped, wrapped in single quotes) = '$(MAKECMDGOALS)'";
+	@ echo "debug MAKECMDGOALS (escaped) = $(MAKECMDGOALS)";
 	@ asc/make/call_wrap.make.sh asc/make/echo.make.sh $(MAKECMDGOALS)
