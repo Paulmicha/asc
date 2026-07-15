@@ -9,7 +9,7 @@
 # @requires asc/vendor/shunit2
 #
 # This file may be dynamically executed.
-# @see asc/test/self_test.sh
+# @see asc/test/asc.sh
 #
 # @example
 #   asc/test/asc/required_programs.test.sh
@@ -22,7 +22,7 @@
 #
 test_asc_required_programs() {
   local p
-  local programs_to_check='git tar'
+  local programs_to_check='nohup git tar'
 
   for p in $programs_to_check; do
     u_test_program_is_executable "$p"

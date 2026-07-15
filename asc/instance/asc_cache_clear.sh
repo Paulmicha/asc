@@ -15,4 +15,5 @@
 
 if [[ -d scripts/asc/local/cache ]]; then
   rm -rf scripts/asc/local/cache
+  echo "Cleared local scripts/asc/local/cache dir."
 fi

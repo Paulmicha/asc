@@ -7,8 +7,10 @@
 #
 # @example
 #   make switch-type 'dev'
+#   make rebuild
 #   # Or :
 #   asc/instance/switch_type.sh 'dev'
+#   asc/instance/rebuild.sh
 #
 
 # Force the new instance type value alone.

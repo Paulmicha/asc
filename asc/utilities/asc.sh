@@ -408,7 +408,7 @@ u_asc_primitive_values() {
 # @var [default] extension_namespace
 #
 # @example
-#   u_asc_extension_namespace "asc/extensions/docker-compose"
+#   u_asc_extension_namespace "asc/extensions/compose"
 #   echo "$extension_namespace" # <- Prints DOCKER_COMPOSE.
 #
 #   # Using a custom variable name :

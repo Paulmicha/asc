@@ -7,7 +7,7 @@
 # during this action - e.g. docker-compose.
 #
 # @see asc/instance/build.sh
-# @see asc/extensions/docker-compose/instance/build.docker-compose.hook.sh
+# @see asc/extensions/compose/instance/build.compose.hook.sh
 #
 
 u_db_set_all

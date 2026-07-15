@@ -3,95 +3,40 @@
 ##
 # Bootstraps ASC.
 #
-# Loads includes containing bash functions along with readonly global vars if
-# available, initializes "primitives" for hooks and lookups (ASC extension
-# mecanisms), and call 'bootstrap' hook (i.e. to load bash aliases).
+# Thin orchestrator: sources numbered phase includes under asc/bootstrap/.
+# Phases 10–70 run once per shell (ASC_BS_FLAG). Phase 90 (caller opt-inc)
+# runs on every source so a second `. bootstrap` in an already-bootstrapped
+# shell still loads the caller’s lazy helpers.
+#
+# Phase convention:
+#   asc/bootstrap/*.bootstrap-inc.sh — core phases only (not on ASC_INC)
+# Eager includes:   $subject/$subject.inc.sh (and $ext/$ext.inc.sh) → ASC_INC
+# Lazy (phase 90):  $subject/$subject.opt-inc.sh then $subject/$action.opt-inc.sh
 #
 # @example
 #   . asc/bootstrap.sh
 #
+# @see asc/bootstrap/
+#
 
-# Make sure bootstrap runs only once in current shell scope.
+# Make sure the heavy bootstrap runs only once in current shell scope.
 if [[ $ASC_BS_FLAG -ne 1 ]]; then
   ASC_BS_FLAG=1
 
-  # NB: aliases are not expanded when the shell is not interactive, unless the
-  # expand_aliases shell option is set using shopt.
-  # See https://unix.stackexchange.com/a/1498
-  shopt -s expand_aliases
-
-  # Include ASC core utilities.
-  . asc/utilities/shell.sh
-  . asc/utilities/asc.sh
-  . asc/utilities/global.sh
-  . asc/utilities/hook.sh
-  . asc/utilities/autoload.sh
-  . asc/utilities/fs.sh
-  . asc/utilities/array.sh
-  . asc/utilities/string.sh
-  . asc/utilities/yaml.sh
-
-  # If instance init was run at least once, automatically load locally generated
-  # global env vars.
-  # This can be opted-out by setting the flag ASC_BS_SKIP_GLOBALS to 1.
-  # @see asc/instance/init.sh
-  if [[ $ASC_BS_SKIP_GLOBALS -ne 1 ]]; then
-    if [[ -f scripts/asc/local/global.vars.sh ]]; then
-      . scripts/asc/local/global.vars.sh
-    fi
-  fi
-
-  # Initializes "primitives" for hooks and lookups (ASC extension mecanisms).
-  # These are : subjects, actions, prefixes, variants and extensions.
-  # Update 2024-06 cache results.
-  if [[ -f scripts/asc/local/cache/asc.sh ]]; then
-    . scripts/asc/local/cache/asc.sh
-  else
-    export asc_primitives_cache_str=''
-    ASC_INC=''
-    u_asc_extend
-    mkdir -p scripts/asc/local/cache
-    cat > scripts/asc/local/cache/asc.sh <<CACHE
-#!/usr/bin/env bash
-
-##
-# Generated cache file for ASC primitives.
-#
-# @see asc/bootstrap.sh
-#
-
-$asc_primitives_cache_str
-
-CACHE
-  fi
-
-  # Because aliases are expanded when a function definition is read, *not* when
-  # the function is executed, we need to have the possibility to define aliases
-  # *before* the includes are sourced.
-  # And because aliases may depend on optionally preset variables, we trigger
-  # the "pre_bootstrap" hook before.
-  # To verify which files can be used (and will be sourced) when these hooks are
-  # triggered, use the following commands *in this order* :
-  # $ make hook-debug s:asc a:pre_bootstrap v:STACK_VERSION PROVISION_USING
-  # $ make hook-debug s:asc a:alias v:STACK_VERSION PROVISION_USING
-  # $ make hook-debug s:asc a:bootstrap v:STACK_VERSION PROVISION_USING
-  hook -s 'asc' -a 'pre_bootstrap' -v 'STACK_VERSION PROVISION_USING'
-  hook -s 'asc' -a 'alias' -v 'STACK_VERSION PROVISION_USING'
-
-  # Load additional includes (including extensions').
-  if [[ -n "$ASC_INC" ]]; then
-    for file in $ASC_INC; do
-      # Any additional include may be overridden.
-      u_autoload_override "$file" 'continue'
-      if [[ -n "$inc_override_evaled_code" ]]; then
-        eval "$inc_override_evaled_code"
-      fi
-      if [[ -f "$file" ]]; then
-        . "$file"
-      fi
-    done
-  fi
-
-  # Allow extensions to implement custom additional env. variables.
-  hook -s 'asc' -a 'bootstrap' -v 'STACK_VERSION PROVISION_USING'
+  . asc/bootstrap/10-shell.bootstrap-inc.sh
+  . asc/bootstrap/20-utilities.bootstrap-inc.sh
+  . asc/bootstrap/30-globals.bootstrap-inc.sh
+  . asc/bootstrap/40-primitives.bootstrap-inc.sh
+  . asc/bootstrap/50-pre-hooks.bootstrap-inc.sh
+  . asc/bootstrap/60-includes.bootstrap-inc.sh
+  . asc/bootstrap/70-bootstrap-hook.bootstrap-inc.sh
 fi
+
+# Always: lazy-load optional includes for the bootstrap caller (subject + action).
+_asc_bs_caller=''
+if [[ ${#BASH_SOURCE[@]} -gt 1 && -n "${BASH_SOURCE[1]}" ]]; then
+  # BASH_SOURCE[0] is this file (bootstrap.sh); [1] is the real caller.
+  _asc_bs_caller="${BASH_SOURCE[1]}"
+fi
+. asc/bootstrap/90-caller-opt-inc.bootstrap-inc.sh
+unset _asc_bs_caller

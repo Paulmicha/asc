@@ -1,0 +1,25 @@
+batch: asc
+updated: 2026-07-15T20:17:24-03:00
+exit: 1
+bootstrap:
+  test_asc_autoload_override_works: PASS
+  test_asc_has_essential_globals: PASS
+fsop:
+  test_asc_can_chmod: PASS
+  test_asc_can_create_dir: PASS
+  test_asc_can_create_file: PASS
+global:
+  test_asc_global_aggregate: PASS
+hook:
+  test_asc_hook_combinatory_variants: PASS
+  test_asc_hook_prefix_combinatory_variants: PASS
+  test_asc_hook_prefix: PASS
+  test_asc_hook_prefix_variants: PASS
+  test_asc_hook_single_action: PASS
+  test_asc_hook_subject: PASS
+required_programs:
+  test_asc_required_programs: PASS
+test_results:
+  test_u_freeze_tests_parse_browser_headless_path: FAIL
+  test_u_freeze_tests_parse_subset_rejects_env_before_kind: PASS
+  test_u_test_results_parse_shunit_suite: PASS

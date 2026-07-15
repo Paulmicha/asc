@@ -7,7 +7,7 @@
 # during this action - e.g. docker-compose.
 #
 # @see asc/instance/start.sh
-# @see asc/extensions/docker-compose/instance/start.docker-compose.hook.sh
+# @see asc/extensions/compose/instance/start.compose.hook.sh
 #
 
 u_db_set_all

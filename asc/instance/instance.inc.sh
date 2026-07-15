@@ -379,14 +379,21 @@ u_instance_yaml_config_parse() {
     u_str_uppercase "$parsed_var" 'parsed_var'
 
     # The "asc apps" entry should be at the beginning.
-    case "$parsed_var" in 'YAML_ASC_APPS')
-      yaml_parsed_sp_init+="$parsed_var='$parsed_val' ; "
-      parsed_asc_apps="$parsed_val"
+    # Idem for the remaining "core" variants.
+    case "$parsed_var" in
+      'YAML_ASC_APPS')
+        yaml_parsed_sp_init+="$parsed_var='$parsed_val' ; "
+        parsed_asc_apps="$parsed_val"
 
-      # Debug.
-      # echo "  SP init 1 : $parsed_var='$parsed_val' ; "
+        # Debug.
+        # echo "  SP init 1 : $parsed_var='$parsed_val' ; "
 
-      # continue
+        # continue
+        ;;
+
+      'YAML_STACK_VERSION'|'YAML_HOST_TYPE'|'YAML_INSTANCE_TYPE'|'YAML_PROVISION_USING'|'YAML_PROJECT_DOCROOT')
+        yaml_parsed_sp_init+="$parsed_var=$parsed_val ; "
+        ;;
     esac
 
     if [[ -n "$parsed_asc_apps" ]]; then
@@ -445,9 +452,12 @@ u_instance_yaml_config_parse() {
 # - WRITEABLE_FILES : additional files (outside of WRITEABLE_DIRS) that must be
 #     writeable by the application.
 #
-# By default, ASC resets all files and folders permissions in project root dir.
-# It also applies the corresponding permissions to any list of paths optionally
-# defined in globals (env vars) mentionned above.
+# By default, ASC resets permissions only in ./data, ./asc, ./scripts/asc, and
+# ./.git. Optional globals (env vars) mentionned above also have their
+# corresponding permissions automatically applied during instance (re)init.
+#
+# Application sources and other project paths are handled by extension hooks
+# (e.g. fs_perms_pre_set).
 #
 # @see u_instance_get_permissions()
 # @see asc/instance/fix_perms.sh
@@ -566,9 +576,8 @@ u_instance_get_permissions() {
 # apply ownership of files and folders for current instance, according to its
 # type, host type, and provisionning method.
 #
-# By default, ASC resets all files and folders ownership in project root dir.
-# It also applies the corresponding ownership to any list of paths optionally
-# defined in globals (env vars) mentionned above.
+# By default, ASC resets ownership only in ./asc, ./scripts/asc, and ./.git.
+# Application sources and other project paths are handled by extension hooks.
 #
 # @see u_instance_get_ownership()
 # @see asc/instance/fix_ownership.sh

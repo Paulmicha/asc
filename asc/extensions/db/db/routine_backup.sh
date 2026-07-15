@@ -4,7 +4,7 @@
 # Routine local DB dump (backup).
 #
 # The dump file path will be determined by the following globals :
-#   - ASC_DB_DUMPS_BASE_PATH
+#   - ASC_DB_DUMPS_DIR
 #   - ASC_DB_DUMPS_LOCAL_PATTERN
 #
 # @see asc/extensions/db/global.vars.sh

@@ -14,7 +14,7 @@ ASC is a scaffolding bash shell CLI to usual web project tasks. It's a generic, 
 
 ASC is not a program; it's the "glue" between programs. Third-party tools integration is provided by extensions which could have their own respective Git repositories. ASC includes by default (for now) a predefined list of extensions - like in the [DrupalVM](https://www.drupalvm.com/) project.
 
-ASC "core" - this repo - contains common utilities related to managing global environment variables, some minimal local and remote host operations, optional git hooks intergration, and project instance self-tests.
+ASC "core" - this repo - contains common utilities related to managing global environment variables, some minimal local and remote host operations, optional git hooks integration, and low-level automated tests (`make test-asc`).
 
 ASC is *not* meant to be used in production. It was designed to assist the making of diverse projects for individual developers or teams.
 
@@ -61,7 +61,7 @@ By providing some abstractions to complement, combine, replace or add any operat
 ASC relies on **file structure**, **naming conventions**, and a few concepts :
 
 - **Globals** are the environment variables related to current project instance. They may be declared in `asc.yml` or using the `global` function in files named `env.vars.sh` aggregated during initialization.
-- **Bootstrap** deals with the inclusion of all the relevant source files and loads global variables (e.g. host type, instance type, etc) and functions. Any script that includes the file `asc/bootstrap.sh` can use these. This depends on sourcing shell scripts using relative paths, which is made possible by the fact that *all* scripts (or `make` "shortcut" commands) must be run from the folder `$PROJECT_DOCROOT`.
+- **Bootstrap** deals with the inclusion of all the relevant source files and loads global variables (e.g. host type, instance type, etc) and functions. Any script that includes the file `asc/bootstrap.sh` can use these. This depends on sourcing shell scripts using relative paths, which is made possible by the fact that *all* scripts (or `make` "shortcut" commands) must be run from the folder `$PROJECT_DOCROOT`. The intended shape of `asc/bootstrap.sh` is a thin orchestrator of numbered `asc/bootstrap/*.bootstrap-inc.sh` phases: heavy steps run once per shell (`ASC_BS_FLAG`), and a final phase lazy-loads caller optional includes (see *Automatic includes*). Those phase files are core bootstrap only — they are not subjects and are not registered into `ASC_INC`.
 - **Instance init** is a preliminary step that will setup current project instance. Among other things, it will aggregate and write local values for globals, optionally write application git hooks (opt-in by using the corresponding GIT-related globals - see `asc/git/init.hook.sh`), and trigger some hooks in order to let extensions implement their own additional setup tasks. See `u_instance_init()` in `asc/instance/instance.inc.sh` for details and usage example.
 - **Actions** - also referred to as *entry points*, *operations*, *tasks*, or just *commands* - are scoped by subject, e.g. *instance init*, *app compile*, etc. ASC determines a list of available actions by looking up folders and shell scripts matching certain rules.
 - **Hooks** are function calls mimicking events where "listening" or implementing entails creating some specific file(s) in certain path(s) corresponding to filters specified in arguments. They match actions by subjects and provide additional variants - which can use any global, and can either load all matching includes found, or only the most specific. See `hook()` and `u_hook_most_specific()` in `asc/utilities/hook.sh` for details and usage examples.
@@ -152,14 +152,21 @@ make setup prod remote test.my-asc-project.com lamp
   │   │   └── samples/  ← [doc] Examples of git hooks implementations
   │   ├── host/         ← Host-level metadata / crontab / network utils + "abstract" provision action
   │   ├── instance/     ← Actions related to the entire project instance (init, destroy, start, stop)
-  │   ├── test/         ← Self-test entry point / automated tests actions
-  │   │   └── asc/      ← ASC 'core' internal tests (uses shunit2 - see 'vendor' dir)
+  │   ├── test/         ← Automated tests (subject test)
+  │   │   ├── asc/      ← Core low-level shunit2 cases (*.test.sh)
+  │   │   ├── asc.sh    ← Entry point : `make test-asc` (triggers `test asc` hook)
+  │   │   ├── asc.hook.sh     ← Core hook impl. : runs cases in asc/test/asc/
+  │   │   ├── asc.inc.sh      ← Shared helpers for core test cases
+  │   │   ├── case.run.sh     ← Shared runner for per-case make targets
+  │   │   └── test.inc.sh     ← Test utilities (discovery, results, batch exec)
   │   ├── utilities/    ← ASC internal functions (hides complexity)
   │   └── vendor/       ← Bundled third-party dependencies (only shunit2 by default)
   ├── scripts/          ← Current project specific scripts
   │   └── asc/          ← ASC-related project-specific extension, local files and overrides
   │       ├── extend/   ← [optional] Custom project-specific ASC extension
   │       ├── local/    ← [git-ignored] Generated files specific to this local instance
+  │       │   └── cache/
+  │       │       └── test-cases.sh ← [generated] Per-case make target registry (see *Automated tests*)
   │       └── override/ ← [optional] Allows to replace virtually any file sourced in ASC scripts
   ├── .gitignore        ← Don't forget to review and edit to suit project needs
   ├── Makefile          ← The "make" entry point that loads all (optional) makefile includes
@@ -276,7 +283,7 @@ global HOST_OS "$(u_host_os)"
 # @see u_instance_task_name()
 # @see Makefile
 global ASC_MAKE_INC "[append]='$(u_asc_extensions_get_makefiles)'"
-global ASC_MAKE_TASKS_SHORTER "[append]='registry/reg lookup-path/lp'"
+global ASC_MAKE_TASKS_SHORTER "[append]='registry/reg lookup-path/pl logged-thread/lt logged-batch/lb logged-chain/lc logged-sequence/ls logged-loop/ll logged-pipe/lp'"
 ```
 
 Once *instance init* has been run, every global env. vars aggregated are (over)written in 2 files :
@@ -333,11 +340,83 @@ By default, ASC generates the following *make* shortcuts correponding to these *
 | *instance stop* | `asc/instance/stop.sh` | `make stop` ** |
 | *instance uninit* | `asc/instance/uninit.sh` | `make uninit` ** |
 | *instance upgrade-asc* | `asc/instance/upgrade_asc.sh` | `make upgrade-asc` ** |
-| *test self-test* | `asc/test/self_test.sh` | `make self-test` *** |
+| *test asc* | `asc/test/asc.sh` | `make test-asc` |
 
 - `*` : Shortening rules can be defined using the `ASC_MAKE_TASKS_SHORTER` global. Ex : `global ASC_MAKE_TASKS_SHORTER "[append]='something_too_long_for_make_shortcut/stlfms'"`
 - `**` : The `instance` is implicit and omitted for default ASC actions' `make` shortcuts.
 - `***` : Some exceptions are hardcoded in this repo's `./Makefile`. Others can be added using the `ASC_MAKE_INC` global. Ex : `global ASC_MAKE_INC "[append]='path/to/make_include.mk'"`
+
+#### Logged composition entry points (shortcuts)
+
+ASC ships **logged** composition entry points under `asc/instance/logged_*.sh`. Each one stacks an optional **log wrap** on top of a **thread-level** runner (or loop wrap). After `instance init` / `reinit`, make task names are generated from those scripts and then shortened via `ASC_MAKE_TASKS_SHORTER` (see `u_make_task_name()` in `asc/make/make.inc.sh`).
+
+Canonical short aliases (normative — do **not** reuse `lp` for batch or for `lookup-path`) :
+
+| Shortcut | Full make target | Script | Layer stack | Shell operator / role |
+|----------|------------------|--------|-------------|------------------------|
+| `lt` | `logged-thread` | `asc/instance/logged_thread.sh` | `log/wrap` → `thread/wrap` → `make <entry>` | single supervised background job (`&`) |
+| `lc` | `logged-chain` | `asc/instance/logged_chain.sh` | `log/wrap` → **`instance/chain`** → `thread/sequence` | `&&` (default) or `;` |
+| `ls` | `logged-sequence` | `asc/instance/logged_sequence.sh` | `log/wrap` → `thread/sequence` | same as chain (`&&` / `;`), direct |
+| `lb` | `logged-batch` | `asc/instance/logged_batch.sh` | `log/wrap` → `thread/batch` → concurrent `make` steps | `&` + `wait` (worst exit) |
+| `lp` | `logged-pipe` | `asc/instance/logged_pipe.sh` | `log/wrap` → `thread/pipe` → piped stages | `\|` (`pipefail`) |
+| `ll` | `logged-loop` | `asc/instance/logged_loop.sh` | `log/wrap` → `loop/wrap` → long-running unit | systemd user loop (not a join operator) |
+
+There is **no** `asc/chain/` subject folder and **no** `asc/chain/wrap.sh`. The only official unlogged hardcoded shortcut into the sequencer is :
+
+```sh
+make chain    # → asc/instance/chain.sh → asc/thread/sequence.sh
+```
+
+(`thread-sequence` may also exist as the underlying action name.) Unlogged batch/pipe twins: `parallel` / `thread-batch`, `pipe` / `thread-pipe`.
+
+How shortening is declared (in `asc/env/global.vars.sh`, then regenerated into `scripts/asc/local/global.vars.sh`) :
+
+```sh
+global ASC_MAKE_TASKS_SHORTER "[append]='registry/reg lookup-path/pl logged-thread/lt logged-batch/lb logged-chain/lc logged-sequence/ls logged-loop/ll logged-pipe/lp'"
+```
+
+Each `search/replace` pair is applied by bash `${task//search/replace}` inside `u_make_task_name()` — so `logged-pipe` becomes `lp`, `logged-batch` becomes `lb`, `logged-sequence` becomes `ls`, etc. Note that **`lookup-path` must shorten to `pl`** (not `lp`) so generated task names never collide with `logged-pipe`.
+
+Historical exception: `make globals-lp` (print global lookup paths) remains a **hardcoded** target in `asc/make/default.mk` / `u_make_generate()` — it is *not* the `lp` → `logged-pipe` short alias. New code should prefer the logged-composition meaning of `lp` above; do not add more shortcuts that steal `lp`.
+
+Typical calls :
+
+```sh
+make lt e:transcribe-all
+make lc e:1:site-cr e:2:site-composer a:install e:3:api-cr   # via instance/chain
+make ls e:1:site-cr e:2:api-cr                               # direct thread/sequence
+make lb e:transcribe-ogg e:transcribe-ocr
+make lp e:agent-implement-last-plan e:transcribe-all
+make ll e:agent-loop
+```
+
+Equivalence (same run, different surface) :
+
+```sh
+# Manually hardcoded shortcut :
+# @see ASC_MAKE_TASKS_SHORTER in asc/env/global.vars.sh
+make lp e:agent-implement-last-plan e:transcribe-all
+# Equivalent to :
+make logged-pipe e:agent-implement-last-plan e:transcribe-all
+# Or :
+asc/instance/logged_pipe.sh e:agent-implement-last-plan e:transcribe-all
+```
+
+That **Manually hardcoded shortcut** `@example` block is the expected docblock model for `asc/instance/logged_*.sh` (and their preset ideals under `asc/extensions/preset/preset/*/logged_*.tpl.sh` when using eat-your-own-dogfood). Hand-authored `@example` comments are source of truth; regenerate live files from ideals with `preset-write`, do not invent alternate example styles when touching those headers.
+
+Token prefixes for multi-entry runners (colon only) :
+
+| Token | Meaning |
+|-------|---------|
+| `e:<entry>` | open a step (or pipeline stage) |
+| `e:<N>:<entry>` | ordered step (chain) |
+| `a:<arg>` | append arg to the **current** make step/stage |
+| `join:&&` / `join:;` | chain join type |
+| `workers:<N>` | batch concurrency cap |
+
+Pipe may also accept positional shell strings as stages (e.g. `make pipe 'ls -lah' 'grep foobar'`).
+
+After changing `ASC_MAKE_TASKS_SHORTER`, run `make reinit` so `scripts/asc/local/generated.mk` and `scripts/asc/local/global.vars.sh` pick up the new shortcuts.
 
 Additional rules for *subject / action* pairs :
 
@@ -346,9 +425,19 @@ Additional rules for *subject / action* pairs :
 
 ### Automatic includes
 
-During ASC bootstrap, bash shell files named like their containing folder and using the double extension `*.inc.sh` will automatically be sourced. This rule applies to extension folders (i.e. `asc/extensions/*` and `scripts/asc/extend`), and all `subjects` folders.
+ASC uses two include tiers during bootstrap:
 
-By default, the following includes are detected (this result will change depending on extensions enabled, added or removed) :
+| Pattern | When loaded | Notes |
+|---------|-------------|--------|
+| `$subject/$subject.inc.sh` (also `$ext/$ext.inc.sh`) | Eager, every first bootstrap (`ASC_INC`) | Discovered by `u_asc_extend` / extension scanning |
+| `$subject/$subject.opt-inc.sh` | Lazy, when **any** action in that subject is the bootstrap caller | Shared subject helpers; **not** on `ASC_INC` |
+| `$subject/$action.opt-inc.sh` | Lazy, when **that** action is the bootstrap caller | Action-only helpers; loaded after subject-wide if both exist |
+
+Eager includes: during ASC bootstrap, bash shell files named like their containing folder and using the double extension `*.inc.sh` are registered into `ASC_INC` and sourced. This rule applies to extension folders (i.e. `asc/extensions/*` and `scripts/asc/extend`), and all `subjects` folders.
+
+Lazy opt-incs are **not** discovered by `u_asc_extend` and are **not** registered into `ASC_INC`. When an action script sources `asc/bootstrap.sh`, bootstrap resolves the caller path and loads at most the two named candidates above (subject-wide first, then action-scoped; same path ⇒ once). Interactive `. asc/bootstrap.sh` with no caller does not load opt-incs. Core phase files under `asc/bootstrap/*.bootstrap-inc.sh` are unrelated to this table.
+
+By default, the following eager includes are detected (this result will change depending on extensions enabled, added or removed) :
 
 ```txt
 asc/git/git.inc.sh
@@ -483,9 +572,128 @@ asc/extensions/docker-compose/docker-compose.inc.sh
 
 For convenience, `asc/extensions/.asc_extensions_ignore` can be overridden using `scripts/asc/override/.asc_extensions_ignore` (instead of `scripts/asc/override/extensions/.asc_extensions_ignore`).
 
+## Automated tests
+
+ASC uses [shunit2](asc/vendor/shunit2) for bash unit tests. The **`test asc`** hook is the single orchestration point for *low-level* checks that validate the base stack on the current host or instance — ASC core, enabled bundled extensions, and optional project hooks.
+
+### `make test-asc` (the only top-level entry)
+
+`make test-asc` is generated during *instance init* / *reinit* from the action script `asc/test/asc.sh` (subject `test`, action `asc`). It does **not** run test cases directly ; it triggers the hook :
+
+```sh
+hook -s 'test' -a 'asc' -v 'HOST_TYPE PROVISION_USING'
+```
+
+**Hook chain** (each existing file is sourced in lookup order) :
+
+```txt
+asc/test/asc.hook.sh                              → u_test_batch_exec 'asc/test/asc'
+asc/extensions/mysql/test/asc.hook.sh             → …/mysql/test/self   (if extension enabled)
+asc/extensions/docker-compose/test/asc.hook.sh    → …/docker-compose/test/self
+asc/extensions/pgsql/test/asc.hook.sh             → …/pgsql/test/self
+scripts/asc/extend/test/asc.hook.sh               → project-specific low-level checks (optional)
+```
+
+Core cases live in `asc/test/asc/*.test.sh`. Each hook implementation typically calls `u_test_batch_exec` on its own sibling batch directory.
+
+**When to use this** : pre-flight on a dev machine, CI smoke, or after upgrading `asc/` — anything that should answer “can this host/instance run the base ASC layer?”
+
+| Goal | Command |
+|------|---------|
+| Full base-stack low-level suite (hook chain) | `make test-asc` |
+| One core case only | `make test-asc-bootstrap` (see *Per-case make targets*) |
+| One test file directly | `asc/test/asc/bootstrap.test.sh` |
+| Debug which hook files match | `make hook-debug s:test a:asc v:HOST_TYPE PROVISION_USING` |
+
+There is **no** separate `make self-test` shortcut ; `test-asc` replaced the legacy `self_test` action name.
+
+### Contributing low-level tests from an extension
+
+1. Add a hook implementation at `{extension}/test/asc.hook.sh` (subject `test`, action `asc`).
+2. From the hook, call `u_test_batch_exec` on a sibling batch directory, e.g. `asc/extensions/mysql/test/self/`.
+3. Place `*.test.sh` files in that directory.
+4. Optionally add a batch action script (e.g. `…/test/mysql.sh`) if you also want a dedicated `make test-mysql` target and per-case shortcuts — see below.
+
+Project-specific checks in `scripts/asc/extend/test/asc.hook.sh` follow the same pattern (e.g. Linux host convenience scripts that must pass on your home dir).
+
+### Per-case make targets (generated during *reinit*)
+
+When `make reinit` regenerates `scripts/asc/local/generated.mk`, ASC discovers individual test cases for **every registered batch action script** (not only `asc/test/asc.sh`) and appends matching make shortcuts.
+
+**Discovery** (`u_test_discover_batch_cases()` in `asc/test/test.inc.sh`) looks for a **sibling directory** named like the batch script without `.sh` :
+
+```txt
+asc/test/asc.sh        →  asc/test/asc/
+scripts/asc/extend/test/browser.sh  →  scripts/asc/extend/test/browser/
+```
+
+Three layouts are supported :
+
+1. **Flat** — `*.test.sh` files directly inside the batch directory (except `orchestrated.test.sh`, reserved for meta-batches).
+2. **Env subdirs** — cases under `local/`, `preprod/`, `recette/`, `prod/` (see `ASC_TEST_CASE_ENVS` in `test.inc.sh`).
+3. **Manifest** — a `.test-cases` file listing case stems when discovery needs to be explicit.
+
+For each case stem `search_results` in batch `browser-lighthouse`, a target `browser-lighthouse-search-results` is appended to `generated.mk` and registered in `scripts/asc/local/cache/test-cases.sh`.
+
+**Regenerate** after adding, renaming, or removing `*.test.sh` files :
+
+```sh
+make reinit
+```
+
+### What `case.run.sh` does
+
+`asc/test/case.run.sh` is **not** the discovery step and is **not** used by `make test-asc` (the hook runs full batches). It is the shared **runtime dispatcher** for generated per-case targets only.
+
+Flow :
+
+1. *reinit* → `u_make_generate_test_cases()` writes make rules and `test-cases.sh`.
+2. `make test-asc-bootstrap` → `asc/make/call_wrap.make.sh` → `case.run.sh test-asc-bootstrap`.
+3. `case.run.sh` loads the registry and calls `u_test_run_case_by_target()`, which runs only `asc/test/asc/bootstrap.test.sh`.
+
+Optional second argument selects the env subdir for env-scoped batches : `case.run.sh browser-lighthouse-destination preprod`.
+
+Custom runners : a batch may provide `{batch_dir}.case.sh` for manifest or env_subdir modes that need orchestration beyond a plain `*.test.sh` file.
+
+### Test results archiving
+
+When `ASC_TEST_RESULTS` is not `0` (default: enabled), batch and per-case runs can archive output under `${ASC_TEST_RESULTS_ROOT:-data/test-results}` (YAML summaries + full console output). See `u_test_results_*()` in `asc/test/test.inc.sh` and `asc/test/asc/test_results.test.sh`.
+
+### Writing standalone extension test batches
+
+To add a shunit2 batch with its own make entry (in addition to or instead of a `test asc` hook) :
+
+1. Create the action script, e.g. `scripts/asc/extend/test/my_feature.sh`.
+2. Create the sibling case directory, e.g. `scripts/asc/extend/test/my_feature/` with `*.test.sh` files.
+3. Run `make reinit` — targets like `make test-my-feature-some-case` appear automatically.
+
+Convention : shared helpers for a batch go in `{batch_dir}.inc.sh`; core case helpers live in `asc/test/asc.inc.sh`.
+
+### Downstream sync notes (2026)
+
+| Change | Files |
+|--------|-------|
+| Single entry `make test-asc` via `test asc` hook | `asc/test/asc.sh`, `asc/test/asc.hook.sh` |
+| Removed legacy `make self-test` / `self_test` action | `asc/make/default.mk`, `asc/make/make.inc.sh`, deleted `asc/test/self_test.sh` |
+| Extension low-level hooks renamed | `*/test/asc.hook.sh` (was `self_test.hook.sh`) |
+| Per-case make target generation at *reinit* | `asc/make/make.inc.sh`, `asc/make/call_wrap.make.sh` |
+| Test discovery, registry, results archiving | `asc/test/test.inc.sh` |
+| Per-case runtime dispatcher | `asc/test/case.run.sh` |
+
+**Layout** : core cases stay in `asc/test/asc/`. `asc/test/asc.hook.sh` is the core contribution to the `test asc` hook chain.
+
+**Not yet in upstream** (may exist only in project forks — merge manually when upgrading `asc/`) :
+
+- Scoped `fs_perms_set` / `fs_ownership_set` (limit permission resets to `./asc`, `./scripts/asc`, `./data`, `./.git` instead of entire project root)
+- `asc/instance/reinit.sh` reading fallback values from `env.yml` when `.env` is missing
+- `asc/instance/switch_stack_version.sh`
+- Extension-level improvements (db credential helpers, docker-compose `stack/stats.sh`, remote wrappers, etc.)
+
+After replacing the `asc/` folder in a project, run `make reinit` so `generated.mk` and `scripts/asc/local/cache/test-cases.sh` pick up per-case targets.
+
 ## Roadmap
 
-- Self-tests must be kept up to date
+- Low-level tests (`make test-asc`) must be kept up to date (including per-case targets after `make reinit`)
 - Fix MacOS-specific errors
 - Generally, look for ways to offload more tasks to third-party projects
 - Remove bashisms / make POSIX-compliant for extending compatibility

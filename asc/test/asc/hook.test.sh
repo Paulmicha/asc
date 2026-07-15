@@ -12,27 +12,28 @@
 # - nftaschhnc = name for testing ASC hooks hopefully not colliding
 # - nftaschdehnc = name for testing ASC hooks dummy extension hopefully not colliding
 #
-# TODO test dotfiles like '.asc_subjects_ignore' in extensions.
-# TODO test folder names with dots (extensions + subjects + actions + prefixes).
-#
 # @example
 #   asc/test/asc/hook.test.sh
 #
 
 . asc/bootstrap.sh
-. asc/test/self_test.inc.sh
+. asc/test/asc.inc.sh
 
 ##
 # Creates temporary files for verification purposes in current test case.
 #
-# (Internal shunit2 function called before all tests have run.)
-#
 oneTimeSetUp() {
   local s
+
+  # Clear dry-run hook caches so newly touched files are visible.
+  # @see hook() in asc/utilities/hook.sh
+  rm -f scripts/asc/local/cache/hook.*nftaschhnc*
+
   for s in $ASC_SUBJECTS; do
+    # bootstrap/ holds phase includes, not a normal subject action namespace.
+    case "$s" in bootstrap) continue ;; esac
     touch "asc/$s/nftaschhnc_dry_run.hook.sh"
 
-    # Failsafe : cannot carry on if touch did not complete without error.
     if [[ $? -ne 0 ]]; then
       echo >&2
       echo "Error (2) in $BASH_SOURCE line $LINENO: cannot create temporary file for testing ASC hooks." >&2
@@ -42,8 +43,6 @@ oneTimeSetUp() {
     fi
   done
 
-  # Also test with a dummy extension (requires bootstrap reload, see below).
-  # Failsafe : cannot carry on without an existing ASC extensions dir.
   if [[ ! -d "asc/extensions" ]]; then
     echo >&2
     echo "Error (3) in $BASH_SOURCE line $LINENO: ASC extensions dir does not exist." >&2
@@ -52,9 +51,14 @@ oneTimeSetUp() {
     exit 3
   fi
 
-  mkdir -p "asc/extensions/nftaschdehnc/app"
+  # Dummy extension subjects reuse core subject names plus extra ones so hook
+  # subject scanning covers extension namespaces (no dependency on removed
+  # core `app` / `presets` subjects).
+  mkdir -p "asc/extensions/nftaschdehnc/instance"
+  mkdir -p "asc/extensions/nftaschdehnc/stack"
+  mkdir -p "asc/extensions/nftaschdehnc/remote"
+  mkdir -p "asc/extensions/nftaschdehnc/test"
 
-  # Failsafe : cannot carry on without successful temporary extension dir creation.
   if [[ $? -ne 0 ]]; then
     echo >&2
     echo "Error (4) in $BASH_SOURCE line $LINENO: cannot create temporary extension dir for testing hooks." >&2
@@ -63,23 +67,11 @@ oneTimeSetUp() {
     exit 4
   fi
 
-  mkdir "asc/extensions/nftaschdehnc/stack"
-  mkdir "asc/extensions/nftaschdehnc/remote"
-  mkdir "asc/extensions/nftaschdehnc/test"
-
-  # Empty files are enough to trigger positive detection during ASC primitives
-  # values aggregation during bootstrap and during hook lookup paths generation.
-  # @see u_asc_extend()
-  # @see hook()
-  touch "asc/extensions/nftaschdehnc/app/nftaschhnc_dry_run.hook.sh"
+  touch "asc/extensions/nftaschdehnc/instance/nftaschhnc_dry_run.hook.sh"
   touch "asc/extensions/nftaschdehnc/stack/nftaschhnc_dry_run.hook.sh"
   touch "asc/extensions/nftaschdehnc/remote/nftaschhnc_dry_run.hook.sh"
   touch "asc/extensions/nftaschdehnc/test/nftaschhnc_dry_run.sh"
 
-  # Variants tests require the following globals. We set them with dummy values
-  # if instance init hasn't been run in current instance yet.
-  # @see u_instance_init()
-  # @see asc/instance/init.sh
   if [[ -z "$INSTANCE_TYPE" ]]; then
     INSTANCE_TYPE='dev'
   fi
@@ -90,14 +82,12 @@ oneTimeSetUp() {
   touch "asc/extensions/nftaschdehnc/test/nftaschhnc_dry_run.$HOST_TYPE.hook.sh"
   touch "asc/extensions/nftaschdehnc/test/nftaschhnc_dry_run.$HOST_TYPE.$INSTANCE_TYPE.hook.sh"
 
-  # Prefix tests.
   touch "asc/extensions/nftaschdehnc/test/pre_nftaschhnc_dry_run.hook.sh"
   touch "asc/extensions/nftaschdehnc/test/post_nftaschhnc_dry_run.hook.sh"
   touch "asc/extensions/nftaschdehnc/test/post_nftaschhnc_dry_run.$INSTANCE_TYPE.hook.sh"
   touch "asc/extensions/nftaschdehnc/test/post_nftaschhnc_dry_run.$HOST_TYPE.hook.sh"
   touch "asc/extensions/nftaschdehnc/test/undo_nftaschhnc_dry_run.$HOST_TYPE.$INSTANCE_TYPE.hook.sh"
 
-  # Forces detection of our newly created temporary extension.
   u_asc_extend
 }
 
@@ -106,16 +96,20 @@ oneTimeSetUp() {
 #
 test_asc_hook_single_action() {
   local hook_dry_run_matches=''
-  local expected_list="asc/app/nftaschhnc_dry_run.hook.sh
-asc/extensions/nftaschdehnc/app/nftaschhnc_dry_run.hook.sh
-asc/git/nftaschhnc_dry_run.hook.sh
-asc/host/nftaschhnc_dry_run.hook.sh
-asc/instance/nftaschhnc_dry_run.hook.sh
+  local expected_list=''
+  local s
+
+  for s in $ASC_SUBJECTS; do
+    case "$s" in bootstrap) continue ;; esac
+    expected_list+="asc/$s/nftaschhnc_dry_run.hook.sh"$'\n'
+  done
+  expected_list+="asc/extensions/nftaschdehnc/instance/nftaschhnc_dry_run.hook.sh
 asc/extensions/nftaschdehnc/remote/nftaschhnc_dry_run.hook.sh
-asc/test/nftaschhnc_dry_run.hook.sh
 asc/extensions/nftaschdehnc/test/nftaschhnc_dry_run.$INSTANCE_TYPE.hook.sh
 asc/extensions/nftaschdehnc/stack/nftaschhnc_dry_run.hook.sh
 "
+
+  rm -f scripts/asc/local/cache/hook.*nftaschhnc*
   hook -a 'nftaschhnc_dry_run' -t
 
   u_test_compare_expected_lookup_paths
@@ -130,6 +124,7 @@ test_asc_hook_subject() {
   local expected_list="asc/test/nftaschhnc_dry_run.hook.sh
 asc/extensions/nftaschdehnc/test/nftaschhnc_dry_run.$INSTANCE_TYPE.hook.sh"
 
+  rm -f scripts/asc/local/cache/hook.*nftaschhnc*
   hook -a 'nftaschhnc_dry_run' -s 'test' -t
 
   u_test_compare_expected_lookup_paths
@@ -146,8 +141,7 @@ asc/extensions/nftaschdehnc/test/nftaschhnc_dry_run.$HOST_TYPE.$INSTANCE_TYPE.ho
 asc/extensions/nftaschdehnc/test/nftaschhnc_dry_run.$HOST_TYPE.hook.sh
 "
 
-  # hook -a 'nftaschhnc_dry_run' -s 'test' -e 'nftaschdehnc' -v 'HOST_TYPE INSTANCE_TYPE' -t -d
-  # echo
+  rm -f scripts/asc/local/cache/hook.*nftaschhnc*
   hook -a 'nftaschhnc_dry_run' -s 'test' -e 'nftaschdehnc' -v 'HOST_TYPE INSTANCE_TYPE' -t
 
   u_test_compare_expected_lookup_paths
@@ -161,6 +155,7 @@ test_asc_hook_prefix() {
   local hook_dry_run_matches=''
   local expected_list="asc/extensions/nftaschdehnc/test/pre_nftaschhnc_dry_run.hook.sh"
 
+  rm -f scripts/asc/local/cache/hook.*nftaschhnc*
   hook -a 'nftaschhnc_dry_run' -p 'pre' -t
 
   u_test_compare_expected_lookup_paths
@@ -176,6 +171,7 @@ test_asc_hook_prefix_variants() {
 asc/extensions/nftaschdehnc/test/post_nftaschhnc_dry_run.$INSTANCE_TYPE.hook.sh
 "
 
+  rm -f scripts/asc/local/cache/hook.*nftaschhnc*
   hook -a 'nftaschhnc_dry_run' -s 'test' -e 'nftaschdehnc' -p 'post' -t
 
   u_test_compare_expected_lookup_paths
@@ -189,6 +185,7 @@ test_asc_hook_prefix_combinatory_variants() {
   local hook_dry_run_matches=''
   local expected_list="asc/extensions/nftaschdehnc/test/undo_nftaschhnc_dry_run.$HOST_TYPE.$INSTANCE_TYPE.hook.sh"
 
+  rm -f scripts/asc/local/cache/hook.*nftaschhnc*
   hook -a 'nftaschhnc_dry_run' -s 'test' -v 'HOST_TYPE INSTANCE_TYPE' -p 'undo' -t
 
   u_test_compare_expected_lookup_paths
@@ -198,15 +195,13 @@ test_asc_hook_prefix_combinatory_variants() {
 ##
 # Cleans up any leftovers from previous tests.
 #
-# (Internal shunit2 function called after all tests have run.)
-#
 oneTimeTearDown() {
   local s
   for s in $ASC_SUBJECTS; do
+    case "$s" in bootstrap) continue ;; esac
     rm -f "asc/$s/nftaschhnc_dry_run.hook.sh"
   done
   rm -fr "asc/extensions/nftaschdehnc"
 }
 
-# Load and run shUnit2.
 . asc/vendor/shunit2/shunit2

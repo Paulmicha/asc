@@ -16,7 +16,7 @@
 # This may be called from contexts with or without docker-compose.
 # The docroot option is implemented here :
 # @see asc/extensions/drush/asc/alias.hook.sh
-# @see asc/extensions/drush/asc/alias.docker-compose.hook.sh
+# @see asc/extensions/drush/asc/alias.compose.hook.sh
 # This extension does not deal with multi-site Drupal setups. For that, see the
 # "drupalwt" extension.
 if [[ -n "$DRUSH_DEFAULT_URI" ]]; then
