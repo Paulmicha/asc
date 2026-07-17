@@ -114,32 +114,65 @@ make setup prod remote myproject-2024 lamp
 
 ```txt
 /path/to/my-project/          ← $PROJECT_DOCROOT
-  ├── app/ or site/ …         ← [optional] application trees (per ASC_APPS / env.yml)
+  ├── app,site,api/ …         ← [optional] application trees (per ASC_APPS / env.yml)
+  ├── changelog/              ← [optional] documentation of past or planned modifications
   ├── asc/                    ← ASC core (update = replace folder)
-  │   ├── bootstrap.sh        ← bootstrap entry
-  │   ├── bootstrap/          ← numbered *.bootstrap-inc.sh phases
-  │   ├── changelog/          ← changelog wrap (sidecar SoT)
   │   ├── env/                ← core global.vars.sh + helpers
   │   ├── extensions/         ← bundled extensions (opt-in via ignore file)
   │   ├── git/                ← git hooks integration + utilities
   │   ├── host/               ← host provision, registry, vitals
   │   ├── instance/           ← lifecycle + logged runners + chain/pipe
-  │   ├── log/ · loop/ · thread/
+  │   ├── log/,changelog/,loop/,thread/ ← core ASC wrappers
   │   ├── make/               ← default.mk + call_wrap
   │   ├── test/               ← shunit2 low-level suite
   │   ├── utilities/          ← internal libraries
-  │   └── vendor/             ← shunit2, bash-yaml
+  │   ├── vendor/             ← shunit2, bash-yaml
+  │   └── bootstrap.sh        ← included in all entry points, loads bash functions and globals
   ├── data/                   ← runtime / generated (mostly gitignored)
-  │   └── asc/                ← global.vars.sh, generated.mk, cache/, registry/
-  ├── docs/asc/               ← deep-dive guides
+  │   ├── cronjobs/           ← [git-ignored] default place for cron jobs outputs
+  │   ├── asc/                ← [git-ignored] Generated files specific to this local instance
+  │   │   ├── cache/          ← current local instance generated hooks and *.opt-inc.sh auto-include cache
+  │   │   ├── registry/       ← [optional] contains keyed "file-based store" values
+  │   │   ├── generated.mk    ← current local instance generated make entry points
+  │   │   └── global.vars.sh
+  │   ├── logs/               ← [git-ignored] default place for logs (see also log-rotate)
+  │   ├── media/              ← [git-ignored] default place for media
+  │   ├── private/            ← [git-ignored] default place for private files
+  │   ├── test-results/       ← [optional] frozen (versionned) test results
+  │   ├── threads/            ← [git-ignored] default place for storing threads info
+  │   ├── tmp/                ← [git-ignored] default place for temporary files
+  │   └── ...
+  ├── docs/
+  │   ├── asc/                ← ASC-related deep-dive guides and living documentation
+  │   └── ...
   ├── scripts/asc/
   │   ├── extend/             ← project-specific extension
   │   └── override/           ← replace any sourced ASC path
   ├── .gitignore
   ├── Makefile
+  ├── .env.yml                ← current local instance generated ENV vars
+  ├── .env-local.yml          ← [optional, git-ignored] secret ENV vars (hardcoded)
+  ├── .env-local.foobar.yml   ← [optional, git-ignored] conditional secret ENV vars (hardcoded)
+  ├── env.yml                 ← this project instance global env vars declaration
   ├── SPECIMEN.env.yml        ← copy to env.yml
-  └── env.yml                 ← [optional] your instance YAML
+  └── ...
 ```
+
+The canonical path for writing files related to time-recurrent or long processes is :
+
+```txt
+data/<data_name>/YYYY/MM/DD/HH.MM.SS.MS.<file_name>.md
+```
+
+Ex : `data/event/2026/07/17/11.06.55.1234.drush_cron.md`
+
+The `changelog/` dir tipically contains files like :
+
+```txt
+changelog/YYYY/MM/DD-<file_name>.md
+```
+
+Ex : `changelog/2026/07/17-implement-new-ollama-subject.md`
 
 Generated (do not hand-edit): `.env`, `data/asc/global.vars.sh`, `data/asc/generated.mk`, `data/asc/cache/*`.
 
