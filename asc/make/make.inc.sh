@@ -67,7 +67,7 @@ u_make_check_args() {
 #   - lookup-path -> pl
 #   - registry -> reg
 #
-# Stored in global ASC_MAKE_TASKS_SHORTER entries. E.g. :
+# Stored in global ASC_SYNONYMS entries. E.g. :
 # @see asc/env/global.vars.sh
 #
 # @param 1 String : input to convert.
@@ -86,10 +86,10 @@ u_make_task_name() {
 
   u_str_sanitize "$p_str" '-' 'p_str' '[^a-zA-Z0-9]'
 
-  if [[ -n "$ASC_MAKE_TASKS_SHORTER" ]]; then
+  if [[ -n "$ASC_SYNONYMS" ]]; then
     local search_replace_pattern=''
 
-    for search_replace_pattern in $ASC_MAKE_TASKS_SHORTER; do
+    for search_replace_pattern in $ASC_SYNONYMS; do
       u_str_sanitize "$search_replace_pattern" '' 'search_replace_pattern' '[^a-zA-Z0-9\/\-_]'
       eval "p_str=\"\${p_str//$search_replace_pattern}\""
     done
@@ -254,7 +254,7 @@ EOF
 
     echo ".PHONY: $make_entry_point
 $make_entry_point:
-	@ asc/make/call_wrap.make.sh $real_script \$(MAKECMDGOALS)
+	@ asc/make/make.wrap.sh $real_script \$(MAKECMDGOALS)
 " >> data/asc/generated.mk
 
   done
@@ -367,7 +367,7 @@ u_make_list_hardcoded() {
 # TODO [evol] find better workaround than the '∓' swap.
 #
 # @see asc/escape.sh
-# @see asc/make/call_wrap.make.sh
+# @see asc/make/make.wrap.sh
 #
 u_make_unescape() {
   local p_arg="$1"
@@ -447,7 +447,7 @@ u_make_generate_test_cases() {
 
       echo ".PHONY: $case_target
 $case_target:
-	@ asc/make/call_wrap.make.sh asc/test/case.run.sh \$(MAKECMDGOALS)
+	@ asc/make/make.wrap.sh asc/test/case.run.sh \$(MAKECMDGOALS)
 " >> data/asc/generated.mk
     done
   done

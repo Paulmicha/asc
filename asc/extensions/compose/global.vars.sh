@@ -45,7 +45,7 @@ global DC_SUBDOMAIN_SEP "[default]='.' [help]='Subdomain or prefix separator for
 
 # [optional] Shorter generated make tasks names.
 # @see u_make_task_name() in asc/instance/instance.inc.sh
-global ASC_MAKE_TASKS_SHORTER "[append]='compose/dc'"
-global ASC_MAKE_TASKS_SHORTER "[append]='service-exec/se'"
-global ASC_MAKE_TASKS_SHORTER "[append]='service-run/sr'"
-global ASC_MAKE_TASKS_SHORTER "[append]='service-logs/sl'"
+global ASC_SYNONYMS "[append]='compose/dc'"
+global ASC_SYNONYMS "[append]='service-exec/se'"
+global ASC_SYNONYMS "[append]='service-run/sr'"
+global ASC_SYNONYMS "[append]='service-logs/sl'"

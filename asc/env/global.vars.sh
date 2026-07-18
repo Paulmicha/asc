@@ -43,16 +43,16 @@ global HOST_OS "$(u_host_os)"
 # @see Makefile
 global ASC_MAKE_INC "[append]='$(u_asc_extensions_get_makefiles)'"
 
-global ASC_MAKE_TASKS_SHORTER "[append]='asc-cache-clear/cc'"
-global ASC_MAKE_TASKS_SHORTER "[append]='host-dependency/dep'"
-global ASC_MAKE_TASKS_SHORTER "[append]='logged-thread/lt'"
-global ASC_MAKE_TASKS_SHORTER "[append]='logged-batch/lb'"
-global ASC_MAKE_TASKS_SHORTER "[append]='logged-chain/lc'"
-global ASC_MAKE_TASKS_SHORTER "[append]='logged-sequence/ls'"
-global ASC_MAKE_TASKS_SHORTER "[append]='logged-loop/ll'"
-global ASC_MAKE_TASKS_SHORTER "[append]='logged-pipe/lp'"
-global ASC_MAKE_TASKS_SHORTER "[append]='lookup-path/pl'"
-global ASC_MAKE_TASKS_SHORTER "[append]='registry/reg'"
+global ASC_SYNONYMS "[append]='asc-cache-clear/cc'"
+global ASC_SYNONYMS "[append]='host-dependency/dep'"
+global ASC_SYNONYMS "[append]='logged-thread/lt'"
+global ASC_SYNONYMS "[append]='logged-batch/lb'"
+global ASC_SYNONYMS "[append]='logged-chain/lc'"
+global ASC_SYNONYMS "[append]='logged-sequence/ls'"
+global ASC_SYNONYMS "[append]='logged-loop/ll'"
+global ASC_SYNONYMS "[append]='logged-pipe/lp'"
+global ASC_SYNONYMS "[append]='lookup-path/pl'"
+global ASC_SYNONYMS "[append]='registry/reg'"
 
 # Per-case test registry written by u_make_generate_test_cases() during reinit.
 # @see u_make_generate_test_cases() in asc/make/make.inc.sh

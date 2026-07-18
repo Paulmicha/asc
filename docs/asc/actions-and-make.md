@@ -1,15 +1,15 @@
 # Actions and Make
 
-An **action** is a script `asc/<subject>/<action>.sh` (or under an extension / `scripts/asc/extend/`). `make init` / `reinit` discovers them and generates `data/asc/generated.mk` shortcuts (`subject-action`, with shorter aliases from `ASC_MAKE_TASKS_SHORTER`).
+An **action** is a script `asc/<subject>/<action>.sh` (or under an extension / `scripts/asc/extend/`). `make init` / `reinit` discovers them and generates `data/asc/generated.mk` shortcuts (`subject-action`, with shorter aliases from `ASC_SYNONYMS`).
 
 ```mermaid
 flowchart TD
   disk["subject/action.sh"] --> init["make init / reinit"]
   init --> prim["u_asc_extend primitives"]
   prim --> mk["data/asc/generated.mk"]
-  shorter["ASC_MAKE_TASKS_SHORTER"] --> mk
+  shorter["ASC_SYNONYMS"] --> mk
   mk --> makeCall["make subject-action / lt / …"]
-  makeCall --> wrap["call_wrap.make.sh"]
+  makeCall --> wrap["make.wrap.sh"]
   wrap --> script["action script"]
   script --> bs[". asc/bootstrap.sh"]
 ```
@@ -37,7 +37,7 @@ Always run from `$PROJECT_DOCROOT`. Prefer `make <entry>`; the equivalent path i
 
 `.DEFAULT_GOAL` in the root [`Makefile`](../../Makefile) is `init`. The Makefile also `-include`s `.env`, `data/asc/generated.mk`, optional `ASC_MAKE_INC`, and `scripts/asc/extend/custom.mk`.
 
-The `instance` subject is omitted from many make names (`make start` ≡ `instance start`). Shortening uses `ASC_MAKE_TASKS_SHORTER` (bash `${task//search/replace}` in `u_make_task_name()`).
+The `instance` subject is omitted from many make names (`make start` ≡ `instance start`). Shortening uses `ASC_SYNONYMS` (bash `${task//search/replace}` in `u_make_task_name()`).
 
 Canonical short aliases:
 
@@ -54,7 +54,7 @@ Canonical short aliases:
 
 Historical: `make globals-lp` remains a **hardcoded** target — not the `lp` → `logged-pipe` alias.
 
-After changing `ASC_MAKE_TASKS_SHORTER` or adding actions: `make reinit`.
+After changing `ASC_SYNONYMS` or adding actions: `make reinit`.
 
 ## Core subjects (examples)
 

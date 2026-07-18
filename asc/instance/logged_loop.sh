@@ -7,7 +7,7 @@
 #
 # @example
 #   # Manually hardcoded shortcut :
-#   # @see ASC_MAKE_TASKS_SHORTER in asc/env/global.vars.sh
+#   # @see ASC_SYNONYMS in asc/env/global.vars.sh
 #   make ll e:blueprint-generate
 #   # Equivalent to :
 #   make logged-loop e:blueprint-generate

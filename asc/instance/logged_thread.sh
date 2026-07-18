@@ -23,7 +23,7 @@
 #
 # @example
 #   # Manually hardcoded shortcut :
-#   # @see ASC_MAKE_TASKS_SHORTER in asc/env/global.vars.sh
+#   # @see ASC_SYNONYMS in asc/env/global.vars.sh
 #   make lt e:transcribe-all
 #   # Equivalent to :
 #   make logged-thread e:transcribe-all

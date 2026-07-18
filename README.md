@@ -221,7 +221,7 @@ global HOST_TYPE "[default]=local …"
 global HOST_OS "$(u_host_os)"
 global ASC_APPS "[default]='site' …"
 global ASC_MAKE_INC "[append]='$(u_asc_extensions_get_makefiles)'"
-global ASC_MAKE_TASKS_SHORTER "[append]='registry/reg lookup-path/pl logged-thread/lt logged-batch/lb logged-chain/lc logged-sequence/ls logged-loop/ll logged-pipe/lp transcribe-transcribe/transcribe'"
+global ASC_SYNONYMS "[append]='registry/reg lookup-path/pl logged-thread/lt logged-batch/lb logged-chain/lc logged-sequence/ls logged-loop/ll logged-pipe/lp transcribe-transcribe/transcribe'"
 ```
 
 More: [docs/asc/globals.md](docs/asc/globals.md). Secrets stance: [docs/asc/secrets.md](docs/asc/secrets.md).
@@ -272,7 +272,7 @@ make lp e:stage-a e:stage-b
 make ll e:long-running
 ```
 
-After changing `ASC_MAKE_TASKS_SHORTER`: `make reinit`.
+After changing `ASC_SYNONYMS`: `make reinit`.
 
 ### Automatic includes (summary)
 

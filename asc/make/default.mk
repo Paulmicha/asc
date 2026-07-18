@@ -4,7 +4,7 @@
 #
 # Uses a "call wrap" script as an entry point to any other ASC script.
 #
-# @see asc/make/call_wrap.make.sh
+# @see asc/make/make.wrap.sh
 #
 # It forwards escaped arguments to maintain the possibility to use values (in
 # single quotes) with space, $, ", etc.
@@ -42,23 +42,23 @@
 .PHONY: init init-debug setup hook hook-debug globals-lp debug
 
 init:
-	@ asc/make/call_wrap.make.sh asc/instance/init.sh $(MAKECMDGOALS)
+	@ asc/make/make.wrap.sh asc/instance/init.sh $(MAKECMDGOALS)
 
 init-debug:
-	@ asc/make/call_wrap.make.sh asc/instance/init.sh $@ -d -r $(filter-out $@,$(MAKECMDGOALS))
+	@ asc/make/make.wrap.sh asc/instance/init.sh $@ -d -r $(filter-out $@,$(MAKECMDGOALS))
 
 setup:
-	@ asc/make/call_wrap.make.sh asc/instance/setup.sh $(MAKECMDGOALS)
+	@ asc/make/make.wrap.sh asc/instance/setup.sh $(MAKECMDGOALS)
 
 hook:
-	@ asc/make/call_wrap.make.sh asc/instance/hook.make.sh $(MAKECMDGOALS)
+	@ asc/make/make.wrap.sh asc/instance/hook.make.sh $(MAKECMDGOALS)
 
 hook-debug:
-	@ asc/make/call_wrap.make.sh asc/instance/hook.make.sh $@ -d -t $(filter-out $@,$(MAKECMDGOALS))
+	@ asc/make/make.wrap.sh asc/instance/hook.make.sh $@ -d -t $(filter-out $@,$(MAKECMDGOALS))
 
 globals-lp:
-	@ asc/make/call_wrap.make.sh asc/env/global_lookup_paths.make.sh $(MAKECMDGOALS)
+	@ asc/make/make.wrap.sh asc/env/global_lookup_paths.make.sh $(MAKECMDGOALS)
 
 debug:
 	@ echo "debug MAKECMDGOALS (escaped) = $(MAKECMDGOALS)";
-	@ asc/make/call_wrap.make.sh asc/make/echo.make.sh $(MAKECMDGOALS)
+	@ asc/make/make.wrap.sh asc/make/echo.make.sh $(MAKECMDGOALS)
