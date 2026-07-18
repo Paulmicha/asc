@@ -53,6 +53,7 @@ global ASC_SYNONYMS "[append]='logged-loop/ll'"
 global ASC_SYNONYMS "[append]='logged-pipe/lp'"
 global ASC_SYNONYMS "[append]='lookup-path/pl'"
 global ASC_SYNONYMS "[append]='registry/reg'"
+# global ASC_SYNONYMS "[append]='wrapper/bridge'"
 
 # Per-case test registry written by u_make_generate_test_cases() during reinit.
 # @see u_make_generate_test_cases() in asc/make/make.inc.sh

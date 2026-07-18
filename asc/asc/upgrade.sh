@@ -38,7 +38,7 @@
 
 . asc/bootstrap.sh
 
-echo "Upgrading ASC from the source repo on Github..."
+echo "Upgrading ASC from the source repo on Github ..."
 
 tmp_dir="data/asc/tmp-core-upgrade"
 
@@ -132,4 +132,11 @@ if [[ "$2" != 'k' ]]; then
 fi
 
 echo "Upgrading ASC from the source repo on Github : done."
+echo
+
+echo "Running post-update hook ..."
+
+hook -s 'asc' -a 'post_upgrade' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE PROVISION_USING'
+
+echo "Running post-update hook : done."
 echo
