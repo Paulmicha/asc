@@ -1,5 +1,7 @@
 # Agnostic Shell Controller (ASC)
 
+**Origin:** Forked from [Paulmicha/common-web-tools](https://github.com/Paulmicha/common-web-tools) branch `v2.0.0`, which is this repo’s **`main`**. That line diverged enough to warrant a dedicated project. Git history was rewritten (ASC→ASC / “agnostic shell controller”→“agnostic shell controller”, sensitive traces removed).
+
 ## TL;DR
 
 Clone or copy this repo into your project docroot, then:
