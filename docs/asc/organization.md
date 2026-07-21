@@ -5,7 +5,7 @@ Table of contents :
 1. globals
 1. hosts
 1. instances
-1. humans vs agents (owner ?)
+1. humans vs agents (ownership ?)
 1. subjects
 1. actions
 1. hooks

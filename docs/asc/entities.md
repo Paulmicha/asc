@@ -5,7 +5,8 @@ TODO rewrite below contents with sections :
 1. represents ? (why it exists)
 1. definition (scope ?)
 1. capabilities
-1. applicability ?
+1. relationships
+1. compatibility, applicability ? (protocols, etc)
 1. yml includes
 
 --
@@ -69,8 +70,9 @@ TODO asc/extensions/entity/uses/global.sh
 TODO recap all *.able.yml known to date :
 
 - "$wrap.able" (asc log, host process, asc thread, logged-thread = lt, etc)
-- "$action.able" (asc entry points by subject - ex: rotate, recognize, protocol, asc/extensions/entity/has/cognition.sh, etc)
+- "$action.able" (asc entry points by subject - ex: rotate, recognize, protocol, asc/extensions/entity/has/cognition.sh, etc - TODO categorize could be synonym of taxonomy.able ?)
 - "$sidecar.able" (changelog, accesslog ?, timestamp (ms precision, last 5min...), datestamp (daily, monthly, yearly))
+- "$field.able"
 
 Other (unelaborated) *.able.yml :
 - contract.able : the original "able"

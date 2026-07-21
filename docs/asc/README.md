@@ -10,7 +10,7 @@ Table of contents :
     1. globals
     1. hosts
     1. instances
-    1. humans vs agents (owner ?)
+    1. humans vs agents (ownership ?)
     1. subjects
     1. actions
     1. hooks
@@ -35,11 +35,13 @@ Table of contents :
     1. represents ? (why it exists)
     1. definition (scope ?)
     1. capabilities
-    1. applicability ?
+    1. relationships
+    1. compatibility, applicability ? (protocols, etc)
     1. yml includes
 1. builder
     1. documenting (~ minimal OKF ? dedicated core extension ?)
     1. blueprints
+    1. slots
     1. templates
     1. self-building (chain.able, nest.able, rule.able codegen for humans and agents)
 1. usage
