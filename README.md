@@ -75,7 +75,7 @@ Prefer the lowest of five **implementation layers** (data → globals → abstra
 - other `*.yml` (ex: remote instances or any entity)
 - encrypted (git) versionned files (cf. `data/crypted`)
 
-### ASC extension points ($subject/$action containers)
+### ASC extension points = `$subject`/`$action` containing folders
 
 - `./asc`
 - `./asc/extensions/$extension`
@@ -85,7 +85,7 @@ Prefer the lowest of five **implementation layers** (data → globals → abstra
 - `./scripts/asc/extend`
 - `./scripts/asc/extend/**/$nested_extension` (via .asc_subjects_ignore)
 
-### ASC Generic -> Specific scale of actions (entry points = $subject/$action script)
+### ASC Generic -> Specific scale of actions = entry points = `$subject`/`$action`/`*.sh` scripts
 
 Goal :
 The bottom of this list wins when implementing the same `u_hook_most_specific()` :
