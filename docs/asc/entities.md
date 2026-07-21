@@ -1,6 +1,6 @@
 # ASC core concept : Entities (synonym : node ?)
 
-TODO rewrite below contents with sections :
+Table of contents :
 
 1. represents ? (why it exists)
 1. definition (scope ?)
@@ -9,105 +9,111 @@ TODO rewrite below contents with sections :
 1. compatibility, applicability ? (protocols, etc)
 1. yml includes
 
---
+Entities are the shared vocabulary for “things” ASC can name, wrap, nest, and relate. Most of the `entity` extension is still design/stub; this page records the contract so living docs and ideas stay aligned.
 
-## General idea (the shape of contracts for defining entities)
+---
 
-TODO *.yml minimal structure to say "hello, this entity depends on :"
-  - foobar.dependency.yml (pipx, git repo, generic source, deb package, appimage, apt-related ...)
-  - foobar.asc-extension.yml ?
-  - foobar.hardware.yml ? version ? version.able ?
-  - foobar.software.yml ? version ? version.able ?
-  - foobar.state.yml
+## represents ? (why it exists)
 
-TODO asc/extensions/entity/is/able.sh (entity contracts : cognition.able, etc)
-TODO asc/extensions/entity/is/event.sh (source : manual, agent, cronjob, interaction, timestamp...)
-TODO asc/extensions/entity/is/public.sh
-TODO asc/extensions/entity/is/private.sh
-TODO asc/extensions/entity/is/relation.sh (for fieldable relationships)
-TODO asc/extensions/entity/is/root.sh (synonyms : primordial, prime, original)
-TODO asc/extensions/entity/is/sibling.sh (synonyms : neighbor, sister, brother)
-TODO asc/extensions/entity/is/leaf.sh
+ASC’s ambition is self-explanatory filenames and paths. **Entities** give a common shape to anything that can be talked about in that vocabulary — jobs, hosts, instances, sidecars, plans, dependencies — without inventing a new ad-hoc YAML dialect per feature.
 
-TODO asc/extensions/entity/has/label.sh (synonyms : title, name)
-TODO asc/extensions/entity/has/type.sh (synonyms : category)
-TODO asc/extensions/entity/has/bundle.sh (synonyms : subtype)
-TODO asc/extensions/entity/has/plan.sh
-TODO asc/extensions/entity/has/log.sh
-TODO asc/extensions/entity/has/changelog.sh
-TODO asc/extensions/entity/has/idea.sh
-TODO asc/extensions/entity/has/sidecar.sh
-TODO asc/extensions/entity/has/wrapper.sh
-TODO asc/extensions/entity/has/nested.sh (synonyms : children, child)
-TODO asc/extensions/entity/has/sibling.sh (synonyms : neighbor, sister, brother)
-TODO asc/extensions/entity/has/parent.sh (synonyms : genitor, mother, father)
-TODO asc/extensions/entity/has/ancestor.sh
-TODO asc/extensions/entity/has/descendants.sh
-TODO asc/extensions/entity/has/primitive.sh
-TODO asc/extensions/entity/has/primordial.sh
-TODO asc/extensions/entity/has/relation.sh (of type foobar, matching emitters / recievers, etc)
-TODO asc/extensions/entity/has/permission.sh
-TODO asc/extensions/entity/has/restriction.sh
-TODO asc/extensions/entity/has/field.sh
-TODO asc/extensions/entity/has/origin.sh
-TODO asc/extensions/entity/has/author.sh
-TODO asc/extensions/entity/has/license.sh
-TODO asc/extensions/entity/has/version.sh
-TODO asc/extensions/entity/has/state.sh (synonym : status ? Close to : health, vitals)
-TODO asc/extensions/entity/has/created.sh (synonyms : written, creation (<date,datestamp,timestamp>))
-TODO asc/extensions/entity/has/changed.sh (synonyms : touched, modification (<date,datestamp,timestamp>))
+Useful analogy from ideas:
 
-TODO asc/extensions/entity/implements/hook.sh
-TODO asc/extensions/entity/uses/global.sh
+| Term | Meaning |
+|------|---------|
+| **thing** | Actual / external (software, hardware, network) |
+| **entity** | Virtual model inside ASC (YAML + predicates) |
 
-## Dependencies
+**Primordial** entity = most generic empty object = `entity.entity.yml` (mother of all entities). Upstream ASC core aims at **primitive-level** contracts and implementations — not every domain ontology.
 
-- ASC
-- Core extension : entity
+Open: whether the public synonym stays **node** or only **entity**.
 
-## Capabilities
+---
 
-TODO recap all *.able.yml known to date :
+## definition (scope ?)
 
-- "$wrap.able" (asc log, host process, asc thread, logged-thread = lt, etc)
-- "$action.able" (asc entry points by subject - ex: rotate, recognize, protocol, asc/extensions/entity/has/cognition.sh, etc - TODO categorize could be synonym of taxonomy.able ?)
-- "$sidecar.able" (changelog, accesslog ?, timestamp (ms precision, last 5min...), datestamp (daily, monthly, yearly))
-- "$field.able"
+| Piece | Location | Status |
+|-------|----------|--------|
+| Extension | `asc/extensions/entity/` | Core-ignored by default |
+| Predicates | `entity/is/*`, `entity/has/*`, `entity/field/` | Mostly TODO stubs |
+| Markers | `*.entity.yml`, `*.able.yml` beside subjects | Partial examples (`thread.entity.yml`, `sidecar.able.yml`, …) |
 
-Other (unelaborated) *.able.yml :
-- contract.able : the original "able"
-- break.able : will it ever end ?
-- hook.able : or implement.able or both ? (emitter / reciever ~ directional thing ?)
-- nest.able : nested-git, nested-asc, nested-host (vm ?), nested-cmd ?, nested-process ?, nested-thread ?, nested-protocol ? nested-crypt ? etc.
-- crud.able : TODO or just hardcoded default actions in entities instead ?
-- forget.able : All (forget.able ?) data must have a lifetime (logrotate-like but for any data/* structure)
-- depend.able : TODO contrib extensions (remote git repos ?)
-- build.able : TODO blueprints (delegated pattern extractors ? partially out of scope)
-- "$use.able" (TODO asc/extensions/entity/uses/global.sh ?)
+Abstract nesting scale (most → least generic):
 
-## Entities
+1. primordial  
+1. primitive ancestor ?  
+1. ancestor  
+1. parent  
+1. self  
+1. child  
+1. descendants  
 
-- Primordial = most generic = empty object = the entity.entity.yml definition (mother of all entities)
-- Inheriting is done like remote instances yml "includes"
-- Inheriting from Parent(s) entities could be synonym of "genericity".
+Inheritance is intended to follow remote-instance style YAML **`includes`** (parent ≈ genericity).
 
-Scale of entities "nesting", descending order of most to least :
+Minimal “hello, this depends on …” YAML shapes (planned): dependency sources (pipx, git, deb, appimage, apt), optional `.asc-extension.yml`, hardware/software/state variants.
 
-1. primordial = most abstract
-1. primitive ancestor ?
-1. ancestor = up to level n - 2
-1. parent = level n - 1
-1. self = level n
-1. child = level n + 1
-1. descendants = from level n + 2
+---
 
-In ASC, the "core" (upstream repo) represents up to "primitive-level" contracts and implementations.
+## capabilities
 
-## Subjects x Actions
+Capabilities are expressed as **`*.able.yml`** (and matching `is/able` / `has/*` scripts when implemented).
 
-- TODO entity types (type is a field)
-- TODO taxonomy : patternify ?
+| Able | Intent |
+|------|--------|
+| `$wrap.able` | log, process, thread, `lt`, … |
+| `$action.able` | subject entry points (rotate, recognize, …) |
+| `$sidecar.able` | changelog / accesslog / time windows |
+| `$field.able` | fieldable attributes |
+| `contract.able` | original “able” |
+| `hook.able` / `implement.able` | emitter / receiver |
+| `$nest.able` | nested-git, nested-asc, nested-host, … |
+| `crud.able` | vs hardcoded default entity actions |
+| `forget.able` | lifetime / rotate for any `data/*` |
+| `depend.able` | contrib / remote deps |
+| `build.able` | blueprints (partially out of scope for core) |
+| `$use.able` | e.g. `entity/uses/global.sh` |
 
-## Hooks
+Agents ideas also list `wrapper.able`, `bridge.able`, `taxonomy.able`, … — **naming must be reconciled** with the `$….able` catalog above (`contract-able` idea).
 
-- TODO
+---
+
+## relationships
+
+| Kind | Working meaning |
+|------|-----------------|
+| **Link** (edge?) | Virtual relation between entities |
+| **Bridge** (association?) | Actual I/O or runtime coupling |
+| Software / hardware | Dependency / inventory relations |
+
+Examples:
+
+- [Pipe](wrappers.md#pipe) is a bridge (stdin/stdout between stages).
+- Emitter / receiver (also origin/destination, start/end) label wrap traces.
+- Extension `link` ships `linkable.entity.yml` (stub); sidecar helpers `bridge.sh` / `link.sh` are empty placeholders.
+
+Open: connectivity in a broader sense (ssh, curl, dns tooling) as first-class relations vs leaving that to [wrappers.md](wrappers.md) § remote.
+
+---
+
+## compatibility, applicability ? (protocols, etc)
+
+Applicability is sketched as **`is/*`** predicates (mostly TODO):
+
+- Visibility: `public` / `private`
+- Event source: manual, agent, cronjob, interaction, timestamp, …
+- Graph role: `root` / `sibling` / `leaf`, `relation`
+- Contracts: `able` (cognition.able, …)
+
+Attributes as **`has/*`** (mostly TODO): label, type, bundle, plan, log, changelog, idea, sidecar, wrapper, nested, permission, field, origin, author, license, version, state, created, changed, …
+
+Auth pack ideas (`auth`, `acl`, `roles`, `permissions,cascading`, `sudo,human-supervising,control`) are still empty or one-line TODOs — e.g. `role.able.yml?`, `cascade.able` ≈ `nest.able?`. Do not treat them as implemented.
+
+---
+
+## yml includes
+
+- Entity inheritance and remote-instance config both use YAML **`includes`**.
+- Dependency declarations should stay declarative (`*.dependency.yml` shapes) and feed provision / nest / build flows later.
+- Runtime durable entities (planned memory store): `data/<memory_store>/<entity>.yml` plus sidecar — see [organization.md](organization.md) memory/globals discussion and the `memory` extension stubs.
+
+Until `entity` is enabled and predicates exist, prefer documenting concrete subjects (`thread`, `loop`, `sidecar`) via their live `*.entity.yml` / wrap contracts rather than inventing new YAML dialects.
