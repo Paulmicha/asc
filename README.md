@@ -19,7 +19,7 @@ Deep dives live under [`docs/asc/`](docs/asc/). Extension notes: [`asc/extension
 
 ## WHAT
 
-ASC is a scaffolding bash shell CLI for usual web project tasks — a generic, customizable, extensible toolbox for **local (internal) development**.
+ASC is a scaffolding bash shell CLI for usual (web or general) project tasks — a generic, customizable, extensible toolbox for **local (internal) development**.
 
 ASC is not a program; it is the “glue” between programs. Third-party integration is provided by **extensions** (bundled under `asc/extensions/`, often disabled by default). Core contains utilities for global environment variables, minimal host operations, optional git hooks, log/thread/loop wrappers, and low-level automated tests (`make test-asc`).
 
@@ -34,10 +34,11 @@ ASC is **not** meant for production. It helps individual developers or teams kee
 
 ### Non-goals ("out of scope"s)
 
-- complex self-organizing abominable all-orchestrating plaform
-- delegate to complex nl-related processing in nested apps
+- self-organizing abominable all-orchestrating plaform
+- complex nl-related or agent-related stuff should be delegated to nested apps, e.g. :
   - ontology stuff (prompt engineering)
   - second-brain stuff (chain of thought, etc)
+- in fact, anything complex is off limits
 
 ## PURPOSE
 
@@ -67,7 +68,37 @@ ASC relies on **file structure**, **naming conventions**, and a few primitives:
 
 Prefer the lowest of five **implementation layers** (data → globals → abstract entry points → core extensions → project extend). See [docs/asc/layers.md](docs/asc/layers.md).
 
-## Prerequisites
+### ASC data types
+
+- globals (`readonly` or mutable, may be secret + TODO encrypted ?)
+- cache or sidecars (ex: logs) or media or test artifacts in `data/*` dirs
+- other `*.yml` (ex: remote instances or any entity)
+- encrypted (git) versionned files (cf. `data/crypted`)
+
+### ASC extension points ($subject/$action containers)
+
+- `./asc`
+- `./asc/extensions/$extension`
+- `./asc/extensions/$extension/**/$nested_extension` (via .asc_subjects_ignore)
+- `./scripts/asc/contrib/$extension`
+- `./scripts/asc/contrib/$extension/**/$nested_extension` (via .asc_subjects_ignore)
+- `./scripts/asc/extend`
+- `./scripts/asc/extend/**/$nested_extension` (via .asc_subjects_ignore)
+
+### ASC Generic -> Specific scale of actions (entry points = $subject/$action script)
+
+Goal :
+The bottom of this list wins when implementing the same `u_hook_most_specific()` :
+
+1. `asc/$subject/$action`
+1. `asc/extensions/$extension/$subject/$action`
+1. `asc/extensions/$extension/**/$nested_extension` (via .asc_subjects_ignore)
+1. `scripts/asc/contrib/$extension/$subject/$action`
+1. `scripts/asc/contrib/$extension/**/$nested_extension` (via .asc_subjects_ignore)
+1. `scripts/asc/extend/$subject/$action`
+1. `scripts/asc/extend/**/$nested_extension` (via .asc_subjects_ignore)
+
+### Prerequisites
 
 - Bash **4+** (macOS: install a modern bash via Homebrew and set it as your shell if needed)
 - Git
