@@ -1,6 +1,10 @@
-# Agnostic Shell Controller (ASC)
+# Agnostic Shell Controller (ASC) 🔤🔠🔡🔢🔣🆒🆓
 
 **Origin:** Forked from [Paulmicha/common-web-tools](https://github.com/Paulmicha/common-web-tools) branch `v2.0.0`, which is this repo’s **`main`**. That line diverged enough to warrant a dedicated project. Git history was rewritten (ASC→ASC / “agnostic shell controller”→“agnostic shell controller”, sensitive traces removed).
+
+This project attempts to tackle the hard problem of naming things. Its ambition is to set a common, shared vocabulary for anything interacting with the shell somehow, including linux kernel (or OS-level) interactions and beyond.
+
+***Let's make words matter***
 
 ## TL;DR
 
@@ -20,6 +24,20 @@ ASC is a scaffolding bash shell CLI for usual web project tasks — a generic, c
 ASC is not a program; it is the “glue” between programs. Third-party integration is provided by **extensions** (bundled under `asc/extensions/`, often disabled by default). Core contains utilities for global environment variables, minimal host operations, optional git hooks, log/thread/loop wrappers, and low-level automated tests (`make test-asc`).
 
 ASC is **not** meant for production. It helps individual developers or teams keep a common CLI across older and newer projects.
+
+### Scope
+
+- Thin layer to organize generic (pivot) shell entry points, enforcing a common implementation blueprint for (self-)building by humans and agents alike
+- Simple, minimal, self-explanatory
+- Delegate as much as possible, but still provide usual, optional (opt-in), generic needs as (overridable) "exemplar" implementation blueprints
+- Define things and (implementation) contracts
+
+### Non-goals ("out of scope"s)
+
+- complex self-organizing abominable all-orchestrating plaform
+- delegate to complex nl-related processing in nested apps
+  - ontology stuff (prompt engineering)
+  - second-brain stuff (chain of thought, etc)
 
 ## PURPOSE
 

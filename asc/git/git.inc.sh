@@ -867,9 +867,9 @@ u_git_wrapper() {
 
   if [[ -z "$work_tree" ]] && [[ -n "$APP_DOCROOT" ]]; then
     p_git_work_tree="$APP_DOCROOT"
-    giw $@
+    giw "$@"
   else
-    giw $@
+    giw "$@"
   fi
 
   if [[ $? -ne 0 ]]; then
