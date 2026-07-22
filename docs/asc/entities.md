@@ -65,13 +65,21 @@ Capabilities are expressed as **`*.able.yml`** (and matching `is/able` / `has/*`
 | `$sidecar.able` | changelog / accesslog / time windows |
 | `$field.able` | fieldable attributes |
 | `contract.able` | original “able” |
-| `hook.able` / `implement.able` | emitter / receiver |
-| `$nest.able` | nested-git, nested-asc, nested-host, … |
+| `hook.able` / `implement.able` | emitter / receiver (SKOS-style implement → ontology/taxonomy?) |
+| `$nest.able` | nested-git, nested-asc, nested-host / VM / piloting, … |
 | `crud.able` | vs hardcoded default entity actions |
-| `forget.able` | lifetime / rotate for any `data/*` |
+| `forget.able` | **lifetime for all durable data** (logrotate-like for any `data/*`) |
 | `depend.able` | contrib / remote deps |
-| `build.able` | blueprints (partially out of scope for core) |
+| `build.able` / `combine.able` | blueprints + composition (partially out of scope for core) |
 | `$use.able` | e.g. `entity/uses/global.sh` |
+| `plan.able` | (auto) planified work |
+| `break.able` | will it ever end? / circuit breaker / emergency kill |
+| `crypt.able` | encryption opt-in |
+| `protocol.able` | protocol / argument parser contracts |
+
+Working notes also list near-synonyms to reconcile (not all need distinct files): chainable, pipeable, observable, linkable, slotable, sortable, evaluable, viewable, repeatable, sidecarable, wrappable, discoverable.
+
+**Pattern:** capabilities ≈ `*.able.yml`. **State markers:** `is.*.yml` (able / auto / …) as synonyms of “current state”, distinct from `has/*` attributes.
 
 Agents ideas also list `wrapper.able`, `bridge.able`, `taxonomy.able`, … — **naming must be reconciled** with the `$….able` catalog above (`contract-able` idea).
 
@@ -85,11 +93,25 @@ Agents ideas also list `wrapper.able`, `bridge.able`, `taxonomy.able`, … — *
 | **Bridge** (association?) | Actual I/O or runtime coupling |
 | Software / hardware | Dependency / inventory relations |
 
-Examples:
+Examples of **bridges** (actual I/O coupling):
 
-- [Pipe](wrappers.md#pipe) is a bridge (stdin/stdout between stages).
-- Emitter / receiver (also origin/destination, start/end) label wrap traces.
-- Extension `link` ships `linkable.entity.yml` (stub); sidecar helpers `bridge.sh` / `link.sh` are empty placeholders.
+- [Pipe](wrappers.md#pipe) between stages
+- stdout / stderr redirection wrappers
+- Sidecars (durable companions beside a primary file)
+- Discoverability “through wrappers × bridges” (how an agent finds the next hop)
+
+**Emitter / receiver** labels wrap traces (differentiator). Do not confuse with a **comparator** in rules/conditions (include/exclude logic).
+
+Extension `link` ships `linkable.entity.yml` (stub); sidecar helpers `bridge.sh` / `link.sh` are empty placeholders.
+
+Other relation sketches from notes (open):
+
+| Sketch | Idea |
+|--------|------|
+| Specimen as sidecar pattern | `SPECIMEN.*` files are companion templates beside the real config — same mental model as `*.sidecar.txt` |
+| Git branch as sidecar | Branch metadata / worktree state as a sidecar of a nested-git entity |
+| USB / removable store | Hardware-addressable memory: same disk, different mount/host — `$nest.able` + memory store |
+| Users / ACL / permission | Compatibility predicates — see § compatibility (ideas still empty) |
 
 Open: connectivity in a broader sense (ssh, curl, dns tooling) as first-class relations vs leaving that to [wrappers.md](wrappers.md) § remote.
 
@@ -107,6 +129,8 @@ Applicability is sketched as **`is/*`** predicates (mostly TODO):
 Attributes as **`has/*`** (mostly TODO): label, type, bundle, plan, log, changelog, idea, sidecar, wrapper, nested, permission, field, origin, author, license, version, state, created, changed, …
 
 Auth pack ideas (`auth`, `acl`, `roles`, `permissions,cascading`, `sudo,human-supervising,control`) are still empty or one-line TODOs — e.g. `role.able.yml?`, `cascade.able` ≈ `nest.able?`. Do not treat them as implemented.
+
+Also open from notes: congestion / decongestion / **circuit breaker** (pair with `break.able`); “is-book-bindable” as a tongue-in-cheek applicability joke — keep real predicates boring and explicit.
 
 ---
 

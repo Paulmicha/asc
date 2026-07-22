@@ -10,6 +10,8 @@ Table of contents :
 
 Builder is the opt-in extension for **templates / blueprints / prototypes** — scaffolding helpers for humans and (later) agents. It replaced the retired **`preset`** workflow.
 
+Working motto from notes: **Builder · Extender** — generate scaffolds, then extend them under `scripts/asc/extend/` (not a second competing codegen path). Composition ability: **`combine.able`** (see [entities.md](entities.md)).
+
 | Fact | Detail |
 |------|--------|
 | Path | `asc/extensions/builder/` |
@@ -43,6 +45,8 @@ Subject folders under the builder extension: **`blueprint`** / **`blueprints`**.
 
 Blueprints are meant to capture a **pattern** (structure + tokens) that can be applied to a target docroot. Nested application may use [nested-asc](wrappers.md#nested) (`nested-asc-exec`) so child instances do not inherit the parent bootstrap env.
 
+**Preflight (open):** before/after apply — capture `git diff` / manual fixes as lessons-learned SoT so the next blueprint run improves. Not implemented; keep diffs in changelog or extend until a `blueprint-preflight` action exists.
+
 Open: **`nested-blueprint?`** as a fourth nested kind (builder + `.asc_subjects_ignore` sub-modules).
 
 ---
@@ -55,6 +59,7 @@ Open: **`nested-blueprint?`** as a fourth nested kind (builder + `.asc_subjects_
 |------|------------------|
 | Slot | Named hole in a blueprint/template to be filled (path, token, or partial) |
 | Fill | Hydration step that binds slot → value (env, YAML, CLI) |
+| `slotable` | Entity/capability flag: this blueprint/template exposes slots |
 
 Do not invent make targets named `slot-*` until the builder stubs define them. Prefer documenting slots here when `blueprint-*` / `template-*` bodies land.
 

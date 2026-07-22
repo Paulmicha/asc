@@ -120,6 +120,17 @@ Controlled recursion into other docroots / repos / extension trees — not unbou
 | **nested-extension** | `.asc_subjects_ignore` | Nested subject folders under an extension point |
 | **nested-blueprint?** | builder + sub-modules | Open — see [builder.md](builder.md) |
 
+Further nested kinds from working notes (open — not separate extensions yet):
+
+| Sketch | Intent |
+|--------|--------|
+| Nested Cursor / nested piloting | Agent or IDE session inside a child context |
+| Nested sudo / nested VM | Elevated or VM-isolated child (e.g. tiny VM / SBC dedicated to agents) |
+| Nested entity | Entity graph climb via `$nest.able` |
+| Nested condition system | Rules that nest (and/or trees), not only flat variant hooks |
+
+`.asc_subjects_ignore` is the **submodule list** for nested-extension (attention: most-specific weight must match the nearest non-nested extension point).
+
 ### nested-asc
 
 ```sh
@@ -164,6 +175,24 @@ Remote connectivity is mostly **extensions**, not a core wrap peer of thread/loo
 
 Ideas for a dedicated remote wrap subject are still empty. Broader “connectivity” (ssh/curl/dns as first-class wrap) remains open. Agent designs (when revived) should fail closed on remote actuators unless explicitly allowed.
 
+### Open: tailed remote sync
+
+Working notes sketch a **tail** family that materializes remote flux locally (every flux must land on disk — no invisible streams):
+
+```text
+data/remote-<entity>/…          # e.g. remote-instance, remote-host, remote-s3
+data/remote-instance/           # ≈ REMOTE_INSTANCE_DOCROOT mirror root
+data/remote-instance/$subdir/*.tailsync.txt
+```
+
+| Sketch | Stack (debated) |
+|--------|-----------------|
+| `make tail` | loop wrap (follow) |
+| `make logged-tail` | log wrap → loop wrap ? |
+| `remote-tail` / `remote-logged-tail` | remote + tail |
+
+Treat as design only until named make targets and paths exist. Related: [stream ?](#stream-), [loop](#loop-todo-synonyms--deamon--background-task--background-job--always-on-), local inbox materialization for agents (capture all messages to `data/…`, not only an ephemeral UI).
+
 ---
 
 ## rule (conditional and/or nested combinations)
@@ -176,6 +205,13 @@ Conditional gates for whether work runs.
 | Extension `views` | Projection stubs; often paired with rules |
 
 No core `asc/rule/` wrap exists. Until `rules` ships real bodies, treat this as an **extension-level contract** that should compose with [organization.md](organization.md) variants/hooks and nested wrappers — not a launch-stack peer of `lt`/`ll`.
+
+Working model from notes:
+
+- **Rules ≈ `$wrap.able` + `$nest.able`** — conditional execution that can nest (like hooks, but explicit).
+- **Logged-wrapped + rules-wrapped** — same launch stack as `lt`/`lc`/…, with a condition gate before the entry runs.
+- Emitter/receiver is a **differentiator** on wrap traces; rules use a **comparator** (include/exclude, and/or) — do not merge the two vocabularies.
+- Pair with `break.able` / circuit breaker for emergency stop (see [entities.md](entities.md) § capabilities).
 
 ---
 
@@ -201,7 +237,7 @@ Keep both make surfaces; document which path you mean when writing runbooks.
 | Continuous loop output | [loop](#loop-todo-synonyms--deamon--background-task--background-job--always-on-) |
 | Stage I/O | [pipe](#pipe) |
 
-Open: is “stream” a synonym of pipe + loop, or a distinct chunked/evented contract?
+Open: is “stream” a synonym of pipe + loop, or a distinct chunked/evented contract? Remote **tail sync** (follow a remote file into `data/remote-*/…/*.tailsync.txt`) may be the missing stream-shaped wrap — see [remote](#remote).
 
 ---
 

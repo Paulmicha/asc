@@ -149,10 +149,19 @@ Core cases under `asc/test/asc/*.test.sh`; extensions/extend append via `test/as
 
 ### Conventions
 
-- Prefer self-explanatory filenames and paths.
-- Keep complex agent / ontology work out of core.
+- Prefer self-explanatory filenames and paths (*Let's make words matter*).
+- Keep complex agent / ontology work out of core — **offload** when the problem needs its own nested app/stack.
+- State **limits / scope / context** in changelogs and living docs when a feature is intentionally incomplete.
 - Do not commit generated `.env`, `data/asc/global.vars.sh`, or personal absolute paths.
 - Mark stubs honestly (`# TODO`); do not invent behavior in docs.
+- Prefer repeatable `e:` / `a:` make notation (see [organization.md](organization.md) § make shortcuts).
+
+### Tutorials (open)
+
+Two entry tutorials should eventually exist (same SoT as this suite):
+
+1. **For humans** — start → customize → one wrapper (`lt`) → one extend script  
+2. **For agents** — introspection dump, observability paths, fail-closed remote rules, materialize all flux under `data/`
 
 ### Roadmap (upstream)
 

@@ -91,6 +91,17 @@ Idempotent. If globals are already `readonly` in the current shell, use a new te
 
 Do **not** hand-edit generated files.
 
+### Service word collision (open)
+
+Notes call out overloaded “service” — keep these distinct in docs and globals:
+
+| Phrase | Means |
+|--------|--------|
+| Compose service | A unit in `compose.yml` |
+| Instance service | Lifecycle of this ASC instance (`start`/`stop`/…) |
+| Stack service | A named stack / `STACK_VERSION` pack |
+| Host service | systemd / host daemon outside compose |
+
 ---
 
 ## humans vs agents (ownership ?)
@@ -106,6 +117,8 @@ Core non-goals include complex NL / chain-of-thought / ontology platforms — de
 
 Thread YAML records `owner` / uid / euid for supervised jobs. Wrappers never call `sudo` themselves.
 
+**Introspection (open):** a single discoverable dump of “where am I?” — globals, scoped vars, nest level, active wrappers/sidecars, extensions, upstream version, eager `*.inc.sh` vs lazy `*.opt-inc.sh`, hooks, entities, capabilities. Useful for both humans and agents; no dedicated make target yet.
+
 Open: richer ownership / ACL as entity predicates (`role.able`, cascading permissions) — see [entities.md](entities.md).
 
 ---
@@ -118,6 +131,8 @@ Open: richer ownership / ACL as entity predicates (`role.able`, cascading permis
 1. Enabled `./asc/extensions/$extension` (and nested via `.asc_subjects_ignore`)
 1. `./scripts/asc/contrib/$extension` (same nesting rules)
 1. `./scripts/asc/extend` (project-specific)
+
+`.asc_subjects_ignore` is the **nested-extension submodule list** (folders treated as nested extension points). Most-specific hook weight for those nested implementations must match the nearest non-nested extension point — see [wrappers.md](wrappers.md) § nested.
 
 Core subjects include `instance`, `host`, `git`, `log`, `loop`, `thread`, `sidecar`, `make`, `test`, `env`, `asc`. Extensions add subjects when enabled (`cron-*`, `nested-asc-*`, `blueprint-*`, `transcribe`, …).
 
@@ -168,6 +183,8 @@ make hook-debug s:instance a:start v:STACK_VERSION PROVISION_USING HOST_TYPE INS
 
 Hook lookup caches under `data/asc/cache/hook.*.sh`. Overrides: `scripts/asc/override/` via autoload override. Colocated `*.opt-inc.sh` can be seeded into the hook cache before hook bodies (foreign-subject implementers).
 
+Open (notes): **YAML hooks everywhere** for context and “suitable next steps” (not only `*.hook.sh`) — keep as design pressure; today `-c yml` already participates in most-specific lookup for some flows.
+
 ---
 
 ## variants
@@ -177,6 +194,8 @@ Variant globals become **dotted filename parts** in most-specific lookup (via `u
 Example: `-v 'HOST_TYPE INSTANCE_TYPE'` expands combinations such as `init.hook.sh`, `init.local.hook.sh`, `init.local.dev.hook.sh`, …
 
 Operator “combos” (chain / batch / pipe) are **wrappers**, not hook variants — see [wrappers.md](wrappers.md).
+
+Open (notes): auto-enable some **nested subjects / submodules by variant** (e.g. only when `HOST_TYPE=…`) instead of only via ignore files — not implemented; would need clear precedence vs `.asc_subjects_ignore`.
 
 ---
 
@@ -232,6 +251,8 @@ Short names come from synonym / shortening maps applied in make task naming (e.g
 Typical core targets after init: `setup`, `start`/`stop`, `build`/`destroy`, `reinit`, `asc-upgrade`, `test-asc`, host/git helpers, … — see generated.mk + `asc/make/default.mk`.
 
 Escape awkward make args with root helper `asc/escape.sh` (intentionally outside bootstrap includes).
+
+Prefer **repeatable** `e:` / `a:` notation on logged runners (`make lc e:1:step e:2:step a:arg`) over one-off positional conventions — same shape everywhere aids humans and agents.
 
 Regenerate after synonym or action changes: **`make reinit`**.
 
