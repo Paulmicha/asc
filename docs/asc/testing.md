@@ -1,4 +1,12 @@
-# Testing
+# ASC core concept : Testing
+
+Table of contents :
+
+1. Conventions (layers)
+1. asc/vendor/shunit2 dependency
+1. TODO new browser asc core extension, with playwright as default implementation in core as well ?
+
+---
 
 ## Entry point
 

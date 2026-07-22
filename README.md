@@ -434,20 +434,58 @@ Full guide: [docs/asc/testing.md](docs/asc/testing.md).
 
 ## Docs index
 
-| Guide | Topic |
-|-------|--------|
-| [docs/asc/layers.md](docs/asc/layers.md) | Implementation layers 1–5 + launch stack |
-| [docs/asc/globals.md](docs/asc/globals.md) | Readonly vs mutable; `env.yml` |
-| [docs/asc/bootstrap.md](docs/asc/bootstrap.md) | Phases; eager/lazy includes |
-| [docs/asc/hooks.md](docs/asc/hooks.md) | Hooks + variant combos |
-| [docs/asc/actions-and-make.md](docs/asc/actions-and-make.md) | Discovery; generated.mk |
-| [docs/asc/observability.md](docs/asc/observability.md) | `lt`/`lc`/…; log/thread paths |
-| [docs/asc/testing.md](docs/asc/testing.md) | `make test-asc` |
-| [docs/asc/secrets.md](docs/asc/secrets.md) | Registry / gitignore stance |
-| [docs/asc/extensions.md](docs/asc/extensions.md) | Enable, override, families |
-| [docs/asc/builder.md](docs/asc/builder.md) | Builder (ex-preset) |
-| [docs/asc/nested-asc.md](docs/asc/nested-asc.md) | Nested virgin-env exec |
-| [docs/asc/sidecar-wrap.md](docs/asc/sidecar-wrap.md) | Durable sidecar SoT |
+1. [documentation (3 types only, as far as ASC is concerned)](docs/asc/documentation.md)
+    1. [ideas](docs/asc/documentation.md#ideas)
+    1. [changelogs](docs/asc/documentation.md#changelogs)
+    1. [living docs](docs/asc/documentation.md#living)
+1. [organization](docs/asc/organization.md)
+    1. [globals](docs/asc/organization.md#globals)
+    1. [hosts](docs/asc/organization.md#hosts)
+    1. [instances](docs/asc/organization.md#instances)
+    1. [humans vs agents (ownership ?)](docs/asc/organization.md#humans-vs-agents-ownership)
+    1. [subjects](docs/asc/organization.md#subjects)
+    1. [actions](docs/asc/organization.md#actions)
+    1. [hooks](docs/asc/organization.md#hooks)
+    1. [variants](docs/asc/organization.md#variants)
+    1. [bootstrap : inc, opt-inc](docs/asc/organization.md#bootstrap-inc-opt-inc)
+    1. [make shortcuts](docs/asc/organization.md#make-shortcuts)
+    1. [(re)init : cache, state](docs/asc/organization.md#re-init-cache-state)
+1. [wrappers](docs/asc/wrappers.md)
+    1. [batch (synonym : parallel)](docs/asc/wrappers.md#batch-synonym-parallel)
+    1. [chain (synonym : sequence)](docs/asc/wrappers.md#chain-synonym-sequence)
+    1. [cronjob (TODO or just use "raw" thread wrapper instead ?)](docs/asc/wrappers.md#cronjob-todo-or-just-use-raw-thread-wrapper-instead)
+    1. [loop (TODO synonyms : deamon ? background task ? background job ? always-on ?)](docs/asc/wrappers.md#loop-todo-synonyms-deamon-background-task-background-job-always-on)
+    1. [nested](docs/asc/wrappers.md#nested)
+    1. [pipe](docs/asc/wrappers.md#pipe)
+    1. [remote](docs/asc/wrappers.md#remote)
+    1. [rule (conditional and/or nested combinations)](docs/asc/wrappers.md#rule-conditional-and-or-nested-combinations)
+    1. [sequence](docs/asc/wrappers.md#sequence)
+    1. [stream ?](docs/asc/wrappers.md#stream)
+    1. [thread](docs/asc/wrappers.md#thread)
+    1. [tunnel](docs/asc/wrappers.md#tunnel)
+1. [entities](docs/asc/entities.md)
+    1. [represents ? (why it exists)](docs/asc/entities.md#represents-why-it-exists)
+    1. [definition (scope ?)](docs/asc/entities.md#definition-scope)
+    1. [capabilities](docs/asc/entities.md#capabilities)
+    1. [relationships](docs/asc/entities.md#relationships)
+    1. [compatibility, applicability ? (protocols, etc)](docs/asc/entities.md#compatibility-applicability-protocols-etc)
+    1. [yml includes](docs/asc/entities.md#yml-includes)
+1. [builder](docs/asc/builder.md)
+    1. [documenting (~ minimal OKF ? dedicated core extension ?)](docs/asc/builder.md#documenting-minimal-okf-dedicated-core-extension)
+    1. [blueprints](docs/asc/builder.md#blueprints)
+    1. [slots](docs/asc/builder.md#slots)
+    1. [templates](docs/asc/builder.md#templates)
+    1. [self-building (chain.able, nest.able, rule.able codegen for humans and agents)](docs/asc/builder.md#self-building-chain-able-nest-able-rule-able-codegen-for-humans-and-agents)
+1. [testing](docs/asc/testing.md)
+    1. [1. Conventions (layers)](docs/asc/usage.md)
+    1. [1. asc/vendor/shunit2 dependency](docs/asc/usage.md)
+    1. [1. TODO new browser asc core extension, with playwright as default implementation in core as well ?](docs/asc/usage.md)
+1. [usage](docs/asc/usage.md)
+    1. [start](docs/asc/usage.md#start)
+    1. [extend](docs/asc/usage.md#extend)
+    1. [customize](docs/asc/usage.md#customize)
+    1. [adapt](docs/asc/usage.md#adapt)
+    1. [contribute](docs/asc/usage.md#contribute)
 
 ## Roadmap
 
