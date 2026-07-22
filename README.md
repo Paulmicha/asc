@@ -510,6 +510,10 @@ Full guide: [docs/asc/testing.md](docs/asc/testing.md).
 - Offload more tasks to third-party projects where sensible
 - Reduce bashisms / improve POSIX compatibility where practical
 
+## Contributors
+
+Project name, ideas & "rock n rôle" : [arhkaos](https://github.com/arhkaos)
+
 ## License
 
 Apache License 2.0 (see [LICENSE](LICENSE)).
