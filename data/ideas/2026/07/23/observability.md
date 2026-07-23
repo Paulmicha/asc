@@ -59,7 +59,7 @@ data/remote-instance/ = REMOTE\_INSTANCE\_DOCROOT
 data/remote-instance/$data\_subdir/*.tailsync.txt ?
 
 make tail = loop-wrap   
-make logged-tail = log-wrap loop-wrap (debunked ?)
+make logged-tail = log-wrap loop-wrap (debounced ?)
 
 remote-tail, remote-logged-tail ?
 
