@@ -1,0 +1,8 @@
+definition:
+  namespace: $ext.$subject
+  $represents # getter / read : is ; setter / write : change, convert, switch, turn-into ?
+  $capabilities # getter / read : has ; setter / write : add, remove, switch
+  $relations # link : "--" ; when item input format already has repeating consecutive -, compress to only 1
+  $wraps # link : "(slot)"
+  $nests # link : "<slot>"
+  $fields # link : ".", generic freeform extensibility designation - "everything else" not previously reserved
