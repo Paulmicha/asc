@@ -8,7 +8,7 @@ This project attempts to tackle the hard problem of naming things. Its ambition 
 
 ## Overarching goal
 
-a slot-based abstraction layer to easily combine and pivot between any "shellable" entity (via entry points and conditional loading via hooks, with opt-in default minimal implementations via ASC "core" - this repo).
+Like the Go (game) but with entry points, env vars, scripts (wrappers, nesters, "regular"), namespaces and hooks.
 
 ## Current status
 
