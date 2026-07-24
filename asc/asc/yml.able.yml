@@ -1,0 +1,4 @@
+yml:
+  is: file
+  heredoc:
+    - wrap

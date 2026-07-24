@@ -1,0 +1,19 @@
+# This file allows to specify any contract.
+able:
+  # This allows whitelists and blacklists (on/off).
+  freeform:
+    includes: true
+    wrappers: true
+    fields: true
+    synonyms: true
+    actions: true
+    overrides: true
+  required:
+    fields:
+      - is
+    actions:
+      rule: at_least[ 1 ].of[ $subject.freeform.yml[ $action ]]
+  optional:
+    fields:
+      - includes
+      - depends

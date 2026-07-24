@@ -1,0 +1,5 @@
+wrap:
+  add:
+    synonym: a
+    default:
+      value: .

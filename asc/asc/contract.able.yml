@@ -1,0 +1,24 @@
+# This is a meta file (it defines rules for any child *.contract.able entity).
+contract:
+  # This allows whitelists and blacklists (on/off *.able.yml) entity in rules.
+  freeform:
+    include: true
+    wrap: true
+    field: true
+    synonym: true
+    nest: true
+    override: true
+    override: true
+
+  # This allows to enforce which things are mandatory.
+  required:
+    fields:
+      - is
+    actions:
+      rule: at_least[ 1 ].of[ $subject/$freeform.able.yml[ $action ]]
+
+  # And / or optional things.
+  optional:
+    fields:
+      - includes
+      - depends
