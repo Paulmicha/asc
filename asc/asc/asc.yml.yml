@@ -1,0 +1,14 @@
+# Any yml file implementing something from ASC core inherits this.
+# @see asc/extensions/entity/entity/entity.entity.yml
+# @see asc/asc/able.able.yml
+# @see asc/asc/contract.entity.yml
+synonym:
+  op:
+    - operation
+  sk:
+    - capacity
+    - capability
+    - ability
+    - skill
+  val:
+    - value

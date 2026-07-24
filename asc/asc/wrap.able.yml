@@ -1,0 +1,5 @@
+wrap:
+  required:
+    prop:
+      wrapper:
+        validate: test-file-exists(p-1)

@@ -1,5 +1,0 @@
-contract:
-  optional:
-    field:
-      synonym:
-        validate: test-is[either]([p-1].slug[-],[p-1].slug[_]])

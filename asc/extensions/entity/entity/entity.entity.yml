@@ -1,0 +1,43 @@
+# Primordial ASC entity (*.entity inheritance chain root).
+include: asc.yml
+entity:
+
+  # This allows (cap)abilities whitelists and blacklists (on/off *.able.yml) in
+  # our custom ASC DSL (rules).
+  # TODO : draft yml spec for finer-grained restrictions, compatibility, next-steps, etc.
+  is: '*'
+  access: '*'
+  include: '*' # synonym : depends ? inherits ?
+  field: '*'
+  triple: '*'
+  link: '*'
+  synonym: '*'
+  override: '*'
+  hook: '*'
+  wrap: '*'
+  nest: '*'
+  sidecar: '*'
+  entity: '*'
+  taxonomy: '*'
+  cognition: '*'
+  # Last but not least : (cap)ability to define contracts (= supported yml keys)
+  # Any contract rule is scoped by subject, starting at current (relative) asc
+  # "level" (situation in dsl : nesting scope, wrapping scope, asc
+  # instance scope, host scope, remote scope, etc).
+  contract: '*'
+
+  # This allows to enforce which things are mandatory.
+  required:
+    field:
+      type:
+        validate: test-not-empty(p-1)
+
+  # And / or indicate optional things.
+  optional:
+    prop:
+      - include
+    field:
+      name:
+        default: ''
+      bundle:
+        default: entity-type
