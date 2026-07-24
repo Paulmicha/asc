@@ -1,16 +1,2 @@
-# include:
-contract:
-  # This allows to enforce which things are mandatory.
-  required:
-    field:
-      name:
-        # p-1 represents the first (positional) argument, the value of name.
-        validate: test-not-empty(p-1)
-    action:
-      rule: at_least[ 1 ].of[ $subject/$operation.able.yml[ $action ]]
-
-  # And / or optional things.
-  optional:
-    fields:
-      - includes
-      - depends
+rules:
+  todo: TODO

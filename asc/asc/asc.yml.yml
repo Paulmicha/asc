@@ -5,10 +5,23 @@
 synonym:
   op:
     - operation
-  sk:
-    - capacity
-    - capability
+  skill:
     - ability
-    - skill
+    - capability
+    # - capacity # don't : contenance if storage
   val:
     - value
+  prop:
+    - key
+    - property
+  sh:
+    - shell
+  fs:
+    - file_system
+    - filesystem
+  str:
+    - string
+  int:
+    - integer
+  arr:
+    - array
