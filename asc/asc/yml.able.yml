@@ -1,4 +1,2 @@
 yml:
-  is: file
-  heredoc:
-    - wrap
+  is: contract

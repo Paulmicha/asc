@@ -1,19 +1,7 @@
-# This file allows to specify any contract.
+# Primitive definition of all *.able definitions.
 able:
-  # This allows whitelists and blacklists (on/off).
-  freeform:
-    includes: true
-    wrappers: true
-    fields: true
-    synonyms: true
-    actions: true
-    overrides: true
-  required:
-    fields:
-      - is
-    actions:
-      rule: at_least[ 1 ].of[ $subject.freeform.yml[ $action ]]
-  optional:
-    fields:
-      - includes
-      - depends
+  include:
+    # All *.able definitions inherit from the primordial "contract" entity
+    # definition. They can choose how deep they want to be in the inheritance
+    # chain by choosing their own includes, but this one is common to all :
+    - asc.contract
