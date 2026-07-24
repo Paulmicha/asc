@@ -3,6 +3,6 @@ repo:
     entity:
       - file
       - folder
-
-git:
-  repo: url.validate(str.url)
+      - relation
+  url:
+    field: str.url
