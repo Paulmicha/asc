@@ -1,32 +1,47 @@
-# This is a meta file (it defines rules for any child *.contract.able entity).
+# This is a meta file (it defines rules for any child contract.able entity).
 contract:
-  # This allows whitelists and blacklists (on/off *.able.yml) entity in rules.
+
+  # Any yml file definition inherits from the meta yml definition (asc defaults).
+  # It gives the ability to occupy the ASC "naming space" with shortcuts.
+  synonyms:
+    op:
+      - operation
+    sk:
+      - capacity
+      - capability
+      - ability
+      - skill
+
+  # This allows (cap)abilities whitelists and blacklists (on/off *.able.yml) in
+  # our custom ASC DSL (rules).
   operation:
-    include: '*'
-    wrap: '*'
+    is: '*'
+    access: '*'
+    include: '*' # synonym : depends ? inherits ?
     field: '*'
     triple: '*'
     link: '*'
     synonym: '*'
-    nest: '*'
     override: '*'
-    contract: '*'
-    rule: '*'
-    entity: '*'
+    hook: '*'
+    wrap: '*'
+    nest: '*'
     sidecar: '*'
-    health: '*'
-    heartbeat: '*'
-    loop: '*'
-    thread: '*'
-    log: '*'
+    contract: '*'
+    entity: '*'
+    taxonomy: '*'
     cognition: '*'
-    access: '*'
+    # Last but not least : (cap)ability to define contracts.
+    # Any contract rule is scoped by subject, starting at current (relative) asc
+    # "level" (situation in dsl : nesting scope, wrapping scope, asc
+    # instance scope, host scope, remote scope, etc).
+    rule: '*'
 
   # This allows to enforce which things are mandatory.
   required:
     field:
       is:
-        validate:
+        validate: one.of[ $operation ]
     action:
       rule: at_least[ 1 ].of[ $subject/$operation.able.yml[ $action ]]
 
