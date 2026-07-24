@@ -1,0 +1,16 @@
+folder:
+  default:
+    state: new
+  states:
+    - gitignored
+    - versionned
+    - unclean
+
+file:
+  default:
+    state: new
+  states:
+    - gitignored
+    - versionned
+    - modified
+    - conflicted

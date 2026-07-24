@@ -125,7 +125,9 @@ Open: richer ownership / ACL as entity predicates (`role.able`, cascading permis
 
 ## subjects
 
-**Folders = subjects.** Discovery walks:
+**Folders = subjects.** In docs, `$subject` is the make-entry-point placeholder for any subject — with one locked exception (see [documentation.md](documentation.md) § `$` notation): `$subject` **can** be a plain **slugified string** (like any var or function name), **or**, for `*.hook.yml` / `*.hook.sh`, our **custom DSL notation**.
+
+Discovery walks:
 
 1. `./asc`
 1. Enabled `./asc/extensions/$extension` (and nested via `.asc_subjects_ignore`)
@@ -161,6 +163,8 @@ After adding extend scripts: clear caches and `make reinit` (see [(re)init](#rei
 ## hooks
 
 File-based events: `hook()` / **`u_hook_most_specific()`** on `*.hook.sh` (also `-c yml`, templates, …).
+
+Under `$subject`, hook stems are either ordinary slugified names **or** (planned filename DSL) custom DSL notation — `$subject` is the **only** `$` doc-notation exception that allows that dual reading (slug **or** DSL on `*.hook.yml` / `*.hook.sh`). See [documentation.md](documentation.md) § `$` notation and plan SoT `changelog/2026/07/24-filename-dsl.md`.
 
 | Flag | Meaning |
 |------|---------|

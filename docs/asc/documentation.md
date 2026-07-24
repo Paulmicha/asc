@@ -5,6 +5,7 @@ Table of contents :
 1. ideas
 1. changelogs
 1. living
+    1. `$` notation (docs vocabulary)
 
 ASC recognizes **three** documentation kinds only. Everything else (tickets, chat logs, vendor READMEs outside the tree) is out of this model.
 
@@ -72,6 +73,14 @@ Living docs should be:
 2. **Compiled** — synthesize sources; do not leave raw extract dumps as the reader path.
 3. **Honest about gaps** — mark open questions and stubs instead of inventing behavior.
 4. **Polished like code** — polish prose the same way you polish implementation (clarity, typography, consistent terms). Naming is the hard problem; living docs are part of solving it.
+
+### `$` notation (docs vocabulary)
+
+In living docs, changelogs, plans, and rules prose: any `$`-prefixed name means **"any make entry point"** (documentation notation only — **not** on-disk filenames).
+
+**Exception — `$subject` (only):** `$subject` **can** be plain **slugified string** values (like any var or function name), **or**, in the case of `*.hook.yml` or `*.hook.sh`, our **custom DSL notation**. All other `$…` placeholders keep the general make-entry-point reading.
+
+SoT: `changelog/2026/07/24-filename-dsl.md` § Documentation `$` notation; Cursor: `.cursor/rules/doc-notation.mdc`.
 
 Aim for two readable paths over time: a **tutorial for humans** and a **tutorial for agents** (same facts, different density) — both should point at this suite, not fork a second SoT.
 

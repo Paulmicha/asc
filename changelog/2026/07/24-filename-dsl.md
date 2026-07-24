@@ -4,7 +4,7 @@
 |-------|--------|
 | **Date** | 2026-07-24 |
 | **Status** | plan / review (not implemented; multi-shell groundwork WIP on branch) |
-| **Scope** | ASC repo `/home/paul/Documents/asc` — filename grammar for subjects, actions, hooks, wraps; matching runtime actions; MAKE_TASKS_SHORTER abbreviations; **shell-agnostic runtime** (`ASC_SHELL`; multi-shell `inc` / `opt-inc` loaded by a **single dedicated include-loader hook**); primordial layout under `asc/asc/`; **tests as first-class deliverables** (shunit2 / `make test-asc`; cases may themselves be nest/wrap DSL steps); **Cursor rules** so agent-produced ASC edits respect all locked naming conventions |
+| **Scope** | ASC repo `/home/paul/Documents/asc` — filename grammar for subjects, actions, hooks, wraps; matching runtime actions; MAKE_TASKS_SHORTER abbreviations; **shell-agnostic runtime** (`ASC_SHELL`; multi-shell `inc` / `opt-inc` loaded by a **single dedicated include-loader hook**); primordial layout under `asc/asc/`; **tests as first-class deliverables** (shunit2 / `make test-asc`; cases may themselves be nest/wrap DSL steps); **Cursor rules** so agent-produced ASC edits respect all locked naming conventions; **living-docs pass** (ASC `docs/asc/**` + home `~/docs/next-steps.md`) as an explicit plan deliverable; **`$`-prefixed documentation notation** for make entry points (**`$subject` sole exception:** slugified string **or** hook DSL on `*.hook.yml` / `*.hook.sh`) |
 | **Related** | Prior idea `data/ideas/2026/07/23/dsl.md` (**syntax superseded** by this plan); `data/ideas/2026/07/23/wrappers-nest-bridges.md`; `data/ideas/2026/07/23/genericity-taxonomy.md`; `docs/asc/organization.md` (subjects/actions/hooks); `docs/asc/wrappers.md`; `docs/asc/archive/hooks.md`; naming plan `changelog/2026/07/23-f-e-naming-convention.md` (`p_` / `o_` / `f_*`); WIP on `naming-convention-changelog`: `648a4d7` (begin multi shell), `8f3faa8` (utilities → `asc/asc/`), `f971316` (**final primordial layout**: eager `*.inc.sh` core + `asc/asc/utils/*.opt-inc.sh`) |
 | **Lifecycle** | Local review stub: `data/plans/review/2026-07-24-filename-dsl.md` (dir mostly gitignored — **this changelog is the tracked SoT**, same pattern as `23-f-e-naming-convention.md`). Move stub across `review` → `iterate` → `accepted` / `rejected` per `data/ideas/2026/07/23/idea-changelog-workflow.md`. |
 
@@ -43,8 +43,37 @@ The same filename / include surface must stay **shell-generic**: today’s defau
 8. Route multi-shell **`inc` / `opt-inc` loading through a single dedicated include-loader hook** driven by `ASC_SHELL` (bash default+fallback; shell-specific alternate only if present). Eager vs lazy kinds still apply.
 9. **Create tests as part of implementation** (not an afterthought): shunit2 cases under the existing ASC harness (`make test-asc` → `asc/test/asc/*.test.sh`), including grammar/AST goldens and runtime nest/wrap/arg smoke. Test steps themselves may be expressed with the same DSL — **nest** (`foo.bar`) or **wrap** (`foo(bar)`) — including arg/synonym patterns such as `log.level_get` / `log.level_set` and shorter forms `llv-get` / `llv-set`.
 10. **Cursor rules** (project-local `.cursor/rules/*.mdc`): any Cursor-produced modification under this ASC repo must respect **all naming conventions locked by this plan** (and the related `f_*` / `e_*` / `o_*` naming plan where symbols apply) — before Phase 1+ coding, not as a docs afterthought.
+11. **Thorough living-documentation update** (including **next steps**) as an implementation/docs deliverable — not an optional side note. See Phase 0d.
 
 Non-goals for this plan: shipping the full DSL parser; rewriting existing `*.hook.sh` trees wholesale; changing make synonym maps in code; implementing non-bash shell bodies in v1 (convention + lookup first); inventing a huge new rules essay. Do **not** invent a parallel test runner — extend `docs/asc/testing.md` / `asc/test/` conventions.
+
+---
+
+## Documentation `$` notation (locked)
+
+**Meaning (locked):** any `$`-prefixed name in **documentation files** means **"any make entry point"**.
+
+| Rule | Detail |
+|------|--------|
+| **Where** | Documentation files only (this plan, living docs, changelogs, Cursor rules prose, next-steps, READMEs) |
+| **Meaning** | `$name` = *any* make entry point named `name` (placeholder / quantification over the operable surface) |
+| **Not** | Literal `$` characters in on-disk filenames, path segments, or shell variables by virtue of this rule alone |
+| **Purpose** | Everyone speaks about the same thing precisely in docs — `$subject`, `$action`, `$field.able.subject`, `$triple.able.predicate`, … |
+
+**Exception — `$subject` (only):** `$subject` is the **only** exception to the usual `$`-prefixed doc notation above. It **can** be plain **slugified string** values (like any var or function name), **or**, in the case of `*.hook.yml` or `*.hook.sh`, it can be our **custom DSL notation**. All other `$`-prefixed doc names keep the general rule (make entry point; docs notation only — not filenames).
+
+**Examples already used throughout this plan:** `$subject`, `$action`, `$object`, `$ASC_SHELL`, `$action.able.yml`.
+
+**Locked relation forms in docs (always with `$`):**
+
+```text
+($field.able.subject)--($field.able.object)
+($triple.able.subject)--($triple.able.predicate)--($triple.able.object)
+```
+
+**Superseded doc spellings (do not use):** `(field.able.subject)--(field.able.object)` and `(triple.able.subject)--(triple.able.predicate)--(triple.able.object)` (missing `$` on able members).
+
+**Relations mapping stays consistent:** resolve via `$action.able.yml` → `$subject.$action` (same `$` doc notation).
 
 ---
 
@@ -67,15 +96,15 @@ option       := 'o-' freeform     # option token
 relation     := field_rel | triple_rel
 field_rel    := '(' field_subj ')' '--' '(' field_obj ')'
 # locked field form:
-#   (field.able.subject)--(field.able.object)
+#   ($field.able.subject)--($field.able.object)
 triple_rel   := '(' triple_subj ')' '--' '(' triple_pred ')' '--' '(' triple_obj ')'
 # locked triple form (the rest):
-#   (triple.able.subject)--(triple.able.predicate)--(triple.able.object)
-field_subj   := freeform          # field.able.subject
-field_obj    := freeform          # field.able.object
-triple_subj  := freeform          # triple.able.subject
-triple_pred  := freeform          # triple.able.predicate
-triple_obj   := freeform          # triple.able.object
+#   ($triple.able.subject)--($triple.able.predicate)--($triple.able.object)
+field_subj   := freeform          # $field.able.subject (doc notation)
+field_obj    := freeform          # $field.able.object (doc notation)
+triple_subj  := freeform          # $triple.able.subject (doc notation)
+triple_pred  := freeform          # $triple.able.predicate (doc notation)
+triple_obj   := freeform          # $triple.able.object (doc notation)
 freeform     := [A-Za-z0-9_.-]+   # agnostic token (may itself nest/wrap in full grammar — see phases)
 suffix       := ( '.' shell_id )? '.' ( 'hook' | 'wrap' | 'inc' | 'opt-inc' | … ) ( '.' variant )* ( '.' ext )
 shell_id     := 'zsh' | 'posix' | 'powershell' | 'cmder' | …   # omitted ⇒ ASC_SHELL default (bash)
@@ -90,8 +119,8 @@ ext          := 'sh' | 'yml' | 'ps1' | …                       # ext policy fo
 |---------|-------|------|
 | **First `-`** (single hyphen inside a token) | `head-tail`, `o-…`, `b-…` | Intra-token head/tail split — **not** a relation construct; replaces the superseded same-word `_` rule. **Positional meaning is locked.** |
 | **Optional `_`** (prefix in `$action` stem — **position matters**) | `$subject_$action…` / `$object_$action…` | Soft reading of a leading `_`-separated segment as `$subject` or `$object`, then `$action` (see below). **Not** a same-word / head-tail separator; **not** folder nest; **not** a relation. |
-| **Field `--`** | `(field.able.subject)--(field.able.object)` | **Field** relation (two able members) |
-| **Triple `--`…`--`** | `(triple.able.subject)--(triple.able.predicate)--(triple.able.object)` | **Triple** / the rest (three able members) |
+| **Field `--`** | `($field.able.subject)--($field.able.object)` | **Field** relation (two able members; `$` = doc notation) |
+| **Triple `--`…`--`** | `($triple.able.subject)--($triple.able.predicate)--($triple.able.object)` | **Triple** / the rest (three able members; `$` = doc notation) |
 
 **First `-` separator policy (locked — replaces “same-word separator”):** do **not** invent a special same-word separator rule (the superseded idea `data/ideas/2026/07/23/dsl.md` proposed `_` for that). Compound key/value (and similar head/tail) splits **inside** freeform / prefixed tokens are read from the **position of the first `-`**: left of the first hyphen = head/key; right = remainder/value (further single `-` in the remainder are literal content, not a second separator class). This policy applies **inside** tokens; it does **not** compete with relation `--` delimiters between `(…)` able members.
 
@@ -161,34 +190,34 @@ So `instance-giw[log,b-oneline]` needs no `_`-as-same-word rule: `instance` / `g
 
 #### Relations / fields (locked — mapping complete)
 
-**The mapping is now really complete.** Locked filename-DSL forms:
+**The mapping is now really complete.** Locked **documentation** forms (see [Documentation `$` notation](#documentation--notation-locked) — `$` = any make entry point; **not** file names):
 
 **1. Fields**
 
 ```text
-(field.able.subject)--(field.able.object)
+($field.able.subject)--($field.able.object)
 ```
 
 **2. Triples / the rest**
 
 ```text
-(triple.able.subject)--(triple.able.predicate)--(triple.able.object)
+($triple.able.subject)--($triple.able.predicate)--($triple.able.object)
 ```
 
-| Form | Members | Role |
-|------|---------|------|
-| Field | `(field.able.subject)` `--` `(field.able.object)` | Field relation between two able refs |
-| Triple | `(triple.able.subject)` `--` `(triple.able.predicate)` `--` `(triple.able.object)` | Full relation triple (predicate is **`triple.able.predicate`**, not bare `triple.predicate`) |
+| Form | Members (doc notation) | Role |
+|------|------------------------|------|
+| Field | `($field.able.subject)` `--` `($field.able.object)` | Field relation between two able refs |
+| Triple | `($triple.able.subject)` `--` `($triple.able.predicate)` `--` `($triple.able.object)` | Full relation triple (predicate is **`$triple.able.predicate`**, not bare `triple.predicate`) |
 
-**YAML mapping (locked, consistent):** both forms are **mappable to `$subject.$action` via `$action.able.yml`** (capability / relation YAML colocated with the action — same family as entity `.able` ideas). Exact schema keys TBD in Phase 1–3; stems resolve through **`$action.able.yml`**, not a parallel ad-hoc namespace.
+**YAML mapping (locked, consistent with `$` doc notation):** both forms are **mappable to `$subject.$action` via `$action.able.yml`** (capability / relation YAML colocated with the action — same family as entity `.able` ideas). Exact schema keys TBD in Phase 1–3; stems resolve through **`$action.able.yml`**, not a parallel ad-hoc namespace.
 
-| Filename DSL | Resolves toward |
-|--------------|-----------------|
-| `(field.able.subject)--(field.able.object)` | Field entry on `$subject/$action` via `$action.able.yml` |
-| `(triple.able.subject)--(triple.able.predicate)--(triple.able.object)` | Triple on `$subject/$action` via `$action.able.yml` |
+| Doc form (filename-DSL meaning) | Resolves toward |
+|---------------------------------|-----------------|
+| `($field.able.subject)--($field.able.object)` | Field entry on `$subject/$action` via `$action.able.yml` |
+| `($triple.able.subject)--($triple.able.predicate)--($triple.able.object)` | Triple on `$subject/$action` via `$action.able.yml` |
 | `$subject.$action` | Nest path whose actionable contract may include that `.able.yml` |
 
-**Superseded (do not use as SoT):** bare `--` field without `(field.able.…)` members; bare `--relation--` / `foo--rel--bar`; incomplete `(triple.able.subject)--(triple.predicate)--(triple.able.object)` (missing `.able` on predicate); idea `dsl.md` sketches `relations : '--' (key-val) or '--foobar--' (triple)`.
+**Superseded (do not use as SoT):** doc forms **without** `$` on able members — `(field.able.subject)--(field.able.object)`, `(triple.able.subject)--(triple.able.predicate)--(triple.able.object)`; bare `--` field without `($field.able.…)` members; bare `--relation--` / `foo--rel--bar`; incomplete `($triple.able.subject)--(triple.predicate)--($triple.able.object)` (missing `.able` on predicate); idea `dsl.md` sketches `relations : '--' (key-val) or '--foobar--' (triple)`.
 
 **Include loading (locked):** a **single dedicated hook** loads `inc` / `opt-inc` files. Those files are include bodies, **not** hook implementations themselves. `hook` / `wrap` remain distinct kinds in the same suffix zone; `inc` = eager include; `opt-inc` = lazy / on-demand include (caller phase 90 and/or colocated seeding before `*.hook.sh` event bodies — see `docs/asc/organization.md`, `docs/asc/archive/bootstrap.md`, `u_hook_opt_inc_append_candidates` in `asc/asc/hook.inc.sh`).
 
@@ -217,8 +246,8 @@ When `ASC_SHELL=bash`, the unqualified bash set is the target (no need for a sep
 | **Wrapper** | `foo(bar)` | `wrap` | Outer `foo` wraps inner `bar` (call/supervision stack). Same family as today’s `*.wrap.sh` / logged wrappers (`lt`, `ll`, …). |
 | **Nester** | `foo.bar` | `nest` | `bar` is nested under / relative to `foo` (scope, subject nesting, or nested entry). Distinct from wrap — see wrappers-vs-nesters. |
 | **Args (bracket list)** | `foo[…]` | `arg` (and boolean / option rules below) | Declares arguments for `foo`; list is ordered; members classified as positional, boolean, or option. |
-| **Field** | `(field.able.subject)--(field.able.object)` | via `$action.able.yml` | Locked field form; maps to `$subject.$action`. |
-| **Triple (the rest)** | `(triple.able.subject)--(triple.able.predicate)--(triple.able.object)` | via `$action.able.yml` | Locked complete triple; predicate is `triple.able.predicate`. |
+| **Field** | `($field.able.subject)--($field.able.object)` | via `$action.able.yml` | Locked field form; maps to `$subject.$action`. |
+| **Triple (the rest)** | `($triple.able.subject)--($triple.able.predicate)--($triple.able.object)` | via `$action.able.yml` | Locked complete triple; predicate is `$triple.able.predicate`. |
 | **Slot** | *(not a filename stem construct)* | YAML hook definition | **Locked:** `slot` is declared on the **`*.hook.yml` definition**, not as a bracket payload in the filename DSL. Superseded idea form `ollama-exec[slot]` must not be used. |
 
 #### Arg list variants
@@ -367,7 +396,7 @@ Branch `naming-convention-changelog` (ahead of `main`) already started this. **C
 - [x] Split primordial eager vs lazy — **settled:** core/global/hook/autoload → `*.inc.sh`; array/fs/shell/string → `utils/*.opt-inc.sh`; rename `asc` → `core`.
 - [x] Frame loading via **one include-loader hook** + `ASC_SHELL` (includes are **not** hook implementations themselves); bash = default + fallback.
 - [ ] Smoke: `. asc/bootstrap.sh` works again on bash; dry-run / notes for posix (and later powershell/cmder) lookup without requiring full ports yet.
-- [ ] Update living docs (`docs/asc/organization.md`, bootstrap archive, hooks archive) for multi-shell include suffixes + primordial layout + single loader-hook semantics.
+- [ ] Update living docs for multi-shell include suffixes + primordial layout + single loader-hook semantics — **owned by Phase 0d** (`docs/asc/organization.md`, bootstrap archive, hooks archive, …).
 
 ---
 
@@ -486,7 +515,7 @@ Parser / runtime fixtures in Phase 1–2 must include at least: one nest-only te
 | Variant dotted hooks today (`init.local.dev.hook.sh`) | Remain valid; DSL adds `()`, `[]`, and richer stems — precedence vs pure variant dots is an open task. |
 | First `-` (not same-word `_`) | Compound head/tail via **first hyphen** position inside tokens; superseded idea’s “same word separator : `_`” is **not** adopted. Distinct from relation `--` between `(…)` able members. |
 | Optional `_` (prefix in `$action`) | `_`-separated **prefix in `$action`** (**position matters**) **can** read as `$subject` / `$object` `_` `$action` `. (variants)? . (hook\|inc\|opt-inc)? . sh` — not enforced; not a relation; not a replacement for `--` field/triple forms. Peer IDs like `remote_db` are a demoted historical note only. |
-| Relations / fields (mapping complete) | Fields: `(field.able.subject)--(field.able.object)`. Triples: `(triple.able.subject)--(triple.able.predicate)--(triple.able.object)`. Map via `$action.able.yml` → `$subject.$action`. |
+| Relations / fields (mapping complete) | Fields: `($field.able.subject)--($field.able.object)`. Triples: `($triple.able.subject)--($triple.able.predicate)--($triple.able.object)`. Map via `$action.able.yml` → `$subject.$action`. |
 | YAML `*.hook.yml` / slot | **Slot** is a YAML hook-definition concern; smart defaults + extendable/overridable stay on `.hook.yml`. Builder `docs/asc/builder.md` § slots is a separate scaffold concept. |
 | Eager `*.inc.sh` / lazy `*.opt-inc.sh` | Include bodies loaded by a **single include-loader hook** (locked). Multi-shell: try `*.$ASC_SHELL.(opt-)inc.sh` if present; else unqualified bash set (default + fallback). Primordial: eager core at `asc/asc/*.inc.sh`, lazy utils at `asc/asc/utils/*.opt-inc.sh`. Timing: phase 60 `ASC_INC`, phase 90 caller opt-inc, colocated seed before `*.hook.sh`. |
 | Bootstrap phases 10–90 | Phase 20 + 90 (and hook opt-inc seeding) must complete WIP path move + shell-aware selection **inside the include-loader hook**. |
@@ -520,11 +549,13 @@ Parser / runtime fixtures in Phase 1–2 must include at least: one nest-only te
 - [x] Freeze **optional `_` prefix in `$action` naming:** `_`-separated leading segment **can** (not enforced) mean `$subject` / `$object` `_` `$action` `. (variants)? . (hook|inc|opt-inc)? . sh`; **position matters**; does **not** revive same-word `_`; first `-` keeps positional head/tail; **not** a relation / not a replacement for `--` able forms. See [Optional `_` prefix in `$action` naming](#optional-_-prefix-in-action-naming-locked-intent--not-enforced).
 - [x] Freeze **remote-family / peer-subject `_` elaboration as demoted:** `remote_db` / `remote_asc` / `remote_traefik` are historical peer-ID notes only — not the locked optional-`_` SoT. See [Historical / peer-subject note](#historical--peer-subject-note-demoted--not-the-locked-_-sot).
 - [x] Freeze **minimal `_` implementation approach:** docs/convention first for the `$action`-prefix reading; **no** DSL parser rule, renames, or mandatory splits. See same section (“Most minimal implementation” / “do NOT build yet”).
-- [x] Freeze **relations / fields (mapping complete):** `(field.able.subject)--(field.able.object)`; `(triple.able.subject)--(triple.able.predicate)--(triple.able.object)`; via `$action.able.yml` → `$subject.$action` (distinct from first-`-` and from optional `_`).
+- [x] Freeze **relations / fields (mapping complete):** `($field.able.subject)--($field.able.object)`; `($triple.able.subject)--($triple.able.predicate)--($triple.able.object)`; via `$action.able.yml` → `$subject.$action` (distinct from first-`-` and from optional `_`).
+- [x] Freeze **documentation `$` notation:** any `$`-prefixed name in **documentation files** means **"any make entry point"**; documentation notation only — **not** file names; purpose = precise shared vocabulary in docs. Locked relation spellings always use `$` on able members (supersede bare `(field.able.…)` / `(triple.able.…)` without `$`).
+- [x] Freeze **`$subject` exception (only):** `$subject` **can** be plain **slugified string** values (like any var or function name), **or**, in the case of `*.hook.yml` or `*.hook.sh`, our **custom DSL notation** — sole exception to the usual `$` doc notation.
 
 ### Phase 0a — Optional `_` `$action`-prefix note (docs-first)
 
-**When:** can land anytime after Phase 0 accept; **orthogonal** to multi-shell Phase 0b and **before** Phase 1 DSL parser work. Prefer docs-only.
+**When:** can land anytime after Phase 0 accept; **orthogonal** to multi-shell Phase 0b and **before** Phase 1 DSL parser work. Prefer docs-only. Fold into Phase 0d when convenient.
 
 - [ ] Living-docs note: optional `_` prefix in `$action` naming **can** read as `$subject` / `$object` `_` `$action` … (not enforced; position matters); contrast with `--` relations; first `-` unchanged.
 - [ ] Do **not** fold this into Phase 1–3 filename-DSL lexer work.
@@ -541,28 +572,60 @@ Parser / runtime fixtures in Phase 1–2 must include at least: one nest-only te
 
 **When:** after Phase 0 freezes (grammar / shell SoT) and preferably after or alongside Phase 0b path/`ASC_SHELL` locks; **before Phase 1** so Cursor-produced tests and later runtime code already follow conventions.
 
-**Where (align with existing conventions):** create **project-local** `.cursor/rules/` under this ASC repo (same pattern as `Documents/ATB/.cursor/rules/`). Use short `.mdc` file(s) with YAML frontmatter (`description`, `globs`, `alwaysApply: false`). Suggested start: `.cursor/rules/naming.mdc` (or `asc-naming.mdc`) with globs covering ASC shell surfaces, e.g. `asc/**/*.sh`, `scripts/asc/**/*.sh`, plus any make/docs globs only if needed. Do **not** invent a large essay — point at this changelog + `23-f-e-naming-convention.md` as SoT and list hard enforcement bullets.
+**Where:** project-local `.cursor/rules/` under this ASC repo (same pattern as `Documents/ATB/.cursor/rules/`: short `.mdc` + YAML frontmatter + `globs`). Do **not** invent a large essay — point at this changelog + `23-f-e-naming-convention.md` as SoT.
 
-**Rule must enforce (sketch — locked items from this plan + related naming plan):**
+**Landed (partial — 2026-07-24):**
 
-- Filename DSL punctuation: `()` = **wrap**, `.` = **nest**, `[]` = **args**; `b-*` = boolean; `o-*` = options; else positional.
-- Variable prefixes in DSL / calling scope: positionals → `p_`; options → `o_`; booleans → `b_`; no `f_` *variable* prefix for actions / entry points.
-- Symbol prefixes (when touching bootstrapped utilities / exports — see `changelog/2026/07/23-f-e-naming-convention.md`): utilities `f_*` (from `u_*`); exports `e_*`; CLI option storage `o_*`; special-case `hookms` (not `f_hook_most_specific`).
-- Compound tokens: relate on **first `-`** (no same-word `_` separator rule); distinct from relation `--` between `(…)` able members. Optional `_` **can** (not enforced) be a **leading `$action` prefix** reading `$subject` / `$object` `_` `$action` `. (variants)? . (hook|inc|opt-inc)? . sh` — position matters; never same-word head/tail; never a replacement for `--` relations.
-- **Relations / fields (mapping complete):** `(field.able.subject)--(field.able.object)`; `(triple.able.subject)--(triple.able.predicate)--(triple.able.object)`; map via `$action.able.yml` to `$subject.$action`.
-- **Slot** only in **YAML hook definitions** (`*.hook.yml`) — never as `…[slot]` in filename stems.
-- Include suffixes: unqualified `*.inc.sh` / `*.opt-inc.sh` = bash default + fallback; alternates `*.$ASC_SHELL.inc.sh` / `*.$ASC_SHELL.opt-inc.sh` (shell segment **before** kind).
-- **Single include-loader hook** loads includes by `ASC_SHELL`; include files are **not** hook implementations.
-- MAKE_TASKS_SHORTER / synonyms: `arg` / `o` / `b` / `f`, plus `llv-get` / `llv-set` ↔ `log.level_get` / `log.level_set` when wiring shortcuts.
-- Explicit `$action` files (no invisible function-only actions).
-- Tests only via existing harness: `make test-asc` → `asc/test/asc/*.test.sh` (shunit2) — no parallel runners.
-- Primordial layout: eager `asc/asc/*.inc.sh`, lazy `asc/asc/utils/*.opt-inc.sh` (`core` not `asc` for the core include).
+| Rule file | Role | Globs (approx.) |
+|-----------|------|-----------------|
+| [`.cursor/rules/doc-notation.mdc`](../../../.cursor/rules/doc-notation.mdc) | **`$` documentation notation** + locked field/triple forms | `docs/**/*.md`, `changelog/**/*.md`, plans/ideas, README, rules `.mdc` |
+| [`.cursor/rules/naming.mdc`](../../../.cursor/rules/naming.mdc) | Thin filename-DSL / prefix / include / slot locks | `asc/**/*.sh`, `scripts/asc/**/*.sh`, docs/changelog md, `*.yml` |
+
+Agents editing ASC docs **must** use `$subject` / `$action` / `$field…` / `$triple…` and the locked `($field.able.…)--…` / `($triple.able.…)--…` spellings (see `doc-notation.mdc`). **`$subject` exception:** slugified string **or** (hooks) custom DSL — see same rule. Broader DSL bullets live in `naming.mdc`.
+
+**Still enforce via those rules (keep thin; amend bullets only when Phase 0/0b locks change):**
+
+- Filename DSL punctuation: `()` = **wrap**, `.` = **nest**, `[]` = **args**; `b-*` / `o-*` / positional; **slot** ∈ `*.hook.yml` only.
+- Variable prefixes: `p_` / `o_` / `b_`; no `f_` *variable* prefix for actions. Symbols: `f_*` / `e_*` / `hookms` per naming-convention plan.
+- Separators: first `-`; optional `_` `$action` prefix (not a relation); relations via `$`-prefixed able forms → `$action.able.yml`.
+- Includes: bash unqualified default+fallback; `*.$ASC_SHELL.(opt-)inc.sh`; single include-loader hook; primordial `asc/asc/*.inc.sh` + `utils/*.opt-inc.sh`.
+- Explicit `$action` files; `make test-asc` only; home tip `cwt.mdc`→`asc.mdc` is separate.
 
 **Checklist:**
 
-- [ ] Add `.cursor/rules/` + thin naming `.mdc` (frontmatter + globs + bullet enforcement list; link SoT changelogs).
-- [ ] Optionally note in rule body that home tip `cwt.mdc` → `asc.mdc` (MVP cutover) is separate and must not contradict ASC-repo locks.
+- [x] Add `.cursor/rules/` + `doc-notation.mdc` + `naming.mdc` (frontmatter + globs + bullet enforcement; link SoT).
+- [x] Note in rule body that home tip `cwt.mdc` → `asc.mdc` (MVP cutover) is separate and must not contradict ASC-repo locks.
 - [ ] Refresh rule bullets if Phase 0/0b decisions amend locked items; keep rule thin through Phases 1–5.
+- [ ] After Phase 0d living-docs pass: confirm rule examples still match living docs (no second SoT).
+
+### Phase 0d — Living documentation pass (explicit deliverable)
+
+**When:** after Phase 0 grammar / `$` notation freeze (can overlap Phase 0a / early 0b docs); **before or alongside** Phase 1 tests so living docs and next-steps already speak the locked vocabulary. This is a **required** plan deliverable — not optional polish.
+
+**Meaning to propagate everywhere docs are touched:** `$`-prefixed names = any make entry point (documentation notation only — not file names). **Exception — `$subject` (only):** plain **slugified string**, **or** (for `*.hook.yml` / `*.hook.sh`) **custom DSL notation**. Locked relations: `($field.able.subject)--($field.able.object)` and `($triple.able.subject)--($triple.able.predicate)--($triple.able.object)` → `$action.able.yml`.
+
+**Living docs / pointers to update (inventory):**
+
+| Path | Why |
+|------|-----|
+| `docs/asc/organization.md` | subjects/actions/hooks; include loader / multi-shell |
+| `docs/asc/wrappers.md` | nest vs wrap |
+| `docs/asc/archive/hooks.md` | hook surface vs includes |
+| `docs/asc/archive/bootstrap.md` | primordial paths + `ASC_SHELL` |
+| `docs/asc/testing.md` | `make test-asc` / DSL fixtures |
+| `docs/asc/entities.md` | already uses `$field.able` — align relation/`$` wording |
+| `docs/asc/documentation.md` | living-docs process; `$` notation + `$subject` exception pointer |
+| `docs/asc/builder.md` | keep builder `slotable` distinct from YAML-hook `slot` |
+| `~/docs/next-steps.md` | **home next-steps** — queue/sequencing for this plan (`$` notation + Phase 0d in scope) |
+| `data/ideas/2026/07/23/dsl.md` | banner superseded punctuation / missing-`$` forms (on accept or as part of this pass) |
+
+**Checklist:**
+
+- [ ] Sweep listed ASC living docs for supersedable punctuation and **missing-`$` field/triple doc forms**; apply locked `$` notation.
+- [x] Update **`~/docs/next-steps.md`** sequencing/wording: `$` doc notation locked; living-docs pass (Phase 0d) in scope; Cursor rules partially landed (0c). *(done 2026-07-24 — queue/order/major-plans rows; ASC living-docs body sweep still open)*
+- [ ] Fold Phase 0a optional-`_` note into this pass when convenient.
+- [ ] Fold multi-shell living-docs checkbox from Phase 0b into this pass when touching bootstrap/organization/hooks.
+- [ ] Do **not** implement DSL parser/runtime here — docs + next-steps only.
 
 ### Phase 1 — Spec + **tests first** (no production DSL wiring)
 
@@ -578,7 +641,7 @@ Writing tests is a **required deliverable of this phase**, not deferred to “ve
   - mixed nest + wrap + args (`test.assert(log.level_set[debug])`, `ll(log.level_get)`)
   - boolean + option members (`foo[b-oneline]`, `foo[bar,b-flag,o-x]`)
   - first `-` splits (`retention-5m`, `instance-giw` / `b-oneline`)
-  - field / triple (`(field.able.subject)--(field.able.object)`, `(triple.able.subject)--(triple.able.predicate)--(triple.able.object)`) → `$action.able.yml` mapping notes
+  - field / triple (`($field.able.subject)--($field.able.object)`, `($triple.able.subject)--($triple.able.predicate)--($triple.able.object)`) → `$action.able.yml` mapping notes
   - synonym atoms `llv-get` / `llv-set` ↔ `log.level_get` / `log.level_set`
 - [ ] Tests may *describe* nest/wrap **filename patterns** as expected stems even before runtime wiring (assert parse → AST / action map). Optional: later phases execute those stems as real hooks once loaders exist.
 
@@ -652,7 +715,7 @@ Writing tests is a **required deliverable of this phase**, not deferred to “ve
 15. **DSL-encoded test steps:** should nest/wrap test filenames live under `asc/test/…` as real hook stems, or stay as fixture strings inside ordinary `*.test.sh` until a dedicated test-subject DSL layout exists?
 16. **YAML `slot` field shape:** exact key(s) / nesting under `*.hook.yml` (and relation to builder `slotable` in `docs/asc/builder.md` — keep distinct).
 17. **`b_` stacking with `e_*`:** if boolean locals are also exported, same open stacking question as `o_` / `e_` in the naming-convention plan.
-18. **`$action.able.yml` schema:** exact keys for `(field.able.subject)--(field.able.object)` vs `(triple.able.subject)--(triple.able.predicate)--(triple.able.object)`; path relative to `$subject/$action`; overlap with entity `.able` / `asc.extendable` naming.
+18. **`$action.able.yml` schema:** exact keys for `($field.able.subject)--($field.able.object)` vs `($triple.able.subject)--($triple.able.predicate)--($triple.able.object)`; path relative to `$subject/$action`; overlap with entity `.able` / `asc.extendable` naming.
 19. **Optional `_` `$action`-prefix split:** first `_` only (`db_dump` → `db` + `dump`) vs more segments? When is the soft `$subject` vs `$object` reading intended vs ordinary multi-word glue?
 20. **Peer-subject IDs with `_` (demoted):** keep `remote_db`-style flat IDs as-is forever, or eventually align with folder/DSL nest — orthogonal to the locked `$action`-prefix `_` rule?
 
@@ -662,10 +725,11 @@ Writing tests is a **required deliverable of this phase**, not deferred to “ve
 
 - [ ] Review this plan; move to `data/plans/iterate/` or `accepted/` / `rejected/`
 - [ ] Update or banner `data/ideas/2026/07/23/dsl.md` as superseded on accept
-- [ ] Phase 0 decisions (especially `.` ambiguity, YAML extend/override names, include-loader hook identity; shell suffix order + bash fallback are frozen)
+- [ ] Phase 0 decisions (especially `.` ambiguity, YAML extend/override names, include-loader hook identity; shell suffix order + bash fallback + `$` doc notation are frozen)
 - [ ] **Complete multi-shell groundwork** already pushed (`648a4d7`, `8f3faa8`, `f971316`) — Phase 0b
-- [ ] **Phase 0a** (optional `_`): living-docs note for `$action`-prefix reading (`$subject` / `$object` `_` `$action` …); remote-family peer IDs demoted — **not** DSL parser work
-- [ ] **Cursor rules** (Phase 0c): project-local `.cursor/rules/*.mdc` enforcing locked naming / DSL (`b-`/`o-`/`p_`, first `-`, optional `_` `$action`-prefix reading, field/triple able forms / `$action.able.yml`, slot-in-yml) / include-loader / MAKE_TASKS_SHORTER / test harness — before Phase 1 coding
+- [ ] **Phase 0a** (optional `_`): living-docs note for `$action`-prefix reading — fold into **Phase 0d** when convenient
+- [x] **Cursor rules** (Phase 0c): **partially landed** — `.cursor/rules/doc-notation.mdc` + `naming.mdc` (refresh bullets as locks evolve; confirm after 0d)
+- [ ] **Phase 0d — living docs + next-steps** (required): thorough update of ASC living docs + `~/docs/next-steps.md` for `$` notation, relations, multi-shell notes as touched
 - [ ] Implement DSL only after explicit go-ahead (Phases 1–5), **including** shunit2 / `make test-asc` cases and nest/wrap + `llv-*` fixtures from Phase 1 onward
 
 ---
@@ -673,6 +737,11 @@ Writing tests is a **required deliverable of this phase**, not deferred to “ve
 ## Appendix — Quick reference card
 
 ```text
+# DOC NOTATION (docs only — not filenames):
+#   $name = any make entry point
+#   Exception ($subject only): plain slugified string, OR (*.hook.yml / *.hook.sh) custom DSL notation
+#   Cursor: .cursor/rules/doc-notation.mdc + naming.mdc
+
 foo(bar)                         → wrap
 foo.bar                          → nest
 foo[bar]                         → arg(*) freeform / positional  → p_
@@ -682,13 +751,13 @@ foo[a,b-flag,o-x]                → arg(*) | b-* | o-*            → ordered m
 retention-5m / instance-giw      → first '-' splits head | tail  (no same-word '_' rule)
 db_dump / remote_sync.hook.sh    → optional '_' prefix in $action (position matters, not enforced):
                                  → $subject/$object _ $action . (variants)? . (hook|inc|opt-inc)? . sh
-# relations are '--' able forms — optional '_' is NOT a relation replacement
+# relations are '--' able forms (always $ in docs) — optional '_' is NOT a relation replacement
 # peer IDs like remote_db = demoted historical note only (not locked '_' SoT)
-(field.able.subject)--(field.able.object)
+($field.able.subject)--($field.able.object)
                                  → field → $action.able.yml → $subject.$action
-(triple.able.subject)--(triple.able.predicate)--(triple.able.object)
+($triple.able.subject)--($triple.able.predicate)--($triple.able.object)
                                  → triple (the rest) → $action.able.yml
-# mapping complete — no bare -- / --relation-- / triple.predicate SoT
+# mapping complete — no bare -- / --relation-- / triple.predicate / missing-$ SoT
 slot                             → YAML hook definition only (not foo[slot])
 
 # Test steps (same grammar):

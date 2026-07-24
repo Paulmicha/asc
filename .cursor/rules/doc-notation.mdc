@@ -1,0 +1,51 @@
+---
+description: ASC documentation $ notation — $name = any make entry point; $subject sole exception (slug or hook DSL); locked field/triple forms
+globs:
+  - "docs/**/*.md"
+  - "changelog/**/*.md"
+  - "README.md"
+  - "data/ideas/**/*.md"
+  - "data/plans/**/*.md"
+  - ".cursor/rules/**/*.mdc"
+alwaysApply: false
+---
+
+# ASC documentation `$` notation
+
+When writing or editing **documentation** in this repo (living docs, changelogs, plans, READMEs, rules prose):
+
+## Meaning (locked)
+
+- Any `$`-prefixed name means **"any make entry point"** (e.g. `$subject`, `$action`, `$object`, `$field.able.subject`).
+- This is **documentation notation only** — **not** on-disk file names and **not** a requirement to put `$` in paths.
+- Purpose: precise shared vocabulary so everyone names the same operable surface the same way.
+
+## Exception — `$subject` (only)
+
+`$subject` is the **only** exception to the usual `$`-prefixed doc notation above. It **can** be:
+
+- plain **slugified string** values (like any var or function name), **or**
+- in the case of `*.hook.yml` or `*.hook.sh`, our **custom DSL notation**
+
+All other `$`-prefixed doc names keep the general rule (any make entry point; docs notation only — not filenames).
+
+## Locked relation forms (always with `$`)
+
+```text
+($field.able.subject)--($field.able.object)
+($triple.able.subject)--($triple.able.predicate)--($triple.able.object)
+```
+
+Map via `$action.able.yml` → `$subject.$action`.
+
+## Do not write (superseded)
+
+- `(field.able.subject)--(field.able.object)` — missing `$`
+- `(triple.able.subject)--(triple.able.predicate)--(triple.able.object)` — missing `$`
+- Bare `--` / `--relation--` / `triple.predicate` without `.able`
+
+## Common placeholders
+
+Prefer `$subject`, `$action`, `$object`, `$field…`, `$triple…`, `$ASC_SHELL`, `$action.able.yml` over vague “the subject/action” when referring to make entry points.
+
+**SoT:** `changelog/2026/07/24-filename-dsl.md` § Documentation `$` notation.

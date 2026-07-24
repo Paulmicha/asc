@@ -2,6 +2,8 @@
 
 A **hook** is an event: `hook()` (or `u_hook_most_specific()`) builds lookup paths from primitives and sources matching `*.hook.sh` files.
 
+Docs note: `$subject` is the **only** exception to `$` = any make entry point — it **can** be a plain **slugified string**, **or** (for `*.hook.yml` / `*.hook.sh`) **custom DSL notation**. See [documentation.md](../documentation.md) § `$` notation.
+
 | Piece | Role |
 |-------|------|
 | `-s` subject | Folder scope (`instance`, `test`, `log`, …) |

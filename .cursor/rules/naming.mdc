@@ -1,0 +1,50 @@
+---
+description: ASC filename-DSL and naming locks (wrap/nest/args, prefixes, includes, slot-in-yml) — point at changelog SoT
+globs:
+  - "asc/**/*.sh"
+  - "scripts/asc/**/*.sh"
+  - "docs/**/*.md"
+  - "changelog/**/*.md"
+  - "**/*.yml"
+  - "**/*.yaml"
+alwaysApply: false
+---
+
+# ASC naming / filename-DSL locks
+
+Thin enforcement list. Full SoT: `changelog/2026/07/24-filename-dsl.md` (+ `changelog/2026/07/23-f-e-naming-convention.md` for `f_*` / `e_*` / `o_*` symbols). Docs `$` notation: see `.cursor/rules/doc-notation.mdc`.
+
+## Docs `$` / `$subject` (see `doc-notation.mdc`)
+
+- General: `$name` in docs = any make entry point (notation only — not filenames).
+- **Exception (`$subject` only):** plain **slugified string**, **or** (for `*.hook.yml` / `*.hook.sh`) **custom DSL notation**.
+
+## Filename DSL punctuation
+
+- `()` = **wrap**; `.` = **nest**; `[]` = **args**
+- In `[]`: `b-*` = boolean; `o-*` = option; else positional
+- **Slot** only in `*.hook.yml` — never `…[slot]` in stems
+
+## Variable / symbol prefixes
+
+- Positionals → `p_`; options → `o_`; booleans → `b_`; no `f_` *variable* prefix for actions
+- Shell utilities → `f_*`; exports → `e_*`; special-case `hookms` (naming-convention plan)
+
+## Separators (do not conflate)
+
+- First `-` inside a token = head/tail (no same-word `_` rule)
+- Optional leading `_` in `$action` **can** read `$subject`/`$object` `_` `$action` … (not enforced; not a relation)
+- Relations (docs): `($field.able.subject)--($field.able.object)` and `($triple.able.subject)--($triple.able.predicate)--($triple.able.object)` → `$action.able.yml`
+
+## Includes / layout
+
+- Unqualified `*.inc.sh` / `*.opt-inc.sh` = bash default + fallback
+- Alternates: `*.$ASC_SHELL.inc.sh` / `*.$ASC_SHELL.opt-inc.sh` (shell **before** kind)
+- One include-loader hook; include files are **not** hook implementations
+- Eager `asc/asc/*.inc.sh`; lazy `asc/asc/utils/*.opt-inc.sh` (`core` not `asc` for core include)
+
+## Hard rules
+
+- Explicit `$action` files (no invisible function-only actions)
+- Tests only via `make test-asc` → `asc/test/asc/*.test.sh` (shunit2)
+- Home tip `cwt.mdc` → `asc.mdc` is separate cutover — must not contradict these ASC-repo locks
