@@ -407,7 +407,7 @@ Paths are illustrative; exact lookup roots stay `asc/`, extensions, contrib, ext
 ### 1. Simple wrapped source hook (custom shell)
 
 ```text
-$subject/source(code).available.hook.sh
+$subject/entity_yml[state](p-1).is_default.hook.yml
 ```
 
 - `source(code)` → **wrap** (`source` wraps `code`).
@@ -743,7 +743,7 @@ Writing tests is a **required deliverable of this phase**, not deferred to “ve
 #   Cursor: .cursor/rules/doc-notation.mdc + naming.mdc
 # PATH: DSL hook stems under $subject/ (not $subject/$action/)
 #   $subject/lt(agent…).start.hook.(sh|yml)
-#   $subject/source(code).available.hook.sh
+#   $subject/entity_yml[state](p-1).is_default.hook.yml
 #   ordinary non-DSL actions may still be $subject/$action…
 
 foo(bar)                         → wrap

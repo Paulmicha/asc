@@ -437,7 +437,7 @@ Realistic stems under any `$subject/` (DSL hooks sit **directly under `$subject/
 ### 1. Simple wrapped source hook
 
 ```text
-$subject/source(code).available.hook.sh
+$subject/entity_yml[state](p-1).is_default.hook.yml
 ```
 
 | Fragment | Reading |
