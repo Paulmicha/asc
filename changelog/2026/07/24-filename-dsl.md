@@ -4,8 +4,8 @@
 |-------|--------|
 | **Date** | 2026-07-24 |
 | **Status** | plan / review (not implemented; multi-shell groundwork WIP on branch) |
-| **Scope** | ASC repo `/home/paul/Documents/asc` — filename grammar for subjects, actions, hooks, wraps; matching runtime actions; MAKE_TASKS_SHORTER abbreviations; **shell-agnostic runtime** (`ASC_SHELL`, multi-shell `inc` / `opt-inc`) |
-| **Related** | Prior idea `data/ideas/2026/07/23/dsl.md` (**syntax superseded** by this plan); `data/ideas/2026/07/23/wrappers-nest-bridges.md`; `data/ideas/2026/07/23/genericity-taxonomy.md`; `docs/asc/organization.md` (subjects/actions/hooks); `docs/asc/wrappers.md`; `docs/asc/archive/hooks.md`; naming plan `changelog/2026/07/23-f-e-naming-convention.md` (`p_` / `o_` / `f_*`); WIP commits `648a4d7` (begin multi shell), `8f3faa8` (utilities → `asc/asc/*.opt-inc.sh`) on `naming-convention-changelog` |
+| **Scope** | ASC repo `/home/paul/Documents/asc` — filename grammar for subjects, actions, hooks, wraps; matching runtime actions; MAKE_TASKS_SHORTER abbreviations; **shell-agnostic runtime** (`ASC_SHELL`, multi-shell `inc` / `opt-inc`); primordial layout under `asc/asc/` |
+| **Related** | Prior idea `data/ideas/2026/07/23/dsl.md` (**syntax superseded** by this plan); `data/ideas/2026/07/23/wrappers-nest-bridges.md`; `data/ideas/2026/07/23/genericity-taxonomy.md`; `docs/asc/organization.md` (subjects/actions/hooks); `docs/asc/wrappers.md`; `docs/asc/archive/hooks.md`; naming plan `changelog/2026/07/23-f-e-naming-convention.md` (`p_` / `o_` / `f_*`); WIP on `naming-convention-changelog`: `648a4d7` (begin multi shell), `8f3faa8` (utilities → `asc/asc/`), `f971316` (**final primordial layout**: eager `*.inc.sh` core + `asc/asc/utils/*.opt-inc.sh`) |
 | **Lifecycle** | Local review stub: `data/plans/review/2026-07-24-filename-dsl.md` (dir mostly gitignored — **this changelog is the tracked SoT**, same pattern as `23-f-e-naming-convention.md`). Move stub across `review` → `iterate` → `accepted` / `rejected` per `data/ideas/2026/07/23/idea-changelog-workflow.md`. |
 
 ---
@@ -58,7 +58,7 @@ shell_id     := 'posix' | 'powershell' | 'cmder' | …   # omitted ⇒ ASC_SHELL
 ext          := 'sh' | 'yml' | 'ps1' | …                 # ext may follow shell_id / shell family
 ```
 
-**Shell in the suffix:** default bash implementations keep today’s shapes (`*.opt-inc.sh`, `*.hook.sh`). Non-default shells insert an explicit **`shell_id`** before the extension (or as a compound suffix), e.g. `utilities.opt-inc.posix.sh`. Lookup prefers `ASC_SHELL`-qualified files, then falls back to the unqualified default when appropriate (open: strict vs fallback).
+**Shell in the suffix:** default bash implementations keep today’s shapes (`*.inc.sh`, `*.opt-inc.sh`, `*.hook.sh`). Non-default shells insert an explicit **`shell_id`** before the extension (or as a compound suffix), e.g. `shell.opt-inc.posix.sh`. Lookup prefers `ASC_SHELL`-qualified files, then falls back to the unqualified default when appropriate (open: strict vs fallback).
 
 ### Constructs → matching actions
 
@@ -132,20 +132,30 @@ The DSL must be able to express **what ASC does today** (bash as default shell) 
 
 ### Filename convention for shell-specific includes
 
-Illustrative pattern (default bash vs explicit shell target):
+Settled path pattern (default bash vs explicit shell target), using the locked primordial layout:
 
 ```text
 # Default shell (ASC_SHELL=bash) — unqualified:
-asc/shell/utilities.opt-inc.sh
+asc/asc/utils/shell.opt-inc.sh
 
 # Explicit shell target:
-asc/shell/utilities.opt-inc.posix.sh
-asc/shell/utilities.opt-inc.powershell.ps1   # shape TBD with ext policy
+asc/asc/utils/shell.opt-inc.posix.sh
+asc/asc/utils/shell.opt-inc.powershell.ps1   # ext policy still open
 ```
 
 Same idea applies to eager `*.inc.sh`, hooks, wraps, and DSL-bearing stems: **unqualified = default bash**; **`.{shell_id}.` before ext = that shell’s body**.
 
-Current WIP layout after primordial move uses the **`asc` subject** for core helpers (`asc/asc/*.opt-inc.sh`, including `asc/asc/shell.opt-inc.sh`). Final subject placement (`asc/shell/…` vs `asc/asc/shell…`) is an open layout choice; the **suffix convention and `ASC_SHELL` lookup** are the hard rules.
+### Primordial layout (settled in `f971316`)
+
+Core lives under the **`asc` subject** (`asc/asc/…`) — not a separate `asc/shell/` subject for utilities.
+
+| Kind | Path pattern | Role |
+|------|--------------|------|
+| Eager core | `asc/asc/{core,global,hook,autoload}.inc.sh` | Bootstrap-critical includes (`*.inc.sh`); `asc.opt-inc.sh` **renamed → `core.inc.sh`** (avoid subject/action name clash with subject `asc`) |
+| Lazy utils | `asc/asc/utils/{array,fs,shell,string}.opt-inc.sh` | Optional utilities under nested `utils/` |
+| Other (current) | `asc/asc/yaml.opt-inc.sh` | Still at subject root as `*.opt-inc.sh` (not moved into `utils/` in this push) |
+
+**Decided:** keep helpers under `asc/asc/` (+ `utils/` nest); do **not** reintroduce `asc/shell/` as the home for these files. Suffix convention + `ASC_SHELL` lookup remain the hard multi-shell rules.
 
 ### Bootstrap `inc` / `opt-inc` refactor (multi-shell)
 
@@ -154,7 +164,7 @@ Today’s model (eager `*.inc.sh` → `ASC_INC`; lazy phase-90 `*.opt-inc.sh`) m
 1. Resolves **`ASC_SHELL`** early (phase 10 / pre-utilities; default `bash`).
 2. Loads include candidates as **shell-qualified first**, then unqualified default (policy TBD).
 3. Stops assuming only `#!/usr/bin/env bash`, `BASH_SOURCE`, and `shopt` for all future shells — bash remains the reference implementation; other shells get parallel entry/bootstrap later.
-4. Updates phase **20** (core utilities) and phase **90** (caller opt-inc) — and hook-cache opt-inc seeding — to the new paths + suffix rules.
+4. Updates phase **20** (core includes) and phase **90** (caller opt-inc) — and hook-cache opt-inc seeding — to the **settled** paths (`asc/asc/*.inc.sh`, `asc/asc/utils/*.opt-inc.sh`) + suffix rules.
 5. Keeps **genericity of implementation**: same subject/action/`inc`/`opt-inc` taxonomy; shell is a dimension of the filename / lookup, not a fork of ASC’s organization model.
 
 ---
@@ -165,17 +175,19 @@ Branch `naming-convention-changelog` (ahead of `main`) already started this. **C
 
 | Commit | What landed | Still incomplete |
 |--------|-------------|------------------|
-| `648a4d7` *wip: begin multi shell support* | `SPECIMEN.env.yml`: `asc.shell: bash` (+ TODO); `SPECIMEN.remote_instances.yml`: `includes.default.shell: bash` wired into env includes; rename `asc/utilities/shell.sh` → `asc/shell/utilities.opt-inc.sh` (intermediate) | No `ASC_SHELL` export; bootstrap still bash-only; no `.opt-inc.{shell}` lookup |
-| `8f3faa8` *wip: move utilities to asc/asc (primordial genericity)* | All core utilities relocated to `asc/asc/*.opt-inc.sh` (incl. `shell.opt-inc.sh`); removed `utilities` from `asc/.asc_subjects_ignore` so `asc` can be a real subject | **`asc/bootstrap/20-utilities.bootstrap-inc.sh` still sources `asc/utilities/*.sh`** (paths gone — bootstrap broken until rewired); phase 90 / docs / caches still describe old `utilities/` + bare `.opt-inc.sh` only |
+| `648a4d7` *wip: begin multi shell support* | `SPECIMEN.env.yml`: `asc.shell: bash` (+ TODO); `SPECIMEN.remote_instances.yml`: `includes.default.shell: bash` wired into env includes; intermediate rename toward `asc/shell/utilities.opt-inc.sh` | No `ASC_SHELL` export; bootstrap still bash-only; no `.opt-inc.{shell}` lookup |
+| `8f3faa8` *wip: move utilities to asc/asc (primordial genericity)* | Core utilities relocated under `asc/asc/*.opt-inc.sh`; removed `utilities` from `asc/.asc_subjects_ignore` so `asc` can be a real subject | Superseded path layout by `f971316`; bootstrap still pointed at old `asc/utilities/` |
+| `f971316` *wip: update primordial implementation* | **Final primordial layout:** eager `asc/asc/{core,global,hook,autoload}.inc.sh` (`asc` → **`core`**); lazy `asc/asc/utils/{array,fs,shell,string}.opt-inc.sh`; plan doc updated for shell genericity | **`asc/bootstrap/20-utilities.bootstrap-inc.sh` still sources `asc/utilities/*.sh`** (paths gone — bootstrap broken until rewired); no `ASC_SHELL` export; no shell-qualified lookup; phase 90 / docs / caches still describe old `utilities/` + flat layout |
 
 **Completion work (explicit):**
 
-- [ ] Rewire bootstrap phase 20 (and any other hard-coded `asc/utilities/…` refs) to the new `asc/asc/*.opt-inc.sh` (or agreed final layout).
+- [ ] Rewire bootstrap phase 20 (and any other hard-coded `asc/utilities/…` refs) to settled paths: eager `asc/asc/*.inc.sh` + lazy `asc/asc/utils/*.opt-inc.sh` (and `yaml.opt-inc.sh` as appropriate).
 - [ ] Introduce **`ASC_SHELL`** (default `bash`) from env / `asc.shell` YAML; document override order.
 - [ ] Extend eager `inc` + lazy `opt-inc` (+ hook-seeded opt-inc) discovery for **shell-qualified filenames**; keep unqualified bash as default.
-- [ ] Decide final home for shell utilities (`asc/shell/…` vs `asc/asc/shell.opt-inc.sh`) and align specimen + docs.
+- [x] Decide final home for shell utilities — **settled:** `asc/asc/utils/shell.opt-inc.sh` (not `asc/shell/…`).
+- [x] Split primordial eager vs lazy — **settled:** core/global/hook/autoload → `*.inc.sh`; array/fs/shell/string → `utils/*.opt-inc.sh`; rename `asc` → `core`.
 - [ ] Smoke: `. asc/bootstrap.sh` works again on bash; dry-run / notes for posix (and later powershell/cmder) lookup without requiring full ports yet.
-- [ ] Update living docs (`docs/asc/organization.md`, bootstrap archive) for multi-shell include suffixes.
+- [ ] Update living docs (`docs/asc/organization.md`, bootstrap archive) for multi-shell include suffixes + primordial layout.
 
 ---
 
@@ -236,10 +248,10 @@ $subject/$action/lt(agent[role-prompt-analyst].start[loop.heartbeat](data[inbox]
 | `p_` / `o_` naming plan | Bracket positionals → `p_*`; `o-*` tokens → `o_*`. |
 | `data/asc/` generated state | May generate files; still must materialize explicit `$action` artifacts. |
 | Variant dotted hooks today (`init.local.dev.hook.sh`) | Remain valid; DSL adds `()`, `[]`, and richer stems — precedence vs pure variant dots is an open task. |
-| Eager `*.inc.sh` / lazy `*.opt-inc.sh` | Multi-shell: same kinds; optional `.{shell_id}` before ext; `ASC_SHELL` drives lookup. |
+| Eager `*.inc.sh` / lazy `*.opt-inc.sh` | Multi-shell: same kinds; optional `.{shell_id}` before ext; `ASC_SHELL` drives lookup. Primordial: eager core at `asc/asc/*.inc.sh`, lazy utils at `asc/asc/utils/*.opt-inc.sh`. |
 | Bootstrap phases 10–90 | Phase 20 + 90 (and hook opt-inc seeding) must complete WIP path move + shell-aware discovery. |
 | `asc.shell` in specimen YAML | Groundwork for `ASC_SHELL`; wire through instance init / globals. |
-| Core utils under `asc/asc/*.opt-inc.sh` | Primordial genericity WIP — finish rewire; layout vs `asc/shell/` still open. |
+| Core under `asc/asc/` (+ `utils/`) | **Settled layout** (`f971316`); finish bootstrap rewire to these paths. |
 
 ---
 
@@ -252,12 +264,13 @@ $subject/$action/lt(agent[role-prompt-analyst].start[loop.heartbeat](data[inbox]
 - [ ] Decide interaction with today’s dotted **variant** filenames (same `.` character).
 - [ ] Name and sketch `asc.extendable` / `asc.overridable` (or reject names).
 - [ ] Freeze **shell suffix** convention (`*.opt-inc.sh` vs `*.opt-inc.{shell}.sh`) and fallback policy.
-- [ ] Freeze **`ASC_SHELL`** default (`bash`) and YAML → export path (`asc.shell`).
+- [x] Freeze **`ASC_SHELL`** default (`bash`) and YAML key sketch (`asc.shell`) — export wiring still TODO.
+- [x] Freeze **primordial layout** (`f971316`): `asc/asc/*.inc.sh` eager core + `asc/asc/utils/*.opt-inc.sh`; `core` not `asc` for the core include file.
 
 ### Phase 0b — Complete multi-shell groundwork (already pushed)
 
-- [ ] Finish WIP from `648a4d7` / `8f3faa8`: bootstrap rewire, `ASC_SHELL`, shell-qualified `inc`/`opt-inc` lookup, docs — see [Multi-shell groundwork](#multi-shell-groundwork-already-pushed).
-- [ ] Restore working bash bootstrap against `asc/asc/*.opt-inc.sh` (or chosen final paths).
+- [ ] Finish WIP from `648a4d7` / `8f3faa8` / `f971316`: bootstrap rewire to settled paths, `ASC_SHELL` export, shell-qualified `inc`/`opt-inc` lookup, docs — see [Multi-shell groundwork](#multi-shell-groundwork-already-pushed).
+- [ ] Restore working bash bootstrap against `asc/asc/*.inc.sh` + `asc/asc/utils/*.opt-inc.sh`.
 - [ ] Do **not** treat multi-shell as closed until phase-20/90 + discovery smoke pass.
 
 ### Phase 1 — Spec + tests (no production DSL wiring)
@@ -304,7 +317,7 @@ $subject/$action/lt(agent[role-prompt-analyst].start[loop.heartbeat](data[inbox]
 | Superseding `dsl.md` | Agents may follow old idea; changelog + idea banner required when accepted. |
 | Confusing `f` abbrev with `f_*` utilities | Document both namespaces in living docs when implementing. |
 | Generated-only actions | Violates explicit-file rule; treat as bug. |
-| Broken bootstrap (WIP) | Utilities moved; phase 20 still points at `asc/utilities/` — must complete groundwork before other runtime work. |
+| Broken bootstrap (WIP) | Utils moved + renamed; phase 20 still points at `asc/utilities/` — must complete groundwork before other runtime work. |
 | Bash-only assumptions | `BASH_SOURCE`, `shopt`, shebangs — multi-shell is lookup-first; full ports are later. |
 | Plan-only (DSL) | Do not land parser/loader changes until accepted + requested. |
 
@@ -314,7 +327,7 @@ $subject/$action/lt(agent[role-prompt-analyst].start[loop.heartbeat](data[inbox]
 
 ## Open questions
 
-1. **Variant dots vs nest dots:** same character — require a delimiter, reserved suffix zone (`.hook` / `.wrap` / `.opt-inc`), or parse right-to-left from known suffixes?
+1. **Variant dots vs nest dots:** same character — require a delimiter, reserved suffix zone (`.hook` / `.wrap` / `.opt-inc` / `.inc`), or parse right-to-left from known suffixes?
 2. **Nested DSL inside `[]` / `()`:** allow full fragments recursively in v1, or only flat tokens first?
 3. **`asc.extendable` / `asc.overridable`:** file-level YAML keys, entity `.able.yml`, or hook metadata?
 4. **MAKE_TASKS_SHORTER wiring:** new global map vs extend `ASC_SYNONYMS`?
@@ -322,8 +335,8 @@ $subject/$action/lt(agent[role-prompt-analyst].start[loop.heartbeat](data[inbox]
 6. **Relation to make `e:` / `a:` notation:** keep both, or eventually express CLI args with the same `[]` / `o-` grammar?
 7. **Should `wrap` / `nest` become first-class subjects/actions** (`asc/wrap/`, `asc/nest/`) or stay internal matcher verbs?
 8. **Shell suffix vs extension:** `*.opt-inc.posix.sh` vs `*.opt-inc.sh` + parallel tree vs `*.opt-inc.ps1` — single convention for all shells?
-9. **Fallback:** if `ASC_SHELL=posix` and only unqualified `.opt-inc.sh` exists, load it or fail closed?
-10. **Final layout:** keep core helpers under `asc/asc/`, reintroduce `asc/shell/` subject, or both (shell subject + asc subject)?
+9. **Fallback:** if `ASC_SHELL=posix` and only unqualified `.opt-inc.sh` / `.inc.sh` exists, load it or fail closed?
+10. **`yaml.opt-inc.sh` placement:** leave at `asc/asc/yaml.opt-inc.sh`, move under `utils/`, or promote to eager `*.inc.sh`?
 11. **Windows shells:** map `powershell` / `cmder` to which ext and bootstrap entry (separate `bootstrap.ps1` later)?
 
 ---
@@ -332,8 +345,8 @@ $subject/$action/lt(agent[role-prompt-analyst].start[loop.heartbeat](data[inbox]
 
 - [ ] Review this plan; move to `data/plans/iterate/` or `accepted/` / `rejected/`
 - [ ] Update or banner `data/ideas/2026/07/23/dsl.md` as superseded on accept
-- [ ] Phase 0 decisions (especially `.` ambiguity, YAML extend/override names, `ASC_SHELL` / suffix SoT)
-- [ ] **Complete multi-shell groundwork** already pushed (`648a4d7`, `8f3faa8`) — Phase 0b
+- [ ] Phase 0 decisions (especially `.` ambiguity, YAML extend/override names, shell suffix / fallback SoT)
+- [ ] **Complete multi-shell groundwork** already pushed (`648a4d7`, `8f3faa8`, `f971316`) — Phase 0b
 - [ ] Implement DSL only after explicit go-ahead (Phases 1–5)
 
 ---
@@ -353,7 +366,11 @@ MAKE_TASKS_SHORTER:
   f   → function / entry point / action  (no var prefix; explicit $action file)
 
 ASC_SHELL (default bash):
-  utilities.opt-inc.sh              → default (bash)
-  utilities.opt-inc.posix.sh        → explicit posix target
+  asc/asc/utils/shell.opt-inc.sh           → default (bash)
+  asc/asc/utils/shell.opt-inc.posix.sh     → explicit posix target
   # powershell / cmder / … via same shell_id slot
+
+Primordial layout (settled):
+  asc/asc/{core,global,hook,autoload}.inc.sh     → eager
+  asc/asc/utils/{array,fs,shell,string}.opt-inc.sh → lazy
 ```
