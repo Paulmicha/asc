@@ -30,7 +30,7 @@ entity:
   required:
     field:
       type:
-        validate: test-not-empty(p-1)
+        validate: test-entity[type](p-1)
 
   # And / or indicate optional things.
   optional:
@@ -38,6 +38,7 @@ entity:
       - include
     field:
       name:
-        default: ''
+        default:
+          val: ''
       bundle:
-        default: entity-type
+        default: '$entity.type'
