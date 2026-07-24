@@ -14,7 +14,7 @@
 
 ASC already treats **folders as subjects** and **files as actions**, with hooks as dotted / prefixed filename events (`*.hook.sh`, optional `-c yml`) and wraps as `*.wrap.sh`. Make shortcuts and synonyms (`lt`, `ll`, …) shorten operator surface; living docs still describe lookup mostly as dotted variants (`init.local.dev.hook.sh`).
 
-Operators want a **filename DSL** so a single path under `$subject/$action/` can encode wrap stacks, nest chains, and arg/option payloads — and so each DSL construct maps to a concrete **matching action** (`wrap`, `nest`, `arg` / option semantics).
+Operators want a **filename DSL** so a single path under `$subject/` can encode wrap stacks, nest chains, and arg/option payloads — and so each DSL construct maps to a concrete **matching action** (`wrap`, `nest`, `arg` / option semantics). Filename-DSL hook stems sit **directly under `$subject/`** (not under `$subject/$action/`); ordinary non-DSL action files still live as `$subject/$action…`.
 
 The same filename / include surface must stay **shell-generic**: today’s default runtime is bash, but bootstrap `inc` / `opt-inc` (and eventually DSL suffixes) must be selected by **`ASC_SHELL`** (zsh, posix, powershell, cmder, …) without forking the subject/action model.
 
@@ -33,7 +33,7 @@ The same filename / include surface must stay **shell-generic**: today’s defau
 
 ## Goals
 
-1. Define a **filename grammar** for ASC DSL fragments used in paths under any `$subject` (and especially `$subject/$action/…`).
+1. Define a **filename grammar** for ASC DSL fragments used in paths under any `$subject/` (DSL hook stems directly under `$subject/`, not `$subject/$action/`).
 2. Bind each construct to a **matching action** name and semantics.
 3. Align **MAKE_TASKS_SHORTER** abbreviations (`arg`, `o`, `b`, `f`, plus illustrative `llv-get` / `llv-set`) with synonyms and **variable prefixes** (`p_` / `o_` / `b_` / none for actions).
 4. Require that **`$action` files are explicitly created** (including when generated under `data/asc`) — no invisible “function-only” actions.
@@ -407,7 +407,7 @@ Paths are illustrative; exact lookup roots stay `asc/`, extensions, contrib, ext
 ### 1. Simple wrapped source hook (custom shell)
 
 ```text
-$subject/$action/source(code).available.hook.sh
+$subject/source(code).available.hook.sh
 ```
 
 - `source(code)` → **wrap** (`source` wraps `code`).
@@ -417,7 +417,7 @@ $subject/$action/source(code).available.hook.sh
 ### 2. Logged-thread style stack with nests + args (custom shell)
 
 ```text
-$subject/$action/lt(agent[role-prompt-analyst].start[loop.heartbeat](data[inbox].unread).start.hook.sh
+$subject/lt(agent[role-prompt-analyst].start[loop.heartbeat](data[inbox].unread).start.hook.sh
 ```
 
 Interpretation (intent; balance/paren nesting to be formalized in Phase 1 grammar tests):
@@ -437,7 +437,7 @@ If the script is a **custom wrapper**, keep **`.hook.sh`**.
 ### 3. Same shape with smart YAML defaults (+ slot on the YAML def)
 
 ```text
-$subject/$action/lt(agent[role-prompt-analyst].start[loop.heartbeat](data[inbox].unread).start.hook.yml
+$subject/lt(agent[role-prompt-analyst].start[loop.heartbeat](data[inbox].unread).start.hook.yml
 ```
 
 - Same DSL filename meaning as (2).
@@ -465,7 +465,7 @@ Beyond ordinary shunit2 assertions, **test steps themselves** can be encoded wit
 | `log.level_get` | `llv-get` | Get current log level (nest: `level_get` under `log`) |
 | `log.level_set` | `llv-set` | Set log level (nest: `level_set` under `log`) |
 
-Example **filename / step** shapes for those actions (paths illustrative under any `$subject/$action/` or as make entry stems):
+Example **filename / step** shapes for those actions (paths illustrative under any `$subject/` or as make entry stems):
 
 ```text
 # Nest form (structure): log owns level_get / level_set
@@ -741,6 +741,10 @@ Writing tests is a **required deliverable of this phase**, not deferred to “ve
 #   $name = any make entry point
 #   Exception ($subject only): plain slugified string, OR (*.hook.yml / *.hook.sh) custom DSL notation
 #   Cursor: .cursor/rules/doc-notation.mdc + naming.mdc
+# PATH: DSL hook stems under $subject/ (not $subject/$action/)
+#   $subject/lt(agent…).start.hook.(sh|yml)
+#   $subject/source(code).available.hook.sh
+#   ordinary non-DSL actions may still be $subject/$action…
 
 foo(bar)                         → wrap
 foo.bar                          → nest

@@ -164,7 +164,7 @@ After adding extend scripts: clear caches and `make reinit` (see [(re)init](#rei
 
 File-based events: `hook()` / **`u_hook_most_specific()`** on `*.hook.sh` (also `-c yml`, templates, …).
 
-Under `$subject`, hook stems are either ordinary slugified names **or** (planned filename DSL) custom DSL notation — `$subject` is the **only** `$` doc-notation exception that allows that dual reading (slug **or** DSL on `*.hook.yml` / `*.hook.sh`). See [documentation.md](documentation.md) § `$` notation and plan SoT `changelog/2026/07/24-filename-dsl.md`.
+Under `$subject`, hook stems are either ordinary slugified names **or** (planned filename DSL) custom DSL notation — DSL hook stems sit **directly under `$subject/`** (e.g. `$subject/lt(agent…).start.hook.(sh|yml)`, `$subject/source(code).available.hook.sh`), **not** under `$subject/$action/`. `$subject` is the **only** `$` doc-notation exception that allows that dual reading (slug **or** DSL on `*.hook.yml` / `*.hook.sh`). See [documentation.md](documentation.md) § `$` notation and plan SoT `changelog/2026/07/24-filename-dsl.md`.
 
 | Flag | Meaning |
 |------|---------|

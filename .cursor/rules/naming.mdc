@@ -24,6 +24,7 @@ Thin enforcement list. Full SoT: `changelog/2026/07/24-filename-dsl.md` (+ `chan
 - `()` = **wrap**; `.` = **nest**; `[]` = **args**
 - In `[]`: `b-*` = boolean; `o-*` = option; else positional
 - **Slot** only in `*.hook.yml` — never `…[slot]` in stems
+- **Path layout:** filename-DSL hook stems live under `$subject/` (e.g. `$subject/lt(…).start.hook.(sh|yml)`, `$subject/source(code).available.hook.sh`) — **not** under `$subject/$action/`. Ordinary non-DSL actions may still be `$subject/$action…`.
 
 ## Variable / symbol prefixes
 
