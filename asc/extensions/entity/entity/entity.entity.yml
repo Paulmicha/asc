@@ -42,3 +42,4 @@ entity:
           val: ''
       bundle:
         default: '$entity.type'
+        validate: test-entity[bundle](p-1)

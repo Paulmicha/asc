@@ -14,9 +14,173 @@ If you name things right, projects write themselves.
 
 ## Current status
 
-Massive rewrite to shrink it to bare essentials, rethink things through.
+*Massive rewrite* ☢️ to shrink it to bare essentials, rethink things through.
 
-See changelogs.
+**Here's the current raw TODO / current status :**
+
+Potential collisions in filesystem :
+
+- `$subject` / `$action`
+- `$subject` / `$object` / `$action`
+
+Resolution :
+Agnostic stance.
+
+In terms of ASC entity representation, `$subject` may or may not choose to implement that extra level.
+
+Implications :
+Change ASC core current files discovery mechanisms to support both.
+
+1. Stabilize Naming convention in doc
+2. Stabilize workflow + git flow in doc
+3. Stabilize hooks in doc
+4. Stabilize DSL in doc
+5. Stabilize Yml in doc
+6. Refactor Bootstrap
+7. Refactor core + core extensions
+8. Refactor tests (switch to nestable entity)
+9. Complete the Builder
+10. Complete the baseline implementations
+11. Implement agents (for now Cursor to test MVP, then planned : Hermes + ollama + kimi k3 ?)
+
+Also TODO : drop submodules (`.asc_extensions`) - because of objects.
+
+--
+
+`$subject` / `$object` / `$action` examples :
+
+- Remote instance restart
+- Remote host ssh
+- Entity relation list
+- Entity field list
+- Entity prop list
+
+--
+
+Field vs prop :
+
+field = store.able instance values (edit.able)
+--vs--
+prop = yml "constants" shared by all those entities (inherit.able)
+
+--
+
+Concrete "prop" example :
+
+*.entity.yml all have 'required' and 'optional' root-level keys (in yml key:value nest.able syntax)
+
+--
+
+Concrete "field" example :
+
+TODO use remote_host.entity.yml and remote_instance.entity.yml as examples.
+
+Fields must be stabilized first.
+They must allow to do things like :
+
+a remote instance entity has a parent remote host entity,
+they both have a 'hostname' field,
+which stores (in sidecars or globals or cache or scripts) the value for ASC implementations to use.
+
+--
+
+DSL to refactor :
+
+Invert "(" and "["
+
+`test-is[either](slot.slug[-],slot.slug[_]])`
+
+Becomes
+
+`test(p-1).is-either(slug(p-1,-),slug(p-1,_))`
+
+Must be filename-safe.
+
+-> DSL args auto convert :
+
+(shrink all '--' to '-' in prefixed syntax)
+
+p = $@
+p-1 = $1 (`p-$n`)
+
+p-1s = rest of params after 1 shift
+p-2s = up to param 2 shift etc.
+
+bo-oneline = --oneline
+bo-y = -y = any boolean option
+
+o-max-4 = --max=4 or "--max 4" or "-m 4"
+
+--
+
+Parsable stdout to catch things for prompt?
+
+Ex :
+
+```html
+Error message, any stdout output... With at the end :
+
+<asc-dsl>
+Dsl ?
+</asc-dsl>
+```
+
+And / or :
+
+```html
+<asc-yml>
+required:
+  foobar: <slot/> ?
+optional:
+  foobar: <slot/> ?
+</asc-yml>
+```
+
+Those could be templates :
+
+- **string** templates : `u_str_convert_tokens()` (asc utility) TODO rename to just `tpl()`
+- **file** templates : `*.tpl.html` (hook)
+- or even entire **dir** templates
+
+--
+
+Blueprint can be DSL or string template or file template or dir template
+
+--
+
+workflow.able idea :
+
+slot.able
+nest.able -> plan
+
+builder = can use temporary asc overrides in tests to test ideas as prototypes !!!!!!
+
+hard rule : all include of entities must be namespaced (not "contract" but "asc.contract" able ...)
+
+--
+
+The yml file format used in ASC is a definition of something being
+represented and named (= file name and path).
+
+**"Genericity" scale :**
+
+1. Primordial = akin to the very first living cell that existed on earth.
+2. Primitive = yml files defining the yml file name suffix. Ex: `able.able.yml`
+3. ASC core extensions
+4. ASC contrib extensions
+5. Third-party contrib extensions
+6. Project-specific impementations
+
+--
+
+task-oriented VS knowledge-oriented :
+mutual killswitch to implement
+
+---
+
+Original README below, to be completely rewritten :
+
+---
 
 ## End goal
 

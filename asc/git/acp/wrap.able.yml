@@ -1,5 +1,11 @@
 wrap:
   add:
     synonym: a
+    blueprint: argument
     default:
       value: .
+  commit:
+    synonym: c
+    shape: arguments
+    default:
+      value: '"$@"'
