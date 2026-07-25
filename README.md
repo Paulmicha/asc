@@ -43,7 +43,7 @@ Change ASC core current files discovery mechanisms to support both.
 10. Complete the baseline implementations
 11. Implement agents (for now Cursor to test MVP, then planned : Hermes + ollama + kimi k3 ?)
 
-Also TODO : drop submodules (`.asc_extensions`) - because of objects.
+Also TODO : drop submodules declarations via `.asc_extensions` because of objects.
 
 --
 
@@ -138,13 +138,66 @@ optional:
 
 Those could be templates :
 
-- **string** templates : `u_str_convert_tokens()` (asc utility) TODO rename to just `tpl()`
+- **string** templates : `u_str_convert_tokens()` (asc utility) TODO rename to just `tpl()` !
 - **file** templates : `*.tpl.html` (hook)
 - or even entire **dir** templates
 
 --
 
-Blueprint can be DSL or string template or file template or dir template
+Blueprint can be DSL or string template or file template or dir template.
+
+--
+
+Rules (TODO asc core extension in progress, like the drupal contrib module) :
+
+example : solidjs ui file tree in "projet complexe" : need to represent "root" vs user file ownership
+
+any "infra" action must be properly configured as sudoers entries first (or other mecanisms)
+
+-> some kind of sync pattern could be integrated in ASC core ?
+
+like a type.able entity where the "patterns presets" could be selected, e.g. :
+
+> make a hook for that, make a sidecar for this, prototype, test, recap as a new "change" entry.
+
+All expressable in DSL.
+
+--
+
+Sidecar :
+
+Entity = represents something virtual
+Yml = concrete (actual) file sidecar
+
+Compose.yml = concrete (actual) file sidecar of a (nestable) project stack
+
+Any script can be concrete (actual) file sidecar of any action.
+
+--
+
+Workflow :
+
+- Centered around change
+- Changelogs are change sidecars
+- Changes must be entities
+
+--
+
+Relations :
+
+- `$subject`--`$object`
+- `$subject`--`$predicate`--`$object`
+
+ASC notation examples :
+
+remote-host--foobar
+remote-host--reverse-proxy--state
+
+(presence of "--" means **we are not talking about an entry point** here)
+
+Useful in docs and blueprints only ?
+
+Mapping to complex memory stores (relational db) is out of scope.
 
 --
 
