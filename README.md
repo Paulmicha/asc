@@ -266,22 +266,61 @@ But here in ASC we could just make a single "atomic.able" blueprint entity. The 
 - dirs
 - asc instance
 
-Implementation examples in DSL :
+Examples of potential DSL usage in entry points :
 
-- blueprint/var/is = blueprint-var.field(type,a-1)
-- blueprint/function/used_by = blueprint-f.sidecar(used-by,a-1)
+- `dsl blueprint-var.field(type,a-1)` in `asc/extensions/builder/blueprint/var/is.sh`
+- `dsl blueprint-var.sidecar(a)` in `asc/extensions/builder/blueprint/var/sidecar.sh`
+- `dsl blueprint-f.sidecar(used-by,a-1)` in `asc/extensions/builder/blueprint/function/used_by.sh`
 - etc.
+
+TODO `dsl()` could be like the `hook()` function, but it likely will need to prepare some variables in calling scope - i.e. :
+
+```sh
+# Positional (unnamed) arguments would be simple :
+a="$@"
+a_1="$1"
+a_2="$2"
+a_3="$3"
+a_4="$4"
+a_5="$5"
+a_6="$6"
+a_7="$7"
+a_8="$8"
+a_9="$9"
+
+# TODO Shifted values like a_1s, a_2s (rest of params after 1 shift).
+
+# Named arguments would require some manual work (it depends on scripts,
+# programs used, etc.) - for instance :
+o_s=''
+o_h=''
+bo_y=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    # With value = "normal" options :
+    -h|--hook) export o_h="$2" ; shift 2 ;;
+    -s|--scope) export o_s="$2" ; shift 2 ;;
+
+    # Without value = boolean options :
+    -y|-yes) export bo_y=1   ; shift 1 ;;
+  esac
+done
+```
 
 --
 
-Files and folders (synonym : dir) can be entities, without storing unnecessary sidecars.
+Files and folders (synonym : dir) :
 
-The could be used to simply target specific files and dirs which may be git-ignored or inside generated data dirs.
+They can be entities.
+No need to store unnecessary sidecars.
 
-"concrete" dirs are nest.able themselves, so it is naturally fitting that the folder.entity be nest.able so relative paths are easier to match (by swapping prefixes), subject/action or any file - e.g. :
+They could be used to simply target specific paths which may be git-ignored or inside generated (data) dirs, etc.
 
-- data/cache/foo/bar -> "data_dir.store.able" prefixed "foo/bar"
-- scripts/asc/override/foo/bar -> overridden "foo/bar"
+Real, "concrete" dirs are nest.able themselves, so it is naturally fitting that the dir.entity be nest.able so relative paths - of any subject/action, or any file - are easier to match (by swapping prefixes), e.g. :
+
+- `data/cache/foo/bar` -> "data_dir.store.able" prefixed `foo/bar`
+- `scripts/asc/override/foo/bar` -> overridden `foo/bar`
 
 --
 
@@ -290,7 +329,7 @@ Rename "seed" to just "command" (synonym : cmd).
 The fundamental idea is this :
 entry points are fixed pivots, and are sidecar.able as pre-compiled commands (cmd).
 
-when you run "make gpu-driver install" on linux or windows, the command(s) will differ (because implemented as hook variants).
+when you run `make gpu-driver-install` on linux or windows, the command(s) will differ (because implemented as hook variants).
 
 --
 
@@ -304,6 +343,26 @@ TODO freeze.able = data/* sidecar(s) ?
 TODO cache by path ?
 TODO cache rebuild, reinit, can be incremental ?
 
+--
+
+Incremental cache rebuild
+
+Could look like, per entry point :
+
+- get last file modified datetime in e . $subject (or $subject - $object) containing dir
+- compare with current cache rebuild datetime
+- if last file modified datetime is more recent, rebuild that cache path
+- also check var + f use -> TODO perhaps use a relation field on (builder.)blueprint_var.used_by ?
+
+Basically, any impacted "dir branches" must be rebuilt (from the deepest possible "branch" level)
+
+Concrete examples :
+
+- Take the following entry point : `asc/extensions/builder/blueprint/function/used_by.sh`
+- blueprint-f.sidecar(used-by,a-1)
+- `data/cache/blueprint/function/used-by`
+
+- 
 
 --
 
@@ -324,7 +383,7 @@ Descriptions of changes must boil down to DSL, up to the file and folder atomic 
 
 --
 
-Finally, refactor make so it understands dsl
+Finally, refactor make so it understands DSL
 
 --
 
@@ -352,7 +411,7 @@ Cache / frozen / entry-points ? Dsl ? Both ?
 
 We could have file paths, like either :
 
-- `blueprint-var.field(type,a-1).dsl.hook` (no extension), or :
+- `blueprint-var.field(type,a-1).dsl.hook` (no extension because it's not a script : it's just an empty file that needs to exist at this exact path ; a bit like the ".gitkeep" files sometimes used for having git-ignored folders exist in git repos), or :
 - `blueprint-var.field(type,a-1).dsl.hook.yml` : defines a/o validations
 
 Yml examples of a/o = arg(s) and option(s) validation definitions :
@@ -366,6 +425,10 @@ a:
 a1:
   validation: test(a-1).is-either(slug(a-1,-),slug(a-1,_))
 ```
+
+--
+
+TODO Make some kind of general guideline for all ASC code like *"max 1000 lines per file everywhere"* to try and encourage splitting complex things into smaller pieces ?
 
 ---
 
