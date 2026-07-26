@@ -10,7 +10,7 @@ This project attempts to tackle the hard problem of naming things. Its ambition 
 
 Like the Go (game) but with entry points, env vars, scripts (wrappers, nesters, "regular"), namespaces and hooks.
 
-If you name things right, projects write themselves.
+If you name things right, projects practically write themselves.
 
 ## Current status
 
@@ -86,34 +86,37 @@ which stores (in sidecars or globals or cache or scripts) the value for ASC impl
 
 DSL to refactor :
 
-Invert "(" and "["
+- Invert `(` and `[`
+- (positional) Argmuments = `a`
+- Options (named arguments) = `o`
+- Boolean options (named options) = `bo`
 
 `test-is[either](slot.slug[-],slot.slug[_]])`
 
 Becomes
 
-`test(p-1).is-either(slug(p-1,-),slug(p-1,_))`
+`test(a-1).is-either(slug(a-1,-),slug(a-1,_))`
 
 Must be filename-safe.
 
 -> DSL args auto convert :
 
-(shrink all '--' to '-' in prefixed syntax)
+(shrink all `--` to `-` in prefixed syntax)
 
-p = $@
-p-1 = $1 (`p-$n`)
+`a` = `$@`
+`a-1` = `$1` (`a-$n`)
 
-p-1s = rest of params after 1 shift
-p-2s = up to param 2 shift etc.
+`a-1s` = rest of params after 1 shift
+`a-2s` = up to param 2 shift etc.
 
-bo-oneline = --oneline
-bo-y = -y = any boolean option
+`bo-oneline` = `--oneline`
+`bo-y` = `-y` = any boolean option
 
-o-max-4 = --max=4 or "--max 4" or "-m 4"
+`o-max-4` = `--max=4` or `--max 4` or `-m 4`
 
 --
 
-Parsable stdout to catch things for prompt?
+Parsable `stdout` to catch things for prompt ?
 
 Ex :
 
@@ -181,6 +184,12 @@ Workflow :
 - Changelogs are change sidecars
 - Changes must be entities
 
+The `change.entity.yml` is nest.able (up to files and folders granularity)
+
+TODO We must delegate as mush as possible to git.
+TODO Change entities could be pieces of changelogs in prose (*.md), or something more formal ?
+TODO Provide MVP use cases for now.
+
 --
 
 Relations :
@@ -228,6 +237,135 @@ represented and named (= file name and path).
 
 task-oriented VS knowledge-oriented :
 mutual killswitch to implement
+
+--
+
+Make vars and functions (synonym : f) sidecar.able entities (so we can get stats, etc) ?
+
+The "data_dir.store.able" sidecar of each shell variable and function written in current project instance is a nest.able structure reproducing its relative location (from project docroot).
+
+(TODO stabilize "data_dir.store.able" DSL notation meaning)
+
+Instead of distinct entities, we could just have a common representation for any "atomic" piece of code. We should just **use the blueprint entity** from the "builder" core extension. It expresses the *same* thing.
+
+I think the *Atomic Design Methodology* from Brad Frost makes sense here.
+
+> Atomic design is a methodology composed of five distinct stages working together to create interface design systems in a more deliberate and hierarchical manner. The five stages of atomic design are :
+> 
+> - Atoms
+> - Molecules
+> - Organisms
+> - Templates
+> - Pages
+
+But here in ASC we could just make a single "atomic.able" blueprint entity. The blueprint entity equivalent (nest.able + use.able) objects would be :
+
+- vars (global, scoped, positional_arg, named_arg, local, readonly, exported - NB : vars are nest.able because they can be string templates or make use of other vars or functions - TODO or dsl ?)
+- functions
+- files
+- dirs
+- asc instance
+
+Implementation examples in DSL :
+
+- blueprint/var/is = blueprint-var.field(type,a-1)
+- blueprint/function/used_by = blueprint-f.sidecar(used-by,a-1)
+- etc.
+
+--
+
+Files and folders (synonym : dir) can be entities, without storing unnecessary sidecars.
+
+The could be used to simply target specific files and dirs which may be git-ignored or inside generated data dirs.
+
+"concrete" dirs are nest.able themselves, so it is naturally fitting that the folder.entity be nest.able so relative paths are easier to match (by swapping prefixes), subject/action or any file - e.g. :
+
+- data/cache/foo/bar -> "data_dir.store.able" prefixed "foo/bar"
+- scripts/asc/override/foo/bar -> overridden "foo/bar"
+
+--
+
+Rename "seed" to just "command" (synonym : cmd).
+
+The fundamental idea is this :
+entry points are fixed pivots, and are sidecar.able as pre-compiled commands (cmd).
+
+when you run "make gpu-driver install" on linux or windows, the command(s) will differ (because implemented as hook variants).
+
+--
+
+Seed :
+
+Copy tmp cache dir backup copy
+
+Path-based entry points get "frozen"
+
+TODO freeze.able = data/* sidecar(s) ?
+TODO cache by path ?
+TODO cache rebuild, reinit, can be incremental ?
+
+
+--
+
+New hook entry points :
+
+- `hook` (like call_wrap.make.sh)
+- `hook-most-specific` = `hook-ms` (TODO new function to integrate in ASC core)
+- `hook-dry-run` = `hook-dr` (TODO new function to integrate in ASC core)
+
+--
+
+It's not what you need.
+It's how you formulate it.
+
+Every problem becomes a (re)formulation problem.
+
+Descriptions of changes must boil down to DSL, up to the file and folder atomic changes (builder can generate files and dirs from blueprints, but code refactoring is delegated to third-party implementations).
+
+--
+
+Finally, refactor make so it understands dsl
+
+--
+
+Make the entry points "mamespaced" notation facultative (e.g. in yml).
+
+Because 
+
+--
+
+Graphical representation metaphor:
+Files are cells (inner parts), "membrane", etc.
+
+Nest.able = zoom.able (TODO graphical bridge for pagination, tree + nest "fractal" navigation)
+
+--
+
+Entry points are pointers 
+Sidecar ? Ex symlink
+Freeze.able as cache or seed ?
+
+Slugified args collisions if we use dsl as frozen entrypoints : piling up with integer suffix, with yml to store raw command ?
+
+Frozen entry points of dsl syntax.
+Cache / frozen / entry-points ? Dsl ? Both ?
+
+We could have file paths, like either :
+
+- `blueprint-var.field(type,a-1).dsl.hook` (no extension), or :
+- `blueprint-var.field(type,a-1).dsl.hook.yml` : defines a/o validations
+
+Yml examples of a/o = arg(s) and option(s) validation definitions :
+
+```yml
+a:
+  validation: test(a).is-slug
+```
+
+```yml
+a1:
+  validation: test(a-1).is-either(slug(a-1,-),slug(a-1,_))
+```
 
 ---
 
