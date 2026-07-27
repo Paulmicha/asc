@@ -547,8 +547,8 @@ To recap what `$object` dirs can currently provide :
 - `[action].sh` = entry points
 - `{subject}.inc.sh` = functions loaded in every asc-bootstrapped scripts
 - `{subject}.opt-inc.sh` = functions "leazy-loaded" in asc-bootstrapped scripts
-- `{entity}.entity.yml` = asc entity definitions
-- `{contract}.able.yml` = asc entity contract definitions
+- `[entity].entity.yml` = asc entity definitions
+- `[able].able.yml` = asc entity contract definitions
 
 Basically everything any `$subject` dir can declare, except hooks (only declarable in `$subject`) :
 - `[hook].{file_ext}` = hook implementation template
