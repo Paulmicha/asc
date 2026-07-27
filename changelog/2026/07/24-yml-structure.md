@@ -371,7 +371,7 @@ able.able.yml        → include contract.entity  (all *.able inherit)
 
 17. **YAML `include` for Wave A:** should `git.able.yml` / `state.able.yml` / `repo.entity.yml` opt into Wave B includes in v1, or stay self-contained until meta freezes?
 18. **`*.hook.yml` body:** land a minimal stub section in this plan soon, or wait for filename-DSL Phase 3?
-19. **Validation:** docs-only convention first, or early shunit2 fixture checks under `make test-asc`?
+19. **Validation:** docs-only convention first, or early shunit2 fixture checks under `make test-core`?
 20. **Schema versioning:** add a top-level `asc.yml.schema` / `version:` key, or avoid until multiple consumers exist?
 
 ---

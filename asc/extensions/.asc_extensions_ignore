@@ -1,7 +1,6 @@
 agent
 apache
 arangodb
-builder
 cognition
 compose
 crontab
@@ -10,7 +9,6 @@ docker
 drupalwt
 drupalwt_d4d
 drush
-entity
 git_crypt
 gpt
 hardware
@@ -35,3 +33,4 @@ software
 taxonomy
 transcription
 views
+workflow

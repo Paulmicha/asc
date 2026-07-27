@@ -4,7 +4,7 @@
 # ASC core test utility functions.
 #
 # Sourced by shunit2 cases under asc/test/asc/ (NOT during bootstrap).
-# @see asc/test/asc.sh
+# @see asc/test/core.sh
 #
 # Convention : functions names are all prefixed by "u" (for "utility").
 #

@@ -50,7 +50,7 @@ ASC core (`asc/`) may live in the app docroot, a parent “dev stack” repo, or
 
 Idempotent. If globals are already readonly in the shell, use `make reinit` for the init step.
 
-Smoke: `. asc/bootstrap.sh`, `make test-asc`, plus any host-provision paths you rely on.
+Smoke: `. asc/bootstrap.sh`, `make test-core`, plus any host-provision paths you rely on.
 
 ---
 
@@ -142,7 +142,7 @@ Confirm `ASC_BRANCH` defaults to **`main`** in `asc/asc/upgrade.sh` before relyi
 ### Tests
 
 ```sh
-make test-asc
+make test-core
 ```
 
 Core cases under `asc/test/asc/*.test.sh`; extensions/extend append via `test/asc.hook.sh`. New cases need `make reinit` so per-case targets appear in `generated.mk`.
@@ -165,7 +165,7 @@ Two entry tutorials should eventually exist (same SoT as this suite):
 
 ### Roadmap (upstream)
 
-- Keep `make test-asc` current
+- Keep `make test-core` current
 - Finish shared `sidecar.wrap.sh` body and migrate writers
 - Improve macOS / POSIX where practical
 - Offload heavy domains to nested apps when sensible

@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 
 ##
-# Implements hook -s 'test' -a 'asc' -v 'HOST_TYPE PROVISION_USING'.
+# Implements hook -s 'test' -a 'core' -v 'HOST_TYPE PROVISION_USING'.
 #
 # Verifies current instance can execute pgsql actions normally.
 #
 # @see u_test_batch_exec() in asc/test/test.inc.sh
 #
 # @example
-#   make test-asc
+#   make test-core
 #   # Or :
-#   asc/test/asc.sh
+#   asc/test/core.sh
 #
 
 u_test_batch_exec 'asc/extensions/pgsql/test/asc'

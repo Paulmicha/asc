@@ -47,5 +47,5 @@ Thin enforcement list. Full SoT: `changelog/2026/07/24-filename-dsl.md` (+ `chan
 ## Hard rules
 
 - Explicit `$action` files (no invisible function-only actions)
-- Tests only via `make test-asc` → `asc/test/asc/*.test.sh` (shunit2)
+- Tests only via `make test-core` → `asc/test/asc/*.test.sh` (shunit2)
 - Home tip `cwt.mdc` → `asc.mdc` is separate cutover — must not contradict these ASC-repo locks

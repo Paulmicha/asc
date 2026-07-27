@@ -266,9 +266,9 @@ But here in ASC we could just make a single "atomic.able" blueprint entity. The 
 
 Examples of potential DSL usage in entry points :
 
-- `dsl blueprint-var.field(type,a-1)` in `asc/extensions/builder/blueprint/var/is.sh`
+- `dsl blueprint-var.field(type,a-1)` in `asc/extensions/builder/asc/extensions/builder/code/var/is.sh.sh`
 - `dsl blueprint-var.sidecar(a)` in `asc/extensions/builder/blueprint/var/sidecar.sh`
-- `dsl blueprint-f.sidecar(used-by,a-1)` in `asc/extensions/builder/blueprint/function/used_by.sh`
+- `dsl blueprint-f.sidecar(used-by,a-1)` in `asc/extensions/builder/asc/extensions/builder/code/function/used_by.sh.sh`
 - etc.
 
 TODO `dsl()` could be like the `hook()` function, but it likely will need to prepare some variables in calling scope - i.e. :
@@ -356,7 +356,7 @@ Basically, any impacted "dir branches" must be rebuilt (from the deepest possibl
 
 Concrete examples :
 
-- Take the following entry point : `asc/extensions/builder/blueprint/function/used_by.sh`
+- Take the following entry point : `asc/extensions/builder/asc/extensions/builder/code/function/used_by.sh.sh`
 - blueprint-f.sidecar(used-by,a-1)
 - `data/cache/blueprint/function/used-by`
 
@@ -387,7 +387,9 @@ Finally, refactor make so it understands DSL
 
 Make the entry points "mamespaced" notation facultative (e.g. in yml).
 
-Because 
+Because it defaults to the implementations automatically resolved based on local asc instance variants.
+
+Prefixing could be a way to specifically inherit something not active in local asc instance.
 
 --
 
@@ -428,6 +430,182 @@ a1:
 
 TODO Make some kind of general guideline for all ASC code like *"max 1000 lines per file everywhere"* to try and encourage splitting complex things into smaller pieces ?
 
+--
+
+TODO rename "thread" to "process" (synonym : "proc" ?) to better match the reality of the shell mechanisms at play ?
+
+In the context of the Linux shell, the primary difference is that every standard command you run in the shell executes as a separate process, whereas threads are internal execution units within those processes that the shell cannot directly manipulate or pipe together. 
+
+When you type a command like ls or grep, the shell clones itself to create an isolated environment with its own memory. Threads, on the other hand, exist strictly inside a single process to handle lightweight multitasking while sharing that process's memory space.
+
+Latin : procurare (procureur) ?
+// avec concept de délégation ?
+
+Mais en fait non, gardons "thread" car du point de vue d'ASC, on est sur des pivots, et thread ce serait comme des process "owned" + custom managed by ASC, donc l'entité asc "thread" sera une représentation relativement accurate des "process" en shell (asc thread = process managés par, internes et propres à ASC, différents des autres process que d'autres scripts pourraient gérer - une chose n'empêche pas l'autre).
+
+--
+
+Blueprint entity is not enough in builder ext.
+
+We need a code entity so blueprints are clearer.
+
+- code/var/$object/$action -> objects = global, local, readonly, exported, etc. ?
+- code/f/$action
+
+All code entities (var + f) have :
+
+- scope
+- used-by
+- complexity ?
+- performance measures sidecars ? (stats ?)
+- implementations ? (log.able, thread.able...)
+- patterns ?
+
+--
+
+Template filename syntax
+
+Subfolder name (same structure as tests) = "tpl"
+
+- `$subject` or `$object` / `[action].sh` : repeatable template file (can generate as many files as necessary using the same template)
+- `$subject` / `{subject}.inc.sh`  : results in a single file generated
+
+Ex :
+- `asc/extensions/builder/template/core/subject/[action].sh`
+- `asc/extensions/builder/template/core/subject/{subject}.inc.sh`
+- `asc/extensions/builder/template/core/subject/{subject}.opt-inc.sh`
+- `asc/extensions/builder/template/core/subject/[object]/[action].sh`
+- `asc/extensions/builder/template/core/subject/[object]/{subject}.inc.sh`
+- `asc/extensions/builder/template/core/subject/[object]/{subject}.opt-inc.sh`
+- `asc/extensions/builder/template/core/test/[test_suite]/[test_case].test.sh`
+- etc.
+
+--
+
+Multi-line template files syntax
+
+Ex : `asc/extensions/builder/template/core/subject/[action].sh`
+
+```txt
+#!/usr/bin/env bash
+
+##
+# {{ docblock }}
+#
+# @example
+#   {{ docblock_examples }}
+#
+
+{{ slot }}
+```
+
+We could have conditions like in : `asc/extensions/builder/template/core/test/[test_suite]/[test_case].test.sh`
+
+```html
+<asc-if not-empty="one_time_setup">
+  The contents here are processed and generated in place, or remove whitespace from opening tag position until first character of the next non-empty line.
+</asc-if>
+```
+
+--
+
+General ASC guidelines
+
+- max 1000 lines per script file (split inc and opti-inc files in sub-includes if necessary)
+- In meta-related work, never describe the containing thing - only what it it about. E.g. if you write a note, no need to say : "this is a note" in whatever note metadata there is. It's an unnecessary repitition of something (like a script) that is already provided in the file path itself - all files in ASC being conceptualized as "sidecars" (entity = virtual, file = actual)...
+
+--
+
+About `$subject` / `$object` / `$action` path structure :
+
+- `$subject` / `*.hook.*` files are currently supported
+- but not `$subject` / `$object` / `*.hook.*` (by design, for now)
+
+Only `$subject`'s dirs can implement hooks (**not** their `$object`'s sub-dirs).
+
+To recap what `$object` dirs can currently provide :
+
+- `[action].sh` = entry points
+- `{subject}.inc.sh` = functions loaded in every asc-bootstrapped scripts
+- `{subject}.opt-inc.sh` = functions "leazy-loaded" in asc-bootstrapped scripts
+- `{entity}.entity.yml` = asc entity definitions
+- `{contract}.able.yml` = asc entity contract definitions
+
+Basically everything any `$subject` dir can declare, except hooks (only declarable in `$subject`) :
+- `[hook].{file_ext}` = hook implementation template
+- `[hook].{variants}.{file_ext}` = hook variant implementation template
+
+--
+
+DSL updates :
+
+TODO Slugs must have entry points so DSL can do things like :
+
+- slug-url(a)
+- slug-snake(a)
+- slug-camel(a)
+
+TODO On top of entry points, also support both "f_foobar" and "f-foobar" notations for function names in DSL.
+
+--
+
+TODO Make some kind of general guideline for ASC code like "max 1000 lines per file everywhere" to try and encourage splitting complex things into smaller pieces ?
+
+--
+
+Make vars and functions (synonym : f) sidecar.able entities (so we can get **stats**, etc) ?
+
+The data_dir.store.able sidecar of each shell variable written in current project instance is a nest.able structure reproducing its relative location (from project docroot).
+
+(TODO stabilize "data_dir.store.able" DSL notation meaning)
+
+Instead of distinct entities, we could just have a common representation for any "atomic" piece of code. We should just use the blueprint entity. It expresses the same thing.
+
+I think the Atomic Design Methodology from Brad Frost makes sense here.
+
+Atomic design is a methodology composed of five distinct stages working together to create interface design systems in a more deliberate and hierarchical manner. The five stages of atomic design are :
+
+- Atoms
+- Molecules
+- Organisms
+- Templates
+- Pages
+
+But here in ASC we could just make a single "atomic.able" blueprint entity. The blueprint entity equivalent (nest.able + use.able) objects would be :
+
+- vars (global, scoped, positional_arg, named_arg, local, readonly, exported)
+- functions
+- files
+- dirs
+- asc instance
+
+--
+
+DSL notation example that describes what certain entry points do :
+
+- asc/extensions/builder/code/var/is.sh = `entity-field-val(type,a-1)`
+- asc/extensions/builder/code/function/used_by.sh = `file-sidecar(used-by,a-1)`
+- etc.
+
+--
+
+Files and folders (synonym : dir) can be entities, without storing unnecessary sidecars.
+
+The could be used to simply target specific files and dirs which may be git-ignored or inside generated data dirs.
+
+"concrete" dirs are nest.able themselves, so it is naturally fitting that the folder.entity be nest.able so relative paths are easier to match (by swapping prefixes), subject/action or any file - e.g. :
+
+- data/cache/foo/bar -> "data_dir.store.able" prefixed "foo/bar"
+- scripts/asc/override/foo/bar -> overridden "foo/bar"
+
+--
+
+New hook entry points :
+
+- hook (like call_wrap.make.sh)
+- hook-most-specific = hook-ms
+- hook-dry-run = hook-dr
+
 ---
 
 Original README below, to be completely rewritten :
@@ -455,7 +633,7 @@ Deep dives live under [`docs/asc/`](docs/asc/). Extension notes: [`asc/extension
 
 ASC is a scaffolding bash shell CLI for usual (web or general) project tasks — a generic, customizable, extensible toolbox for **local (internal) development**.
 
-ASC is not a program; it is the “glue” between programs. Third-party integration is provided by **extensions** (bundled under `asc/extensions/`, often disabled by default). Core contains utilities for global environment variables, minimal host operations, optional git hooks, log/thread/loop wrappers, and low-level automated tests (`make test-asc`).
+ASC is not a program; it is the “glue” between programs. Third-party integration is provided by **extensions** (bundled under `asc/extensions/`, often disabled by default). Core contains utilities for global environment variables, minimal host operations, optional git hooks, log/thread/loop wrappers, and low-level automated tests (`make test-core`).
 
 ASC is **not** meant for production. It helps individual developers or teams keep a common CLI across older and newer projects.
 
@@ -781,7 +959,7 @@ After init, `data/asc/generated.mk` adds subject/action targets. Typical core sh
 | *instance uninit* | `asc/instance/uninit.sh` | `make uninit` |
 | *asc upgrade* | `asc/asc/upgrade.sh` | `make asc-upgrade` |
 | *asc cache-clear* | `asc/asc/cache_clear.sh` | `make cc` |
-| *test asc* | `asc/test/asc.sh` | `make test-asc` |
+| *test asc* | `asc/test/core.sh` | `make test-core` |
 
 Logged runners and operators: [docs/asc/observability.md](docs/asc/observability.md), [docs/asc/layers.md](docs/asc/layers.md).
 
@@ -875,7 +1053,7 @@ Default-on assumes the stock core ignore list (everything listed there is off; `
 ## Automated tests
 
 ```sh
-make test-asc
+make test-core
 ```
 
 Single orchestration hook: `test` / `asc`. Core cases under `asc/test/asc/*.test.sh`; extensions and `scripts/asc/extend` can append via `test/asc.hook.sh`. Per-case make targets are generated into `data/asc/generated.mk` on `reinit` (registry: `data/asc/cache/test-cases.sh`).

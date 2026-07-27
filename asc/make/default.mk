@@ -36,7 +36,7 @@
 #   make hook-debug s:instance a:start v:STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE
 #
 #   # Run low-level ASC base-stack tests (core + enabled extensions) :
-#   make test-asc
+#   make test-core
 #
 
 .PHONY: init init-debug setup hook hook-debug globals-lp debug

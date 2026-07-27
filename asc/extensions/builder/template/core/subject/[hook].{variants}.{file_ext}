@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+##
+# Implements hook {{ hook_variants }}.
+#
+# {{ docblock }}
+#
+# @example
+#   {{ docblock_examples }}
+#
+
+{{ slot }}

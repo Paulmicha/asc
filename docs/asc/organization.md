@@ -372,7 +372,7 @@ Per entry point (sketch):
 1. If source is newer, rebuild that cache path (and impacted dir branches from the deepest possible level).
 1. Also track var / function use (e.g. relation field on `blueprint_var.used_by`) so dependents rebuild.
 
-Concrete sketch: entry `asc/extensions/builder/blueprint/function/used_by.sh` ↔ DSL `blueprint-f.sidecar(used-by,a-1)` ↔ cache `data/cache/blueprint/function/used-by`.
+Concrete sketch: entry `asc/extensions/builder/asc/extensions/builder/code/function/used_by.sh.sh` ↔ DSL `blueprint-f.sidecar(used-by,a-1)` ↔ cache `data/cache/blueprint/function/used-by`.
 
 `freeze.able` / assembled or compiled sidecars may sit beside this. Not implemented — keep `make reinit` / `make cc` as the real operators today.
 

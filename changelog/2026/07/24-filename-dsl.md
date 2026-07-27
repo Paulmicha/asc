@@ -4,7 +4,7 @@
 |-------|--------|
 | **Date** | 2026-07-24 |
 | **Status** | plan / review (not implemented; multi-shell groundwork WIP on branch) |
-| **Scope** | ASC repo `/home/paul/Documents/asc` — filename grammar for subjects, actions, hooks, wraps; matching runtime actions; MAKE_TASKS_SHORTER abbreviations; **shell-agnostic runtime** (`ASC_SHELL`; multi-shell `inc` / `opt-inc` loaded by a **single dedicated include-loader hook**); primordial layout under `asc/asc/`; **tests as first-class deliverables** (shunit2 / `make test-asc`; cases may themselves be nest/wrap DSL steps); **Cursor rules** so agent-produced ASC edits respect all locked naming conventions; **living-docs pass** (ASC `docs/asc/**` + home `~/docs/next-steps.md`) as an explicit plan deliverable; **`$`-prefixed documentation notation** for make entry points (**`$subject` sole exception:** slugified string **or** hook DSL on `*.hook.yml` / `*.hook.sh`) |
+| **Scope** | ASC repo `/home/paul/Documents/asc` — filename grammar for subjects, actions, hooks, wraps; matching runtime actions; MAKE_TASKS_SHORTER abbreviations; **shell-agnostic runtime** (`ASC_SHELL`; multi-shell `inc` / `opt-inc` loaded by a **single dedicated include-loader hook**); primordial layout under `asc/asc/`; **tests as first-class deliverables** (shunit2 / `make test-core`; cases may themselves be nest/wrap DSL steps); **Cursor rules** so agent-produced ASC edits respect all locked naming conventions; **living-docs pass** (ASC `docs/asc/**` + home `~/docs/next-steps.md`) as an explicit plan deliverable; **`$`-prefixed documentation notation** for make entry points (**`$subject` sole exception:** slugified string **or** hook DSL on `*.hook.yml` / `*.hook.sh`) |
 | **Related** | Prior idea `data/ideas/2026/07/23/dsl.md` (**syntax superseded** by this plan); `data/ideas/2026/07/23/wrappers-nest-bridges.md`; `data/ideas/2026/07/23/genericity-taxonomy.md`; `docs/asc/organization.md` (subjects/actions/hooks); `docs/asc/wrappers.md`; `docs/asc/archive/hooks.md`; naming plan `changelog/2026/07/23-f-e-naming-convention.md` (`a_` / `o_` / `f_*`); WIP on `naming-convention-changelog`: `648a4d7` (begin multi shell), `8f3faa8` (utilities → `asc/asc/`), `f971316` (**final primordial layout**: eager `*.inc.sh` core + `asc/asc/utils/*.opt-inc.sh`) |
 | **Lifecycle** | Local review stub: `data/plans/review/2026-07-24-filename-dsl.md` (dir mostly gitignored — **this changelog is the tracked SoT**, same pattern as `23-f-e-naming-convention.md`). Move stub across `review` → `iterate` → `accepted` / `rejected` per `data/ideas/2026/07/23/idea-changelog-workflow.md`. |
 
@@ -41,7 +41,7 @@ The same filename / include surface must stay **shell-generic**: today’s defau
 6. Express **relations / fields** in the filename DSL with the **locked complete mapping** below; resolve via `$action.able.yml` to `$subject.$action`; keep distinct from the first-`-` intra-token split.
 7. Keep the DSL / include runtime **shell-agnostic**: default `ASC_SHELL=bash`, alternate shells via filename / lookup conventions; **finish implementing** the multi-shell groundwork already on the branch.
 8. Route multi-shell **`inc` / `opt-inc` loading through a single dedicated include-loader hook** driven by `ASC_SHELL` (bash default+fallback; shell-specific alternate only if present). Eager vs lazy kinds still apply.
-9. **Create tests as part of implementation** (not an afterthought): shunit2 cases under the existing ASC harness (`make test-asc` → `asc/test/asc/*.test.sh`), including grammar/AST goldens and runtime nest/wrap/arg smoke. Test steps themselves may be expressed with the same DSL — **nest** (`foo.bar`) or **wrap** (`foo(bar)`) — including arg/synonym patterns such as `log.level_get` / `log.level_set` and shorter forms `llv-get` / `llv-set`.
+9. **Create tests as part of implementation** (not an afterthought): shunit2 cases under the existing ASC harness (`make test-core` → `asc/test/asc/*.test.sh`), including grammar/AST goldens and runtime nest/wrap/arg smoke. Test steps themselves may be expressed with the same DSL — **nest** (`foo.bar`) or **wrap** (`foo(bar)`) — including arg/synonym patterns such as `log.level_get` / `log.level_set` and shorter forms `llv-get` / `llv-set`.
 10. **Cursor rules** (project-local `.cursor/rules/*.mdc`): any Cursor-produced modification under this ASC repo must respect **all naming conventions locked by this plan** (and the related `f_*` / `e_*` / `o_*` naming plan where symbols apply) — before Phase 1+ coding, not as a docs afterthought.
 11. **Thorough living-documentation update** (including **next steps**) as an implementation/docs deliverable — not an optional side note. See Phase 0d.
 
@@ -447,7 +447,7 @@ $subject/lt(agent[role-prompt-analyst].start[loop.heartbeat](data[inbox].unread)
 
 ### 4. Tests as nest / wrap DSL steps (illustrative)
 
-Tests are **in scope for implementation**, not a post-merge chore. They run under the existing harness (`make test-asc` → hook `test`/`asc` → shunit2 batches in `asc/test/asc/*.test.sh`; see `docs/asc/testing.md`). New DSL coverage should land as additional `*.test.sh` cases (and generated `test-asc-*` make targets after `reinit`) — **do not** introduce a separate self-test / bats / pytest runner.
+Tests are **in scope for implementation**, not a post-merge chore. They run under the existing harness (`make test-core` → hook `test`/`asc` → shunit2 batches in `asc/test/asc/*.test.sh`; see `docs/asc/testing.md`). New DSL coverage should land as additional `*.test.sh` cases (and generated `test-asc-*` make targets after `reinit`) — **do not** introduce a separate self-test / bats / pytest runner.
 
 Beyond ordinary shunit2 assertions, **test steps themselves** can be encoded with the filename DSL so exercises look like real operator paths:
 
@@ -523,7 +523,7 @@ Parser / runtime fixtures in Phase 1–2 must include at least: one nest-only te
 | Core under `asc/asc/` (+ `utils/`) | **Settled layout** (`f971316`); finish bootstrap rewire to these paths. |
 | `*.hook.sh` event hooks | Distinct from `inc` / `opt-inc` include files. Event hooks stay `hook()` / most-specific; includes are selected only by the dedicated include-loader hook — do not call every include a hook. |
 | `asc/asc/hook.inc.sh` | An eager **include** (hook *utilities*), loaded like other `*.inc.sh` via the include-loader hook — not “a hook implementation” by virtue of the `.inc.sh` suffix. |
-| `make test-asc` / shunit2 | Existing harness (`docs/asc/testing.md`, `asc/test/asc/*.test.sh`, `asc/vendor/shunit2`). DSL work adds cases here; optional DSL-encoded test *steps* use nest/wrap grammar above. |
+| `make test-core` / shunit2 | Existing harness (`docs/asc/testing.md`, `asc/test/asc/*.test.sh`, `asc/vendor/shunit2`). DSL work adds cases here; optional DSL-encoded test *steps* use nest/wrap grammar above. |
 | `lt` / `ll` logged wrappers | Same family as wrap stacks in test examples (`ll(log.level_get)`, `lt(log.level_set[…])`). |
 | Synonyms / make shortening | `llv-get` / `llv-set` illustrate short atoms expanding to `log.level_get` / `log.level_set` (nest forms); wire with `arg`/`o`/`b`/`f` when implementing. |
 | Cursor rules (home / ATB) | Home tip uses `~/.cursor/rules/*.mdc` (`cwt.mdc`, `global.mdc`, …); ATB uses **project-local** `Documents/ATB/.cursor/rules/*.mdc`. **ASC repo has no `.cursor/rules/` yet** — add project-local rules here (same `.mdc` + YAML frontmatter + `globs` pattern). Home MVP plan separately renames tip `cwt.mdc` → `asc.mdc`; that is tip cutover, not a substitute for ASC-repo naming rules. |
@@ -589,7 +589,7 @@ Agents editing ASC docs **must** use `$subject` / `$action` / `$field…` / `$tr
 - Variable prefixes: `a_` / `o_` / `b_`; no `f_` *variable* prefix for actions. Symbols: `f_*` / `e_*` / `hookms` per naming-convention plan.
 - Separators: first `-`; optional `_` `$action` prefix (not a relation); relations via `$`-prefixed able forms → `$action.able.yml`.
 - Includes: bash unqualified default+fallback; `*.$ASC_SHELL.(opt-)inc.sh`; single include-loader hook; primordial `asc/asc/*.inc.sh` + `utils/*.opt-inc.sh`.
-- Explicit `$action` files; `make test-asc` only; home tip `cwt.mdc`→`asc.mdc` is separate.
+- Explicit `$action` files; `make test-core` only; home tip `cwt.mdc`→`asc.mdc` is separate.
 
 **Checklist:**
 
@@ -612,7 +612,7 @@ Agents editing ASC docs **must** use `$subject` / `$action` / `$field…` / `$tr
 | `docs/asc/wrappers.md` | nest vs wrap |
 | `docs/asc/archive/hooks.md` | hook surface vs includes |
 | `docs/asc/archive/bootstrap.md` | primordial paths + `ASC_SHELL` |
-| `docs/asc/testing.md` | `make test-asc` / DSL fixtures |
+| `docs/asc/testing.md` | `make test-core` / DSL fixtures |
 | `docs/asc/entities.md` | already uses `$field.able` — align relation/`$` wording |
 | `docs/asc/documentation.md` | living-docs process; `$` notation + `$subject` exception pointer |
 | `docs/asc/builder.md` | keep builder `slotable` distinct from YAML-hook `slot` |
@@ -634,7 +634,7 @@ Writing tests is a **required deliverable of this phase**, not deferred to “ve
 - [ ] Formal grammar + lexer rules (escaping, allowed chars, max depth; shell_id in suffix).
 - [ ] Golden filename → AST fixtures (examples 1–3 above + one shell-qualified include + **example 4 nest/wrap test steps**).
 - [ ] Document AST → matching actions (`wrap` / `nest` / `arg` / option).
-- [ ] **Create** shunit2 cases under `asc/test/asc/` (e.g. `filename_dsl.test.sh` or split parser/synonym cases) following `docs/asc/testing.md` — same batch as `make test-asc` / `u_test_batch_exec`; helpers via `asc/test/test.inc.sh`. After `reinit`, expect generated `test-asc-*` targets.
+- [ ] **Create** shunit2 cases under `asc/test/asc/` (e.g. `filename_dsl.test.sh` or split parser/synonym cases) following `docs/asc/testing.md` — same batch as `make test-core` / `u_test_batch_exec`; helpers via `asc/test/test.inc.sh`. After `reinit`, expect generated `test-asc-*` targets.
 - [ ] Fixture matrix must cover:
   - nest-only (`foo.bar`, `log.level_get`)
   - wrap-only (`foo(bar)`, `test(log.level_get)`)
@@ -669,12 +669,12 @@ Writing tests is a **required deliverable of this phase**, not deferred to “ve
 
 ### Phase 5 — Verification (gate on the test suite)
 
-- [ ] Full `make test-asc` green for new DSL cases; hook dry-run (`-t`) lists DSL paths.
+- [ ] Full `make test-core` green for new DSL cases; hook dry-run (`-t`) lists DSL paths.
 - [ ] Confirm nest/wrap **test-step** examples and `llv-get` / `llv-set` synonym fixtures from Phase 1 still pass against runtime.
 - [ ] Smoke: custom `.hook.sh` vs `.hook.yml` defaults; bash bootstrap after groundwork completion.
 - [ ] Smoke: shell-specific alternate include lookup for at least one non-default `ASC_SHELL` (file present → alternate; missing → bash fallback).
 - [ ] `make reinit` / `make cc` after registry / test-case cache changes.
-- [ ] Grep/docs gates for SoT punctuation, prefix rules, `ASC_SHELL` / suffix convention, single include-loader hook semantics (includes ≠ hook implementations), and testing harness alignment (`make test-asc` only).
+- [ ] Grep/docs gates for SoT punctuation, prefix rules, `ASC_SHELL` / suffix convention, single include-loader hook semantics (includes ≠ hook implementations), and testing harness alignment (`make test-core` only).
 - [ ] Confirm project-local Cursor naming rule(s) still present under `.cursor/rules/` and match locked conventions (Phase 0c).
 
 ---
@@ -730,7 +730,7 @@ Writing tests is a **required deliverable of this phase**, not deferred to “ve
 - [ ] **Phase 0a** (optional `_`): living-docs note for `$action`-prefix reading — fold into **Phase 0d** when convenient
 - [x] **Cursor rules** (Phase 0c): **partially landed** — `.cursor/rules/doc-notation.mdc` + `naming.mdc` (refresh bullets as locks evolve; confirm after 0d)
 - [ ] **Phase 0d — living docs + next-steps** (required): thorough update of ASC living docs + `~/docs/next-steps.md` for `$` notation, relations, multi-shell notes as touched
-- [ ] Implement DSL only after explicit go-ahead (Phases 1–5), **including** shunit2 / `make test-asc` cases and nest/wrap + `llv-*` fixtures from Phase 1 onward
+- [ ] Implement DSL only after explicit go-ahead (Phases 1–5), **including** shunit2 / `make test-core` cases and nest/wrap + `llv-*` fixtures from Phase 1 onward
 
 ---
 
@@ -779,7 +779,7 @@ MAKE_TASKS_SHORTER:
   llv-set → log.level_set
 
 Tests (existing harness — do not invent another):
-  make test-asc → asc/test/asc/*.test.sh (shunit2)
+  make test-core → asc/test/asc/*.test.sh (shunit2)
   Phase 1 creates cases; Phases 2–5 keep them green
 
 ASC_SHELL (default bash) — single include-loader hook:

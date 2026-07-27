@@ -11,22 +11,22 @@ Table of contents :
 ## Entry point
 
 ```bash
-make test-asc
+make test-core
 # Or:
-asc/test/asc.sh
+asc/test/core.sh
 ```
 
 Triggers:
 
 ```sh
-hook -s 'test' -a 'asc' -v 'HOST_TYPE PROVISION_USING'
+hook -s 'test' -a 'core' -v 'HOST_TYPE PROVISION_USING'
 ```
 
 (Exact `-v` list may include `HOST_OS` depending on the caller; debug with `make hook-debug s:test a:asc v:HOST_TYPE PROVISION_USING`.)
 
 ```mermaid
 flowchart TD
-  entry["make test-asc"] --> hook["hook -s test -a asc"]
+  entry["make test-core"] --> hook["hook -s test -a asc"]
   hook --> coreH["asc/test/asc.hook.sh"]
   hook --> extH["enabled extension test/asc.hook.sh"]
   hook --> projH["scripts/asc/extend/test/asc.hook.sh optional"]
@@ -78,6 +78,6 @@ When `ASC_TEST_RESULTS` is not `0` (default: enabled), runs can archive under `$
 1. Add `{extension}/test/asc.hook.sh` calling `u_test_batch_exec` on a sibling batch dir.
 2. Place `*.test.sh` files there.
 3. Optionally add a batch action script for a dedicated `make test-<name>` target.
-4. `make reinit` then `make test-asc`.
+4. `make reinit` then `make test-core`.
 
-SoT: `asc/test/asc.sh`, `asc/test/asc.hook.sh`, `asc/test/test.inc.sh`, `asc/make/make.inc.sh`.
+SoT: `asc/test/core.sh`, `asc/test/asc.hook.sh`, `asc/test/test.inc.sh`, `asc/make/make.inc.sh`.

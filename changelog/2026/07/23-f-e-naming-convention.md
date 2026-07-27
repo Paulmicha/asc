@@ -464,7 +464,7 @@ where `<NAME>` comes from the definition inventory (**278** remaining after carv
 | Strings / messages mentioning old names | Update if user-facing or assertions; leave only in dated changelogs if historical |
 | `u_` inside longer identifiers | Word-boundary `\b` required |
 | Cached hook/primitives files under `data/asc/cache/` | Delete/regenerate; never “fix” generated cache as source of truth |
-| Tests comparing expected path lists / function names | Run `make test-asc` (or scoped tests) after rename |
+| Tests comparing expected path lists / function names | Run `make test-core` (or scoped tests) after rename |
 
 **Unsafe:** blanket `sed 's/u_/f_/g'` on entire files.
 
@@ -605,7 +605,7 @@ grep -RhnE '\bu_hook_most_specific\b|\bf_hook_most_specific\b' --include='*.md' 
 
 1. `make cc` (clear caches).
 2. `make reinit` or `make init-debug` in a disposable env if needed — exercise `-y` / `-r` / `-o` style args to `u_instance_init` / make init paths.
-3. `make test-asc` (core automated tests); especially hook dry-run / filter paths (`-t`, `-d`, `-a`, …).
+3. `make test-core` (core automated tests); especially hook dry-run / filter paths (`-t`, `-d`, `-a`, …).
 4. Smoke wraps if enabled: thread wrap, loop wrap, cron sync dry paths — ensure `e_*` env visible to children.
 5. Spot-check: `. asc/bootstrap.sh` then `type hookms` / `declare -F | grep -E '^(f_|hookms)'`.
 6. Spot-check option locals: after bootstrap, call hook helper with `-t` / filters; confirm behavior unchanged.
@@ -690,7 +690,7 @@ Do **not** push `--force` to `main`. Feature branch + PR when implementing.
 - [ ] Implement Phase 2 (`p_*` option storage → `o_*`, allowlist only)
 - [ ] Implement Phase 3 (`e_*` exports + consumers)
 - [ ] **Phase 4:** 26 `Convention : … "u"` headers (+ builder template); **mechanical** README/`docs/asc/**` symbol + convention-statement fixes (**no rephrase**); transcription option-symbol comments
-- [ ] `make cc` / reinit + `make test-asc` + wrap / init-option / hook-filter smoke
+- [ ] `make cc` / reinit + `make test-core` + wrap / init-option / hook-filter smoke
 - [ ] Grep gates clean (symbols + **no stale `prefixed by "u"` headers** + **no `u_*` / `u_hook_most_specific` in README/`docs/asc`** + “many tip `p_*` remain until positional→`a_*`”); open PR with breaking-change notes
 
 ---
