@@ -9,7 +9,7 @@
 # @see {{ path }}/test/{{ test_suite }}.sh
 #
 # @example
-#   {{ docblock_examples }}
+#   {{ examples }}
 #
 
 . asc/bootstrap.sh

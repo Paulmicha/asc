@@ -493,7 +493,7 @@ Ex : `asc/extensions/builder/template/core/subject/[action].sh`
 # {{ docblock }}
 #
 # @example
-#   {{ docblock_examples }}
+#   {{ examples }}
 #
 
 {{ slot }}
@@ -505,6 +505,25 @@ We could have conditions like in : `asc/extensions/builder/template/core/test/[t
 <asc-if not-empty="one_time_setup">
   The contents here are processed and generated in place, or remove whitespace from opening tag position until first character of the next non-empty line.
 </asc-if>
+```
+
+or even things like :
+
+```html
+<asc-if dsl="test-in(foo,[bar,baz])">
+  ...
+</asc-if>
+...
+<asc-foreach items="foobar_arr">
+  ...
+</asc-foreach>
+...
+<asc-foreach items_dsl="entity-list-last(foobar,10)">
+  ...
+</asc-foreach>
+...
+{{ entity-preview(foobar) }}
+...
 ```
 
 --
