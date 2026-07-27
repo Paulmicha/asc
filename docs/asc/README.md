@@ -1,5 +1,29 @@
 # ASC Living Documentation
 
+Always-current explanation of how ASC works **now**, plus compiled rewrite notes from root [`README.md`](../../README.md) § Current status.
+
+Raw working notes still live in that README section until the product README is fully rewritten. Prefer this suite over duplicating long dumps.
+
+## Current rewrite status
+
+*Massive rewrite* in progress: shrink to bare essentials, restabilize naming / workflow / hooks / DSL / YAML, then refactor bootstrap → core → tests → builder → baseline → agents.
+
+Stabilization order (from root README TODO):
+
+1. Naming convention (doc)
+1. Workflow + git flow (doc)
+1. Hooks (doc)
+1. DSL (doc)
+1. YAML (doc)
+1. Refactor bootstrap
+1. Refactor core + core extensions
+1. Refactor tests (switch to nestable entity)
+1. Complete the builder
+1. Complete baseline implementations
+1. Implement agents (Cursor MVP first; later Hermes + ollama + kimi ?, open)
+
+Also open: drop submodule declarations via `.asc_extensions` because of `$object` path shapes; discovery must support both `$subject`/`$action` and `$subject`/`$object`/`$action` (agnostic stance — see [organization.md](organization.md) § subjects).
+
 Table of contents :
 
 1. [documentation (3 types only, as far as ASC is concerned)](documentation.md)
@@ -38,12 +62,16 @@ Table of contents :
     1. [represents ? (why it exists)](entities.md#represents-why-it-exists)
     1. [definition (scope ?)](entities.md#definition-scope)
     1. [capabilities](entities.md#capabilities)
+    1. [field vs prop](entities.md#field-vs-prop)
+    1. [sidecar](entities.md#sidecar)
     1. [relationships](entities.md#relationships)
     1. [compatibility, applicability ? (protocols, etc)](entities.md#compatibility-applicability-protocols-etc)
     1. [yml includes (synonym : inheritance)](entities.md#yml-includes)
+    1. [change / workflow](entities.md#change--workflow)
 1. [yml structure (YAML bodies; complementary to filename-DSL)](yml-structure.md)
     1. [scope vs filename-DSL](yml-structure.md#scope-vs-filename-dsl)
     1. [file kinds](yml-structure.md#file-kinds)
+    1. [props vs fields in bodies](yml-structure.md#props-vs-fields-in-bodies)
     1. [state able (git draft)](yml-structure.md#state-able-git-draft)
     1. [subject inventory](yml-structure.md#subject-inventory)
     1. [repo entity (git draft)](yml-structure.md#repo-entity-git-draft)
@@ -51,6 +79,7 @@ Table of contents :
 1. [builder](builder.md)
     1. [documenting (~ minimal OKF ? dedicated core extension ?)](builder.md#documenting-minimal-okf-dedicated-core-extension)
     1. [blueprints](builder.md#blueprints)
+    1. [atomic blueprint objects](builder.md#atomic-blueprint-objects)
     1. [slots](builder.md#slots)
     1. [templates](builder.md#templates)
     1. [self-building (chain.able, nest.able, rule.able codegen for humans and agents)](builder.md#self-building-chain-able-nest-able-rule-able-codegen-for-humans-and-agents)
@@ -73,3 +102,5 @@ Table of contents :
     1. [walk arrays](shell-usage.md#walk-arrays)
     1. [step by step](shell-usage.md#step-by-step)
     1. [filename-DSL examples](shell-usage.md#filename-dsl-examples)
+    1. [proposed DSL redesign (README)](shell-usage.md#proposed-dsl-redesign-readme)
+    1. [parsable stdout (asc-dsl / asc-yml)](shell-usage.md#parsable-stdout-asc-dsl--asc-yml)

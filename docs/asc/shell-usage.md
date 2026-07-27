@@ -14,6 +14,8 @@ Table of contents :
     1. [`call_wrap.make.sh`](#call_wrapmakesh)
     1. [logged-\* entry points](#logged--entry-points)
 1. [filename-DSL examples](#filename-dsl-examples)
+1. [proposed DSL redesign (README)](#proposed-dsl-redesign-readme)
+1. [parsable stdout (asc-dsl / asc-yml)](#parsable-stdout-asc-dsl--asc-yml)
 
 How ASC leans on **bash** primitives — streams, source, `"$@"`, `shopt`/`set`, relative scope, and array walks — so entry points, hooks, wraps, and make stay thin and composable.
 
@@ -505,3 +507,86 @@ db_dump.sh            → optional '_' prefix reading (docs/convention; not enfo
 ```
 
 When the plan is accepted and wired, living pages ([organization.md](organization.md), [wrappers.md](wrappers.md)) stay the runtime SoT; this section only mirrors the changelog examples for shell-minded readers.
+
+---
+
+## proposed DSL redesign (README)
+
+**Status:** competing proposal from root README § Current status — **not** accepted. Until a changelog supersedes `changelog/2026/07/24-filename-dsl.md`, the locked punctuation above (`()` wrap, `[]` args, `p_`/`o_`/`b_`) remains SoT.
+
+Proposed changes:
+
+| Locked (plan) | Proposed (README) |
+|---------------|-------------------|
+| `()` = wrap, `[]` = args | **Invert** `(` and `[` |
+| positional → `p_` / `p-1` | positional → `a` / `a-1` |
+| boolean → `b-*` / `b_` | boolean → `bo-*` / `bo_` |
+| option → `o-*` / `o_` | option → `o-*` / `o_` (same letter) |
+
+Filename-safe example:
+
+```text
+# locked plan shape
+test-is[either](slot.slug[-],slot.slug[_])
+
+# proposed shape
+test(a-1).is-either(slug(a-1,-),slug(a-1,_))
+```
+
+Auto-convert sketch (shrink all `--` to `-` in prefixed syntax):
+
+| Token | Meaning |
+|-------|---------|
+| `a` | `$@` |
+| `a-1` | `$1` (`a-$n`) |
+| `a-1s` | rest after 1 shift (`a-2s` = after 2, …) |
+| `bo-oneline` | `--oneline` |
+| `bo-y` | `-y` (any boolean option) |
+| `o-max-4` | `--max=4` or `--max 4` or `-m 4` |
+
+`dsl()` (like `hook()`) would prepare calling-scope vars before evaluating:
+
+```sh
+a="$@"
+a_1="$1"
+# … a_2 … a_9
+# TODO a_1s, a_2s (shifted rest)
+
+o_s=''; o_h=''; bo_y=0
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--hook) export o_h="$2" ; shift 2 ;;
+    -s|--scope) export o_s="$2" ; shift 2 ;;
+    -y|-yes) export bo_y=1 ; shift 1 ;;
+  esac
+done
+```
+
+Frozen DSL entry points (open): empty path markers like `blueprint-var.field(type,a-1).dsl.hook` (gitkeep-style) and/or `.dsl.hook.yml` with `a` / `o` validation. Finally: make should understand DSL. Do **not** implement until this proposal is accepted or rejected in a dated changelog.
+
+---
+
+## parsable stdout (asc-dsl / asc-yml)
+
+Design: emit machine-catchable blocks at the end of human-readable stdout for prompts / agents:
+
+```html
+Error message, any stdout output... With at the end :
+
+<asc-dsl>
+Dsl ?
+</asc-dsl>
+```
+
+and / or:
+
+```html
+<asc-yml>
+required:
+  foobar: <slot/> ?
+optional:
+  foobar: <slot/> ?
+</asc-yml>
+```
+
+Those blocks can be templates (string `tpl()` / `u_str_convert_tokens`, file `*.tpl.html`, or dir templates) — see [builder.md](builder.md) § templates. Not implemented; keep stderr diagnostics separate from captured job stdout (see § stdin / stdout / stderr).

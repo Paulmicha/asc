@@ -4,6 +4,7 @@ Table of contents :
 
 1. documenting (~ minimal OKF ? dedicated core extension ?)
 1. blueprints
+1. atomic blueprint objects
 1. slots
 1. templates
 1. self-building (chain.able, nest.able, rule.able codegen for humans and agents)
@@ -12,6 +13,8 @@ Builder is the opt-in extension for **templates / blueprints / prototypes** — 
 
 Working motto from notes: **Builder · Extender** — generate scaffolds, then extend them under `scripts/asc/extend/` (not a second competing codegen path). Composition ability: **`combine.able`** (see [entities.md](entities.md)).
 
+A **blueprint** can be any of: DSL fragment, string template, file template, or dir template (see § templates).
+
 | Fact | Detail |
 |------|--------|
 | Path | `asc/extensions/builder/` |
@@ -19,6 +22,8 @@ Working motto from notes: **Builder · Extender** — generate scaffolds, then e
 | After enable | `make reinit` registers stub make targets; **bodies are still `# TODO`** |
 
 **Do not use (retired):** `preset-discover` / `preset-list` / `preset-write` / `preset-improve`, `u_preset_*`, rematerializing live loop/crontab files from old preset packs.
+
+**Prototype tip (rewrite notes):** builder can use temporary ASC overrides in tests to try ideas as prototypes before promoting them.
 
 ---
 
@@ -51,6 +56,32 @@ Open: **`nested-blueprint?`** as a fourth nested kind (builder + `.asc_subjects_
 
 ---
 
+## atomic blueprint objects
+
+Instead of distinct entity kinds for every atomic code piece, prefer a single **`atomic.able` blueprint** entity (builder). Inspired by Brad Frost’s Atomic Design stages (atoms → molecules → organisms → templates → pages), but ASC collapses that into one nestable / useable blueprint object family:
+
+| Object | Notes |
+|--------|-------|
+| vars | global, scoped, positional_arg, named_arg, local, readonly, exported — nestable (string templates / other vars / functions / maybe DSL) |
+| functions (synonym **f**) | |
+| files | |
+| dirs | |
+| asc instance | |
+
+`data_dir.store.able` sidecar of each shell variable/function can mirror relative location from `$PROJECT_DOCROOT` as a nestable tree — same expressiveness as blueprint entities.
+
+Potential DSL usage in entry points (proposed `a-*` arg tokens — see [shell-usage.md](shell-usage.md) § proposed DSL redesign):
+
+- `dsl blueprint-var.field(type,a-1)` → `asc/extensions/builder/blueprint/var/is.sh`
+- `dsl blueprint-var.sidecar(a)` → `…/blueprint/var/sidecar.sh`
+- `dsl blueprint-f.sidecar(used-by,a-1)` → `…/blueprint/function/used_by.sh`
+
+`dsl()` would resemble `hook()` but prepare calling-scope vars (`a`, `a_1`…, `o_*`, `bo_*`). Not implemented.
+
+Guideline sketch: encourage **max ~1000 lines per file** so complex pieces split into smaller atomic blueprints.
+
+---
+
 ## slots
 
 **Undefined in sources.** Working meaning for the rewrite:
@@ -68,6 +99,14 @@ Do not invent make targets named `slot-*` until the builder stubs define them. P
 ## templates
 
 Subject folders: **`template`** / **`templates`**.
+
+A blueprint may hydrate via:
+
+| Kind | Mechanism |
+|------|-----------|
+| **string** templates | `u_str_convert_tokens()` today — TODO rename to `tpl()` |
+| **file** templates | `*.tpl.html` (hook) |
+| **dir** templates | entire directory trees |
 
 Pack tree (extension):
 
@@ -108,5 +147,7 @@ Scope guardrails (product non-goals):
 - Codegen must remain reviewable (diffable files under extend/contrib), not hidden binary state.
 
 **Current reality:** ~19 stub actions register when builder is enabled; no real codegen yet. Nested virgin-env exec (`nested_asc`) is real and is the supported way to operate on child instances while scaffolding.
+
+Rules extension sketch (core-in-progress, Drupal-contrib-module analogy): pattern presets as typeable entities — e.g. “make a hook for that, sidecar for this, prototype, test, recap as a new change entry” — all expressable in DSL. Infra actions must be configured as sudoers (or equivalent) first; a sync pattern could land in ASC core. See [wrappers.md](wrappers.md) § rule.
 
 See [entities.md](entities.md) for the `*.able` catalog and [usage.md](usage.md) for how to enable extensions and extend a project.

@@ -65,13 +65,13 @@ Always-current explanation of how ASC works **now**.
 |----------|------|
 | `docs/asc/*.md` | This suite — one file per major concept (see [README.md](README.md)) |
 | Nested `README.md` | Why *this folder* exists (function, capabilities, usage) |
-| Root `README.md` | Product identity, TL;DR, pointers into living docs |
+| Root `README.md` | Product identity, TL;DR, pointers into living docs; **§ Current status** holds raw rewrite notes until that README is fully rewritten |
 
 Living docs should be:
 
 1. **Structured** — H1 + TOC + H2 sections matching [README.md](README.md).
-2. **Compiled** — synthesize sources; do not leave raw extract dumps as the reader path.
-3. **Honest about gaps** — mark open questions and stubs instead of inventing behavior.
+2. **Compiled** — synthesize sources (including root README § Current status); do not leave raw extract dumps as the reader path.
+3. **Honest about gaps** — mark open questions and stubs instead of inventing behavior; mark competing proposals vs locked plans (e.g. DSL punctuation).
 4. **Polished like code** — polish prose the same way you polish implementation (clarity, typography, consistent terms). Naming is the hard problem; living docs are part of solving it.
 
 ### `$` notation (docs vocabulary)

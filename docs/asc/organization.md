@@ -16,6 +16,8 @@ Table of contents :
 
 Organization is how ASC finds code, loads environment, and turns folders into callable entry points. Prefer the lowest implementation layer that can own a behavior (data → globals → abstract entry points → extensions → project extend).
 
+Rewrite pressure (root README § Current status): stabilize naming, workflow + git flow, and hooks in docs first; discovery must stay **agnostic** about optional `$object` path depth; planned rename **seed → command (cmd)**; incremental / freeze.able cache ideas below are design-only until implemented.
+
 ---
 
 ## globals
@@ -127,7 +129,20 @@ Open: richer ownership / ACL as entity predicates (`role.able`, cascading permis
 
 **Folders = subjects.** In docs, `$subject` is the make-entry-point placeholder for any subject — with one locked exception (see [documentation.md](documentation.md) § `$` notation): `$subject` **can** be a plain **slugified string** (like any var or function name), **or**, for `*.hook.yml` / `*.hook.sh`, our **custom DSL notation**.
 
-Discovery walks:
+### Path shape — agnostic `$object` depth
+
+Potential filesystem collisions during the rewrite:
+
+| Shape | Reading |
+|-------|---------|
+| `$subject` / `$action` | Classic entry point |
+| `$subject` / `$object` / `$action` | Optional extra level when the entity needs an object |
+
+**Resolution (locked intent):** agnostic stance. In entity representation, `$subject` **may or may not** implement that extra level. Core file discovery must support **both**. Examples of the three-level reading: remote instance restart, remote host ssh, entity relation / field / prop list.
+
+Also open: drop submodule declarations via `.asc_extensions` because of `$object` — prefer path-shape discovery over a separate submodule list once objects land.
+
+Discovery walks (extension points):
 
 1. `./asc`
 1. Enabled `./asc/extensions/$extension` (and nested via `.asc_subjects_ignore`)
@@ -138,11 +153,13 @@ Discovery walks:
 
 Core subjects include `instance`, `host`, `git`, `log`, `loop`, `thread`, `sidecar`, `make`, `test`, `env`, `asc`. Extensions add subjects when enabled (`cron-*`, `nested-asc-*`, `blueprint-*`, `transcribe`, …).
 
+Hard rule (rewrite notes): all includes of entities must be **namespaced** (e.g. `asc.contract.able`, not bare `contract.able`).
+
 ---
 
 ## actions
 
-**Files = actions** (`$subject/$action.sh`), with exceptions for `*.inc.sh`, ignore files, hooks, etc.
+**Files = actions** (`$subject/$action.sh`, or `$subject/$object/$action.sh` when that depth is used), with exceptions for `*.inc.sh`, ignore files, hooks, etc.
 
 - Aggregated into `data/asc/generated.mk` on `make init` / `make reinit`.
 - List: `make list-actions` (and related make list helpers).
@@ -157,6 +174,12 @@ Generic → specific scale for `u_hook_most_specific()` (bottom wins):
 1. `scripts/asc/extend/$subject/$action` (and nested)
 
 After adding extend scripts: clear caches and `make reinit` (see [(re)init](#reinit--cache-state)).
+
+### Command (rename: seed → cmd)
+
+Planned rename: **seed → command** (synonym **cmd**). Entry points stay fixed pivots and are `$sidecar.able` as pre-compiled commands. Example: `make gpu-driver-install` differs per OS because variants are hook implementations, not different make names.
+
+Related open ideas: `freeze.able` as `data/*` sidecars (`*.assembled.sh` / `*.compiled.sh`); path-based cache of frozen entry points; slug collision handling when DSL stems pile up (integer suffix + YAML for raw command). Not implemented.
 
 ---
 
@@ -187,7 +210,17 @@ make hook-debug s:instance a:start v:STACK_VERSION PROVISION_USING HOST_TYPE INS
 
 Hook lookup caches under `data/asc/cache/hook.*.sh`. Overrides: `scripts/asc/override/` via autoload override. Colocated `*.opt-inc.sh` can be seeded into the hook cache before hook bodies (foreign-subject implementers).
 
-Open (notes): **YAML hooks everywhere** for context and “suitable next steps” (not only `*.hook.sh`) — keep as design pressure; today `-c yml` already participates in most-specific lookup for some flows.
+### Proposed entry-point aliases (not wired)
+
+| Name | Synonym | Intent |
+|------|---------|--------|
+| `hook` | (like `call_wrap.make.sh`) | Generic hook call surface |
+| `hook-most-specific` | `hook-ms` | Explicit most-specific resolve (new core function) |
+| `hook-dry-run` | `hook-dr` | Dry-run resolve without sourcing |
+
+Today operators still use `make hook` / `make hook-debug` and `u_hook_most_specific()` / `-t`. Treat `hook-ms` / `hook-dr` as rename/stabilize targets for the hooks doc pass.
+
+Open (notes): **YAML hooks everywhere** for context and “suitable next steps” (not only `*.hook.sh`) — keep as design pressure; today `-c yml` already participates in most-specific lookup for some flows. Namespaced make entry points in YAML should become **optional** (facultative), not mandatory everywhere.
 
 ---
 
@@ -284,6 +317,19 @@ data/asc/cache/$subject/$action/$args/$file_name
 
 Cached sourced scripts should still expose `$subject`/`$action` and which extension point wrote them (`./asc`, extensions, contrib, extend).
 
+### Incremental cache rebuild (design)
+
+Per entry point (sketch):
+
+1. Get last file-modified datetime under the `$subject` (or `$subject`/`$object`) dir.
+1. Compare with current cache rebuild datetime.
+1. If source is newer, rebuild that cache path (and impacted dir branches from the deepest possible level).
+1. Also track var / function use (e.g. relation field on `blueprint_var.used_by`) so dependents rebuild.
+
+Concrete sketch: entry `asc/extensions/builder/blueprint/function/used_by.sh` ↔ DSL `blueprint-f.sidecar(used-by,a-1)` ↔ cache `data/cache/blueprint/function/used-by`.
+
+`freeze.able` / assembled or compiled sidecars may sit beside this. Not implemented — keep `make reinit` / `make cc` as the real operators today.
+
 ### State layers (short)
 
 1. **Data** — `data/*`, host files  
@@ -291,5 +337,7 @@ Cached sourced scripts should still expose `$subject`/`$action` and which extens
 3. **Abstract entry points** — wraps / placeholders  
 4. **Core extensions** — opt-in concrete  
 5. **Contrib / project extend** — shareable or scope-specific  
+
+Root README also lists a **genericity** scale for YAML definitions (primordial → primitive suffix → core → contrib → third-party → project) — see [entities.md](entities.md) § definition.
 
 See also [wrappers.md](wrappers.md) for launch-stack layering (raw → thread → log wrap).

@@ -214,6 +214,8 @@ Working model from notes:
 - Emitter/receiver is a **differentiator** on wrap traces; rules use a **comparator** (include/exclude, and/or) — do not merge the two vocabularies.
 - Pair with `break.able` / circuit breaker for emergency stop (see [entities.md](entities.md) § capabilities).
 
+Rewrite sketch (core extension in progress): typeable “pattern presets” — make a hook, sidecar, prototype, test, then recap as a new [change](entities.md#change--workflow) entry — all expressable in DSL. Ownership / sudoers: any infra `$action` must be properly configured (sudoers or equivalent) before use; a sync pattern may integrate into ASC core later. See [builder.md](builder.md) § self-building.
+
 ---
 
 ## sequence

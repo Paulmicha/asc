@@ -6,12 +6,13 @@ Table of contents :
 
 1. [scope vs filename-DSL](#scope-vs-filename-dsl)
 1. [file kinds](#file-kinds)
+1. [props vs fields in bodies](#props-vs-fields-in-bodies)
 1. [state able (git draft)](#state-able-git-draft)
 1. [subject inventory](#subject-inventory)
 1. [repo entity (git draft)](#repo-entity-git-draft)
 1. [open / living](#open--living)
 
-Status: **living draft**. Decision SoT while in review: `changelog/2026/07/24-yml-structure.md`. Amend with the plan; do not invent runtime behavior here.
+Status: **living draft**. Decision SoT while in review: `changelog/2026/07/24-yml-structure.md`. Amend with the plan; do not invent runtime behavior here. Field/prop vocabulary also tracked from root README § Current status — see [entities.md](entities.md) § field vs prop.
 
 Example SoT: branch `naming-convention-changelog` @ `71b4f71` (`asc/git/{git.able,state.able,repo.entity}.yml`).
 
@@ -41,6 +42,33 @@ Related: [entities.md](entities.md) (what `*.able.yml` *means*), [organization.m
 | Includes | YAML `includes:` | Inheritance — see [entities.md](entities.md) § yml includes |
 
 Most historical `*.able.yml` under `asc/folder/` (and peers) are still empty stubs — prefer one worked example over mass-filling.
+
+---
+
+## props vs fields in bodies
+
+| Kind | Role in YAML |
+|------|----------------|
+| **prop** | Inherit.able constants shared by all entities of the kind (e.g. root `required:` / `optional:` on `*.entity.yml`) |
+| **field** | Edit.able / store.able per-instance values (sidecars, globals, cache, scripts) |
+
+The YAML file format defines something **represented and named** (= filename + path). Stabilize fields before relying on shared names across parent/child entities (e.g. `hostname` on remote host + remote instance).
+
+### Arg / option validation (proposed DSL YAML)
+
+When frozen DSL hooks use `.dsl.hook.yml`, bodies may declare validations (proposed `a` / `o` tokens — see [shell-usage.md](shell-usage.md) § proposed DSL redesign):
+
+```yml
+a:
+  validation: test(a).is-slug
+```
+
+```yml
+a1:
+  validation: test(a-1).is-either(slug(a-1,-),slug(a-1,_))
+```
+
+Not implemented. Keep distinct from filename-DSL `slot` (slot stays in `*.hook.yml` bodies per locked plan).
 
 ---
 
@@ -125,3 +153,5 @@ Track decisions in `changelog/2026/07/24-yml-structure.md` § Open questions. Hi
 5. Freeze `depends_on` + `*.field` refs as the entity-body pattern?
 
 Update this page when those lock; keep thin until then.
+
+Also absorb from rewrite notes when stabilizing YAML docs: required/optional prop shapes on all `*.entity.yml`; field stabilization using remote_host / remote_instance examples; optional (facultative) namespaced entry-point notation in YAML.
