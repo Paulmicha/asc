@@ -624,7 +624,7 @@ while [[ $# -gt 0 ]]; do
 done
 ```
 
-Frozen DSL entry points (open): empty path markers like `blueprint-var.field(type,a-1).dsl.hook` (gitkeep-style) and/or `.dsl.hook.yml` with `a` / `o` validation. Finally: make should understand DSL. Do **not** implement until this proposal is accepted or rejected in a dated changelog.
+Frozen DSL entry points (open): empty path markers like `entity-field-val(type,a-1).dsl.hook` (gitkeep-style) and/or `.dsl.hook.yml` with `a` / `o` validation. Finally: make should understand DSL. Do **not** implement until this proposal is accepted or rejected in a dated changelog.
 
 ---
 

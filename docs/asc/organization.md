@@ -183,7 +183,7 @@ Generic → specific (`u_hook_most_specific()` / planned `hookms`, bottom wins):
 1. `scripts/asc/extend/$subject/$action`
 1. `scripts/asc/extend/**/$nested_extension` (**via `$subject/.asc_extensions`**)
 
-Worked migration examples: `entity`→`field`, `hardware`→`nested_hardware`, `software`→`nested_software`, `folder`→`nested_folder`, contrib `docker`→`nested_docker`. `asc/.asc_subjects_ignore` (`env`, `extensions`, `vendor`) stays **subjects-ignore only**.
+Worked migration examples: `entity`→`field`, `hardware`→`nested_hardware`, `software`→`nested_software`, `folder`→`nested_dir`, contrib `docker`→`nested_docker`. `asc/.asc_subjects_ignore` (`env`, `extensions`, `vendor`) stays **subjects-ignore only**.
 
 **Tension (open):** root README § Current status also TODOs dropping submodule declarations “via `.asc_extensions` because of objects.” Until that is decided in a changelog, the **24-subject-asc-extensions** lock (positive nest list) remains the living SoT — do not delete the mechanism without an accept/reject pass.
 
@@ -372,7 +372,7 @@ Per entry point (sketch):
 1. If source is newer, rebuild that cache path (and impacted dir branches from the deepest possible level).
 1. Also track var / function use (e.g. relation field on `blueprint_var.used_by`) so dependents rebuild.
 
-Concrete sketch: entry `asc/extensions/builder/asc/extensions/builder/code/function/used_by.sh.sh` ↔ DSL `blueprint-f.sidecar(used-by,a-1)` ↔ cache `data/cache/blueprint/function/used-by`.
+Concrete sketch: entry `asc/extensions/builder/code/function/used_by.sh.sh` ↔ DSL `file-sidecar(used-by,a-1)` ↔ cache `data/cache/code/function/used-by`.
 
 `freeze.able` / assembled or compiled sidecars may sit beside this. Not implemented — keep `make reinit` / `make cc` as the real operators today.
 

@@ -22,7 +22,7 @@
 
 ## Context
 
-ASC already uses many YAML surfaces: specimen env / remotes, `*.able.yml` capability markers beside subjects/actions, planned `*.hook.yml` smart defaults, entity `includes`, and generated caches. Most `*.able.yml` under `asc/folder/` (and peers) are still **empty stubs**. Living docs describe *what* ables mean (`docs/asc/entities.md`) more than *how* to shape keys inside the files.
+ASC already uses many YAML surfaces: specimen env / remotes, `*.able.yml` capability markers beside subjects/actions, planned `*.hook.yml` smart defaults, entity `includes`, and generated caches. Most `*.able.yml` under `asc/dir/` (and peers) are still **empty stubs**. Living docs describe *what* ables mean (`docs/asc/entities.md`) more than *how* to shape keys inside the files.
 
 The **filename DSL** plan locks how YAML shows up in **paths** (e.g. `$action.able.yml` → `$subject.$action`; `slot` on `*.hook.yml`; `.hook.yml` vs `.hook.sh`). It deliberately leaves **YAML body schema** open (see that plan’s open Qs on `$action.able.yml` keys, `asc.extendable` / `asc.overridable`, YAML `slot` field shape).
 
@@ -353,7 +353,7 @@ able.able.yml        → include contract.entity  (all *.able inherit)
 4. **Folder vs file enum asymmetry:** keep `unclean` folder-only (current draft), align both lists, or treat `unclean` as a rollup of other states?
 5. **Transitions:** enum-only for v1, or declare edges (`from` / `to`) in the same YAML later?
 6. **`is.*.yml` markers:** same SoT as `state.able.yml`, generated views, or orthogonal?
-7. **Reuse beyond git:** should `folder` / `file` state enums be core-shared (`asc/folder/state.able.yml`) and merely referenced by git, or stay git-local?
+7. **Reuse beyond git:** should `folder` / `file` state enums be core-shared (`asc/dir/state.able.yml`) and merely referenced by git, or stay git-local?
 8. **`depends_on` / field refs:** freeze `depends_on.entity` + `url.field: str.url` as the entity-body pattern? How does `str.url` resolve to `…/str/url.field.yml`?
 
 ### Wave B (primordial) — new since `d4533f6`
@@ -393,7 +393,7 @@ able.able.yml        → include contract.entity  (all *.able inherit)
 | Risk | Notes |
 |------|--------|
 | Merging with filename-DSL | Keep path grammar and YAML body as two SoTs; link, don’t duplicate. |
-| Empty able sprawl | Do not mass-fill `asc/folder/*.able.yml` from this plan’s git example alone. |
+| Empty able sprawl | Do not mass-fill `asc/dir/*.able.yml` from this plan’s git example alone. |
 | Premature schema | Prefer worked examples (git state + primordial meta) before a universal YAML meta-model. |
 | Meta churn | Wave B moved keys across files several times in hours — treat HEAD as provisional until Qs 9–11 lock. |
 | Docs drift | Living page still documents Wave A only @ `71b4f71`; changelog is decision SoT while status is review. |

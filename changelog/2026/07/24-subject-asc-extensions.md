@@ -13,7 +13,7 @@
 
 ## Context
 
-ASC already has **nested extension points**: folders under an extension (or under `./asc`, contrib, extend) that are themselves mini extension trees — e.g. `asc/extensions/entity/field`, `asc/extensions/hardware/nested_hardware`, `asc/folder/nested_folder`.
+ASC already has **nested extension points**: folders under an extension (or under `./asc`, contrib, extend) that are themselves mini extension trees — e.g. `asc/extensions/entity/field`, `asc/extensions/hardware/nested_hardware`, `asc/dir/nested_dir`.
 
 **Today’s declaration (overloaded):** those nests are listed in **`.asc_subjects_ignore`**. That file is also used to blacklist folders that must **not** become subjects and are **not** nested extensions (e.g. `asc/.asc_subjects_ignore` → `env`, `extensions`, `vendor`). Living docs call `.asc_subjects_ignore` the “nested-extension submodule list”, which conflates ignore-as-subject with promote-to-nested-extension.
 
@@ -82,7 +82,7 @@ Containing folders of `$subject`/`$action` scripts:
 | `asc/extensions/entity/.asc_subjects_ignore` → `field` | `asc/extensions/entity/.asc_extensions` → `field` (and drop `field` from subjects-ignore **or** keep ignore only if still needed for non-nest reasons) |
 | `asc/extensions/hardware/.asc_subjects_ignore` → `nested_hardware` | `…/hardware/.asc_extensions` → `nested_hardware` |
 | `asc/extensions/software/.asc_subjects_ignore` → `nested_software` | `…/software/.asc_extensions` → `nested_software` |
-| `asc/folder/.asc_subjects_ignore` → `nested_folder` | `asc/folder/.asc_extensions` → `nested_folder` |
+| `asc/dir/.asc_subjects_ignore` → `nested_dir` | `asc/dir/.asc_extensions` → `nested_dir` |
 | `scripts/asc/contrib/asc/docker/.asc_subjects_ignore` → `nested_docker` | `…/docker/.asc_extensions` → `nested_docker` |
 | `asc/asc/.asc_extensions` → `utils` | **Already** the target form (seed). |
 
@@ -95,7 +95,7 @@ Containing folders of `$subject`/`$action` scripts:
 1. Lock **`$subject/.asc_extensions`** as the declaration SoT for nested ASC extensions.
 2. Keep **specificity weight** identical to the nearest non-nested extension point (existing contract).
 3. Untangle **`.asc_subjects_ignore`** so it is only “not a subject”, not “is a nested extension”.
-4. Migrate existing nest lists (entity/field, hardware/software nested_*, folder/nested_folder, docker/nested_docker) once implementation is accepted.
+4. Migrate existing nest lists (entity/field, hardware/software nested_*, folder/nested_dir, docker/nested_docker) once implementation is accepted.
 5. Align living docs + README with the new wording; leave filename-DSL `foo.bar` nest mapping to point at this mechanism.
 
 Non-goals (for now): implementing the loader change; recursive multi-level `.asc_extensions` depth policy beyond “same as today”; changing `.asc_extensions_ignore` override lookup; renaming top-level extension folders.

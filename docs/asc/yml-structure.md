@@ -47,7 +47,7 @@ Related: [entities.md](entities.md) (what `*.able.yml` *means*), [organization.m
 | Hook YAML | `….hook.yml` | Smart defaults + `slot` (field names TBD; path rules in filename-DSL) |
 | Includes | YAML `include:` / `includes:` | Inheritance — shape still open (Wave B gaps) |
 
-Most historical `*.able.yml` under `asc/folder/` (and peers) are still empty stubs — prefer worked examples (git state + primordial meta) over mass-filling.
+Most historical `*.able.yml` under `asc/dir/` (and peers) are still empty stubs — prefer worked examples (git state + primordial meta) over mass-filling.
 
 ---
 

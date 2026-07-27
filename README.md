@@ -266,9 +266,9 @@ But here in ASC we could just make a single "atomic.able" blueprint entity. The 
 
 Examples of potential DSL usage in entry points :
 
-- `dsl blueprint-var.field(type,a-1)` in `asc/extensions/builder/asc/extensions/builder/code/var/is.sh.sh`
-- `dsl blueprint-var.sidecar(a)` in `asc/extensions/builder/blueprint/var/sidecar.sh`
-- `dsl blueprint-f.sidecar(used-by,a-1)` in `asc/extensions/builder/asc/extensions/builder/code/function/used_by.sh.sh`
+- `dsl entity-field-val(type,a-1)` in `asc/extensions/builder/code/var/is.sh.sh`
+- `dsl file-sidecar(a)` in `asc/extensions/builder/blueprint/var/sidecar.sh`
+- `dsl file-sidecar(used-by,a-1)` in `asc/extensions/builder/code/function/used_by.sh.sh`
 - etc.
 
 TODO `dsl()` could be like the `hook()` function, but it likely will need to prepare some variables in calling scope - i.e. :
@@ -356,9 +356,9 @@ Basically, any impacted "dir branches" must be rebuilt (from the deepest possibl
 
 Concrete examples :
 
-- Take the following entry point : `asc/extensions/builder/asc/extensions/builder/code/function/used_by.sh.sh`
-- blueprint-f.sidecar(used-by,a-1)
-- `data/cache/blueprint/function/used-by`
+- Take the following entry point : `asc/extensions/builder/code/function/used_by.sh.sh`
+- file-sidecar(used-by,a-1)
+- `data/cache/code/function/used-by`
 
 - 
 
@@ -411,8 +411,8 @@ Cache / frozen / entry-points ? Dsl ? Both ?
 
 We could have file paths, like either :
 
-- `blueprint-var.field(type,a-1).dsl.hook` (no extension because it's not a script : it's just an empty file that needs to exist at this exact path ; a bit like the ".gitkeep" files sometimes used for having git-ignored folders exist in git repos), or :
-- `blueprint-var.field(type,a-1).dsl.hook.yml` : defines a/o validations
+- `entity-field-val(type,a-1).dsl.hook` (no extension because it's not a script : it's just an empty file that needs to exist at this exact path ; a bit like the ".gitkeep" files sometimes used for having git-ignored folders exist in git repos), or :
+- `entity-field-val(type,a-1).dsl.hook.yml` : defines a/o validations
 
 Yml examples of a/o = arg(s) and option(s) validation definitions :
 
@@ -541,72 +541,17 @@ DSL updates :
 
 TODO Slugs must have entry points so DSL can do things like :
 
-- slug-url(a)
-- slug-snake(a)
-- slug-camel(a)
+- `slug-url(a)`
+- `slug-snake(a)`
+- `slug-camel(a)`
 
-TODO On top of entry points, also support both "f_foobar" and "f-foobar" notations for function names in DSL.
+TODO On top of entry points, also support both `f_foobar` and `f-foobar` notations for function names in DSL.
 
 --
 
 TODO Make some kind of general guideline for ASC code like "max 1000 lines per file everywhere" to try and encourage splitting complex things into smaller pieces ?
 
 --
-
-Make vars and functions (synonym : f) sidecar.able entities (so we can get **stats**, etc) ?
-
-The data_dir.store.able sidecar of each shell variable written in current project instance is a nest.able structure reproducing its relative location (from project docroot).
-
-(TODO stabilize "data_dir.store.able" DSL notation meaning)
-
-Instead of distinct entities, we could just have a common representation for any "atomic" piece of code. We should just use the blueprint entity. It expresses the same thing.
-
-I think the Atomic Design Methodology from Brad Frost makes sense here.
-
-Atomic design is a methodology composed of five distinct stages working together to create interface design systems in a more deliberate and hierarchical manner. The five stages of atomic design are :
-
-- Atoms
-- Molecules
-- Organisms
-- Templates
-- Pages
-
-But here in ASC we could just make a single "atomic.able" blueprint entity. The blueprint entity equivalent (nest.able + use.able) objects would be :
-
-- vars (global, scoped, positional_arg, named_arg, local, readonly, exported)
-- functions
-- files
-- dirs
-- asc instance
-
---
-
-DSL notation example that describes what certain entry points do :
-
-- asc/extensions/builder/code/var/is.sh = `entity-field-val(type,a-1)`
-- asc/extensions/builder/code/function/used_by.sh = `file-sidecar(used-by,a-1)`
-- etc.
-
---
-
-Files and folders (synonym : dir) can be entities, without storing unnecessary sidecars.
-
-The could be used to simply target specific files and dirs which may be git-ignored or inside generated data dirs.
-
-"concrete" dirs are nest.able themselves, so it is naturally fitting that the folder.entity be nest.able so relative paths are easier to match (by swapping prefixes), subject/action or any file - e.g. :
-
-- data/cache/foo/bar -> "data_dir.store.able" prefixed "foo/bar"
-- scripts/asc/override/foo/bar -> overridden "foo/bar"
-
---
-
-New hook entry points :
-
-- hook (like call_wrap.make.sh)
-- hook-most-specific = hook-ms
-- hook-dry-run = hook-dr
-
----
 
 Original README below, to be completely rewritten :
 

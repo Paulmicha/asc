@@ -72,9 +72,9 @@ Instead of distinct entity kinds for every atomic code piece, prefer a single **
 
 Potential DSL usage in entry points (proposed `a-*` arg tokens — see [shell-usage.md](shell-usage.md) § proposed DSL redesign):
 
-- `dsl blueprint-var.field(type,a-1)` → `asc/extensions/builder/asc/extensions/builder/code/var/is.sh.sh`
-- `dsl blueprint-var.sidecar(a)` → `…/blueprint/var/sidecar.sh`
-- `dsl blueprint-f.sidecar(used-by,a-1)` → `…/asc/extensions/builder/code/function/used_by.sh.sh`
+- `dsl entity-field-val(type,a-1)` → `asc/extensions/builder/code/var/is.sh.sh`
+- `dsl file-sidecar(a)` → `…/blueprint/var/sidecar.sh`
+- `dsl file-sidecar(used-by,a-1)` → `…/asc/extensions/builder/code/function/used_by.sh.sh`
 
 `dsl()` would resemble `hook()` but prepare calling-scope vars (`a`, `a_1`…, `o_*`, `bo_*`). Not implemented.
 
