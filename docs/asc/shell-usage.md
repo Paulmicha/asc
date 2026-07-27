@@ -6,6 +6,7 @@ Table of contents :
 1. [sourcing](#sourcing)
 1. [argument forwarding](#argument-forwarding)
 1. [shell options](#shell-options)
+1. [Bash strict mode (`set -euo pipefail`)](#bash-strict-mode-set--euo-pipefail)
 1. [scope](#scope)
 1. [walk arrays](#walk-arrays)
 1. [Bash requirement / dash & ash](#bash-requirement--dash--ash)
@@ -197,6 +198,84 @@ set +e
 ```
 
 Do **not** leave `set -e` or `nullglob` on across bootstrap/hook boundaries unless the contract is intentional (bootstrap keeps `expand_aliases`).
+
+Roadmap mentions “Bash strict mode for all ASC (once refactored)”. Cost and options for rolling out `set -euo pipefail` virtually everywhere: [Bash strict mode](#bash-strict-mode-set--euo-pipefail).
+
+---
+
+## Bash strict mode (`set -euo pipefail`)
+
+**Large — especially `-u`.** Today ASC almost never uses strict mode. The living contract is *scoped* options ([shell options](#shell-options)), not a global `set -euo pipefail`.
+
+### Current state (~2026-07 survey)
+
+| Pattern | Reality |
+|---------|---------|
+| `set -euo pipefail` | **0** uses |
+| `set -e` / `set +e` | Only `wait_for` (temporary span) + vendor test |
+| `pipefail` | Only the pipe runner (`u_thread_run_pipe`) |
+| Policy | Turn options **on for a span, then off** — do **not** leave `set -e` on across bootstrap/hook boundaries |
+
+So “virtually everywhere” means **changing the composition contract**, not flipping a bootstrap flag.
+
+### Why global strict mode is hard here
+
+ASC is mostly **sourced** (bootstrap → includes → hooks → wraps). A single `set -euo pipefail` in `bootstrap.sh` would apply to every later sourced body. That fights the current design and multiplies blast radius.
+
+### Cost by flag
+
+#### `-u` (nounset) — hardest
+
+| Hazard | Scale (~2026-07) |
+|--------|------------------|
+| `local x=$N` / `p_*=$N` without `${N:-}` | ~300+ each |
+| `[[ -z "$VAR" ]]` / `-n` without `:-` | ~200+ each |
+| Optional env flags (`ASC_INC`, `ASC_BS_SKIP_GLOBALS`, …) | early bootstrap |
+| Indirect / array / missing keys | hooks, globals, yml |
+
+Typical break pattern (already in `wait_for`):
+
+```bash
+local p_max_try=$3   # under -u: dies if $3 omitted
+if [[ -z "$p_max_try" ]]; then …  # never reached
+```
+
+Also: `if [[ $ASC_BS_SKIP_GLOBALS -ne 1 ]]` without `${…:-0}` fails under `-u` when unset.
+
+#### `-e` (errexit) — large
+
+- Intentional non-zero: `grep` (no match), `kill -0`, `wait`, many “try then continue” paths
+- `|| true` only ~22 hits — little existing soft-fail discipline
+- `eval` of YAML/generated code (~30 files) — one bad status aborts the whole stack
+- `((++count))` / arithmetic when expression is `0` returns status 1 → abort under `-e` unless guarded (`((x++)) || true` or `x=$((x+1))`)
+- Background / thread / log wraps: failure semantics need an explicit contract
+
+Conditionals (`if cmd; then`) are fine under bash `-e`; bare “maybe fail” commands are not. Auditing that across ~600 scripts is the slog.
+
+#### `pipefail` — smallest of the three
+
+- Already intentional on the real `|` path
+- ~90 pipeline-ish lines; ~20 `| grep|head|tail|wc` style that may start failing when an early stage exits non-zero
+- Still needs a pass, but not rewrite-scale alone
+
+### Effort bands
+
+| Goal | Effort | Notes |
+|------|--------|--------|
+| **A. Bootstrap enables `-euo pipefail` once; fix until init + `test-core` green** | Large (weeks) | Fix critical path (~4k LOC+) + every hook/opt-inc pulled in; expect a long fail/fix loop |
+| **B. Same, virtually all actions/hooks/extensions** | Months | Most of ~32k LOC; optional args → `${1:-}`; expected failures → `\|\| true` / `if`; arithmetic fixes; wrap/eval contracts |
+| **C. Keep scoped model; add `u_strict` / per-action spans** | Medium (days–couple weeks) | Matches current docs; get fail-fast where it matters without poisoning sourced stacks |
+| **D. Only `pipefail` more broadly + selective `-e` spans** | Small–medium | Lowest risk incremental path |
+
+### Practical read
+
+- **`-u` alone** is likely **more work than `-e` + `pipefail` combined**, because optional positionals/env are a pervasive idiom.
+- “Virtually everywhere” as a **global** bootstrap setting ≈ **multi-week to multi-month** hardening project, with high regression risk on hooks/wraps.
+- Closest fit to today’s architecture: **band C** (or D→C), not a blanket `set -euo pipefail` at phase 10.
+
+Root README roadmap (“Bash strict mode for all ASC once refactored”) is realistic only **after** (or as part of) a refactor that defines fail-fast boundaries — not as a one-line bootstrap change.
+
+Related: [Bash requirement / dash & ash](#bash-requirement--dash--ash) (separate portability effort).
 
 ---
 

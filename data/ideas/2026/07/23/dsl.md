@@ -2,9 +2,9 @@ Thinking about builder / blueprints and a DSL for describing needs expressed in 
 
 Earlier example :
 
-a “cursor” extension provides the concrete agent (hook or override) implementation, an entry point like “make cursor-analyze” could be a slot (or wrap) of any local implementation of e.g. gpt.
+a “cursor” extension provides the concrete agent (hook or override) implementation, an entry point like “make cursor-analyze” could be a slot (or wrap) of any local implementation of e.g. agent.
 
--> possible notation : `log-wrap.thread-wrap.gpt-prompt.ollama-exec`
+-> possible notation : `log-wrap.thread-wrap.agent-prompt.ollama-exec`
 -> possible asc DSL syntax rules to represent any "controlled" entry point :
 
 - wrappers : '.'
@@ -26,15 +26,15 @@ could be noted :
 
 Contrived example :
 
-`log-wrap[retention-5m].thread-wrap.gpt-prompt[role-prompt_analyst].hook-ms[o-s-gpt,o-a-exec](ollama-exec[slot])`
+`log-wrap[retention-5m].thread-wrap.agent-prompt[role-prompt_analyst].hook-ms[o-s-agent,o-a-exec](ollama-exec[slot])`
 
 Or :
 
 ```txt
 log-wrap[retention-5m]
   .thread-wrap
-  .gpt-prompt[role-prompt_analyst]
-  .hook-ms[o-s-gpt, o-a-exec](
+  .agent-prompt[role-prompt_analyst]
+  .hook-ms[o-s-agent, o-a-exec](
     ollama-exec[slot]
   )
 ```

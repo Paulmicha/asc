@@ -16,14 +16,14 @@
 # - /etc/hosts -> /etc/hosts.<sidecar>.txt
 #
 # Also possible, maintain up to 7 <sidecar>s for volatile storage like :
-# data/gpt/<emitter>/<receiver>/YYYY/MM/DD/HH.MM.SS.MS.<item>.md
-#   -> data/gpt/<emitter>/<receiver>/<item>.01.last_15m.<sidecar>.txt
-#   -> data/gpt/<emitter>/<receiver>/<item>.02.last_1h.<sidecar>.txt
-#   -> data/gpt/<emitter>/<receiver>/<item>.03.last_12h.<sidecar>.txt
-#   -> data/gpt/<emitter>/<receiver>/<item>.04.last_24h.<sidecar>.txt
-#   -> data/gpt/<emitter>/<receiver>/<item>.05.last_1w.<sidecar>.txt
-#   -> data/gpt/<emitter>/<receiver>/<item>.06.last_1m.<sidecar>.txt
-#   -> data/gpt/<emitter>/<receiver>/<item>.07.last_1y.<sidecar>.txt
+# data/agent/<emitter>/<receiver>/YYYY/MM/DD/HH.MM.SS.MS.<item>.md
+#   -> data/agent/<emitter>/<receiver>/<item>.01.last_15m.<sidecar>.txt
+#   -> data/agent/<emitter>/<receiver>/<item>.02.last_1h.<sidecar>.txt
+#   -> data/agent/<emitter>/<receiver>/<item>.03.last_12h.<sidecar>.txt
+#   -> data/agent/<emitter>/<receiver>/<item>.04.last_24h.<sidecar>.txt
+#   -> data/agent/<emitter>/<receiver>/<item>.05.last_1w.<sidecar>.txt
+#   -> data/agent/<emitter>/<receiver>/<item>.06.last_1m.<sidecar>.txt
+#   -> data/agent/<emitter>/<receiver>/<item>.07.last_1y.<sidecar>.txt
 #
 # item can be a slugified_file_suffix :
 # "path-to-asc-action-or-hook_slugified-raw-args_underscore-separated"

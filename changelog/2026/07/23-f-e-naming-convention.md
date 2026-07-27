@@ -51,7 +51,7 @@ Examples: `u_fs_relative_path` → `f_fs_relative_path`.
 | `u_hook_most_specific` | **`hookms`** | **Not** `f_hook_most_specific` |
 
 - **Definition:** `asc/utilities/hook.sh` (`u_hook_most_specific()` ~line 834).
-- **Call sites / refs:** ~**105** hits across `*.sh` / `*.md` (core instance/host/log/loop, many extensions + contrib db/gpt hooks, README, `docs/asc/**`, ideas). Rename **everywhere**: def, calls, `@see`, dry-run strings, docs.
+- **Call sites / refs:** ~**105** hits across `*.sh` / `*.md` (core instance/host/log/loop, many extensions + contrib db/agent hooks, README, `docs/asc/**`, ideas). Rename **everywhere**: def, calls, `@see`, dry-run strings, docs.
 - **Implementer rule:** rename this symbol **first** (or exclude it from the mechanical `u_*`→`f_*` table), then run the general convert. Post-check must show **zero** leftover `u_hook_most_specific` and **zero** accidental `f_hook_most_specific`.
 
 ### Variables (exported)
@@ -200,7 +200,7 @@ Definition concentration (top dirs by files with defs):
 
 - `asc/utilities/` — 9 files (primary library)
 - `asc/thread/`, `asc/test/`, `asc/loop/`, core `*.inc.sh`
-- Extensions: `db`, `crontab`, `remote*`, `compose`, `software`, `file_registry`, `gpt`, …
+- Extensions: `db`, `crontab`, `remote*`, `compose`, `software`, `file_registry`, `agent`, …
 - Contrib: `drupalwt`, `moodle_d4php`, `apache`, `remote_traefik`, …
 
 No `u_*` names with hyphens found in practice (regex still allows `\-` for safety).
@@ -213,7 +213,7 @@ No `u_*` names with hyphens found in practice (regex still allows `\-` for safet
 |--------|------:|
 | Lines matching `^export NAME=` | **~72** |
 | Indented `export NAME=` also present | **~36** additional style variants (same files / related) |
-| Files with literal `export NAME=` | **6** primary: `asc/thread/thread.wrap.sh`, `asc/loop/loop.wrap.sh`, `asc/extensions/gpt/gpt/wrap.sh`, `asc/extensions/crontab/crontab.inc.sh`, `asc/instance/logged_thread.sh`, `asc/log/storage.hook.sh` (+ test helpers) |
+| Files with literal `export NAME=` | **6** primary: `asc/thread/thread.wrap.sh`, `asc/loop/loop.wrap.sh`, `asc/extensions/agent/agent/wrap.sh`, `asc/extensions/crontab/crontab.inc.sh`, `asc/instance/logged_thread.sh`, `asc/log/storage.hook.sh` (+ test helpers) |
 | Unique exported names (literal) | **~48** (mostly `ASC_THREAD_*`, `ASC_WRAP_*`, `ASC_CRON_*`, `ASC_LOOP_*`, plus `LOGGED_THREAD_ENTRY`, `GIT_TERMINAL_PROMPT`, …) |
 | Already `export e_*` | **0** |
 | Consumer refs (sample families) | e.g. `ASC_EXTENSIONS` ~41 hits; wrap/thread/cron symbols thinner but cross-file |
@@ -701,7 +701,7 @@ Literal `export NAME=` concentrated in:
 
 - `asc/thread/thread.wrap.sh`
 - `asc/loop/loop.wrap.sh`
-- `asc/extensions/gpt/gpt/wrap.sh`
+- `asc/extensions/agent/agent/wrap.sh`
 - `asc/extensions/crontab/crontab.inc.sh` (includes generated crontab body strings)
 - `asc/instance/logged_thread.sh`
 - `asc/log/storage.hook.sh`

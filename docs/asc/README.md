@@ -113,6 +113,7 @@ Table of contents :
     1. [sourcing](shell-usage.md#sourcing)
     1. [argument forwarding](shell-usage.md#argument-forwarding)
     1. [shell options](shell-usage.md#shell-options)
+    1. [Bash strict mode (`set -euo pipefail`)](shell-usage.md#bash-strict-mode-set--euo-pipefail)
     1. [scope](shell-usage.md#scope)
     1. [walk arrays](shell-usage.md#walk-arrays)
     1. [Bash requirement / dash & ash](shell-usage.md#bash-requirement--dash--ash)

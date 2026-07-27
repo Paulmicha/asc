@@ -184,7 +184,7 @@ Illustrative (from the same idea file’s examples, punctuation roles updated to
 |-------|-----------------|---------|
 | `retention-5m` | `retention` \| `5m` | key/value style freeform (single `-`) |
 | `b-oneline` | (after `b-` prefix) `oneline` | boolean flag `oneline` — idea form `instance-giw[log,b-oneline]` |
-| `o-s-gpt` | (after `o-` prefix) `s` \| `gpt` | option head `s`, value `gpt` |
+| `o-s-agent` | (after `o-` prefix) `s` \| `agent` | option head `s`, value `agent` |
 
 So `instance-giw[log,b-oneline]` needs no `_`-as-same-word rule: `instance` / `giw` relates on the first `-` in the atom; `b-oneline` is a boolean member. Optional `_` remains available for the soft `$action`-prefix reading above — never as a mandatory same-word separator, never as a `--` relation.
 

@@ -16,7 +16,7 @@ Prefer the lowest layer that can own the concern.
 | **1** | **Data** | On-disk / host facts (may be private or identifying): paths, entity YAML, logs, dumps | `data/…`, host files (e.g. `/etc/hosts`) | **State only** — never business logic |
 | **2** | **Global ENV vars** | (A) **readonly globals** — aggregated on `make init` / `reinit`, written to gitignored `data/asc/global.vars.sh` + `.env`; (B) **calling-scope (“mutable”) vars** — ordinary shell vars that change mid-run (e.g. `DB_*` after `u_db_set`) | Declarations: `env.yml`, `.env-local.yml`, `asc/**/global.vars.sh`, `scripts/asc/extend/**/global.vars.sh` | **Configuration & execution context** |
 | **3** | **Abstract ASC core entry points** | Abstract actions that are hooks (placeholders) or wrappers with **no** concrete backend | `asc/<sidecar,log,loop,thread>/wrap.sh`, `asc/instance/<entry>.sh` | **Contracts** — calling-scope vars, hooks to implement |
-| **4** | **ASC core extensions** | Broader abstract actions and/or **minimal** concrete implementations; often disabled by default | `asc/extensions/<name>` | Abstract e.g. `db`, `gpt`; concrete e.g. `compose`, `mysql`, `ollama` |
+| **4** | **ASC core extensions** | Broader abstract actions and/or **minimal** concrete implementations; often disabled by default | `asc/extensions/<name>` | Abstract e.g. `db`, `agent`; concrete e.g. `compose`, `mysql`, `ollama` |
 | **5** | **Project extend** | Project wiring, remotes, host policy | `scripts/asc/extend/**`, project YAML | **Overrides / product** — never dump this into core |
 
 ```mermaid
@@ -25,7 +25,7 @@ flowchart TB
     ext["scripts/asc/extend · project YAML"]
   end
   subgraph L4 [4 Core extensions]
-    hooks["compose · mysql · gpt · file_registry · …"]
+    hooks["compose · mysql · agent · file_registry · …"]
   end
   subgraph L3 [3 Abstract core entry points]
     api["wraps · instance entries · registry API"]

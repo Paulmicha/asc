@@ -988,7 +988,7 @@ Enable/disable via ignore files (see above). Catalog of bundled folders:
 | `entity` | | | Entity model stubs (`has-*`, `is-*`, field) |
 | `file_registry` | ✔ | | Default file-based registry (instance / host) |
 | `git_crypt` | | | Opt-in encryption hooks (stub) |
-| `gpt` | | | LLM abstracts (`gpt-start`, …) |
+| `agent` | | | LLM abstracts (`agent-start`, …) |
 | `hardware` | | `nested_hardware` | Hardware entity stubs |
 | `hosts_file` | | | `/etc/hosts` helpers |
 | `interaction` | | | Interactive prompt helpers |
@@ -1000,7 +1000,7 @@ Enable/disable via ignore files (see above). Catalog of bundled folders:
 | `nested_git` | | | Nested git / `subgit` wrap (`nested-git` synonym) |
 | `nested_host` | | | Nested host list/connect/exec stubs |
 | `node` | | | Aliases / default port |
-| `ollama` | | | Default hooks for `gpt-*` via Ollama |
+| `ollama` | | | Default hooks for `agent-*` via Ollama |
 | `pgsql` | | | Postgres implementations of `db` |
 | `remote` | | | SSH sync utilities |
 | `remote_asc` | | | Remote ASC helpers |
@@ -1099,6 +1099,7 @@ Full guide: [docs/asc/testing.md](docs/asc/testing.md).
     1. [sourcing](docs/asc/shell-usage.md#sourcing)
     1. [argument forwarding](docs/asc/shell-usage.md#argument-forwarding)
     1. [shell options](docs/asc/shell-usage.md#shell-options)
+    1. [Bash strict mode (`set -euo pipefail`)](docs/asc/shell-usage.md#bash-strict-mode-set--euo-pipefail)
     1. [scope](docs/asc/shell-usage.md#scope)
     1. [walk arrays](docs/asc/shell-usage.md#walk-arrays)
     1. [Bash requirement / dash & ash](docs/asc/shell-usage.md#bash-requirement--dash--ash)

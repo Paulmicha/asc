@@ -35,7 +35,7 @@ See [`scripts/asc/override/README.md`](../../scripts/asc/override/README.md) and
 | `drupalwt` / `drupalwt_d4d` / `drush` | Drupal tooling |
 | `builder` / `memory` | Stub template / storage APIs — [builder.md](builder.md) |
 | `cognition` / `transcription` | observe/recognize stubs; ASR `transcribe` |
-| `gpt` / `ollama` | LLM abstracts + Ollama hooks |
+| `agent` / `ollama` | LLM abstracts + Ollama hooks |
 | `nested_asc` | Virgin-env nested instances — [nested-asc.md](nested-asc.md) |
 | `remote*` / `remote_traefik` | SSH sync, DB dumps, Traefik |
 | `crontab` / `hosts_file` / `software` | Host jobs, `/etc/hosts`, packages |

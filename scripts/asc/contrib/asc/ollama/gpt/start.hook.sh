@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 ##
-# Implements u_hook_most_specific -s 'gpt' -a 'start' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
+# Implements u_hook_most_specific -s 'agent' -a 'start' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
 #
 # Ensure `ollama` is in PATH and ollama.service / API are up. Model pull is
-# separate (`make gpt-pull`). Override with start.<variants>.hook.sh if needed.
+# separate (`make agent-pull`). Override with start.<variants>.hook.sh if needed.
 #
 # On hybrid Intel+NVIDIA hosts, CUDA GPU access is via the system service (see
 # changelog GPU doc). PRIME render-offload fallback after suspend:
@@ -13,7 +13,7 @@
 #   __GLX_VENDOR_LIBRARY_NAME=nvidia
 #   __VK_LAYER_NV_optimus=NVIDIA_only
 #
-# @see asc/extensions/gpt/gpt/start.sh
+# @see asc/extensions/agent/agent/start.sh
 # @see changelog/2026/06/29-gpu-nvidia-legacy-driver.md
 #
 

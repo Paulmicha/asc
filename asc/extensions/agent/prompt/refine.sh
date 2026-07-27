@@ -14,9 +14,9 @@
 prompt_refine_variants='STACK_VERSION PROVISION_USING HOST_OS'
 
 hook -s 'log' -p 'pre' -a 'prompt_refine' -v "$prompt_refine_variants"
-hook -s 'gpt' -p 'pre' -a 'prompt_refine' -v "$prompt_refine_variants"
+hook -s 'agent' -p 'pre' -a 'prompt_refine' -v "$prompt_refine_variants"
 
-. asc/extensions/gpt/gpt/wrap.sh "$@"
+. asc/extensions/agent/agent/wrap.sh "$@"
 
 hook -s 'log' -p 'post' -a 'prompt_refine' -v "$prompt_refine_variants"
-hook -s 'gpt' -p 'post' -a 'prompt_refine' -v "$prompt_refine_variants"
+hook -s 'agent' -p 'post' -a 'prompt_refine' -v "$prompt_refine_variants"

@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
 ##
-# Gpt wrapper to wrapped scripts or make entry points.
+# agent wrapper to wrapped scripts or make entry points.
 #
 # @param 1 String : make entry point name or path to wrapped script.
 #
 # @example
-#   make gpt-wrap e:transcribe-all
+#   make agent-wrap e:transcribe-all
 #   # Or :
-#   asc/extensions/gpt/gpt/wrap.sh transcribe-all
+#   asc/extensions/agent/agent/wrap.sh transcribe-all
 #
 
 . asc/bootstrap.sh
@@ -17,17 +17,17 @@ p_script="$1"
 shift
 
 p_is_wrapper=0
-gpt_file="$p_script"
+agent_file="$p_script"
 
 if [[ "$p_script" == *'log/wrap.sh' ]]; then
   p_is_wrapper=1
-  gpt_file="$1"
+  agent_file="$1"
 fi
 
 # Restrict to make entry points, and convert scripts paths to entry points names.
 make_entries=()
 real_scripts=()
-is_gpt_file_valid=0
+is_agent_file_valid=0
 
 u_make_list_entry_points
 
@@ -35,25 +35,25 @@ for index in "${!real_scripts[@]}"; do
   task="${make_entries[index]}"
   script="${real_scripts[index]}"
 
-  case "$gpt_file" in "$script")
-    gpt_file="${gpt_file/$script/$task}"
-    is_gpt_file_valid=1
+  case "$agent_file" in "$script")
+    agent_file="${agent_file/$script/$task}"
+    is_agent_file_valid=1
     continue
   esac
 
   if [[ $p_is_wrapper -eq 0 ]]; then
-    case "$gpt_file" in "$task")
+    case "$agent_file" in "$task")
       p_script="$script"
-      is_gpt_file_valid=1
+      is_agent_file_valid=1
     esac
   else
-    case "$gpt_file" in "$task")
-      is_gpt_file_valid=1
+    case "$agent_file" in "$task")
+      is_agent_file_valid=1
     esac
   fi
 done
 
-if [[ $is_gpt_file_valid -ne 1 ]]; then
+if [[ $is_agent_file_valid -ne 1 ]]; then
   echo >&2
   echo "Error in $BASH_SOURCE line $LINENO - only supports valid make entry points." >&2
   echo "Aborting (1)." >&2
@@ -61,7 +61,7 @@ if [[ $is_gpt_file_valid -ne 1 ]]; then
   exit 1
 fi
 
-p_entry="${gpt_file#e:}"
+p_entry="${agent_file#e:}"
 p_script_real="$(realpath -e "$p_script")"
 
 # Refuse interactive-required scripts under wrap.
@@ -105,11 +105,11 @@ else
   p_output='nohup.out'
 fi
 
-mkdir -p data/gpts
+mkdir -p data/agents
 
 # Pile-up prevention (P1 + P5) via YAML/PID before backgrounding.
-if u_gpt_pileup_should_skip "$p_entry"; then
-  echo "Thread '$p_entry' already running (PID $gpt_pid); skip."
+if u_agent_pileup_should_skip "$p_entry"; then
+  echo "Thread '$p_entry' already running (PID $agent_pid); skip."
   exit 0
 fi
 
@@ -135,13 +135,13 @@ export ASC_THREAD_TRIGGER="$p_trigger"
 export ASC_THREAD_NEEDS_INTERACTIVE='false'
 export ASC_WRAP_EMITTER="${ASC_WRAP_EMITTER:-manual}"
 export ASC_WRAP_RECEIVER="${ASC_WRAP_RECEIVER:-$p_entry}"
-export ASC_WRAP_KIND="${ASC_WRAP_KIND:-gpt-wrap}"
+export ASC_WRAP_KIND="${ASC_WRAP_KIND:-agent-wrap}"
 
 # Supervisor writes YAML (start + EXIT) so short jobs cannot race the parent.
-u_gpt_supervised_run() {
-  trap 'u_gpt_supervisor_exit $?' EXIT
+u_agent_supervised_run() {
+  trap 'u_agent_supervisor_exit $?' EXIT
 
-  if ! u_gpt_lock_acquire "$ASC_THREAD_ENTRY" "$p_lock_mode"; then
+  if ! u_agent_lock_acquire "$ASC_THREAD_ENTRY" "$p_lock_mode"; then
     echo "Thread '$ASC_THREAD_ENTRY' lock busy; skip."
     ASC_THREAD_STATUS='exited'
     ASC_THREAD_EXIT_CODE=0
@@ -154,20 +154,20 @@ u_gpt_supervised_run() {
   export ASC_THREAD_PID="$BASHPID"
   export ASC_THREAD_PPID="$PPID"
 
-  u_gpt_proc_tree "$BASHPID"
-  export ASC_THREAD_TREE="$(printf '%s\n' "${gpt_tree[@]}")"
+  u_agent_proc_tree "$BASHPID"
+  export ASC_THREAD_TREE="$(printf '%s\n' "${agent_tree[@]}")"
 
   local attempt=1
   local max_try=$((p_retry_max + 1))
   local delay_s
   local rc=0
 
-  delay_s="$(u_gpt_delay_seconds "$p_retry_delay")"
+  delay_s="$(u_agent_delay_seconds "$p_retry_delay")"
 
   while true; do
     export ASC_THREAD_ATTEMPT="$attempt"
-    u_gpt_yml_write "$ASC_THREAD_ENTRY"
-    u_gpt_chown_human "data/gpts/${ASC_THREAD_ENTRY}.yml"
+    u_agent_yml_write "$ASC_THREAD_ENTRY"
+    u_agent_chown_human "data/agents/${ASC_THREAD_ENTRY}.yml"
 
     # Noninteractive: no stdin (fail-fast on prompts).
     "$p_script_real" "$@" </dev/null
@@ -189,11 +189,11 @@ u_gpt_supervised_run() {
 }
 
 if [[ -n "${ASC_LOG_WRAP_ACTIVE:-}" ]]; then
-  u_gpt_supervised_run "$@" &
+  u_agent_supervised_run "$@" &
 else
   (
     trap '' HUP
-    u_gpt_supervised_run "$@"
+    u_agent_supervised_run "$@"
   ) >> "$p_output" 2>&1 </dev/null &
 fi
 p_pid=$!
@@ -201,10 +201,10 @@ p_pid=$!
 # Brief wait so supervisor can create the YAML before we print its path.
 sleep 0.05
 
-u_gpt_chown_human "data/gpts/${p_entry}.yml"
-u_gpt_chown_human "data/gpts/${p_entry}.lock"
+u_agent_chown_human "data/agents/${p_entry}.yml"
+u_agent_chown_human "data/agents/${p_entry}.lock"
 
 echo "Thread started (PID $p_pid)."
 echo "  script    : $p_script_real $*"
-echo "  gpt    : data/gpts/${p_entry}.yml"
+echo "  agent    : data/agents/${p_entry}.yml"
 echo "  output    : $p_output"

@@ -4,7 +4,7 @@
 
 - entity
 - entity.field (submodule = nested asc extension(s) via .asc_subjects_ignore)
-- gpt
+- agent
 
 # Capabilities
 

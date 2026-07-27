@@ -1,3 +1,9 @@
 synonyms:
   - modification
   - modif
+
+required:
+  fields:
+    goal:
+      ref: file
+      validate: test-file-exists(a-1)

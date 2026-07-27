@@ -135,10 +135,10 @@ Easy when stored in memory somewhere : env , scope , sidecar, data, db (memory t
 
 But is it guess.able ?
 
-Even when agent is the generic asc core representation, and for ex. a “cursor” extension provides the concrete agent (hook or override) implementation, an entry point like “make cursor-analyze” could be a slot (or wrap) of any local implementation of e.g. gpt.
+Even when agent is the generic asc core representation, and for ex. a “cursor” extension provides the concrete agent (hook or override) implementation, an entry point like “make cursor-analyze” could be a slot (or wrap) of any local implementation of e.g. agent.
 
-In this case, is ollama owned by gpt, or by cursor, the entry point ?
+In this case, is ollama owned by agent, or by cursor, the entry point ?
 
--> Both, nested, e.g. : `log-wrap.thread-wrap.gpt-prompt.ollama-exec`
+-> Both, nested, e.g. : `log-wrap.thread-wrap.agent-prompt.ollama-exec`
 
 Back to log level management in ASC core (all wrappers ? some wrappers ? which sidecars ?)

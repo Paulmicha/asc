@@ -127,7 +127,7 @@ There is **no** built-in authz framework — filesystem permissions are the cont
 | Humans | Primary operators; sudo through wraps preserves EUID; prefer human-owned artifacts (`SUDO_USER`) |
 | Agents | Observability paths and observability docs are written so agents can launch/read the same trails; **full agent stack is out of core scope** |
 
-Core non-goals include complex NL / chain-of-thought / ontology platforms — delegate to nested apps. Thin `gpt` / `ollama` extensions may exist as opt-in abstracts; control-plane agent products stay postponed.
+Core non-goals include complex NL / chain-of-thought / ontology platforms — delegate to nested apps. Thin `agent` / `ollama` extensions may exist as opt-in abstracts; control-plane agent products stay postponed.
 
 Thread YAML records `owner` / uid / euid for supervised jobs. Wrappers never call `sudo` themselves.
 

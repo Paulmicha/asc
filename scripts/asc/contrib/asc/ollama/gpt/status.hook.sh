@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 ##
-# Implements u_hook_most_specific -s 'gpt' -a 'status' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
+# Implements u_hook_most_specific -s 'agent' -a 'status' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
 #
 # Report Ollama binary, service/API reachability, and running models.
 #
-# @see asc/extensions/gpt/gpt/status.sh
+# @see asc/extensions/agent/agent/status.sh
 #
 
 if ! command -v ollama >/dev/null 2>&1; then

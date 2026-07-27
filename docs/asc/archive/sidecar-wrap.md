@@ -15,7 +15,7 @@ Layer-3 contract for durable CRUD history sidecars. Script: [`asc/sidecar/wrap.s
 | `data/<memory_store>/<entity>.yml` | `data/<memory_store>/<entity>.sidecar.txt` |
 | `/etc/hosts` | `/etc/hosts.sidecar.txt` |
 
-Volatile / rolling windows (planned, e.g. GPT traces) may keep several `*.NN.last_*.sidecar.txt` sidecars — see the script header.
+Volatile / rolling windows (planned, e.g. agent traces) may keep several `*.NN.last_*.sidecar.txt` sidecars — see the script header.
 
 Caller slug (planned): path + args, underscore-separated, truncated (~64 chars).
 

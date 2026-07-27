@@ -47,14 +47,14 @@ Same pattern for `memory` (`storage-*`, `store-*`).
 
 Both are listed in **core** `.asc_extensions_ignore`. This home’s override omit them → they register after reinit. Path: `asc/extensions/transcription/transcribe/`. Make shortcut: `transcribe-transcribe` → `transcribe` via `ASC_SYNONYMS`. No CoT / principle / plan agent stubs in core (see `changelog/2026/07/16-asc-core-strip-agent-extensions.md`).
 
-### gpt / ollama (optional, core-ignored by default)
+### agent / ollama (optional, core-ignored by default)
 
 | Extension | Role |
 |-----------|------|
-| `gpt` | Abstracts — `gpt-start`, `gpt-status`, `gpt-list`, `gpt-pull`, `gpt-stop`, `gpt-stop-all` (+ `gpt-wrap`) |
+| `agent` | Abstracts — `agent-start`, `agent-status`, `agent-list`, `agent-pull`, `agent-stop`, `agent-stop-all` (+ `agent-wrap`) |
 | `ollama` | Default hooks — `start` / `status` / `list` / `pull` / `stop` / `stop_all` `.hook.sh` |
 
-Both listed in **core** `.asc_extensions_ignore`. Subject folder is `gpt/` under both so make targets stay `gpt-*`. Ignoring `ollama` drops the default hooks while `gpt` can still register targets. Agent / tools / exchange stay out of this tip (dedicated project). See `changelog/2026/07/16-remaining-plans-simplification.md`.
+Both listed in **core** `.asc_extensions_ignore`. Subject folder is `agent/` under both so make targets stay `agent-*`. Ignoring `ollama` drops the default hooks while `agent` can still register targets. Agent / tools / exchange stay out of this tip (dedicated project). See `changelog/2026/07/16-remaining-plans-simplification.md`.
 
 ### nested_asc
 
