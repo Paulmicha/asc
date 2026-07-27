@@ -66,12 +66,12 @@ When frozen DSL hooks use `.dsl.hook.yml`, bodies may declare validations (propo
 
 ```yml
 a:
-  validation: test(a).is-slug
+  validation: test-is(a,slug(a))
 ```
 
 ```yml
 a1:
-  validation: test(a-1).is-either(slug(a-1,-),slug(a-1,_))
+  validation: test-in(a1,[slug(a-1,-),slug(a-1,_)])
 ```
 
 Not implemented. Keep distinct from filename-DSL `slot` (slot stays in `*.hook.yml` bodies per locked plan).

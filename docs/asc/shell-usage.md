@@ -592,7 +592,7 @@ Filename-safe example:
 test-is[either](slot.slug[-],slot.slug[_])
 
 # proposed punctuation invert (still review)
-test(a-1).is-either(slug(a-1,-),slug(a-1,_))
+test-in(a1,[slug(a-1,-),slug(a-1,_)])
 ```
 
 Auto-convert sketch (shrink all `--` to `-` in prefixed syntax):
