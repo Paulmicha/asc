@@ -21,14 +21,15 @@ Compiled those notes into:
 | `entities.md` | Genericity scale; files/dirs; field vs prop; sidecar; `--` relation notation; change / workflow |
 | `yml-structure.md` | Props vs fields; proposed `a`/`o` validation YAML |
 | `builder.md` | Blueprint = DSL\|tpl kinds; atomic blueprint objects; `tpl()` rename; rules/sync sketch |
-| `shell-usage.md` | Competing DSL redesign (`a`/`o`/`bo`, invert `()`/`[]`) vs locked plan; `<asc-dsl>` / `<asc-yml>` stdout |
+| `shell-usage.md` | Competing DSL redesign (punctuation invert + `bo`; positionals already `a`/`a_*`); `<asc-dsl>` / `<asc-yml>` stdout |
 | `wrappers.md` | Rules pattern presets / sudoers / change recap |
 | `documentation.md` | Root README § Current status as raw-notes role |
 
 ## Safety / locks
 
 - Filename-DSL punctuation in `changelog/2026/07/24-filename-dsl.md` remains SoT until explicitly superseded.
-- README DSL invert + `a`/`bo` tokens documented as **proposed only** under `shell-usage.md` § proposed DSL redesign.
+- Positional / function-arg prefix is **`a` / `a_*`** (not `p_*`).
+- README punctuation invert + `bo` tokens documented as **proposed only** under `shell-usage.md` § proposed DSL redesign.
 
 ## Open
 

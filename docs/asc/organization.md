@@ -38,7 +38,19 @@ Mutables (`DB_*`, `REMOTE_INSTANCE_*`, …) are **not** written by `u_global_wri
 
 Secrets stance: prefer gitignored `.env-local.yml` and registry paths; see also `docs/asc/archive/secrets.md` until a dedicated secrets section is split out.
 
-**Planned naming convention (ideas, not enforced):** `FOOBAR` readonly; `foobar` local; `p_foobar` args; `o_foobar` options; `c_foobar` mutable exports; maybe `f_*` instead of `u_*` for functions.
+**Planned symbol prefixes (plan SoT `changelog/2026/07/23-f-e-naming-convention.md`, not enforced):**
+
+| Class | Prefix | Notes |
+|-------|--------|-------|
+| Readonly globals | `FOOBAR` via `global()` | Separate from bare `export` |
+| Locals | `foobar` | Unprefixed |
+| Positional / function args | `a` or `a_*` | Leave alone unless proven CLI-option-driven |
+| CLI options / flags | `o_*` | Only vars set in `-flag)` / `--long)` `case` arms |
+| Exported runtime vars | `e_*` | From bare `export NAME=` — **supersedes** idea `c_*` |
+| Utility functions | `f_*` | From today's `u_*` |
+| Most-specific hook | **`hookms`** | Hardcoded exception — **not** `f_hook_most_specific` |
+
+Boolean DSL locals use `b_*` (filename-DSL plan). Do not confuse `f_*` utilities with MAKE_TASKS_SHORTER `f` (no action *variable* prefix). See [shell-usage.md](shell-usage.md) § symbol prefixes.
 
 ---
 
@@ -138,18 +150,42 @@ Potential filesystem collisions during the rewrite:
 | `$subject` / `$action` | Classic entry point |
 | `$subject` / `$object` / `$action` | Optional extra level when the entity needs an object |
 
-**Resolution (locked intent):** agnostic stance. In entity representation, `$subject` **may or may not** implement that extra level. Core file discovery must support **both**. Examples of the three-level reading: remote instance restart, remote host ssh, entity relation / field / prop list.
+**Resolution (locked intent from rewrite notes):** agnostic stance. In entity representation, `$subject` **may or may not** implement that extra level. Core file discovery must support **both**. Examples of the three-level reading: remote instance restart, remote host ssh, entity relation / field / prop list.
 
-Also open: drop submodule declarations via `.asc_extensions` because of `$object` — prefer path-shape discovery over a separate submodule list once objects land.
+### Nested extensions — `$subject/.asc_extensions`
+
+**Plan SoT:** `changelog/2026/07/24-subject-asc-extensions.md` (review; not implemented).
+
+| Dotfile | Role (locked intent) |
+|---------|----------------------|
+| **`$subject/.asc_extensions`** | **Positive** list — listed dirs under that `$subject/` are **nested ASC extensions** |
+| **`.asc_subjects_ignore`** | **Negative** list — listed names are **not** subjects (does **not** promote to nested extension) |
+| **`.asc_extensions_ignore`** | Top-level extension **blacklist** under `asc/extensions/` (and overrides) — unrelated to per-subject nests |
+
+Today tip still declares many nests via `.asc_subjects_ignore` (overloaded). Target: migrate those nest lines to `$subject/.asc_extensions` (seed already: `asc/asc/.asc_extensions` → `utils`). Prefer runtime rule: listed in `.asc_extensions` ⇒ nested extension, **not** a sibling `$subject`.
+
+**Specificity (unchanged):** nested hook / most-specific weight = **same as the nearest non-nested extension point** toward `$PROJECT_DOCROOT` — do not invent a parallel weight scale.
 
 Discovery walks (extension points):
 
 1. `./asc`
-1. Enabled `./asc/extensions/$extension` (and nested via `.asc_subjects_ignore`)
+1. Enabled `./asc/extensions/$extension` (and nested via `$subject/.asc_extensions`)
 1. `./scripts/asc/contrib/$extension` (same nesting rules)
 1. `./scripts/asc/extend` (project-specific)
 
-`.asc_subjects_ignore` is the **nested-extension submodule list** (folders treated as nested extension points). Most-specific hook weight for those nested implementations must match the nearest non-nested extension point — see [wrappers.md](wrappers.md) § nested.
+Generic → specific (`u_hook_most_specific()` / planned `hookms`, bottom wins):
+
+1. `asc/$subject/$action`
+1. `asc/extensions/$extension/$subject/$action`
+1. `asc/extensions/$extension/**/$nested_extension` (**via `$subject/.asc_extensions`**)
+1. `scripts/asc/contrib/$extension/$subject/$action`
+1. `scripts/asc/contrib/$extension/**/$nested_extension` (**via `$subject/.asc_extensions`**)
+1. `scripts/asc/extend/$subject/$action`
+1. `scripts/asc/extend/**/$nested_extension` (**via `$subject/.asc_extensions`**)
+
+Worked migration examples: `entity`→`field`, `hardware`→`nested_hardware`, `software`→`nested_software`, `folder`→`nested_folder`, contrib `docker`→`nested_docker`. `asc/.asc_subjects_ignore` (`env`, `extensions`, `vendor`) stays **subjects-ignore only**.
+
+**Tension (open):** root README § Current status also TODOs dropping submodule declarations “via `.asc_extensions` because of objects.” Until that is decided in a changelog, the **24-subject-asc-extensions** lock (positive nest list) remains the living SoT — do not delete the mechanism without an accept/reject pass.
 
 Core subjects include `instance`, `host`, `git`, `log`, `loop`, `thread`, `sidecar`, `make`, `test`, `env`, `asc`. Extensions add subjects when enabled (`cron-*`, `nested-asc-*`, `blueprint-*`, `transcribe`, …).
 
@@ -164,14 +200,11 @@ Hard rule (rewrite notes): all includes of entities must be **namespaced** (e.g.
 - Aggregated into `data/asc/generated.mk` on `make init` / `make reinit`.
 - List: `make list-actions` (and related make list helpers).
 - Hardcoded shortcuts in `asc/make/default.mk`: `init` (default goal), `init-debug`, `setup`, `hook`, `hook-debug`, `globals-lp`, `debug`.
+- **Hard rule (filename-DSL):** corresponding `$action` files must be **explicitly created** (including when generated under `data/asc/`) — no invisible function-only actions.
 
-Generic → specific scale for `u_hook_most_specific()` (bottom wins):
+Generic → specific scale for most-specific lookup (bottom wins) — see § subjects nested-extension list (via `$subject/.asc_extensions`).
 
-1. `asc/$subject/$action`
-1. `asc/extensions/$extension/$subject/$action`
-1. nested extension points …
-1. `scripts/asc/contrib/…`
-1. `scripts/asc/extend/$subject/$action` (and nested)
+**Optional `_` prefix in `$action` (locked intent, docs-first — not enforced):** a leading `_`-separated segment **can** read as `$subject`/`$object` then `$action` (e.g. `db_dump.sh` → `db` + `dump`). Not a relation, not folder nest, not first-`-` head/tail. SoT: `changelog/2026/07/24-filename-dsl.md`.
 
 After adding extend scripts: clear caches and `make reinit` (see [(re)init](#reinit--cache-state)).
 
@@ -185,9 +218,9 @@ Related open ideas: `freeze.able` as `data/*` sidecars (`*.assembled.sh` / `*.co
 
 ## hooks
 
-File-based events: `hook()` / **`u_hook_most_specific()`** on `*.hook.sh` (also `-c yml`, templates, …).
+File-based events: `hook()` / **`u_hook_most_specific()`** (planned rename **`hookms`**) on `*.hook.sh` (also `-c yml`, templates, …).
 
-Under `$subject`, hook stems are either ordinary slugified names **or** (planned filename DSL) custom DSL notation — DSL hook stems sit **directly under `$subject/`** (e.g. `$subject/lt(agent…).start.hook.(sh|yml)`, `$subject/entity_yml[state](p-1).is_default.hook.yml`), **not** under `$subject/$action/`. `$subject` is the **only** `$` doc-notation exception that allows that dual reading (slug **or** DSL on `*.hook.yml` / `*.hook.sh`). See [documentation.md](documentation.md) § `$` notation and plan SoT `changelog/2026/07/24-filename-dsl.md`.
+Under `$subject`, hook stems are either ordinary slugified names **or** (planned filename DSL) custom DSL notation — DSL hook stems sit **directly under `$subject/`** (e.g. `$subject/lt(agent…).start.hook.(sh|yml)`, `$subject/entity_yml[state](a-1).is_default.hook.yml`), **not** under `$subject/$action/`. `$subject` is the **only** `$` doc-notation exception that allows that dual reading (slug **or** DSL on `*.hook.yml` / `*.hook.sh`). See [documentation.md](documentation.md) § `$` notation and plan SoT `changelog/2026/07/24-filename-dsl.md`.
 
 | Flag | Meaning |
 |------|---------|
@@ -210,15 +243,17 @@ make hook-debug s:instance a:start v:STACK_VERSION PROVISION_USING HOST_TYPE INS
 
 Hook lookup caches under `data/asc/cache/hook.*.sh`. Overrides: `scripts/asc/override/` via autoload override. Colocated `*.opt-inc.sh` can be seeded into the hook cache before hook bodies (foreign-subject implementers).
 
+**Includes ≠ event hooks:** eager `*.inc.sh` / lazy `*.opt-inc.sh` are include **bodies**, selected by a **single include-loader hook** driven by `ASC_SHELL` (planned) — they are not hook implementations. See § bootstrap.
+
 ### Proposed entry-point aliases (not wired)
 
 | Name | Synonym | Intent |
 |------|---------|--------|
 | `hook` | (like `call_wrap.make.sh`) | Generic hook call surface |
-| `hook-most-specific` | `hook-ms` | Explicit most-specific resolve (new core function) |
+| `hook-most-specific` | `hook-ms` | Explicit most-specific resolve (aligns with planned `hookms` symbol) |
 | `hook-dry-run` | `hook-dr` | Dry-run resolve without sourcing |
 
-Today operators still use `make hook` / `make hook-debug` and `u_hook_most_specific()` / `-t`. Treat `hook-ms` / `hook-dr` as rename/stabilize targets for the hooks doc pass.
+Today operators still use `make hook` / `make hook-debug` and `u_hook_most_specific()` / `-t`. Treat `hook-ms` / `hook-dr` / `hookms` as rename/stabilize targets for the hooks + naming-convention passes.
 
 Open (notes): **YAML hooks everywhere** for context and “suitable next steps” (not only `*.hook.sh`) — keep as design pressure; today `-c yml` already participates in most-specific lookup for some flows. Namespaced make entry points in YAML should become **optional** (facultative), not mandatory everywhere.
 
@@ -232,7 +267,7 @@ Example: `-v 'HOST_TYPE INSTANCE_TYPE'` expands combinations such as `init.hook.
 
 Operator “combos” (chain / batch / pipe) are **wrappers**, not hook variants — see [wrappers.md](wrappers.md).
 
-Open (notes): auto-enable some **nested subjects / submodules by variant** (e.g. only when `HOST_TYPE=…`) instead of only via ignore files — not implemented; would need clear precedence vs `.asc_subjects_ignore`.
+Open (notes): auto-enable some **nested subjects / submodules by variant** (e.g. only when `HOST_TYPE=…`) instead of only via ignore / `.asc_extensions` files — not implemented; would need clear precedence vs `$subject/.asc_extensions`.
 
 ---
 
@@ -264,6 +299,17 @@ Phase map (summary):
 | `$subject/$subject.inc.sh` or `$ext/$ext.inc.sh` | Eager → `ASC_INC` (phase 60) |
 | `$subject/$subject.opt-inc.sh` | Lazy when any action in that subject is the caller |
 | `$subject/$action.opt-inc.sh` | Lazy for that action (also seedable into hook cache) |
+
+### Multi-shell includes (`ASC_SHELL` + include-loader hook)
+
+**Plan SoT:** `changelog/2026/07/24-filename-dsl.md` (review; groundwork WIP).
+
+| Rule | Detail |
+|------|--------|
+| Default | `ASC_SHELL=bash` — unqualified `*.inc.sh` / `*.opt-inc.sh` |
+| Alternates | `*.$ASC_SHELL.inc.sh` / `*.$ASC_SHELL.opt-inc.sh` (shell segment **before** kind) if present; else bash set |
+| Loader | **One** dedicated include-loader hook selects bodies — include files are **not** hook implementations |
+| Primordial layout | Eager `asc/asc/*.inc.sh` (`core`, `global`, `hook`, `autoload`); lazy `asc/asc/utils/*.opt-inc.sh` — do **not** reintroduce `asc/shell/` |
 
 Primitives cache: `data/asc/cache/asc.sh` (miss → `u_asc_extend`). Nested exec starts a **new** bootstrap in the child.
 

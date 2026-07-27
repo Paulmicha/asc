@@ -118,7 +118,7 @@ Controlled recursion into other docroots / repos / extension trees — not unbou
 |------|-----------|------|
 | **nested-asc** | extension `nested_asc` | Child ASC instances; host-level concerns should climb up (crontabs, logs) |
 | **nested-git** | extension `nested_git` | Child git clones / work trees |
-| **nested-extension** | `.asc_subjects_ignore` | Nested subject folders under an extension point |
+| **nested-extension** | `$subject/.asc_extensions` (plan) | Nested extension folders under an extension point |
 | **nested-blueprint?** | builder + sub-modules | Open — see [builder.md](builder.md) |
 
 Further nested kinds from working notes (open — not separate extensions yet):
@@ -130,7 +130,7 @@ Further nested kinds from working notes (open — not separate extensions yet):
 | Nested entity | Entity graph climb via `$nest.able` |
 | Nested condition system | Rules that nest (and/or trees), not only flat variant hooks |
 
-`.asc_subjects_ignore` is the **submodule list** for nested-extension (attention: most-specific weight must match the nearest non-nested extension point).
+**Declaration (plan SoT `changelog/2026/07/24-subject-asc-extensions.md`):** `$subject/.asc_extensions` is the **positive** nest list. `.asc_subjects_ignore` only means “not a subject.” Tip still often lists nests in `.asc_subjects_ignore` — migrate when implementing. Most-specific weight for nested hooks must match the **nearest non-nested extension point** (same as today). See [organization.md](organization.md) § subjects.
 
 ### nested-asc
 

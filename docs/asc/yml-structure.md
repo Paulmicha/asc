@@ -10,11 +10,15 @@ Table of contents :
 1. [state able (git draft)](#state-able-git-draft)
 1. [subject inventory](#subject-inventory)
 1. [repo entity (git draft)](#repo-entity-git-draft)
+1. [primordial meta (Wave B draft)](#primordial-meta-wave-b-draft)
 1. [open / living](#open--living)
 
 Status: **living draft**. Decision SoT while in review: `changelog/2026/07/24-yml-structure.md`. Amend with the plan; do not invent runtime behavior here. Field/prop vocabulary also tracked from root README § Current status — see [entities.md](entities.md) § field vs prop.
 
-Example SoT: branch `naming-convention-changelog` @ `71b4f71` (`asc/git/{git.able,state.able,repo.entity}.yml`).
+| Wave | Example SoT | What |
+|------|-------------|------|
+| **A — git `$state`** | `@ 71b4f71` `asc/git/{git.able,state.able,repo.entity}.yml` | Domain state enums + repo entity |
+| **B — primordial meta** | HEAD tip after `d4533f6`…`5871043` | Synonyms, entity whitelist, contract stub, able include, wrap able |
 
 ---
 
@@ -35,13 +39,15 @@ Related: [entities.md](entities.md) (what `*.able.yml` *means*), [organization.m
 
 | Kind | Typical path | Body role (draft) |
 |------|--------------|-------------------|
-| Action able | `$subject/$action.able.yml` | Capability / relation / **state** for that `$action` |
-| Subject able | `$subject/$subject.able.yml` | Subject-wide inventory (e.g. entity list) |
-| Entity | `$subject/<name>.entity.yml` | Named entity — deps / fields (draft: `repo.entity.yml`) |
-| Hook YAML | `….hook.yml` | Smart defaults + `slot` (field names TBD) |
-| Includes | YAML `includes:` | Inheritance — see [entities.md](entities.md) § yml includes |
+| Action able | `$subject/$action.able.yml` | Capability / relation / **state** / **wrap** for that `$action` |
+| Subject able | `$subject/$subject.able.yml` | Subject-wide inventory / defaults (e.g. `entities:`) |
+| Primordial able | `asc/asc/able.able.yml` | Shared inheritance for all ables (`include: contract.entity`) |
+| Entity | `*.entity.yml` | Named entity — deps / fields / whitelist / required·optional |
+| Meta YAML | `*.yml.yml` (draft: `asc.yml.yml`) | Cross-cutting vocabulary (e.g. `synonym:`) |
+| Hook YAML | `….hook.yml` | Smart defaults + `slot` (field names TBD; path rules in filename-DSL) |
+| Includes | YAML `include:` / `includes:` | Inheritance — shape still open (Wave B gaps) |
 
-Most historical `*.able.yml` under `asc/folder/` (and peers) are still empty stubs — prefer one worked example over mass-filling.
+Most historical `*.able.yml` under `asc/folder/` (and peers) are still empty stubs — prefer worked examples (git state + primordial meta) over mass-filling.
 
 ---
 
@@ -138,20 +144,68 @@ repo:
     field: str.url
 ```
 
-`url.field: str.url` points at a field stub (`asc/asc/utils/str/url.field.yml` today). Resolution / nesting rules for `*.field.yml` are not frozen yet.
+`url.field: str.url` points at a field stub (`asc/asc/utils/str/url.field.yml` today → `url: { validate: limit[2048](str.length) }`). Resolution / nesting rules for `*.field.yml` are not frozen yet.
+
+---
+
+## primordial meta (Wave B draft)
+
+**Status:** provisional HEAD sketch — still soft until plan open Qs 9–11 lock. SoT details: `changelog/2026/07/24-yml-structure.md` § Anchor draft B.
+
+Emerging inheritance spine (reading only — **not locked**):
+
+```text
+asc.yml.yml          → synonym vocabulary
+entity.entity.yml    → include asc.yml; entity ability surface + required/optional
+contract.entity.yml  → rules (stub)
+able.able.yml        → include contract.entity  (all *.able inherit)
+*.able.yml           → domain / wrap / state bodies
+```
+
+| Path | Role (draft @ HEAD) |
+|------|---------------------|
+| `asc/asc/asc.yml.yml` | Meta registry: `synonym:` table (`op`, `skill`, `val`, `prop`, `sh`, `fs`, `str`, `int`, `arr`) |
+| `asc/extensions/entity/entity/entity.entity.yml` | Primordial entity: `include: asc.yml`; ability whitelist + `required` / `optional` |
+| `asc/asc/contract.entity.yml` | Contract stub: `rules: { todo: TODO }` |
+| `asc/asc/able.able.yml` | Primordial able: `include: [contract.entity]` |
+| `asc/asc/wrap.able.yml` | Core wrap: `wrap.required.prop.wrapper.validate: test-file-exists(a-1)` |
+| `asc/git/acp/wrap.able.yml` | Nested wrap add: `synonym: a`, `default.value: .` |
+
+Key families (draft intent):
+
+| Key family | Intent |
+|------------|--------|
+| `include:` | Inheritance edge(s) — scalar vs list shape still inconsistent |
+| `synonym:` | Alias table for DSL vocabulary |
+| `entity:` children = `'*'` | Ability whitelist surface |
+| `required` / `optional` | Mandatory vs optional `field` / `prop` with `validate` / `default` |
+| `wrap.required` / `wrap.add` | Wrap able constraints and additive defaults |
+| `validate:` | Declarative check expression (DSL spelling exploratory) |
+| `rules:` | Contract rule payload (currently TODO) |
+
+Do not treat intermediate Wave B commit shapes (fat `contract.able.yml`, `yml.able.yml`, `freeform` / `operation` synonyms) as SoT — cite HEAD bodies or the changelog migration table.
 
 ---
 
 ## open / living
 
-Track decisions in `changelog/2026/07/24-yml-structure.md` § Open questions. High-priority while amending:
+Track decisions in `changelog/2026/07/24-yml-structure.md` § Open questions.
+
+**Wave A (git state) — decide first:**
 
 1. `entities:` (subject able) vs `depends_on.entity` / `*.entity.yml`.
-2. Must `default.state` appear in `states`?
-3. Spelling: `versionned` vs `versioned`.
-4. Keep `unclean` folder-only, or align folder/file enums?
-5. Freeze `depends_on` + `*.field` refs as the entity-body pattern?
+1. Must `default.state` appear in `states`?
+1. Spelling: `versionned` vs `versioned`.
+1. Keep `unclean` folder-only, or align folder/file enums?
+1. Freeze `depends_on` + `*.field` refs as the entity-body pattern?
 
-Update this page when those lock; keep thin until then.
+**Wave B (primordial) — next:**
 
-Also absorb from rewrite notes when stabilizing YAML docs: required/optional prop shapes on all `*.entity.yml`; field stabilization using remote_host / remote_instance examples; optional (facultative) namespaced entry-point notation in YAML.
+1. `include` scalar vs list; target resolution (`asc.yml` → `asc.yml.yml`?).
+1. Freeze inheritance spine or keep experimenting?
+1. Where do contract `rules` live?
+1. Unify `default.val` vs `default.value`; pick one `validate:` spelling family.
+
+Also absorb from rewrite notes when stabilizing: required/optional prop shapes on all `*.entity.yml`; field stabilization using remote_host / remote_instance examples; optional (facultative) namespaced entry-point notation in YAML.
+
+Keep thin until those lock; do not implement loaders / validators until accept + explicit go-ahead.

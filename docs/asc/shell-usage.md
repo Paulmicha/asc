@@ -13,13 +13,21 @@ Table of contents :
     1. [hooks](#hooks)
     1. [`call_wrap.make.sh`](#call_wrapmakesh)
     1. [logged-\* entry points](#logged--entry-points)
+1. [symbol prefixes (f_ / e_ / o_ / a_ / b_ / hookms)](#symbol-prefixes-f_--e_--o_--a_--b_--hookms)
 1. [filename-DSL examples](#filename-dsl-examples)
 1. [proposed DSL redesign (README)](#proposed-dsl-redesign-readme)
 1. [parsable stdout (asc-dsl / asc-yml)](#parsable-stdout-asc-dsl--asc-yml)
 
 How ASC leans on **bash** primitives — streams, source, `"$@"`, `shopt`/`set`, relative scope, and array walks — so entry points, hooks, wraps, and make stay thin and composable.
 
-Related living pages: [organization.md](organization.md), [wrappers.md](wrappers.md), [documentation.md](documentation.md) § `$` notation. Plan SoT for filename grammar: `changelog/2026/07/24-filename-dsl.md`.
+Related living pages: [organization.md](organization.md), [wrappers.md](wrappers.md), [documentation.md](documentation.md) § `$` notation.
+
+Plan SoTs (July 2026, review — not implementation go-ahead):
+
+| Plan | Path |
+|------|------|
+| Filename DSL + `ASC_SHELL` | `changelog/2026/07/24-filename-dsl.md` |
+| Symbol prefixes `f_`/`e_`/`o_`/`a_` | `changelog/2026/07/23-f-e-naming-convention.md` |
 
 Docs `$` notation: `$name` = any make entry point. **Exception — `$subject` (only):** plain slugified string, **or** (for `*.hook.yml` / `*.hook.sh`) custom DSL notation.
 
@@ -430,16 +438,70 @@ See [wrappers.md](wrappers.md) for chooser guidance (`lt` vs `ll` vs `lc` / `ls`
 
 ---
 
+## symbol prefixes (f_ / e_ / o_ / a_ / b_ / hookms)
+
+**Plan SoT:** `changelog/2026/07/23-f-e-naming-convention.md` (+ boolean `b_` from filename-DSL). **Not enforced** — tip still uses `u_*`, bare `export`, and legacy `p_*` names in parsers (options mis-prefixed; positionals pending `a` / `a_*`).
+
+| Class | Prefix | Convert from / rule |
+|-------|--------|---------------------|
+| Utility functions | `f_*` | `u_*` → `f_*` (snake_case) |
+| Most-specific hook | **`hookms`** | `u_hook_most_specific` — **never** `f_hook_most_specific` |
+| Exported vars | `e_*` | bare `export NAME=` → `export e_NAME=` (supersedes idea `c_*`) |
+| CLI options | `o_*` | Only vars assigned in `-flag)` / `--long)` arms |
+| Positionals / fn args | `a` or `a_*` | Leave alone unless proven CLI-option-driven (incl. `*)` unnamed branches); tip still has legacy `p_*` |
+| DSL booleans | `b_*` | Locals for `b-*` filename-DSL args |
+
+Phased migration (plan): Phase 0 decisions → `hookms` + `u_*`→`f_*` → selected option `p_*`→`o_*` → positional legacy `p_*`→`a_*` → exports `e_*` → convention headers / docs (mechanical traces only). ~279 `u_*` defs; ~21 option symbols in true CLI parsers; `global()` readonly names are a separate track.
+
+Do **not** confuse:
+
+| Surface | Meaning |
+|---------|---------|
+| `f_*` shell utilities | Code symbol rename |
+| MAKE_TASKS_SHORTER `f` | Make-task abbreviation for function/entry/action — **no** action *variable* prefix |
+| Make runner `e:<entry>` | Logged-runner notation — unrelated to `e_*` exports |
+
+---
+
 ## filename-DSL examples
 
-**Plan-only** grammar (not implemented until accepted). Punctuation SoT: `()` = **wrap**, `.` = **nest**, `[]` = **args**. Full SoT: `changelog/2026/07/24-filename-dsl.md`.
+**Plan-only** grammar (not implemented until accepted). Punctuation SoT: `()` = **wrap**, `.` = **nest**, `[]` = **args**. Full SoT: `changelog/2026/07/24-filename-dsl.md`. Earlier idea `data/ideas/2026/07/23/dsl.md` punctuation is **superseded**.
+
+### Separators (do not conflate)
+
+| Surface | Shape | Role |
+|---------|-------|------|
+| First `-` inside a token | `head-tail`, `o-…`, `b-…` | Intra-token head/tail — **not** a relation |
+| Optional `_` in `$action` | `$subject_$action…` | Soft prefix reading (docs-first; not enforced) |
+| Field `--` | `($field.able.subject)--($field.able.object)` | Field relation → `$action.able.yml` |
+| Triple `--`…`--` | `($triple.able.subject)--($triple.able.predicate)--($triple.able.object)` | Triple relation → `$action.able.yml` |
+
+### Bracket member classification (locked)
+
+1. Starts with `b-` → boolean → shell local `b_*`
+1. Starts with `o-` → option → `o_*`
+1. Else → positional / freeform → `a` / `a_*`
+
+**Slot** lives on `*.hook.yml` definitions — never `…[slot]` in filename stems.
+
+### MAKE_TASKS_SHORTER (proposed)
+
+| Key | Expansion | Variable prefix |
+|-----|-----------|-----------------|
+| `arg` | argument | `a` / `a_` |
+| `o` | option | `o_` |
+| `b` | boolean | `b_` |
+| `f` | function / entry / action | **none** |
+| `llv-get` / `llv-set` | `log.level_get` / `log.level_set` | none (action synonyms) |
+
+Wire into the same synonym / make-shortening surface as `ASC_SYNONYMS` when implementing.
 
 Realistic stems under any `$subject/` (DSL hooks sit **directly under `$subject/`**):
 
 ### 1. Simple wrapped source hook
 
 ```text
-$subject/entity_yml[state](p-1).is_default.hook.yml
+$subject/entity_yml[state](a-1).is_default.hook.yml
 ```
 
 | Fragment | Reading |
@@ -481,7 +543,7 @@ test.assert(log.level_set[debug]).hook.sh
 |-----------|--------|-----------------|
 | Wrap | `foo(bar)` | `wrap` |
 | Nest | `foo.bar` | `nest` |
-| Args | `foo[bar]`, `foo[b-oneline]`, `foo[bar,o-x]` | positional / `b-*` / `o-*` → `p_` / `b_` / `o_` |
+| Args | `foo[bar]`, `foo[b-oneline]`, `foo[bar,o-x]` | positional / `b-*` / `o-*` → `a`/`a_*` / `b_` / `o_` |
 | Field | `($field.able.subject)--($field.able.object)` | via `$action.able.yml` |
 | Triple | `($triple.able.subject)--($triple.able.predicate)--($triple.able.object)` | via `$action.able.yml` |
 
@@ -499,9 +561,9 @@ Loader policy (planned): try `*.$ASC_SHELL.(opt-)inc.sh` if present; else unqual
 ```text
 foo(bar)              → wrap
 foo.bar               → nest
-foo[bar]              → positional arg  → p_
+foo[bar]              → positional arg  → a / a_
 foo[b-oneline]        → boolean         → b_
-foo[bar,o-option]     → option | arg    → o_ / p_
+foo[bar,o-option]     → option | arg    → o_ / a_
 retention-5m          → first '-' head|tail (intra-token)
 db_dump.sh            → optional '_' prefix reading (docs/convention; not enforced)
 ```
@@ -512,24 +574,24 @@ When the plan is accepted and wired, living pages ([organization.md](organizatio
 
 ## proposed DSL redesign (README)
 
-**Status:** competing proposal from root README § Current status — **not** accepted. Until a changelog supersedes `changelog/2026/07/24-filename-dsl.md`, the locked punctuation above (`()` wrap, `[]` args, `p_`/`o_`/`b_`) remains SoT.
+**Status:** competing proposal from root README § Current status for **punctuation** and **boolean** tokens — **not** accepted for those. Positional prefix is **`a` / `a_*`** (locked with naming + filename-DSL plans). Until a changelog supersedes `changelog/2026/07/24-filename-dsl.md` punctuation, locked shape remains `()` = wrap, `[]` = args, `b-*` / `b_`.
 
-Proposed changes:
+Proposed changes still under review:
 
 | Locked (plan) | Proposed (README) |
 |---------------|-------------------|
 | `()` = wrap, `[]` = args | **Invert** `(` and `[` |
-| positional → `p_` / `p-1` | positional → `a` / `a-1` |
+| positional → `a` / `a-1` / `a_*` | *(same — already locked)* |
 | boolean → `b-*` / `b_` | boolean → `bo-*` / `bo_` |
 | option → `o-*` / `o_` | option → `o-*` / `o_` (same letter) |
 
 Filename-safe example:
 
 ```text
-# locked plan shape
+# locked plan shape (positional token a-1)
 test-is[either](slot.slug[-],slot.slug[_])
 
-# proposed shape
+# proposed punctuation invert (still review)
 test(a-1).is-either(slug(a-1,-),slug(a-1,_))
 ```
 

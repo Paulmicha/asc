@@ -5,7 +5,7 @@
 | **Date** | 2026-07-24 |
 | **Status** | plan / review (not implemented; multi-shell groundwork WIP on branch) |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — filename grammar for subjects, actions, hooks, wraps; matching runtime actions; MAKE_TASKS_SHORTER abbreviations; **shell-agnostic runtime** (`ASC_SHELL`; multi-shell `inc` / `opt-inc` loaded by a **single dedicated include-loader hook**); primordial layout under `asc/asc/`; **tests as first-class deliverables** (shunit2 / `make test-asc`; cases may themselves be nest/wrap DSL steps); **Cursor rules** so agent-produced ASC edits respect all locked naming conventions; **living-docs pass** (ASC `docs/asc/**` + home `~/docs/next-steps.md`) as an explicit plan deliverable; **`$`-prefixed documentation notation** for make entry points (**`$subject` sole exception:** slugified string **or** hook DSL on `*.hook.yml` / `*.hook.sh`) |
-| **Related** | Prior idea `data/ideas/2026/07/23/dsl.md` (**syntax superseded** by this plan); `data/ideas/2026/07/23/wrappers-nest-bridges.md`; `data/ideas/2026/07/23/genericity-taxonomy.md`; `docs/asc/organization.md` (subjects/actions/hooks); `docs/asc/wrappers.md`; `docs/asc/archive/hooks.md`; naming plan `changelog/2026/07/23-f-e-naming-convention.md` (`p_` / `o_` / `f_*`); WIP on `naming-convention-changelog`: `648a4d7` (begin multi shell), `8f3faa8` (utilities → `asc/asc/`), `f971316` (**final primordial layout**: eager `*.inc.sh` core + `asc/asc/utils/*.opt-inc.sh`) |
+| **Related** | Prior idea `data/ideas/2026/07/23/dsl.md` (**syntax superseded** by this plan); `data/ideas/2026/07/23/wrappers-nest-bridges.md`; `data/ideas/2026/07/23/genericity-taxonomy.md`; `docs/asc/organization.md` (subjects/actions/hooks); `docs/asc/wrappers.md`; `docs/asc/archive/hooks.md`; naming plan `changelog/2026/07/23-f-e-naming-convention.md` (`a_` / `o_` / `f_*`); WIP on `naming-convention-changelog`: `648a4d7` (begin multi shell), `8f3faa8` (utilities → `asc/asc/`), `f971316` (**final primordial layout**: eager `*.inc.sh` core + `asc/asc/utils/*.opt-inc.sh`) |
 | **Lifecycle** | Local review stub: `data/plans/review/2026-07-24-filename-dsl.md` (dir mostly gitignored — **this changelog is the tracked SoT**, same pattern as `23-f-e-naming-convention.md`). Move stub across `review` → `iterate` → `accepted` / `rejected` per `data/ideas/2026/07/23/idea-changelog-workflow.md`. |
 
 ---
@@ -35,7 +35,7 @@ The same filename / include surface must stay **shell-generic**: today’s defau
 
 1. Define a **filename grammar** for ASC DSL fragments used in paths under any `$subject/` (DSL hook stems directly under `$subject/`, not `$subject/$action/`).
 2. Bind each construct to a **matching action** name and semantics.
-3. Align **MAKE_TASKS_SHORTER** abbreviations (`arg`, `o`, `b`, `f`, plus illustrative `llv-get` / `llv-set`) with synonyms and **variable prefixes** (`p_` / `o_` / `b_` / none for actions).
+3. Align **MAKE_TASKS_SHORTER** abbreviations (`arg`, `o`, `b`, `f`, plus illustrative `llv-get` / `llv-set`) with synonyms and **variable prefixes** (`a_` / `o_` / `b_` / none for actions).
 4. Require that **`$action` files are explicitly created** (including when generated under `data/asc`) — no invisible “function-only” actions.
 5. Leave room for **smart YAML defaults** (`*.hook.yml`) with future `asc.extendable` / `asc.overridable` knobs; **`slot` lives in the YAML hook definition** (not in the filename-DSL stem).
 6. Express **relations / fields** in the filename DSL with the **locked complete mapping** below; resolve via `$action.able.yml` to `$subject.$action`; keep distinct from the first-`-` intra-token split.
@@ -286,7 +286,7 @@ Proposed shortening map entries (name illustrative; wire into the same synonym /
 
 | Key | Expansion | Synonyms | Variable prefix |
 |-----|-----------|----------|-----------------|
-| `arg` | argument | positional arg, positional argument | `p_` |
+| `arg` | argument | positional arg, positional argument | `a` / `a_` |
 | `o` | option | option, optional arg, optional argument | `o_` |
 | `b` | boolean | boolean arg, boolean option, boolean flag | `b_` |
 | `f` | function | entry point, action (workflow-equivalent) | **none** |
@@ -297,9 +297,9 @@ Proposed shortening map entries (name illustrative; wire into the same synonym /
 
 | Class | Prefix | Rule |
 |-------|--------|------|
-| Argument (positional / freeform) | `p_` | Shell locals / params for DSL positionals (aligns with naming plan + organization ideas). |
+| Argument (positional / freeform) | `a` / `a_` | Shell locals / params for DSL positionals (aligns with naming plan + organization ideas). |
 | Option | `o_` | Shell locals / params for `o-*` DSL options (aligns with `changelog/2026/07/23-f-e-naming-convention.md`). |
-| Boolean | `b_` | Shell locals / params for `b-*` DSL boolean args / flags (same local-param pattern as `p_` / `o_`). |
+| Boolean | `b_` | Shell locals / params for `b-*` DSL boolean args / flags (same local-param pattern as `a_` / `o_`). |
 | Function / entry point / action | *(none)* | Do **not** invent a `f_` *variable* prefix for actions. From a workflow standpoint, “function”, “entry point”, and “action” name the **same operable unit**. |
 
 ### Explicit `$action` files (hard rule)
@@ -407,7 +407,7 @@ Paths are illustrative; exact lookup roots stay `asc/`, extensions, contrib, ext
 ### 1. Simple wrapped source hook (custom shell)
 
 ```text
-$subject/entity_yml[state](p-1).is_default.hook.yml
+$subject/entity_yml[state](a-1).is_default.hook.yml
 ```
 
 - `source(code)` → **wrap** (`source` wraps `code`).
@@ -510,7 +510,7 @@ Parser / runtime fixtures in Phase 1–2 must include at least: one nest-only te
 | `*.hook.sh` / `hook -c yml` | Suffix `.hook.sh` vs `.hook.yml` chooses impl style; DSL is the *stem*. |
 | `*.wrap.sh`, logged wrappers `lt`/`ll`/… | `foo(bar)` **wrap** should resolve toward wrap scripts / make wrap stacks. |
 | Nested subjects / `.asc_subjects_ignore` | `foo.bar` **nest** should map toward nest/nested-extension semantics (`docs/asc/wrappers.md` § nested). |
-| `p_` / `o_` / `b_` naming | Bracket positionals → `p_*`; `o-*` → `o_*`; `b-*` → `b_*`. |
+| `a_` / `o_` / `b_` naming | Bracket positionals → `a` / `a_*`; `o-*` → `o_*`; `b-*` → `b_*`. |
 | `data/asc/` generated state | May generate files; still must materialize explicit `$action` artifacts. |
 | Variant dotted hooks today (`init.local.dev.hook.sh`) | Remain valid; DSL adds `()`, `[]`, and richer stems — precedence vs pure variant dots is an open task. |
 | First `-` (not same-word `_`) | Compound head/tail via **first hyphen** position inside tokens; superseded idea’s “same word separator : `_`” is **not** adopted. Distinct from relation `--` between `(…)` able members. |
@@ -544,7 +544,7 @@ Parser / runtime fixtures in Phase 1–2 must include at least: one nest-only te
 - [x] Freeze **`ASC_SHELL`** default (`bash`) and YAML key sketch (`asc.shell`) — export wiring still TODO.
 - [x] Freeze **primordial layout** (`f971316`): `asc/asc/*.inc.sh` eager core + `asc/asc/utils/*.opt-inc.sh`; `core` not `asc` for the core include file.
 - [x] Freeze **slot** home: YAML hook definition (`*.hook.yml`) — not filename-DSL bracket payload (`…[slot]` superseded).
-- [x] Freeze **boolean** class: `b-` tokens in `[]`; MAKE_TASKS_SHORTER `b` → boolean; variable prefix **`b_`** (parallel to `p_` / `o_`).
+- [x] Freeze **boolean** class: `b-` tokens in `[]`; MAKE_TASKS_SHORTER `b` → boolean; variable prefix **`b_`** (parallel to `a_` / `o_`).
 - [x] Freeze **first `-` separator policy:** no same-word `_` rule; head/tail from position of the first hyphen (intra-token only).
 - [x] Freeze **optional `_` prefix in `$action` naming:** `_`-separated leading segment **can** (not enforced) mean `$subject` / `$object` `_` `$action` `. (variants)? . (hook|inc|opt-inc)? . sh`; **position matters**; does **not** revive same-word `_`; first `-` keeps positional head/tail; **not** a relation / not a replacement for `--` able forms. See [Optional `_` prefix in `$action` naming](#optional-_-prefix-in-action-naming-locked-intent--not-enforced).
 - [x] Freeze **remote-family / peer-subject `_` elaboration as demoted:** `remote_db` / `remote_asc` / `remote_traefik` are historical peer-ID notes only — not the locked optional-`_` SoT. See [Historical / peer-subject note](#historical--peer-subject-note-demoted--not-the-locked-_-sot).
@@ -586,7 +586,7 @@ Agents editing ASC docs **must** use `$subject` / `$action` / `$field…` / `$tr
 **Still enforce via those rules (keep thin; amend bullets only when Phase 0/0b locks change):**
 
 - Filename DSL punctuation: `()` = **wrap**, `.` = **nest**, `[]` = **args**; `b-*` / `o-*` / positional; **slot** ∈ `*.hook.yml` only.
-- Variable prefixes: `p_` / `o_` / `b_`; no `f_` *variable* prefix for actions. Symbols: `f_*` / `e_*` / `hookms` per naming-convention plan.
+- Variable prefixes: `a_` / `o_` / `b_`; no `f_` *variable* prefix for actions. Symbols: `f_*` / `e_*` / `hookms` per naming-convention plan.
 - Separators: first `-`; optional `_` `$action` prefix (not a relation); relations via `$`-prefixed able forms → `$action.able.yml`.
 - Includes: bash unqualified default+fallback; `*.$ASC_SHELL.(opt-)inc.sh`; single include-loader hook; primordial `asc/asc/*.inc.sh` + `utils/*.opt-inc.sh`.
 - Explicit `$action` files; `make test-asc` only; home tip `cwt.mdc`→`asc.mdc` is separate.
@@ -648,7 +648,7 @@ Writing tests is a **required deliverable of this phase**, not deferred to “ve
 ### Phase 2 — Runtime matching actions (+ keep tests green)
 
 - [ ] Implement or map to existing `wrap` / nest helpers.
-- [ ] Bind bracket members to `p_*` / `o_*` / `b_*` in calling scope (booleans parallel to options/positionals).
+- [ ] Bind bracket members to `a_*` / `o_*` / `b_*` in calling scope (booleans parallel to options/positionals).
 - [ ] Ensure make/task shortening understands `arg` / `o` / `b` / `f` **and** illustrative `llv-get` / `llv-set` ↔ `log.level_*` synonyms.
 - [ ] Extend Phase 1 shunit2 cases with runtime smoke for nest/wrap resolution (still `asc/test/asc/*.test.sh`).
 
@@ -743,14 +743,14 @@ Writing tests is a **required deliverable of this phase**, not deferred to “ve
 #   Cursor: .cursor/rules/doc-notation.mdc + naming.mdc
 # PATH: DSL hook stems under $subject/ (not $subject/$action/)
 #   $subject/lt(agent…).start.hook.(sh|yml)
-#   $subject/entity_yml[state](p-1).is_default.hook.yml
+#   $subject/entity_yml[state](a-1).is_default.hook.yml
 #   ordinary non-DSL actions may still be $subject/$action…
 
 foo(bar)                         → wrap
 foo.bar                          → nest
-foo[bar]                         → arg(*) freeform / positional  → p_
+foo[bar]                         → arg(*) freeform / positional  → a / a_
 foo[b-oneline]                   → boolean(b-*)                  → b_
-foo[bar,o-option-bar]            → option(o-*) | arg(*)          → o_ / p_
+foo[bar,o-option-bar]            → option(o-*) | arg(*)          → o_ / a_
 foo[a,b-flag,o-x]                → arg(*) | b-* | o-*            → ordered mix
 retention-5m / instance-giw      → first '-' splits head | tail  (no same-word '_' rule)
 db_dump / remote_sync.hook.sh    → optional '_' prefix in $action (position matters, not enforced):
@@ -771,7 +771,7 @@ assert(llv-set[debug])           → wrap(assert, arg(llv-set, debug))
 ll(log.level_set[info])          → wrap(ll, nest+arg(log.level_set[info]))
 
 MAKE_TASKS_SHORTER:
-  arg     → argument (p_)
+  arg     → argument (a / a_)
   o       → option   (o_)
   b       → boolean  (b_)
   f       → function / entry point / action  (no var prefix; explicit $action file)

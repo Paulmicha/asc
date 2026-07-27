@@ -22,7 +22,21 @@ Stabilization order (from root README TODO):
 1. Complete baseline implementations
 1. Implement agents (Cursor MVP first; later Hermes + ollama + kimi ?, open)
 
-Also open: drop submodule declarations via `.asc_extensions` because of `$object` path shapes; discovery must support both `$subject`/`$action` and `$subject`/`$object`/`$action` (agnostic stance — see [organization.md](organization.md) § subjects).
+Also open: discovery must support both `$subject`/`$action` and `$subject`/`$object`/`$action` (agnostic stance — see [organization.md](organization.md) § subjects). Nested extensions: plan SoT is `$subject/.asc_extensions` (`24-subject-asc-extensions.md`); README tension about dropping that mechanism stays open until a changelog decides.
+
+## July 2026 plan SoTs (review — not go-ahead)
+
+Dated plans under `changelog/2026/07/` that living docs compile from:
+
+| Plan | Living home |
+|------|-------------|
+| [`23-f-e-naming-convention.md`](../../changelog/2026/07/23-f-e-naming-convention.md) | [shell-usage.md](shell-usage.md) § symbol prefixes; [organization.md](organization.md) § globals (`a` / `a_*` positionals; `e_*` / `hookms`) |
+| [`24-filename-dsl.md`](../../changelog/2026/07/24-filename-dsl.md) | [shell-usage.md](shell-usage.md) § filename-DSL; [organization.md](organization.md) § bootstrap / hooks; [documentation.md](documentation.md) § `$` notation |
+| [`24-subject-asc-extensions.md`](../../changelog/2026/07/24-subject-asc-extensions.md) | [organization.md](organization.md) § subjects; [wrappers.md](wrappers.md) § nested |
+| [`24-yml-structure.md`](../../changelog/2026/07/24-yml-structure.md) | [yml-structure.md](yml-structure.md) |
+| Root README § Current status | Compiled across org / entities / builder / shell-usage — see [`26-living-docs-readme-status.md`](../../changelog/2026/07/26-living-docs-readme-status.md) |
+
+`23-initial-changelog.md` is empty (placeholder).
 
 Table of contents :
 
@@ -75,6 +89,7 @@ Table of contents :
     1. [state able (git draft)](yml-structure.md#state-able-git-draft)
     1. [subject inventory](yml-structure.md#subject-inventory)
     1. [repo entity (git draft)](yml-structure.md#repo-entity-git-draft)
+    1. [primordial meta (Wave B draft)](yml-structure.md#primordial-meta-wave-b-draft)
     1. [open / living](yml-structure.md#open--living)
 1. [builder](builder.md)
     1. [documenting (~ minimal OKF ? dedicated core extension ?)](builder.md#documenting-minimal-okf-dedicated-core-extension)
@@ -101,6 +116,7 @@ Table of contents :
     1. [scope](shell-usage.md#scope)
     1. [walk arrays](shell-usage.md#walk-arrays)
     1. [step by step](shell-usage.md#step-by-step)
+    1. [symbol prefixes (f_ / e_ / o_ / a_ / b_ / hookms)](shell-usage.md#symbol-prefixes-f_--e_--o_--a_--b_--hookms)
     1. [filename-DSL examples](shell-usage.md#filename-dsl-examples)
     1. [proposed DSL redesign (README)](shell-usage.md#proposed-dsl-redesign-readme)
     1. [parsable stdout (asc-dsl / asc-yml)](shell-usage.md#parsable-stdout-asc-dsl--asc-yml)

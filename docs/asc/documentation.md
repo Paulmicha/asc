@@ -50,8 +50,10 @@ Example: `changelog/2026/07/17-implement-new-ollama-subject.md`.
 |-------|----------|
 | Scope | One topic per file; status + context + what changed + open tasks |
 | SoT | Changelogs win for “what we decided / shipped on a date” |
-| Living docs | Prefer linking here rather than duplicating long history |
+| Living docs | Prefer linking here rather than duplicating long history; **compile** locked intent into [living](#living) pages |
 | Time-stamped artifacts | Runtime traces use `data/<name>/YYYY/MM/DD/HH.MM.SS.MS.<file>.md` — different from changelog naming |
+
+**July 2026 plan pack** (status = plan / review unless noted): naming (`23-f-e-naming-convention.md`), filename-DSL (`24-filename-dsl.md`), nested `.asc_extensions` (`24-subject-asc-extensions.md`), YAML bodies (`24-yml-structure.md`). Index + living homes: [README.md](README.md) § July 2026 plan SoTs.
 
 Project instances may keep a root `changelog/` (optional). Upstream ASC history that matters to consumers is summarized in living docs; detailed fork/cutover narratives stay in dated changelog entries in the consuming repo.
 
@@ -70,8 +72,8 @@ Always-current explanation of how ASC works **now**.
 Living docs should be:
 
 1. **Structured** — H1 + TOC + H2 sections matching [README.md](README.md).
-2. **Compiled** — synthesize sources (including root README § Current status); do not leave raw extract dumps as the reader path.
-3. **Honest about gaps** — mark open questions and stubs instead of inventing behavior; mark competing proposals vs locked plans (e.g. DSL punctuation).
+2. **Compiled** — synthesize sources (root README § Current status **and** dated `changelog/` plans); do not leave raw extract dumps as the reader path.
+3. **Honest about gaps** — mark open questions and stubs instead of inventing behavior; mark competing proposals vs locked plans (e.g. README DSL invert vs `24-filename-dsl.md`).
 4. **Polished like code** — polish prose the same way you polish implementation (clarity, typography, consistent terms). Naming is the hard problem; living docs are part of solving it.
 
 ### `$` notation (docs vocabulary)

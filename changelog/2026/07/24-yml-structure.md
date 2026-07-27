@@ -137,7 +137,7 @@ Wave B iterated hard in one afternoon: started as rich `contract.able.yml` + `ym
 | `asc/extensions/entity/entity/entity.entity.yml` | **Primordial entity** root: `include: asc.yml`; under `entity:` — ability whitelist (`is`/`access`/`include`/`field`/…/`contract: '*'`) + `required` / `optional` field/prop defaults. |
 | `asc/asc/contract.entity.yml` | Contract entity stub: `rules: { todo: TODO }` (body emptied after migrate-out). |
 | `asc/asc/able.able.yml` | Primordial **able** definition: `include: [contract.entity]` — common inheritance for all `*.able.yml`. |
-| `asc/asc/wrap.able.yml` | Core wrap able: `wrap.required.prop.wrapper.validate: test-file-exists(p-1)`. |
+| `asc/asc/wrap.able.yml` | Core wrap able: `wrap.required.prop.wrapper.validate: test-file-exists(a-1)`. |
 | `asc/git/acp/wrap.able.yml` | Subject/nested wrap able: `wrap.add` with `synonym: a` + `default.value: .`. |
 
 ### Current draft bodies (HEAD)
@@ -191,7 +191,7 @@ entity:
   required:
     field:
       type:
-        validate: test-entity[type](p-1)
+        validate: test-entity[type](a-1)
   optional:
     prop:
       - include
@@ -221,7 +221,7 @@ wrap:
   required:
     prop:
       wrapper:
-        validate: test-file-exists(p-1)
+        validate: test-file-exists(a-1)
 ```
 
 ```yaml
@@ -257,7 +257,7 @@ wrap:
 - `contract.entity.yml` is a TODO stub — where do real `rules` live after the migrate-out?
 - Ability whitelist key naming: early drafts used `freeform` / `operation` / `rule`; HEAD uses flat `entity:` children + `contract: '*'`.
 - Synonym key spelling: HEAD `skill` vs earlier `sk`; `capacity` deliberately commented out.
-- `validate:` / `test-…` DSL is exploratory (several spellings in history: `one.of[…]`, `test.has(…)`, `test-not-empty`, `test-entity[type](p-1)`, `test-file-exists(p-1)`).
+- `validate:` / `test-…` DSL is exploratory (several spellings in history: `one.of[…]`, `test.has(…)`, `test-not-empty`, `test-entity[type](a-1)`, `test-file-exists(a-1)`).
 - `default.val` vs `default.value` inconsistency (entity optional vs wrap add).
 - How Wave A files (`git.able.yml`, `state.able.yml`, `repo.entity.yml`) should `include` into this chain is unset.
 - No loader / merge / override runtime wired to these files yet (empty `asc/yml/{parse,merge,extend}.sh` stubs exist nearby — out of scope until accepted).
@@ -362,7 +362,7 @@ able.able.yml        → include contract.entity  (all *.able inherit)
 10. **Inheritance spine:** freeze `asc.yml` → `entity.entity` → `contract.entity` → `able.able` as the locked chain, or keep experimenting?
 11. **Where do contract `rules` live** now that `contract.entity.yml` is a TODO stub? Back into entity? Separate `*.contract.yml` kind?
 12. **Ability whitelist home:** keep under primordial `entity:` (HEAD), or return nearer to contract / able meta?
-13. **`validate:` DSL:** pick one spelling family before more drafts (`test-entity[type](p-1)` vs older `one.of[…]` / `at_least[…]` forms).
+13. **`validate:` DSL:** pick one spelling family before more drafts (`test-entity[type](a-1)` vs older `one.of[…]` / `at_least[…]` forms).
 14. **`default.val` vs `default.value`:** unify under synonym table (`val` ↔ `value`), or pick one?
 15. **`*.yml.yml` file kind:** keep as meta registry only, or allow other double-suffix kinds?
 16. **Wrap body:** is `wrap.required` / `wrap.add` the locked wrap-able shape? How does nested `git/acp/wrap.able.yml` merge with core `asc/wrap.able.yml`?

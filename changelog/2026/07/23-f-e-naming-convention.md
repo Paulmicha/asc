@@ -23,7 +23,7 @@ Today:
 
 - Utilities are prefixed `u_*` (historical CWT-era “utility”).
 - Exported runtime / wrap vars are mostly unprefixed `ASC_*` (plus a few others) via bare `export NAME=…`.
-- CLI option storage often reuses the **`p_*`** prefix (same prefix as positional / function args), which blurs the planned distinction `p_` = positional vs `o_` = options.
+- CLI option storage often reuses the **`p_*`** tip prefix (legacy name shared with tip positionals), which blurs the planned distinction `a` / `a_*` = positional vs `o_` = options (tip still uses legacy `p_*` for both).
 
 Ideas and living docs already sketch a stricter prefix scheme; this changelog turns **functions**, **exported variables**, and **CLI option variables** into an actionable migration plan — including **file-header / code comments and living docs** that still describe the old conventions (e.g. “prefixed by `u` for utility”).
 
@@ -107,7 +107,7 @@ while [[ $# -gt 0 ]]; do
 done
 ```
 
-In that example, every `p_ascii_*` assigned in `-o)` … `-r)` arms becomes `o_ascii_*`. The `*)` branch must **not** drive renaming of unrelated positional `p_*` vars.
+In that example, every `p_ascii_*` assigned in `-o)` … `-r)` arms becomes `o_ascii_*`. The `*)` branch must **not** drive renaming of unrelated positional tip `p_*` vars (target `a_*`).
 
 **Also rename** declarations, YAML-seed assignments, later reads, and docs for those same option symbols (once identified as option-driven) — not only the `case` arm lines.
 
@@ -115,7 +115,7 @@ In that example, every `p_ascii_*` assigned in `-o)` … `-r)` arms becomes `o_a
 
 | Prefix / class | Current use | This plan |
 |----------------|-------------|-----------|
-| `p_*` (positional / function args) | ~215 unique names; `local p_foo="$1"` everywhere | **Leave alone** unless a symbol is also proven option-driven (then it becomes `o_*`) |
+| `a` / `a_*` (positional / function args) | Tip still ~215 legacy `p_*` names (`local p_foo="$1"`); target prefix **`a` / `a_*`** | **Leave alone** during option→`o_*` pass unless proven option-driven (then `o_*`); later rename remaining positionals `p_*`→`a_*` |
 | `o_*` | Planned options; **0** uses today | Target prefix for option storage |
 | `FOOBAR` / `global NAME` | Readonly instance globals via `global()` | Separate track — not the same as bare `export` |
 | `foobar` locals | Unprefixed locals | Leave alone |
@@ -246,7 +246,7 @@ Those need an explicit decision (see open questions) and are **not** covered by 
 
 **Positional / non-option in the same loops (do NOT → `o_`):**
 
-| Symbol | Why stay `p_*` (or otherwise not option-prefix) |
+| Symbol | Why stay positional-class (target `a_*`; tip name may still be `p_*`) |
 |--------|--------------------------------------------------|
 | `p_targets` (transcription) | Filled in the `*)` branch as unnamed args: `p_targets+="${p_targets:+ }$1"` |
 | `*)` arms that only `shift` / error (instance init, hook) | No option storage |
@@ -270,7 +270,7 @@ File-header convention lines and **README / living-doc** mentions of old symbols
 |---------|--------------:|-------|
 | `# Convention : functions names are all prefixed by "u" (for "utility").` (and close variants) | **26 files** | Near-identical boilerplate on `*.inc.sh` / utilities / contrib / **builder template** |
 | Markdown with `\bu_*\b` (excl. this changelog) | **~15 files**, **~71** hit lines | READMEs + `docs/asc/**` (+ sparse ideas) — see list below |
-| Idea stubs mentioning `u_*`→`f_*`, `p_`/`o_`/`c_`/`e_` | **2+** | Same mechanical rule; no editorial rewrite |
+| Idea stubs mentioning `u_*`→`f_*`, `a_`/`p_`/`o_`/`c_`/`e_` | **2+** | Same mechanical rule; no editorial rewrite |
 | Explicit `p_*` / export convention comments in shell | **Sparse** | Transcription “same `p_*` contract” — replace option symbols with `o_*` only where those symbols rename |
 
 #### READMEs + living docs with `u_*` traces (inventory)
@@ -316,7 +316,7 @@ New:
 # - functions : prefix "f_", snake_case (e.g. f_fs_relative_path); exception: hookms (was u_hook_most_specific)
 # - exported vars : prefix "e_" (e.g. e_ASC_THREAD_ENTRY)  # if Phase 3 done
 # - CLI option / flag vars : prefix "o_" (from -flag) case arms)
-# - positional / function args : prefix "p_" (unchanged)
+# - positional / function args : prefix "a" / "a_" (tip may still show legacy p_*)
 ```
 
 Tune the export line to match Phase 0 decisions (stem shape / stacking).
@@ -383,7 +383,7 @@ Steps:
    - `case` arms
    - later conditionals / comments
 3. Leave `p_targets` and every non-allowlisted `p_*` untouched.
-4. Update comments that say “same `p_*` contract” (transcription) to `o_*` / `p_targets` as appropriate.
+4. Update comments that say “same `p_*` contract” (transcription) to `o_*` / tip `p_targets` (→ `a_targets`) as appropriate.
 
 ### Phase 3 — Exports: `export NAME=` → `export e_NAME=` (+ consumers)
 
@@ -399,7 +399,7 @@ Steps:
 
 ### Phase 4 — Convention comments, READMEs, living docs, and templates
 
-**Purpose:** clear renaming-related traces so docs/comments match `f_` / `e_` / `o_` / `p_` / `hookms` after symbol migration. **Required**, not optional polish.
+**Purpose:** clear renaming-related traces so docs/comments match `f_` / `e_` / `o_` / `a_` / `hookms` after symbol migration. **Required**, not optional polish.
 
 #### Hard rule — no prose rephrase (READMEs + living docs)
 
@@ -414,8 +414,8 @@ Steps:
 
 - [ ] Replace all **26** shell `# Convention : … prefixed by "u"` headers with the new `f_` + snake_case convention statement (user example above).
 - [ ] Update **builder template** `asc/extensions/builder/templates/asc/subject.inc.tpl.sh` the same way.
-- [ ] Optionally expand those **shell** headers to mention `e_` / `o_` / `p_` once those migrations are in (code comments only).
-- [ ] In shell transcription comments: replace renamed option symbols (`p_input_dir` → `o_input_dir`, etc.); leave positional `p_targets`; do not rewrite unrelated comment prose.
+- [ ] Optionally expand those **shell** headers to mention `e_` / `o_` / `a_` once those migrations are in (code comments only).
+- [ ] In shell transcription comments: replace renamed option symbols (`p_input_dir` → `o_input_dir`, etc.); leave positional tip `p_targets` (target `a_targets`); do not rewrite unrelated comment prose.
 - [ ] **READMEs + living docs** (paths in inventory above): mechanical `\b` symbol replace + convention-statement token fixes only — including root `README.md`, `docs/asc/**`, `asc/extensions/README.md`, `data/asc/README.md`.
 - [ ] `docs/asc/organization.md` naming bullet: replace stale prefix names (`u_*`→`f_*`, `c_foobar`→`e_…` per Phase 0) **in place**; do not rewrite the rest of the section.
 - [ ] Idea stubs: same mechanical rule if they name old symbols; do not expand into new essays.
@@ -428,7 +428,7 @@ Steps:
 | Functions | `must` + `` `f_` `` + `snake_case` (shell header user example) |
 | Exports | `` `e_` `` (after Phase 3; decided stem) |
 | Options | `` `o_` `` for `-flag)`-driven vars |
-| Positionals | `` `p_` `` unchanged |
+| Positionals | `` `a` `` / `` `a_*` `` (from legacy tip `p_*`) |
 | Most-specific hook | `` `hookms` `` (never `f_hook_most_specific`) |
 
 **False positives:** do not touch unrelated “convention” comments (DB_ID prefixes, `*_C`, hook pre/post, compose networks). Do not “improve” documentation while passing through.
@@ -497,9 +497,9 @@ Then for each allowlisted `p_NAME` → `\bp_NAME\b` → `o_NAME` **within the ow
 | Edge | Guidance |
 |------|----------|
 | Same symbol seeded from YAML **and** CLI (`p_ascii_*`) | Still option-class storage → **`o_ascii_*`** (both paths write the same knobs) |
-| `p_targets` in `*)` | **Keep `p_targets`** (positional list) |
+| tip `p_targets` in `*)` | Keep positional-class (**not** `o_*`); target name **`a_targets`** |
 | `export p_input_dir …` | Rename to `o_*` in Phase 2; decide `e_` stacking in Phase 3 |
-| Docs saying “`p_*` contract” for transcribe | In shell comments: replace renamed option ids only; keep `p_targets` |
+| Docs saying “`p_*` contract” for transcribe | In shell comments: replace renamed option ids only; keep positional tip `p_targets` (→ `a_targets`) |
 
 ### Exports
 
@@ -577,7 +577,7 @@ grep -RhnE '^[[:space:]]*export[[:space:]]+(?!e_)[A-Za-z_][A-Za-z0-9_\-]*=' --in
 grep -RhnE '^[[:space:]]+-[^)]*\)[[:space:]]*[^;]*\bp_[A-Za-z0-9_]+\b' --include='*.sh' asc scripts
 # expect empty (or only documented exceptions)
 
-# Positional transcription target still p_ (not o_)
+# Positional transcription target still positional-class (tip p_targets; target a_targets — not o_)
 grep -RhnE '\bp_targets\b' --include='*.sh' asc/extensions/transcription
 
 # Blind p_ wipe must NOT have happened — many p_* remain
@@ -628,7 +628,7 @@ grep -RhnE '\bu_hook_most_specific\b|\bf_hook_most_specific\b' --include='*.md' 
 | Export rename without consumers → empty wrap metadata | High | Same-commit rename of readers/writers |
 | **Blind `p_*`→`o_*`** | **Critical** | Would break ~215 positional params; allowlist-only |
 | Missing rename of YAML-seed path for `p_ascii_*` | Medium | Same symbols must flip everywhere in `u_instance_init` |
-| Renaming `p_targets` by mistake | Medium | Explicit deny; verify with grep |
+| Renaming tip `p_targets` into `o_*` by mistake | Medium | Explicit deny for option pass; positional rename is `a_targets` |
 | Breaking external projects that copy older ASC and call `u_*` | Medium | Semver / changelog callout; this is a breaking API change |
 | Prefixed `GIT_TERMINAL_PROMPT` ignored by git | Medium | Exclude from `e_` |
 | Confusing `e_*` vars with make `e:` entry tokens | Low | Document clearly |
@@ -685,13 +685,13 @@ Do **not** push `--force` to `main`. Feature branch + PR when implementing.
 ## Open tasks (when implementing)
 
 - [ ] Confirm Phase 0 decisions (exports + globals + third-party allowlist + `o_`/`e_` stacking)
-- [ ] Freeze symbol lists (279 functions with **`u_hook_most_specific`→`hookms` exception**; export allow/deny; **~21 option symbols** + deny `p_targets`)
+- [ ] Freeze symbol lists (279 functions with **`u_hook_most_specific`→`hookms` exception**; export allow/deny; **~21 option symbols** + deny option-rename of `p_targets`)
 - [ ] Implement Phase 1 (`u_*` → `f_*`, **`hookms` first**)
 - [ ] Implement Phase 2 (`p_*` option storage → `o_*`, allowlist only)
 - [ ] Implement Phase 3 (`e_*` exports + consumers)
 - [ ] **Phase 4:** 26 `Convention : … "u"` headers (+ builder template); **mechanical** README/`docs/asc/**` symbol + convention-statement fixes (**no rephrase**); transcription option-symbol comments
 - [ ] `make cc` / reinit + `make test-asc` + wrap / init-option / hook-filter smoke
-- [ ] Grep gates clean (symbols + **no stale `prefixed by "u"` headers** + **no `u_*` / `u_hook_most_specific` in README/`docs/asc`** + “many `p_*` remain”); open PR with breaking-change notes
+- [ ] Grep gates clean (symbols + **no stale `prefixed by "u"` headers** + **no `u_*` / `u_hook_most_specific` in README/`docs/asc`** + “many tip `p_*` remain until positional→`a_*`”); open PR with breaking-change notes
 
 ---
 
@@ -707,7 +707,7 @@ Literal `export NAME=` concentrated in:
 - `asc/log/storage.hook.sh`
 - `asc/test/test.inc.sh` / related test helpers (`ASC_TEST_RESULTS*`)
 - `asc/utilities/asc.sh` (dynamic / name-only exports — policy-dependent)
-- `asc/extensions/transcription/**` (exports option + positional `p_*` / later `o_*` — Phase 2/3)
+- `asc/extensions/transcription/**` (exports option + positional tip `p_*` / later `o_*` + `a_*` — Phase 2/3)
 
 ## Appendix B — Option-parser files (for `o_*`)
 
@@ -715,14 +715,14 @@ Literal `export NAME=` concentrated in:
 |------|--------|
 | `asc/instance/instance.inc.sh` | `u_instance_init` — primary user example |
 | `asc/utilities/hook.sh` | `u_hook_most_specific` → **`hookms`** — largest option set; uses `while [ "$#" -gt 0 ]` |
-| `asc/extensions/transcription/instance/transcribe.sh` | options + positional `p_targets` |
+| `asc/extensions/transcription/instance/transcribe.sh` | options + positional tip `p_targets` (→ `a_targets`) |
 | `asc/extensions/transcription/transcribe/all.sh` | same contract |
 
 ## Appendix C — Prior art in-repo
 
-- Idea: `data/ideas/2026/07/18/organization-(globals,subjects,actions,hooks,variants,bootstrap).md` — proposes FOOBAR / p_ / o_ / c_ and questions `u_*`→`f_*`.
+- Idea: `data/ideas/2026/07/18/organization-(globals,subjects,actions,hooks,variants,bootstrap).md` — proposes FOOBAR / positional / o_ / c_ and questions `u_*`→`f_*` (positional prefix SoT is now **`a` / `a_*`**).
 - Living doc: `docs/asc/organization.md` — “Planned naming convention (ideas, not enforced)” including maybe `f_*` and `o_foobar` options.
-- DSL idea (2026-07-23): mentions `e_foobar` scope vars and `f_foobar` functions alongside `p_` / `o_` — consistent with this plan’s `e_`/`f_`/`o_` choice.
+- DSL idea (2026-07-23): mentions `e_foobar` / `f_foobar` alongside positional/option prefixes — align idea `p_` wording to **`a` / `a_*`** when touched; consistent with this plan’s `e_`/`f_`/`o_`/`a_` choice.
 - Repeated shell boilerplate: 26× `# Convention : functions names are all prefixed by "u" (for "utility").` — Phase 4 target.
 - `data/plans/{accepted,iterate,review,rejected}/` — empty placeholders; **changelogs** are the dated decision record (this file).
 
