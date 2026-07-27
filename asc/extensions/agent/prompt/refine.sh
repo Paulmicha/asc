@@ -6,7 +6,7 @@
 # @example
 #   make prompt-refine $(asc/escape.sh 'Hello "world".')
 #   # Or :
-#   asc/instance/prompt_refine.sh 'Hello "world".'
+#   asc/extensions/agent/prompt/refine.sh 'Hello "world".'
 #
 
 . asc/bootstrap.sh

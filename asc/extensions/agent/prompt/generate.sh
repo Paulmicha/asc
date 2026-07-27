@@ -6,7 +6,7 @@
 # @example
 #   make prompt-generate $(asc/escape.sh 'Hello "world".')
 #   # Or :
-#   asc/instance/prompt_generate.sh 'Hello "world".'
+#   asc/extensions/agent/prompt/generate.sh 'Hello "world".'
 #
 
 . asc/bootstrap.sh
