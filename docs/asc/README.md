@@ -115,6 +115,7 @@ Table of contents :
     1. [shell options](shell-usage.md#shell-options)
     1. [scope](shell-usage.md#scope)
     1. [walk arrays](shell-usage.md#walk-arrays)
+    1. [Bash requirement / dash & ash](shell-usage.md#bash-requirement--dash--ash)
     1. [step by step](shell-usage.md#step-by-step)
     1. [symbol prefixes (f_ / e_ / o_ / a_ / b_ / hookms)](shell-usage.md#symbol-prefixes-f_--e_--o_--a_--b_--hookms)
     1. [filename-DSL examples](shell-usage.md#filename-dsl-examples)

@@ -1101,6 +1101,7 @@ Full guide: [docs/asc/testing.md](docs/asc/testing.md).
     1. [shell options](docs/asc/shell-usage.md#shell-options)
     1. [scope](docs/asc/shell-usage.md#scope)
     1. [walk arrays](docs/asc/shell-usage.md#walk-arrays)
+    1. [Bash requirement / dash & ash](docs/asc/shell-usage.md#bash-requirement--dash--ash)
     1. [step by step](docs/asc/shell-usage.md#step-by-step)
     1. [symbol prefixes (f_ / e_ / o_ / p_ / b_ / hookms)](docs/asc/shell-usage.md#symbol-prefixes-f_--e_--o_--p_--b_--hookms)
     1. [filename-DSL examples](docs/asc/shell-usage.md#filename-dsl-examples)

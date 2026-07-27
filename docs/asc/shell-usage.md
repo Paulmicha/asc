@@ -8,6 +8,7 @@ Table of contents :
 1. [shell options](#shell-options)
 1. [scope](#scope)
 1. [walk arrays](#walk-arrays)
+1. [Bash requirement / dash & ash](#bash-requirement--dash--ash)
 1. [step by step](#step-by-step)
     1. [`$subject/$action.sh` entry point](#subjectactionsh-entry-point)
     1. [hooks](#hooks)
@@ -293,6 +294,63 @@ u_array_print dumps_dict   # key=value lines; works for -a and -A
 ```
 
 Synonyms in ASC prose: **associative array** = **dictionary**; **keys** = **props**.
+
+---
+
+## Bash requirement / dash & ash
+
+ASC’s runtime requirement is **Bash 4+** (see root README prerequisites). Scripts that work in ash often run in bash (ash is narrower); the reverse is **not** true — ASC is the reverse case.
+
+A drop-in “run under dash/ash instead of bash” is **not** a shebang swap. The composition model above (arrays, `BASH_SOURCE`, sourced wraps) is bash-native.
+
+### Scale (order of magnitude, ~2026-07 survey)
+
+| Signal | Scale |
+|--------|--------|
+| `*.sh` | ~617 files / ~32k LOC |
+| Bash shebang (`#!/usr/bin/env bash`) | ~490 |
+| `[[ … ]]` | ~1.2k hits / ~159 files |
+| `local` | ~1.5k hits / ~103 files |
+| Arrays (`=()`, `${arr[@]}`, …) | dozens of files; core path |
+| `BASH_SOURCE` | ~240 hits (bootstrap caller → phase 90 opt-inc) |
+| `BASH_REMATCH` / `=~` | tens of hits |
+| Assoc arrays / namerefs | present in core (hooks, yml, arr utils) |
+
+Critical path alone (bootstrap + `asc/asc/*.inc.sh` + arr utils + make/yml helpers) is on the order of **~4k LOC**.
+
+### Hard blockers (not mechanical)
+
+1. **Arrays** — indexed + associative walks are first-class (see [walk arrays](#walk-arrays)). Dash/ash have no real arrays; alternatives are IFS strings, temp files, or eval-based faux arrays, plus call-site rewrites.
+2. **`BASH_SOURCE`** — bootstrap phase 90 depends on it (`asc/bootstrap.sh`). POSIX has no equivalent; need a different caller-passing convention.
+3. **Assoc arrays / namerefs** — bash-only; used in hook / yml / arr paths.
+4. **`[[ ]]`, `=~`, `<<<`, process subst, `shopt`, `pipefail`** — replaceable case-by-case, but volume is high.
+
+`local` is less of a blocker (dash and BusyBox ash often provide it), but that does not unlock the rest.
+
+### Effort bands
+
+| Goal | Effort | Notes |
+|------|--------|--------|
+| **A. `ASC_SHELL` loader only** (bash default + lookup for `*.posix.inc.sh` / alternates) | Small–medium (days–couple weeks) | Already planned; multi-shell groundwork WIP. **No** dash bodies yet. Filename-DSL plan defers non-bash bodies in v1 (convention + lookup first). |
+| **B. Core bootstrap + utils run under dash/ash** | Large (weeks–months) | ~4k LOC critical path + redesign of arr / hook / yml primitives; tests under `dash` / `ash`. |
+| **C. Whole project works on dash/ash *instead of* bash** | Rewrite-scale (many months) | Touch most of ~32k LOC; replace array/dict model; rework sourcing/caller detection; retest actions / hooks / wraps. |
+
+Mechanical cleanup of `[[` / `echo -e` / similar is a small fraction of the work. The real cost is the **array + `BASH_SOURCE` architecture**.
+
+### Planned direction (not a POSIX rewrite)
+
+Roadmap and filename-DSL SoT aim at **shell-variant includes**, not converting the tree to POSIX:
+
+| Mechanism | Role |
+|-----------|------|
+| `ASC_SHELL` (default `bash`) | Selects which include bodies load |
+| Unqualified `*.inc.sh` / `*.opt-inc.sh` | Bash default **and** fallback |
+| `*.$ASC_SHELL.inc.sh` / `*.$ASC_SHELL.opt-inc.sh` | Alternate only if present (e.g. `*.posix.inc.sh`) |
+| One include-loader hook | Resolves bodies; include files are **not** hook implementations |
+
+See [organization.md](organization.md) § bootstrap / Multi-shell includes, and plan SoT `changelog/2026/07/24-filename-dsl.md`.
+
+**Bottom line:** “compatible *instead of* bash” ≈ band **C**. “Also runnable on dash/ash” ≈ **A** then gradual **B** with parallel posix bodies — still a major project, but aligned with existing design. A pure POSIX rewrite of the whole tree is closer to a **second implementation** than a port.
 
 ---
 
