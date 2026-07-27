@@ -5,7 +5,7 @@
 | **Date** | 2026-07-23 |
 | **Status** | plan (not implemented) |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — shell sources under bootstrap surface |
-| **Related** | `data/ideas/2026/07/18/organization-(globals,subjects,actions,hooks,variants,bootstrap).md`; `docs/asc/organization.md` § globals (planned naming, not enforced); branch names `naming-convention-changelog` / `naming-conventions-changes` (no rename commits yet) |
+| **Related** | Idea `data/ideas/2026/07/18/organization-(globals,subjects,actions,hooks,variants,bootstrap).md`; `docs/asc/organization.md` § globals (planned naming, not enforced); root README § Current status (**positional SoT `a` / `a_*`**); branch names `naming-convention-changelog` / `naming-conventions-changes` (no rename commits yet) |
 
 ---
 
@@ -693,6 +693,21 @@ Do **not** push `--force` to `main`. Feature branch + PR when implementing.
 - [ ] `make cc` / reinit + `make test-core` + wrap / init-option / hook-filter smoke
 - [ ] Grep gates clean (symbols + **no stale `prefixed by "u"` headers** + **no `u_*` / `u_hook_most_specific` in README/`docs/asc`** + “many tip `p_*` remain until positional→`a_*`”); open PR with breaking-change notes
 
+---
+
+## Amendment (2026-07-27) — README / DSL token alignment
+
+Root README + living docs lock **positional** shell / tip rename target as **`a` / `a_*`** (not tip `p_*`). This plan already said that; Cursor `.cursor/rules/naming.mdc` was still saying `p_` and was corrected the same day.
+
+**Do not conflate** this plan’s shell prefixes with the **filename-DSL redesign** still under review:
+
+| Surface | Positional | Option | Boolean |
+|---------|------------|--------|---------|
+| This plan (shell symbols) | `a` / `a_*` (from tip `p_*`) | `o_*` | `b_*` |
+| Filename-DSL plan (locked) | freeform in `[]` → `a` / `a_*` | `o-*` → `o_` | `b-*` → `b_` |
+| README proposed DSL redesign | `a` / `a-1` / `a-1s` tokens | `o-*` | `bo-*` / `bo_` |
+
+Boolean `bo_*` is **not** part of this naming migration until/unless the README redesign is accepted in `24-filename-dsl.md`. Keep Phase 2 boolean storage as `b_*` unless that accept lands first.
 ---
 
 ## Appendix A — Export files to touch first

@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-07-24 |
-| **Status** | plan / review (not implemented; design lock for review) |
+| **Status** | plan / review (not implemented; design lock for review) — **open conflict with root README** (see Amendment 2026-07-27) |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — how nested extension points are **declared** under any `$subject` (and under extension / contrib / extend trees); specificity weight for hooks in those nests |
 | **Related** | Idea `data/ideas/2026/07/18/extensions.md` (specificity note + extension-point scale); `data/ideas/2026/07/18/nested.md`; living `docs/asc/organization.md` § subjects; `docs/asc/wrappers.md` § nested; README extension-point lists; seed file `asc/asc/.asc_extensions` (`utils`); filename-DSL nest notes in `changelog/2026/07/24-filename-dsl.md` |
 | **Lifecycle** | Local review stub: `data/plans/review/2026-07-24-subject-asc-extensions.md` (dir mostly gitignored — **this changelog is the tracked SoT**, same pattern as `24-filename-dsl.md` / `24-yml-structure.md`). Move stub across `review` → `iterate` → `accepted` / `rejected` per `data/ideas/2026/07/23/idea-changelog-workflow.md`. |
@@ -120,3 +120,22 @@ Non-goals (for now): implementing the loader change; recursive multi-level `.asc
 - Do **not** treat this changelog as implementation go-ahead.
 - Name collision risk: `.asc_extensions` (per-subject nest list) vs `.asc_extensions_ignore` (global extension off-list) — docs and code comments must keep them distinct.
 - Empty able stubs `asc_extensions_ignore.able.yml` / `asc_subjects_ignore.able.yml` under `folder` / `file` remain placeholders; do not invent YAML body schema here (owned by `24-yml-structure.md` if needed later).
+
+---
+
+## Amendment (2026-07-27) — README SoT tension
+
+Root `README.md` § Current status now also says:
+
+> Also TODO : drop submodules declarations via `.asc_extensions` because of objects.
+
+That line **conflicts** with this plan’s locked positive-list role for `$subject/.asc_extensions`. Living docs (`docs/asc/organization.md`, `docs/asc/README.md`) already flag the tension and keep **this changelog** as living SoT until an explicit accept / reject / amend pass.
+
+**Reading until decided:**
+
+| Stance | Meaning |
+|--------|---------|
+| **This plan (current lock)** | `.asc_extensions` = positive nested-extension declaration; untangle from `.asc_subjects_ignore` |
+| **README raw TODO** | Once `$subject`/`$object`/`$action` discovery lands, submodule-style nest declarations may become unnecessary or wrong — possibly **drop** reliance on `.asc_extensions` for that job |
+
+**Do not implement migration either way** until that conflict is resolved in conversation (and this status line updated). Prefer a dedicated decision that either (a) keeps the positive-list lock, (b) rejects this plan in favor of object-depth discovery only, or (c) amends both (e.g. keep `.asc_extensions` for non-object nests only).

@@ -9,15 +9,16 @@
 | **Lifecycle** | Local review stub: `data/plans/review/2026-07-24-yml-structure.md` (dir mostly gitignored — **this changelog is the tracked SoT**, same pattern as `24-filename-dsl.md`). Move stub across `review` → `iterate` → `accepted` / `rejected` per `data/ideas/2026/07/23/idea-changelog-workflow.md`. |
 | **Living docs** | `docs/asc/yml-structure.md` (YAML body conventions; pointer in `docs/asc/README.md`) — still thin; re-sync when this plan’s second wave locks |
 
-### Draft commit chain (SoT @ HEAD)
+### Draft commit chain (SoT @ Wave B tip)
 
 | Wave | Commits | What landed |
 |------|---------|-------------|
 | **A — git `$state`** | `af31aca` → `58b89a5` / `3f61912` → `71b4f71` | `git.able.yml`, `state.able.yml` enums, `repo.entity.yml` + `str.url` field stub |
-| **B — primordial meta** | `d4533f6` → `559d2d7` / `9e7fcd8` → `ca23b12` → `bb827b5` / `8701a79` → `5871043` (HEAD tip `f392e55` has no further YAML body edits) | `able.able.yml` → `include: contract.entity`; `contract.able.yml` migrated then deleted → stub `contract.entity.yml`; synonyms → `asc.yml.yml`; ability whitelist → `entity.entity.yml`; `wrap.able.yml` + `git/acp/wrap.able.yml` |
+| **B — primordial meta** | `d4533f6` → `559d2d7` / `9e7fcd8` → `ca23b12` → `bb827b5` / `8701a79` → `5871043` (Wave B tip; later `f392e55`+ are unrelated WIP) | `able.able.yml` → `include: contract.entity`; `contract.able.yml` migrated then deleted → stub `contract.entity.yml`; synonyms → `asc.yml.yml`; ability whitelist → `entity.entity.yml`; `wrap.able.yml` + `git/acp/wrap.able.yml` |
 
-**Amendment (2026-07-24, evening):** re-synced beyond `71b4f71` to HEAD `f392e55` — Wave B primordial inheritance / contract / wrap drafts. Git state bodies unchanged since `71b4f71`.
+**Amendment (2026-07-24, evening):** re-synced beyond `71b4f71` to Wave B tip — Wave B primordial inheritance / contract / wrap drafts. Git state bodies unchanged since `71b4f71`.
 
+**Amendment (2026-07-27):** repo HEAD moved on with unrelated WIP (`change` / `agent` extension reshuffle, `data/changes/**` inbox, README raw TODO growth). **YAML body drafts above are still the Wave A/B SoT** — do not treat later WIP commits as silent schema accepts. Root README now also spells field vs prop, `required`/`optional` props, and proposed `a`/`o` validation YAML for frozen DSL hooks — complementary notes for this plan’s later sections, not a replacement for Waves A/B decisions.
 ---
 
 ## Context
@@ -50,7 +51,7 @@ Non-goals (for now): shipping a YAML schema validator; renaming every empty `*.a
 
 ## Anchor draft A — git `$state` YAML (+ `repo` entity)
 
-**Branch:** `naming-convention-changelog`. **Bodies unchanged since:** `71b4f71`. **Repo HEAD:** `f392e55`.
+**Branch:** `naming-convention-changelog`. **Bodies unchanged since:** `71b4f71`. **Wave B tip (meta):** see draft commit chain (not later WIP HEAD).
 
 | Path | Role (draft reading) |
 |------|----------------------|
@@ -127,7 +128,7 @@ Related field stub (outside `git/`, referenced by `url.field`): `asc/asc/utils/s
 
 ## Anchor draft B — primordial meta / inheritance / wrap
 
-**Branch:** `naming-convention-changelog`. **Example SoT at:** HEAD `f392e55` (Wave B landed `d4533f6`…`5871043`).
+**Branch:** `naming-convention-changelog`. **Example SoT at:** Wave B tip `5871043` (landed `d4533f6`…`5871043`; later WIP does not amend these bodies).
 
 Wave B iterated hard in one afternoon: started as rich `contract.able.yml` + `yml.able.yml` + fat `able.able.yml`, then **split roles** — synonyms / ability whitelist / contract rules / able inheritance are now separate files. Intermediate shapes (esp. `freeform` / `operation` / `sk` synonyms) are **historical**; cite HEAD bodies below unless reviewing the migration.
 

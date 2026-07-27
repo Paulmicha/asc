@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-07-24 |
-| **Status** | plan / review (not implemented; multi-shell groundwork WIP on branch) |
+| **Status** | plan / review (not implemented; multi-shell groundwork WIP on branch) — **competing README redesign open** (see Amendment 2026-07-27) |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — filename grammar for subjects, actions, hooks, wraps; matching runtime actions; MAKE_TASKS_SHORTER abbreviations; **shell-agnostic runtime** (`ASC_SHELL`; multi-shell `inc` / `opt-inc` loaded by a **single dedicated include-loader hook**); primordial layout under `asc/asc/`; **tests as first-class deliverables** (shunit2 / `make test-core`; cases may themselves be nest/wrap DSL steps); **Cursor rules** so agent-produced ASC edits respect all locked naming conventions; **living-docs pass** (ASC `docs/asc/**` + home `~/docs/next-steps.md`) as an explicit plan deliverable; **`$`-prefixed documentation notation** for make entry points (**`$subject` sole exception:** slugified string **or** hook DSL on `*.hook.yml` / `*.hook.sh`) |
 | **Related** | Prior idea `data/ideas/2026/07/23/dsl.md` (**syntax superseded** by this plan); `data/ideas/2026/07/23/wrappers-nest-bridges.md`; `data/ideas/2026/07/23/genericity-taxonomy.md`; `docs/asc/organization.md` (subjects/actions/hooks); `docs/asc/wrappers.md`; `docs/asc/archive/hooks.md`; naming plan `changelog/2026/07/23-f-e-naming-convention.md` (`a_` / `o_` / `f_*`); WIP on `naming-convention-changelog`: `648a4d7` (begin multi shell), `8f3faa8` (utilities → `asc/asc/`), `f971316` (**final primordial layout**: eager `*.inc.sh` core + `asc/asc/utils/*.opt-inc.sh`) |
 | **Lifecycle** | Local review stub: `data/plans/review/2026-07-24-filename-dsl.md` (dir mostly gitignored — **this changelog is the tracked SoT**, same pattern as `23-f-e-naming-convention.md`). Move stub across `review` → `iterate` → `accepted` / `rejected` per `data/ideas/2026/07/23/idea-changelog-workflow.md`. |
@@ -732,6 +732,26 @@ Writing tests is a **required deliverable of this phase**, not deferred to “ve
 - [ ] **Phase 0d — living docs + next-steps** (required): thorough update of ASC living docs + `~/docs/next-steps.md` for `$` notation, relations, multi-shell notes as touched
 - [ ] Implement DSL only after explicit go-ahead (Phases 1–5), **including** shunit2 / `make test-core` cases and nest/wrap + `llv-*` fixtures from Phase 1 onward
 
+---
+
+## Amendment (2026-07-27) — root README competing redesign
+
+Root `README.md` § Current status proposes a **competing DSL redesign** (also compiled under `docs/asc/shell-usage.md` § proposed DSL redesign):
+
+| Locked in this plan | README proposed redesign |
+|---------------------|--------------------------|
+| `()` = wrap, `[]` = args | **Invert** `(` and `[` |
+| positional → `a` / `a_*` (shell); freeform in `[]` | positional token `a` / `a-1` / `a-1s` (shifted rest) |
+| boolean → `b-*` / `b_` | boolean → `bo-*` (e.g. `bo-oneline`, `bo-y`) |
+| option → `o-*` / `o_` | option → `o-*` / `o-max-4` (value forms) |
+
+Example reshape from README: `test-is[either](slot.slug[-],…)` → `test-in(a1,[slug(a-1,-),slug(a-1,_)])` (filename-safe; shrink `--` → `-` in prefixed syntax).
+
+**SoT until accept/reject:** this changelog’s locked punctuation + `b-*` remain binding for Cursor rules / agents. The README redesign is **proposed only** — do **not** implement parsers against it, and do **not** silently flip locks. A dedicated accept/reject (amend this plan or supersede it) must land before Phase 1.
+
+Also from README (related, not yet Phase 0 frozen here): parsable stdout `<asc-dsl>` / `<asc-yml>`; frozen DSL hook empty paths / `.dsl.hook.yml` with `a`/`o` validation bodies; slug entry points (`slug-url`, `slug-snake`, …); `f_foobar` **and** `f-foobar` in DSL; make understands DSL.
+
+**Cursor rule note:** `.cursor/rules/naming.mdc` positional prefix must stay **`a` / `a_*`** (not legacy tip `p_*`) — aligned 2026-07-27 to README / living-docs SoT.
 ---
 
 ## Appendix — Quick reference card

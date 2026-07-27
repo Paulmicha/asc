@@ -31,8 +31,22 @@ Compiled those notes into:
 - Positional / function-arg prefix is **`a` / `a_*`** (not `p_*`).
 - README punctuation invert + `bo` tokens documented as **proposed only** under `shell-usage.md` § proposed DSL redesign.
 
-## Open
+## Open (aligned to root README § Current status — SoT)
 
-- Accept or reject the DSL redesign in a dedicated changelog before implementation.
-- Stabilize fields using remote_host / remote_instance examples.
-- Drop `.asc_extensions` submodule declarations once `$object` discovery lands.
+Stabilization order still open (docs first, then code):
+
+1. Naming convention in doc (`23-f-e-naming-convention.md` + Cursor `naming.mdc` — positional SoT is **`a` / `a_*`**, not tip `p_*`)
+2. Workflow + git flow in doc (change-centered; `change.entity.yml` nestable; changelogs as sidecars; `data/changes/**` inbox started 2026-07-27)
+3. Hooks in doc (`hook` / `hook-ms` / `hook-dr`; subject-only hooks vs `$object` dirs)
+4. DSL in doc — **accept or reject** README punctuation invert + `bo` / `a-1s` redesign vs locked `24-filename-dsl.md` before any parser work
+5. YAML in doc (`24-yml-structure.md` Waves A/B still review)
+6–11. Refactor bootstrap → core+extensions → nestable tests → builder → baseline → agents (Cursor MVP first)
+
+Also open from README (not yet decided in a dedicated accept/reject pass):
+
+- Discovery for both `$subject`/`$action` and `$subject`/`$object`/`$action` (agnostic)
+- **Tension:** README TODO “drop submodule declarations via `.asc_extensions` because of objects” vs plan lock in `24-subject-asc-extensions.md` (positive nest list) — living org.md already flags this
+- Stabilize fields via `remote_host` / `remote_instance` entity examples (field vs prop)
+- Seed → command (`cmd`); freeze.able / incremental cache; builder code entity; template `tpl` / `<asc-if>` syntax; make understands DSL; namespaced entry-point notation optional
+
+**Amendment (2026-07-27):** root README remains raw-notes SoT; this changelog’s “done (docs)” pass still holds for the July-26 absorption, but Open above replaces the shorter prior list. Atomic nestable change YAML inbox: `data/changes/human/inbox/2026/07/27/`.

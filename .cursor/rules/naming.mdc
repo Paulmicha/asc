@@ -24,11 +24,11 @@ Thin enforcement list. Full SoT: `changelog/2026/07/24-filename-dsl.md` (+ `chan
 - `()` = **wrap**; `.` = **nest**; `[]` = **args**
 - In `[]`: `b-*` = boolean; `o-*` = option; else positional
 - **Slot** only in `*.hook.yml` — never `…[slot]` in stems
-- **Path layout:** filename-DSL hook stems live under `$subject/` (e.g. `$subject/lt(…).start.hook.(sh|yml)`, `$subject/entity_yml[state](p-1).is_default.hook.yml`) — **not** under `$subject/$action/`. Ordinary non-DSL actions may still be `$subject/$action…`.
+- **Path layout:** filename-DSL hook stems live under `$subject/` (e.g. `$subject/lt(…).start.hook.(sh|yml)`, `$subject/entity_yml[state](a-1).is_default.hook.yml`) — **not** under `$subject/$action/`. Ordinary non-DSL actions may still be `$subject/$action…`.
 
 ## Variable / symbol prefixes
 
-- Positionals → `p_`; options → `o_`; booleans → `b_`; no `f_` *variable* prefix for actions
+- Positionals → `a` / `a_*` (legacy tip `p_*` → migrate); options → `o_`; booleans → `b_` (README redesign proposes `bo_` — not locked); no `f_` *variable* prefix for actions
 - Shell utilities → `f_*`; exports → `e_*`; special-case `hookms` (naming-convention plan)
 
 ## Separators (do not conflate)
