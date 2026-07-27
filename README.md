@@ -244,8 +244,6 @@ Make vars and functions (synonym : f) sidecar.able entities (so we can get stats
 
 The "data_dir.store.able" sidecar of each shell variable and function written in current project instance is a nest.able structure reproducing its relative location (from project docroot).
 
-(TODO stabilize "data_dir.store.able" DSL notation meaning)
-
 Instead of distinct entities, we could just have a common representation for any "atomic" piece of code. We should just **use the blueprint entity** from the "builder" core extension. It expresses the *same* thing.
 
 I think the *Atomic Design Methodology* from Brad Frost makes sense here.
@@ -339,7 +337,7 @@ Copy tmp cache dir backup copy
 
 Path-based entry points get "frozen"
 
-TODO freeze.able = data/* sidecar(s) ?
+TODO freeze.able = data/* sidecar(s) ? E.g. `*.assembled.sh` or `*.compiled.sh`
 TODO cache by path ?
 TODO cache rebuild, reinit, can be incremental ?
 
