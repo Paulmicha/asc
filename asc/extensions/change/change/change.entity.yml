@@ -4,6 +4,13 @@ synonyms:
 
 required:
   fields:
-    goal:
-      ref: file
+    idea:
+      relation: file
       validate: test-file-exists(a-1)
+
+optional:
+  fields:
+    tag:
+      relation: taxonomy_term
+      multiple: true
+      validate: term-exists(a-1)
