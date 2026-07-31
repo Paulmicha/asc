@@ -38,3 +38,5 @@ global ASC_REMOTE_FILES_SUFFIXES "[default]='public private'"
 # @see u_remote_instances_setup() in asc/extensions/remote/remote.inc.sh
 
 global ASC_SSH_PUBKEY "[default]=$HOME/.ssh/id_rsa.pub"
+
+global ASC_SYNONYMS "[append]='remote-dependency/remote-dep'"
