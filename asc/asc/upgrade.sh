@@ -3,9 +3,12 @@
 ##
 # Upgrades ASC from the source repo on Github.
 #
-# Deletes and replaces the ./asc folder with contents from the main public repo.
-# Preserves extensions that aren't part of the list bundled with ASC (based on
-# the latest remote sources).
+# Deletes and replaces the following folders with contents from ASC main public
+# repo :
+# - asc
+# - scripts/asc/contrib/asc
+#
+# It leaves everything else untouched.
 #
 # The remote branch/tag is overridable using a global named 'ASC_BRANCH'
 # (defaults to 'main').
@@ -40,10 +43,18 @@
 
 echo "Upgrading ASC from the source repo on Github ..."
 
-tmp_dir="data/asc/tmp-core-upgrade"
+tmp_dir="data/tmp/upstream-asc"
 
-if [[ ! -d 'data/asc' ]]; then
-  mkdir -p 'data/asc'
+if [[ ! -d 'data/tmp' ]]; then
+  mkdir -p 'data/tmp'
+
+  if [[ $? -ne 0 ]]; then
+    echo >&2
+    echo "Error in $BASH_SOURCE line $LINENO: failed to create tmp dir 'data/tmp'." >&2
+    echo "-> Aborting (1)." >&2
+    echo >&2
+    exit 1
+  fi
 fi
 
 # Support retries without having to re-download the sources from remote repo
@@ -57,13 +68,13 @@ if [[ -d "$tmp_dir" ]]; then
     echo "Should we delete it and re-download the sources from the main public repository on Github ?"
     read -p "Yes/no (y/n); 'no' = skip download, use existing folder : " proceed_with_download
   else
-    case "$1" in n)
+    case "$1" in n|no)
       proceed_with_download='n'
     esac
   fi
 fi
 
-case "$proceed_with_download" in y*|Y*)
+case "$proceed_with_download" in y|yes)
   if [[ -d "$tmp_dir" ]]; then
     rm -rf "$tmp_dir"
   fi
@@ -83,47 +94,50 @@ case "$proceed_with_download" in y*|Y*)
   fi
 esac
 
-# Delete individually all bundled extensions in existing project instance.
-u_fs_dir_list "$tmp_dir/asc/extensions"
-for dir in $dir_list; do
-  if [[ -d "asc/extensions/$dir" ]]; then
-    rm -rf "asc/extensions/$dir"
-  fi
-done
+# Delete managed folders from current project instance.
+if [[ -d 'asc' ]]; then
+  rm -rf 'asc'
 
-# If there are any extension left in existing project instance, move them
-# temporarily.
-dir_list=''
-u_fs_dir_list "asc/extensions"
-if [[ -n "$dir_list" ]]; then
-  mkdir "$tmp_dir/_extensions_backup"
-  for dir in $dir_list; do
-    mv "asc/extensions/$dir" "$tmp_dir/_extensions_backup/"
-  done
+  if [[ $? -ne 0 ]]; then
+    echo >&2
+    echo "Error in $BASH_SOURCE line $LINENO: failed to remove ASC core dir 'asc'." >&2
+    echo "-> Aborting (2)." >&2
+    echo >&2
+    exit 2
+  fi
 fi
 
-# Delete ./asc folder from current project instance.
-rm -rf ./asc
+if [ -d 'scripts/asc/contrib/asc' ]; then
+  rm -rf 'scripts/asc/contrib/asc'
 
-# Replace it with the new one.
-cp -r "$tmp_dir/asc" ./asc
+  if [[ $? -ne 0 ]]; then
+    echo >&2
+    echo "Error in $BASH_SOURCE line $LINENO: failed to remove ASC contrib extensions dir 'scripts/asc/contrib/asc'." >&2
+    echo "-> Aborting (2)." >&2
+    echo >&2
+    exit 2
+  fi
+fi
 
-if [[ $? -ne 0 ]] || [[ ! -d ./asc ]]; then
+# Replace them with the new ones.
+cp -r "$tmp_dir/asc" 'asc'
+
+if [[ $? -ne 0 || ! -d 'asc' ]]; then
   echo >&2
-  echo "Error in $BASH_SOURCE line $LINENO: unable to copy the new sources from '$tmp_dir/asc' to './asc'." >&2
+  echo "Error in $BASH_SOURCE line $LINENO: unable to copy the new sources from '$tmp_dir/asc' to 'asc'." >&2
   echo "-> Aborting (2)." >&2
   echo >&2
   exit 2
 fi
 
-# Restore any extensions previously backed up (if any).
-if [[ -d "$tmp_dir/_extensions_backup" ]]; then
-  dir_list=''
-  u_fs_dir_list "$tmp_dir/_extensions_backup"
-  for dir in $dir_list; do
-    mv "$tmp_dir/_extensions_backup/$dir" "asc/extensions/"
-  done
-  rm -rf "$tmp_dir/_extensions_backup"
+cp -r "$tmp_dir/scripts/asc/contrib/asc" 'scripts/asc/contrib/asc'
+
+if [[ $? -ne 0 || ! -d 'scripts/asc/contrib/asc' ]]; then
+  echo >&2
+  echo "Error in $BASH_SOURCE line $LINENO: unable to copy the new sources from '$tmp_dir/scripts/asc/contrib/asc' to 'scripts/asc/contrib/asc'." >&2
+  echo "-> Aborting (3)." >&2
+  echo >&2
+  exit 3
 fi
 
 # Clean up temporary folder, unless prevented in arg 2 (pass 'k').
@@ -134,9 +148,9 @@ fi
 echo "Upgrading ASC from the source repo on Github : done."
 echo
 
-echo "Running post-update hook ..."
+echo "Running post-upgrade hook ..."
 
 hook -s 'asc' -a 'post_upgrade' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE PROVISION_USING'
 
-echo "Running post-update hook : done."
+echo "Running post-upgrade hook : done."
 echo
