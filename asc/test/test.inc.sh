@@ -93,8 +93,11 @@ f_test_compare_expected_lookup_paths() {
 # Defaults to data/test-results. Override via ASC_TEST_RESULTS_ROOT (used by
 # self-tests to isolate writes under a temp dir).
 #
+# @param 1 [optional] String : output var name (default: test_results_root).
+#
 f_test_results_root() {
-  printf '%s' "${ASC_TEST_RESULTS_ROOT:-data/test-results}"
+  local a_output_var_name="${1:-test_results_root}"
+  printf -v "$a_output_var_name" '%s' "${ASC_TEST_RESULTS_ROOT:-data/test-results}"
 }
 
 f_test_results_enabled() {
@@ -121,9 +124,11 @@ f_test_results_batch_begin() {
   test_results_partial="$partial"
   test_results_tree_new_arr=()
 
-  mkdir -p "$(f_test_results_root)/frozen"
+  local root
+  f_test_results_root 'root'
+  mkdir -p "${root}/frozen"
 
-  test_results_full_output_path="$(f_test_results_root)/frozen/${test_results_slug}.full-output.txt"
+  test_results_full_output_path="${root}/frozen/${test_results_slug}.full-output.txt"
 
   if [[ "$partial" -eq 1 ]]; then
     {
@@ -135,13 +140,13 @@ f_test_results_batch_begin() {
   fi
 
   if [[ "$partial" -eq 1 ]]; then
-    local _summary_yml _summary_txt
-    _summary_yml="$(f_test_results_root)/test-${test_results_slug}.yml"
-    _summary_txt="$(f_test_results_root)/frozen/${test_results_slug}.txt"
-    if [[ -f "$_summary_yml" ]]; then
-      f_test_results_tree_load "$_summary_yml"
-    elif [[ -f "$_summary_txt" ]]; then
-      f_test_results_tree_load "$_summary_txt"
+    local summary_yml summary_txt
+    summary_yml="${root}/test-${test_results_slug}.yml"
+    summary_txt="${root}/frozen/${test_results_slug}.txt"
+    if [[ -f "$summary_yml" ]]; then
+      f_test_results_tree_load "$summary_yml"
+    elif [[ -f "$summary_txt" ]]; then
+      f_test_results_tree_load "$summary_txt"
     else
       test_results_tree_loaded_arr=()
     fi
@@ -231,7 +236,7 @@ f_test_results_tree_put() {
 f_test_results_parse_shunit_suite() {
   local suite="$1"
   local capture="$2"
-  local test_dir case_name block status line
+  local test_dir case_name block status line root
   local in_case=0
   local current_case=''
 
@@ -239,7 +244,8 @@ f_test_results_parse_shunit_suite() {
     return 0
   fi
 
-  test_dir="$(f_test_results_root)/frozen"
+  f_test_results_root 'root'
+  test_dir="${root}/frozen"
 
   while IFS= read -r line || [[ -n "$line" ]]; do
     if [[ "$line" =~ ^test_[a-zA-Z0-9_]+$ ]]; then
@@ -296,9 +302,10 @@ f_test_results_flush_case() {
   local case_name="$2"
   local block="$3"
   local status="${4:-PASS}"
-  local out_file
+  local out_file root
 
-  out_file="$(f_test_results_root)/frozen/${test_results_slug}.${suite}.${case_name}.txt"
+  f_test_results_root 'root'
+  out_file="${root}/frozen/${test_results_slug}.${suite}.${case_name}.txt"
   printf '%s' "$block" >"$out_file"
   f_test_results_tree_put "$suite" "$case_name" "$status"
 }
@@ -310,14 +317,15 @@ f_test_results_flush_case() {
 #
 f_test_results_batch_end() {
   local batch_exit="${1:-0}"
-  local summary tree_file merged line key seen current_suite suite case_name status
+  local summary tree_file merged line key seen current_suite suite case_name status root
   local -a all_lines_arr=()
 
   if ! f_test_results_enabled || [[ "${test_results_active:-0}" -ne 1 ]]; then
     return 0
   fi
 
-  tree_file="$(f_test_results_root)/test-${test_results_slug}.yml"
+  f_test_results_root 'root'
+  tree_file="${root}/test-${test_results_slug}.yml"
 
   for line in "${test_results_tree_loaded_arr[@]}"; do
     key="${line%% *}"
@@ -360,7 +368,7 @@ f_test_results_batch_end() {
     done < <(printf '%s\n' "${all_lines_arr[@]}" | sort)
   } >"$tree_file"
 
-  rm -f "$(f_test_results_root)/frozen/${test_results_slug}.txt"
+  rm -f "${root}/frozen/${test_results_slug}.txt"
 
   test_results_active=0
   return 0
@@ -382,10 +390,12 @@ f_test_results_case_status() {
   local key="${suite}.${case_name}"
   local tree_file line entry_key status current_suite case_stem in_suite=0
 
-  tree_file="$(f_test_results_root)/test-${slug}.yml"
+  local root
+  f_test_results_root 'root'
+  tree_file="${root}/test-${slug}.yml"
 
   if [[ ! -f "$tree_file" ]]; then
-    tree_file="$(f_test_results_root)/frozen/${slug}.txt"
+    tree_file="${root}/frozen/${slug}.txt"
   fi
 
   if [[ ! -f "$tree_file" ]]; then
@@ -449,10 +459,11 @@ f_test_results_case_status() {
 f_test_results_write_browser_tree() {
   local kind="$1"
   local a_env="$2"
-  local root dest summary
+  local root dest summary results_root
 
-  root="$(f_test_results_root)/browser/${kind}/${a_env}"
-  summary="$(f_test_results_root)/browser/${kind}/${a_env}.txt"
+  f_test_results_root 'results_root'
+  root="${results_root}/browser/${kind}/${a_env}"
+  summary="${results_root}/browser/${kind}/${a_env}.txt"
 
   mkdir -p "$(dirname "$summary")"
 

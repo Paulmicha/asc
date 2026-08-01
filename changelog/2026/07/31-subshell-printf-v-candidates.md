@@ -3,10 +3,10 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-07-31 |
-| **Status** | inventory / review (docs only — no code changes) |
+| **Status** | partial implementation — waves 1–3 done |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — subshell usages that capture function/command output, as candidates for the output-variable / `printf -v` pattern |
 | **Related** | `asc/utils/str/str.opt-inc.sh` (`f_str_convert_tokens`, lines 143–144); `asc/utils/fs/fs.opt-inc.sh` (`f_fs_get_file_contents`, line 287); `changelog/2026/07/23-f-e-naming-convention.md` (`f_*` naming) |
-| **Lifecycle** | Review this inventory; pick functions or hotspots to migrate in focused changes. Do **not** treat this file as permission for a repo-wide mechanical rewrite. |
+| **Lifecycle** | Waves 1–3 migrated 2026-07-31. Remaining waves stay focused; do **not** treat this file as permission for a repo-wide mechanical rewrite. |
 
 ---
 
@@ -97,9 +97,9 @@ These functions already write via `printf -v` (33 occurrences across 12 files). 
 
 | File | Line | Issue |
 |------|------|-------|
-| `asc/utils/fs/fs.opt-inc.sh` | 629 | `local new_str="$(f_str_append_once …)"` — callee still echoes |
-| `asc/utils/fs/fs.opt-inc.sh` | 649 | `local new=$(f_str_sed_escape …)` — callee still echoes |
-| `asc/make/make.inc.sh` | 435 | `case_target="$(f_test_case_make_target …)"` — nested `$()` inside echo-based helper |
+| `asc/utils/fs/fs.opt-inc.sh` | ~~629~~ | ~~`f_str_append_once`~~ — **fixed** (wave 2) |
+| `asc/utils/fs/fs.opt-inc.sh` | ~~649~~ | ~~`f_str_sed_escape`~~ — **fixed** (wave 2) |
+| `asc/make/make.inc.sh` | 435 | `case_target="$(f_test_case_make_target …)"` — nested `$()` inside echo-based helper (wave 8) |
 
 ---
 
@@ -324,26 +324,33 @@ Not `f_*` captures, but common in ASC — usually **not** `printf -v` candidates
 
 ## Recommended migration order
 
-1. **Leaf scalars with highest fan-out:** `f_software_scalar`, `f_cron_scalar`, `f_test_results_root`
-2. **Str utilities with existing TODO:** `f_str_append_once`, `f_str_sed_escape`, then fix `fs.opt-inc.sh` callers
-3. **Path constants:** `f_cron_project_marker`, `f_software_managed_path`, `f_hook_resolve_source_path`
+1. ~~**Leaf scalars with highest fan-out:** `f_software_scalar`, `f_cron_scalar`, `f_test_results_root`~~ **done**
+2. ~~**Str utilities with existing TODO:** `f_str_append_once`, `f_str_sed_escape`, `f_str_trim`, then fix `fs.opt-inc.sh` callers~~ **done**
+3. ~~**Path constants:** `f_cron_project_marker`, `f_software_managed_path`, `f_hook_resolve_source_path`~~ **done** (also `f_software_expand_path`)
 4. **Status enums:** `f_software_*_status`
 5. **Filesystem:** `f_fs_get_most_recent` → unblock `f_db_get_dump` chain
 6. **Host/shell:** `f_print_current_user`, `f_host_os`, `f_host_ip`, `f_str_slug`
 7. **Git wrappers:** collapse double subshell in `f_git_get_*`
-8. **Test helpers:** batch in `test.inc.sh`
+8. **Test helpers:** batch in `test.inc.sh` (remaining: case stem / make target / runner path / manifest)
 9. **Defer:** `f_yaml_parse` / eval family, `f_remote_exec_wrapper`, bootstrap `global.vars.sh` literals
+
+### Waves 1–3 implementation notes (2026-07-31)
+
+- Convention: optional last arg `a_output_var_name` with function-specific default (`software_scalar`, `cron_scalar`, `test_results_root`, `sed_escaped`, `str_append_once`, `str_trimmed`, …).
+- Cron codegen: monitor exports precomputed then embedded as `${monitor_*}` (no live `$(f_cron_scalar …)` in generated `data/asc/cron/*.sh`).
+- Post-wave audit: migrated symbols have **zero** `$(f_*` capture sites; remaining high-count captures are mostly `f_fs_get_most_recent` (12) and `f_yaml_parse` (10).
 
 ---
 
 ## Open tasks
 
-- [ ] Agree output-param naming convention extension-wide (always explicit 2nd arg vs optional default `@var`)
-- [ ] Pilot: migrate `f_cron_scalar` + `f_software_scalar` (largest payoff)
-- [ ] Add shunit2 cases asserting output-var and `$()` paths produce identical results during transition
+- [x] Agree output-param naming convention extension-wide (optional last arg + fixed default name; match `f_str_lowercase`)
+- [x] Pilot: migrate `f_cron_scalar` + `f_software_scalar` (largest payoff)
+- [ ] Add shunit2 cases asserting output-var paths for migrated scalars
 - [ ] Design replacement for `eval "$(f_yaml_parse …)"` (separate from `printf -v` work)
-- [ ] Update `f_str_append_once` / `f_str_sed_escape` docblocks — remove TODO once migrated
-- [ ] Re-run ripgrep audit after each wave: `rg '\$\(f_' --glob '*.sh' asc scripts | rg -v vendor`
+- [x] Update `f_str_append_once` / `f_str_sed_escape` docblocks — remove TODO once migrated
+- [x] Re-run ripgrep audit after waves 1–3: `rg '\$\(f_' --glob '*.sh' | rg -v vendor`
+- [ ] Continue waves 4–8 in focused passes
 
 ---
 

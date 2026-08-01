@@ -626,7 +626,8 @@ f_fs_write_once() {
     return
   fi
 
-  local new_str="$(f_str_append_once $'\n'"$a_needle" "$haystack")"
+  local new_str
+  f_str_append_once $'\n'"$a_needle" "$haystack" 'new_str'
 
   if [[ "$new_str" != "$haystack" ]]; then
     echo "$new_str" > "$a_file_path"
@@ -646,7 +647,8 @@ f_fs_change_line() {
   local a_replacement="$2"
   local a_file="$3"
 
-  local new=$(f_str_sed_escape "${a_replacement}")
+  local new
+  f_str_sed_escape "${a_replacement}" 'new'
 
   sed "/$a_existing_line_match/c $new" -i "$a_file"
 }

@@ -477,53 +477,56 @@ f_str_join() {
 ##
 # Escapes all slashes for use in 'sed' calls.
 #
-# TODO [opti] Rewrite without subshell.
+# @param 1 String : value to escape.
+# @param 2 [optional] String : output var name (default: sed_escaped).
 #
 # @see f_fs_change_line()
 #
 # @example
-#   my_var=$(f_str_sed_escape "A string with commas, and dots... !")
+#   f_str_sed_escape "A string with commas, and dots... !" 'my_var'
 #   echo "$my_var" # Outputs "A string with commas\, and dots\.\.\. !"
 #
 f_str_sed_escape() {
   local a_str="$1"
+  local a_output_var_name="${2:-sed_escaped}"
 
   a_str="${a_str//,/\\,}"
   a_str="${a_str//\./\\\.}"
   a_str="${a_str//\*/\\\*}"
   a_str="${a_str//\//\\\/}"
 
-  echo "$a_str"
+  printf -v "$a_output_var_name" '%s' "$a_str"
 }
 
 ##
 # Appends a given value to a string only once.
 #
-# TODO [opti] Rewrite without subshell.
-#
 # @param 1 String : the value to append.
 # @param 2 String : to which str to append that value to.
+# @param 3 [optional] String : output var name (default: str_append_once).
 #
 # @example
 #   str='Foo bar'
-#   str="$(f_str_append_once '--test A' "$str")" # str='Foo bar--test A'
-#   str="$(f_str_append_once '--test A' "$str")" # (unchanged)
-#   str="$(f_str_append_once '--test B' "$str")" # str='Foo bar--test A--test B'
+#   f_str_append_once '--test A' "$str" 'str' # str='Foo bar--test A'
+#   f_str_append_once '--test A' "$str" 'str' # (unchanged)
+#   f_str_append_once '--test B' "$str" 'str' # str='Foo bar--test A--test B'
 #
 f_str_append_once() {
   local a_needle="$1"
   local a_haystack="$2"
+  local a_output_var_name="${3:-str_append_once}"
+
+  local result
 
   if [[ -z "$a_haystack" ]]; then
-    echo -n "$a_needle"
-    return
+    result="$a_needle"
+  elif [[ "$a_haystack" != *"$a_needle"* ]]; then
+    result="${a_haystack}${a_needle}"
+  else
+    result="$a_haystack"
   fi
 
-  if [[ "$a_haystack" != *"$a_needle"* ]]; then
-    echo -n "${a_haystack}${a_needle}"
-  else
-    echo -n "${a_haystack}"
-  fi
+  printf -v "$a_output_var_name" '%s' "$result"
 }
 
 ##
@@ -625,16 +628,23 @@ f_str_slug_u() {
 }
 
 ##
-# Removes trailing white space.
+# Removes leading and trailing white space.
 #
 # See https://stackoverflow.com/questions/369758/how-to-trim-whitespace-from-a-bash-variable
 #
 # @param 1 String : the string to trim.
+# @param 2 [optional] String : output var name (default: str_trimmed).
 #
 # @example
-#   str_trimmed=$(f_str_trim " testing space trim ")
+#   f_str_trim " testing space trim " 'str_trimmed'
 #   echo "str_trimmed = '$str_trimmed'"
 #
 f_str_trim() {
-  echo "$(echo -e "$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+  local result="$1"
+  local a_output_var_name="${2:-str_trimmed}"
+
+  result="${result%"${result##*[![:space:]]}"}"
+  result="${result#"${result%%[![:space:]]*}"}"
+
+  printf -v "$a_output_var_name" '%s' "$result"
 }

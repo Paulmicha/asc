@@ -16,34 +16,42 @@
 ##
 # Strip surrounding quotes left by bash-yaml scalars.
 #
+# @param 1 String : scalar value.
+# @param 2 [optional] String : output var name (default: software_scalar).
+#
 f_software_scalar() {
   local a_val="$1"
-  local out="$a_val"
+  local a_output_var_name="${2:-software_scalar}"
 
-  out="${out#\"}"
-  out="${out%\"}"
-  out="${out#\'}"
-  out="${out%\'}"
+  a_val="${a_val#\"}"
+  a_val="${a_val%\"}"
+  a_val="${a_val#\'}"
+  a_val="${a_val%\'}"
 
-  echo "$out"
+  printf -v "$a_output_var_name" '%s' "$a_val"
 }
 
 ##
 # Expand leading ~/ to $HOME.
 #
+# @param 1 String : path.
+# @param 2 [optional] String : output var name (default: software_expand_path).
+#
 f_software_expand_path() {
   local a_path="$1"
-  local out
+  local a_output_var_name="${2:-software_expand_path}"
 
-  out="$(f_software_scalar "$a_path")"
+  local expanded
 
-  case "$out" in
+  f_software_scalar "$a_path" 'expanded'
+
+  case "$expanded" in
     '~'|'~/'*)
-      out="${HOME}${out:1}"
+      expanded="${HOME}${expanded:1}"
       ;;
   esac
 
-  echo "$out"
+  printf -v "$a_output_var_name" '%s' "$expanded"
 }
 
 ##
@@ -141,8 +149,11 @@ f_software_load_manifests() {
 ##
 # Managed-state file path (gitignored under data/asc).
 #
+# @param 1 [optional] String : output var name (default: software_managed_path).
+#
 f_software_managed_path() {
-  echo 'data/asc/software/managed.list'
+  local a_output_var_name="${1:-software_managed_path}"
+  printf -v "$a_output_var_name" '%s' 'data/asc/software/managed.list'
 }
 
 ##
@@ -161,7 +172,7 @@ f_software_managed_add() {
   local line
 
   f_software_ensure_state_dir
-  path="$(f_software_managed_path)"
+  f_software_managed_path 'path'
 
   if [[ -f "$path" ]]; then
     while IFS= read -r line || [[ -n "$line" ]]; do
@@ -184,7 +195,7 @@ f_software_managed_load() {
   local line
 
   software_managed_ids_arr=()
-  path="$(f_software_managed_path)"
+  f_software_managed_path 'path'
 
   if [[ ! -f "$path" ]]; then
     return 0
@@ -204,7 +215,7 @@ f_software_managed_save() {
   local id
 
   f_software_ensure_state_dir
-  path="$(f_software_managed_path)"
+  f_software_managed_path 'path'
 
   : > "$path"
 
@@ -246,33 +257,33 @@ f_software_desired_ids() {
   software_desired_ids_arr=()
 
   for pkg in "${sw_apt_arr[@]}"; do
-    pkg="$(f_software_scalar "$pkg")"
+    f_software_scalar "$pkg" 'pkg'
     [[ -n "$pkg" ]] && software_desired_ids_arr+=("apt:$pkg")
   done
 
   for pkg in "${sw_pipx_arr[@]}"; do
-    pkg="$(f_software_scalar "$pkg")"
+    f_software_scalar "$pkg" 'pkg'
     name="${pkg%%==*}"
     [[ -n "$name" ]] && software_desired_ids_arr+=("pipx:$name")
   done
 
   for ((i = 0; i < ${#sw_tarball__id_arr[@]}; i++)); do
-    name="$(f_software_scalar "${sw_tarball__id_arr[$i]}")"
+    f_software_scalar "${sw_tarball__id_arr[$i]}" 'name'
     [[ -n "$name" ]] && software_desired_ids_arr+=("tarball:$name")
   done
 
   for ((i = 0; i < ${#sw_appimage__id_arr[@]}; i++)); do
-    name="$(f_software_scalar "${sw_appimage__id_arr[$i]}")"
+    f_software_scalar "${sw_appimage__id_arr[$i]}" 'name'
     [[ -n "$name" ]] && software_desired_ids_arr+=("appimage:$name")
   done
 
   for ((i = 0; i < ${#sw_ensure__id_arr[@]}; i++)); do
-    name="$(f_software_scalar "${sw_ensure__id_arr[$i]}")"
+    f_software_scalar "${sw_ensure__id_arr[$i]}" 'name'
     [[ -n "$name" ]] && software_desired_ids_arr+=("ensure:$name")
   done
 
   for ((i = 0; i < ${#sw_units__id_arr[@]}; i++)); do
-    name="$(f_software_scalar "${sw_units__id_arr[$i]}")"
+    f_software_scalar "${sw_units__id_arr[$i]}" 'name'
     [[ -n "$name" ]] && software_desired_ids_arr+=("unit:$name")
   done
 }
@@ -463,7 +474,7 @@ f_software_build_diff() {
   f_software_managed_load
 
   for pkg in "${sw_apt_arr[@]}"; do
-    pkg="$(f_software_scalar "$pkg")"
+    f_software_scalar "$pkg" 'pkg'
     [[ -z "$pkg" ]] && continue
     st="$(f_software_apt_status "$pkg")"
     software_diff_ids_arr+=("apt:$pkg")
@@ -471,7 +482,7 @@ f_software_build_diff() {
   done
 
   for pkg in "${sw_pipx_arr[@]}"; do
-    pkg="$(f_software_scalar "$pkg")"
+    f_software_scalar "$pkg" 'pkg'
     [[ -z "$pkg" ]] && continue
     name="${pkg%%==*}"
     st="$(f_software_pipx_status "$pkg")"
@@ -480,10 +491,10 @@ f_software_build_diff() {
   done
 
   for ((i = 0; i < ${#sw_tarball__id_arr[@]}; i++)); do
-    name="$(f_software_scalar "${sw_tarball__id_arr[$i]}")"
-    ver="$(f_software_scalar "${sw_tarball__version_arr[$i]}")"
-    dir="$(f_software_expand_path "${sw_tarball__install_dir_arr[$i]}")"
-    bin="$(f_software_scalar "${sw_tarball__binary_arr[$i]}")"
+    f_software_scalar "${sw_tarball__id_arr[$i]}" 'name'
+    f_software_scalar "${sw_tarball__version_arr[$i]}" 'ver'
+    f_software_expand_path "${sw_tarball__install_dir_arr[$i]}" 'dir'
+    f_software_scalar "${sw_tarball__binary_arr[$i]}" 'bin'
     [[ -z "$name" ]] && continue
     st="$(f_software_tarball_status "$dir" "$ver" "$bin")"
     software_diff_ids_arr+=("tarball:$name")
@@ -491,9 +502,9 @@ f_software_build_diff() {
   done
 
   for ((i = 0; i < ${#sw_appimage__id_arr[@]}; i++)); do
-    name="$(f_software_scalar "${sw_appimage__id_arr[$i]}")"
-    path="$(f_software_expand_path "${sw_appimage__path_arr[$i]}")"
-    sha="$(f_software_scalar "${sw_appimage__sha256_arr[$i]:-}")"
+    f_software_scalar "${sw_appimage__id_arr[$i]}" 'name'
+    f_software_expand_path "${sw_appimage__path_arr[$i]}" 'path'
+    f_software_scalar "${sw_appimage__sha256_arr[$i]:-}" 'sha'
     [[ -z "$name" ]] && continue
     st="$(f_software_appimage_status "$path" "$sha")"
     software_diff_ids_arr+=("appimage:$name")
@@ -501,8 +512,8 @@ f_software_build_diff() {
   done
 
   for ((i = 0; i < ${#sw_ensure__id_arr[@]}; i++)); do
-    name="$(f_software_scalar "${sw_ensure__id_arr[$i]}")"
-    cmd="$(f_software_scalar "${sw_ensure__command_arr[$i]}")"
+    f_software_scalar "${sw_ensure__id_arr[$i]}" 'name'
+    f_software_scalar "${sw_ensure__command_arr[$i]}" 'cmd'
     [[ -z "$name" ]] && continue
     st="$(f_software_ensure_status "$cmd")"
     software_diff_ids_arr+=("ensure:$name")
@@ -510,7 +521,7 @@ f_software_build_diff() {
   done
 
   for ((i = 0; i < ${#sw_units__id_arr[@]}; i++)); do
-    name="$(f_software_scalar "${sw_units__id_arr[$i]}")"
+    f_software_scalar "${sw_units__id_arr[$i]}" 'name'
     [[ -z "$name" ]] && continue
     st="$(f_software_unit_status "$name")"
     software_diff_ids_arr+=("unit:$name")
@@ -749,7 +760,9 @@ f_software_unit_install() {
   cp -a "$src" "$dest"
   systemctl --user daemon-reload
 
-  case "$(f_software_scalar "$a_enable")" in
+  local enable_scalar
+  f_software_scalar "$a_enable" 'enable_scalar'
+  case "$enable_scalar" in
     true|yes|1)
       systemctl --user enable --now "${a_id}.service" || \
         systemctl --user enable "${a_id}.service"
@@ -779,6 +792,7 @@ f_software_apply_installs() {
   local en
   local idx
   local j
+  local scalar
   local rc=0
 
   for ((i = 0; i < ${#software_diff_ids_arr[@]}; i++)); do
@@ -805,7 +819,7 @@ f_software_apply_installs() {
       pipx)
         pkg=''
         for pkg in "${sw_pipx_arr[@]}"; do
-          pkg="$(f_software_scalar "$pkg")"
+          f_software_scalar "$pkg" 'pkg'
           if [[ "${pkg%%==*}" == "$name" ]]; then
             break
           fi
@@ -823,7 +837,9 @@ f_software_apply_installs() {
       tarball)
         idx=-1
         for ((j = 0; j < ${#sw_tarball__id_arr[@]}; j++)); do
-          if [[ "$(f_software_scalar "${sw_tarball__id_arr[$j]}")" == "$name" ]]; then
+          f_software_scalar "${sw_tarball__id_arr[$j]}" 'scalar'
+
+          if [[ "$scalar" == "$name" ]]; then
             idx=$j
             break
           fi
@@ -832,10 +848,10 @@ f_software_apply_installs() {
           rc=1
           continue
         fi
-        ver="$(f_software_scalar "${sw_tarball__version_arr[$idx]}")"
-        url="$(f_software_scalar "${sw_tarball__url_arr[$idx]}")"
-        dir="$(f_software_expand_path "${sw_tarball__install_dir_arr[$idx]}")"
-        bin="$(f_software_scalar "${sw_tarball__binary_arr[$idx]}")"
+        f_software_scalar "${sw_tarball__version_arr[$idx]}" 'ver'
+        f_software_scalar "${sw_tarball__url_arr[$idx]}" 'url'
+        f_software_expand_path "${sw_tarball__install_dir_arr[$idx]}" 'dir'
+        f_software_scalar "${sw_tarball__binary_arr[$idx]}" 'bin'
         if ! f_software_tarball_install "$name" "$ver" "$url" "$dir" "$bin"; then
           rc=1
           continue
@@ -844,7 +860,9 @@ f_software_apply_installs() {
       appimage)
         idx=-1
         for ((j = 0; j < ${#sw_appimage__id_arr[@]}; j++)); do
-          if [[ "$(f_software_scalar "${sw_appimage__id_arr[$j]}")" == "$name" ]]; then
+          f_software_scalar "${sw_appimage__id_arr[$j]}" 'scalar'
+
+          if [[ "$scalar" == "$name" ]]; then
             idx=$j
             break
           fi
@@ -853,9 +871,9 @@ f_software_apply_installs() {
           rc=1
           continue
         fi
-        url="$(f_software_scalar "${sw_appimage__url_arr[$idx]:-}")"
-        sha="$(f_software_scalar "${sw_appimage__sha256_arr[$idx]:-}")"
-        path="$(f_software_expand_path "${sw_appimage__path_arr[$idx]}")"
+        f_software_scalar "${sw_appimage__url_arr[$idx]:-}" 'url'
+        f_software_scalar "${sw_appimage__sha256_arr[$idx]:-}" 'sha'
+        f_software_expand_path "${sw_appimage__path_arr[$idx]}" 'path'
         if ! f_software_appimage_install "$name" "$url" "$sha" "$path"; then
           rc=1
           continue
@@ -864,7 +882,9 @@ f_software_apply_installs() {
       ensure)
         idx=-1
         for ((j = 0; j < ${#sw_ensure__id_arr[@]}; j++)); do
-          if [[ "$(f_software_scalar "${sw_ensure__id_arr[$j]}")" == "$name" ]]; then
+          f_software_scalar "${sw_ensure__id_arr[$j]}" 'scalar'
+
+          if [[ "$scalar" == "$name" ]]; then
             idx=$j
             break
           fi
@@ -873,8 +893,8 @@ f_software_apply_installs() {
           rc=1
           continue
         fi
-        cmd="$(f_software_scalar "${sw_ensure__command_arr[$idx]}")"
-        method="$(f_software_scalar "${sw_ensure__method_arr[$idx]}")"
+        f_software_scalar "${sw_ensure__command_arr[$idx]}" 'cmd'
+        f_software_scalar "${sw_ensure__method_arr[$idx]}" 'method'
         if ! f_software_ensure_install "$name" "$cmd" "$method"; then
           rc=1
           continue
@@ -883,7 +903,9 @@ f_software_apply_installs() {
       unit)
         idx=-1
         for ((j = 0; j < ${#sw_units__id_arr[@]}; j++)); do
-          if [[ "$(f_software_scalar "${sw_units__id_arr[$j]}")" == "$name" ]]; then
+          f_software_scalar "${sw_units__id_arr[$j]}" 'scalar'
+
+          if [[ "$scalar" == "$name" ]]; then
             idx=$j
             break
           fi
@@ -892,8 +914,8 @@ f_software_apply_installs() {
           rc=1
           continue
         fi
-        tpl="$(f_software_scalar "${sw_units__template_arr[$idx]}")"
-        en="$(f_software_scalar "${sw_units__enable_arr[$idx]:-false}")"
+        f_software_scalar "${sw_units__template_arr[$idx]}" 'tpl'
+        f_software_scalar "${sw_units__enable_arr[$idx]:-false}" 'en'
         if ! f_software_unit_install "$name" "$tpl" "$en"; then
           rc=1
           continue

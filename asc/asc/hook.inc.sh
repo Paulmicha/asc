@@ -167,14 +167,14 @@ hook() {
   # See https://stackoverflow.com/a/31443098
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      # Format : 1 dash + arg 'name' + space + value.
+      # Options format : 1 dash + arg 'name' + space + value ("o_*" prefix).
       -a) o_actions_filter="$2"; shift 2;;
       -s) o_subjects_filter="$2"; shift 2;;
       -p) o_prefixes_filter="$2"; shift 2;;
       -v) o_variants_filter="$2"; shift 2;;
       -e) o_extensions_filter="$2"; shift 2;;
       -c) o_custom_filter="$2"; shift 2;;
-      # Flag (arg without any value).
+      # Flag (arg without any value) = boolean ("b_*" prefix).
       -d) b_debug=1; shift 1;;
       -t) b_dry_run=1; shift 1;;
       -r) b_root_lookup=1; shift 1;;
@@ -382,7 +382,7 @@ hook() {
       # from an override path under scripts/overrides.
       f_hook_opt_inc_append_candidates "$inc" opt_incs_arr
 
-      src="$(f_hook_resolve_source_path "$inc")"
+      f_hook_resolve_source_path "$inc" 'src'
       matched_hooks_arr+=("$src")
     fi
   done
@@ -395,7 +395,7 @@ hook() {
 "
 
       for oi in "${opt_incs_arr[@]}"; do
-        src="$(f_hook_resolve_source_path "$oi")"
+        f_hook_resolve_source_path "$oi" 'src'
         hook_cache_contents+=". $src
 "
 
@@ -872,20 +872,22 @@ f_hook_opt_inc_append_candidates() {
 ##
 # Resolve scripts/overrides counterpart for a path (if any).
 #
-# Echoes the override path when it exists, otherwise the original.
+# Writes the override path when it exists, otherwise the original.
 #
 # @param 1 String : filepath relative to PROJECT_DOCROOT
+# @param 2 [optional] String : output var name (default: hook_resolve_source_path).
 #
 # @see f_autoload_override()
 #
 f_hook_resolve_source_path() {
-  local o_path="$1"
-  local override="${o_path/asc/scripts/overrides}"
+  local a_path="$1"
+  local a_output_var_name="${2:-hook_resolve_source_path}"
+  local override="${a_path/asc/scripts/overrides}"
 
   if [[ -f "$override" ]]; then
-    echo "$override"
+    printf -v "$a_output_var_name" '%s' "$override"
   else
-    echo "$o_path"
+    printf -v "$a_output_var_name" '%s' "$a_path"
   fi
 }
 
@@ -906,7 +908,7 @@ f_hook_source_opt_incs_for_path() {
   f_hook_opt_inc_append_candidates "$a_hook_path" opt_incs_arr
 
   for oi in "${opt_incs_arr[@]}"; do
-    src="$(f_hook_resolve_source_path "$oi")"
+    f_hook_resolve_source_path "$oi" 'src'
     . "$src"
   done
 }

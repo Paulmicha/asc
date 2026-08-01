@@ -190,16 +190,16 @@ f_thread_yml_mark_stale() {
 # Strip surrounding quotes left on scalars by bash-yaml parse round-trips.
 #
 f_thread_yml_strip_quotes() {
-  local _v
-  local _k
+  local v
+  local k
 
-  for _k in entry owner uid euid run_as sudoing script args pid ppid started_ms \
+  for k in entry owner uid euid run_as sudoing script args pid ppid started_ms \
     status exit_code ended_ms output attempt max_attempts lock_mode trigger \
     needs_interactive; do
-    _v="thread_${_k}"
-    if [[ -n "${!_v:-}" ]]; then
-      printf -v "$_v" '%s' "${!_v#\"}"
-      printf -v "$_v" '%s' "${!_v%\"}"
+    v="thread_${k}"
+    if [[ -n "${!v:-}" ]]; then
+      printf -v "$v" '%s' "${!v#\"}"
+      printf -v "$v" '%s' "${!v%\"}"
     fi
   done
 

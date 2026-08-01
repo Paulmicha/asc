@@ -11,7 +11,7 @@
 
 f_cron_require_crontab || exit 1
 
-marker="$(f_cron_project_marker)"
+f_cron_project_marker 'marker'
 begin="# ASC-CRON-BEGIN ${marker}"
 end="# ASC-CRON-END ${marker}"
 

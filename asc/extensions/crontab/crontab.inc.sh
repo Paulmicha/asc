@@ -168,15 +168,19 @@ f_cron_preset_compile() {
 ##
 # Strip yaml scalar artifacts (quotes / trailing spaces / array form).
 #
+# @param 1 String : scalar value.
+# @param 2 [optional] String : output var name (default: cron_scalar).
+#
 f_cron_scalar() {
-  local v="$1"
-  v="${v#\"}"
-  v="${v%\"}"
-  v="${v#\'}"
-  v="${v%\'}"
-  v="${v%"${v##*[![:space:]]}"}"
-  v="${v#"${v%%[![:space:]]*}"}"
-  printf '%s' "$v"
+  local a_value="$1"
+  local a_output_var_name="${2:-cron_scalar}"
+  a_value="${a_value#\"}"
+  a_value="${a_value%\"}"
+  a_value="${a_value#\'}"
+  a_value="${a_value%\'}"
+  a_value="${a_value%"${a_value##*[![:space:]]}"}"
+  a_value="${a_value#"${a_value%%[![:space:]]*}"}"
+  printf -v "$a_output_var_name" '%s' "$a_value"
 }
 
 ##
@@ -230,12 +234,12 @@ f_cron_load_base_templates() {
   # shellcheck disable=SC2034
   eval "$(f_yaml_parse "$base_file" 'cronbase_')"
 
-  cron_tpl_defaults_enabled="$(f_cron_scalar "${cronbase_includes_defaults_enabled:-true}")"
-  cron_tpl_defaults_wrap="$(f_cron_scalar "${cronbase_includes_defaults_wrap:-lt}")"
-  cron_tpl_defaults_lock="$(f_cron_scalar "${cronbase_includes_defaults_lock:-skip}")"
-  cron_tpl_defaults_user="$(f_cron_scalar "${cronbase_includes_defaults_user:-}")"
-  cron_tpl_scheduled_job_retry_max="$(f_cron_scalar "${cronbase_includes_scheduled_job_retry_max:-0}")"
-  cron_tpl_scheduled_job_retry_delay="$(f_cron_scalar "${cronbase_includes_scheduled_job_retry_delay:-10s}")"
+  f_cron_scalar "${cronbase_includes_defaults_enabled:-true}" 'cron_tpl_defaults_enabled'
+  f_cron_scalar "${cronbase_includes_defaults_wrap:-lt}" 'cron_tpl_defaults_wrap'
+  f_cron_scalar "${cronbase_includes_defaults_lock:-skip}" 'cron_tpl_defaults_lock'
+  f_cron_scalar "${cronbase_includes_defaults_user:-}" 'cron_tpl_defaults_user'
+  f_cron_scalar "${cronbase_includes_scheduled_job_retry_max:-0}" 'cron_tpl_scheduled_job_retry_max'
+  f_cron_scalar "${cronbase_includes_scheduled_job_retry_delay:-10s}" 'cron_tpl_scheduled_job_retry_delay'
 }
 
 ##
@@ -243,7 +247,7 @@ f_cron_load_base_templates() {
 #
 f_cron_apply_includes() {
   local inc
-  inc="$(f_cron_scalar "${1:-}")"
+  f_cron_scalar "${1:-}" 'inc'
 
   cron_def_enabled="$cron_tpl_defaults_enabled"
   cron_def_wrap="$cron_tpl_defaults_wrap"
@@ -349,15 +353,19 @@ EOF
     f_cron_apply_includes "${croncj_includes:-}"
 
     local enabled wrap lock user retry_max retry_delay args make_task run_id
-    enabled="$(f_cron_scalar "${croncj_enabled:-$cron_def_enabled}")"
-    wrap="$(f_cron_scalar "${croncj_wrap:-$cron_def_wrap}")"
-    lock="$(f_cron_scalar "${croncj_lock:-$cron_def_lock}")"
-    user="$(f_cron_scalar "${croncj_user:-$cron_def_user}")"
-    retry_max="$(f_cron_scalar "${croncj_retry_max:-$cron_def_retry_max}")"
-    retry_delay="$(f_cron_scalar "${croncj_retry_delay:-$cron_def_retry_delay}")"
-    args="$(f_cron_scalar "${croncj_args:-}")"
-    make_task="$(f_cron_scalar "${croncj_make:-}")"
-    run_id="$(f_cron_scalar "${croncj_run:-}")"
+    local monitor_mark_stale monitor_reclaim_lock monitor_outer_retry
+    f_cron_scalar "${croncj_enabled:-$cron_def_enabled}" 'enabled'
+    f_cron_scalar "${croncj_wrap:-$cron_def_wrap}" 'wrap'
+    f_cron_scalar "${croncj_lock:-$cron_def_lock}" 'lock'
+    f_cron_scalar "${croncj_user:-$cron_def_user}" 'user'
+    f_cron_scalar "${croncj_retry_max:-$cron_def_retry_max}" 'retry_max'
+    f_cron_scalar "${croncj_retry_delay:-$cron_def_retry_delay}" 'retry_delay'
+    f_cron_scalar "${croncj_args:-}" 'args'
+    f_cron_scalar "${croncj_make:-}" 'make_task'
+    f_cron_scalar "${croncj_run:-}" 'run_id'
+    f_cron_scalar "${croncj_monitor_mark_stale:-}" 'monitor_mark_stale'
+    f_cron_scalar "${croncj_monitor_reclaim_lock:-}" 'monitor_reclaim_lock'
+    f_cron_scalar "${croncj_monitor_outer_retry:-}" 'monitor_outer_retry'
 
     if ! f_cron_preset_compile "$cron_preset" "$entry" "$peer_idx"; then
       echo >&2 "Error: cannot compile preset '$cron_preset' for $f"
@@ -412,9 +420,9 @@ export ASC_CRON_RETRY_DELAY='${retry_delay}'
 export ASC_CRON_ARGS='${args}'
 export ASC_CRON_MAKE='${make_task}'
 export ASC_CRON_RUN='${run_id}'
-export ASC_CRON_MONITOR_MARK_STALE='$(f_cron_scalar "${croncj_monitor_mark_stale:-}")'
-export ASC_CRON_MONITOR_RECLAIM_LOCK='$(f_cron_scalar "${croncj_monitor_reclaim_lock:-}")'
-export ASC_CRON_MONITOR_OUTER_RETRY='$(f_cron_scalar "${croncj_monitor_outer_retry:-}")'
+export ASC_CRON_MONITOR_MARK_STALE='${monitor_mark_stale}'
+export ASC_CRON_MONITOR_RECLAIM_LOCK='${monitor_reclaim_lock}'
+export ASC_CRON_MONITOR_OUTER_RETRY='${monitor_outer_retry}'
 export ASC_CRON_CMD='${cmd}'
 EOF
 
@@ -460,8 +468,11 @@ f_cron_delay_seconds() {
 ##
 # Project docstring root for crontab markers.
 #
+# @param 1 [optional] String : output var name (default: cron_project_marker).
+#
 f_cron_project_marker() {
-  echo "${PROJECT_DOCROOT:-$PWD}"
+  local a_output_var_name="${1:-cron_project_marker}"
+  printf -v "$a_output_var_name" '%s' "${PROJECT_DOCROOT:-$PWD}"
 }
 
 ##
@@ -496,7 +507,7 @@ f_cron_crontab_write_block() {
   local filtered
 
   f_cron_require_crontab || return 1
-  marker="$(f_cron_project_marker)"
+  f_cron_project_marker 'marker'
   begin="# ASC-CRON-BEGIN ${marker}"
   end="# ASC-CRON-END ${marker}"
   tmp="$(mktemp)"
@@ -526,6 +537,7 @@ f_cron_crontab_write_block() {
 #
 f_cron_entry_crontab_lines() {
   local sched
+  local marker
   local IFS=';'
   local lines_arr=()
 
@@ -533,9 +545,10 @@ f_cron_entry_crontab_lines() {
     return 0
   fi
 
+  f_cron_project_marker 'marker'
   for sched in ${ASC_CRON_SCHEDULE}; do
     [[ -z "$sched" ]] && continue
-    lines_arr+=("${sched} cd $(f_cron_project_marker) && make cron-run e:${ASC_CRON_ENTRY}")
+    lines_arr+=("${sched} cd ${marker} && make cron-run e:${ASC_CRON_ENTRY}")
   done
 
   printf '%s\n' "${lines_arr[@]}"
@@ -571,7 +584,9 @@ f_cron_sync() {
   done
 
   f_cron_crontab_write_block "$(printf '%s' "$body")"
-  echo "Host crontab synced for $(f_cron_project_marker)."
+  local marker
+  f_cron_project_marker 'marker'
+  echo "Host crontab synced for ${marker}."
 }
 
 ##
