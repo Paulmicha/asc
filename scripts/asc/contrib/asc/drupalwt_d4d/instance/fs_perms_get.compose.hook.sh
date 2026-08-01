@@ -24,7 +24,7 @@
 #   Defaults to 1771.
 #
 # This file is dynamically included when the "hook" is triggered.
-# @see u_instance_get_perms() in asc/instance/instance.inc.sh
+# @see f_instance_get_perms() in asc/instance/instance.inc.sh
 #
 # To verify which files can be used (and will be sourced) when this hook is
 # triggered :

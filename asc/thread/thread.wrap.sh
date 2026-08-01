@@ -5,7 +5,7 @@
 #
 # Backgrounds the wrapped command under a supervised subshell that records
 # lifecycle data in data/threads/{entrypoint}.yml. Output capture is log-wrap's
-# job when composed via logged-thread (asc/log/wrap.sh asc/thread/wrap.sh …).
+# job when composed via logged-thread (asc/log/log.wrap.sh asc/thread/thread.wrap.sh …).
 #
 # Supports pile-up skip (flock + YAML), optional inner retry, dual identity when
 # sudoing, and noninteractive stdin (/dev/null).
@@ -14,19 +14,19 @@
 #
 # @example
 #   make thread-wrap e:transcribe-all
-#   asc/thread/wrap.sh transcribe-all
+#   asc/thread/thread.wrap.sh transcribe-all
 #
 
 . asc/bootstrap.sh
 
-p_script="$1"
+a_script="$1"
 shift
 
-p_is_wrapper=0
-thread_file="$p_script"
+a_is_wrapper=0
+thread_file="$a_script"
 
-if [[ "$p_script" == *'log/wrap.sh' ]]; then
-  p_is_wrapper=1
+if [[ "$a_script" == *'log.wrap.sh' ]]; then
+  a_is_wrapper=1
   thread_file="$1"
 fi
 
@@ -35,7 +35,7 @@ make_entries=()
 real_scripts=()
 is_thread_file_valid=0
 
-u_make_list_entry_points
+f_make_list_entry_points
 
 for index in "${!real_scripts[@]}"; do
   task="${make_entries[index]}"
@@ -47,9 +47,9 @@ for index in "${!real_scripts[@]}"; do
     continue
   esac
 
-  if [[ $p_is_wrapper -eq 0 ]]; then
+  if [[ $a_is_wrapper -eq 0 ]]; then
     case "$thread_file" in "$task")
-      p_script="$script"
+      a_script="$script"
       is_thread_file_valid=1
     esac
   else
@@ -67,87 +67,87 @@ if [[ $is_thread_file_valid -ne 1 ]]; then
   exit 1
 fi
 
-p_entry="${thread_file#e:}"
-p_script_real="$(realpath -e "$p_script")"
+a_entry="${thread_file#e:}"
+a_script_real="$(realpath -e "$a_script")"
 
 # Refuse interactive-required scripts under wrap.
-if grep -q '@requires interactive' "$p_script_real" 2>/dev/null; then
-  echo >&2 "Error: '$p_entry' requires an interactive shell; refuse wrap."
-  echo >&2 "Run in the foreground: make $p_entry"
+if grep -q '@requires interactive' "$a_script_real" 2>/dev/null; then
+  echo >&2 "Error: '$a_entry' requires an interactive shell; refuse wrap."
+  echo >&2 "Run in the foreground: make $a_entry"
   exit 1
 fi
 
 # Fast-fail @requires sudoing without root.
-if grep -q '@requires sudoing' "$p_script_real" 2>/dev/null; then
+if grep -q '@requires sudoing' "$a_script_real" 2>/dev/null; then
   if [[ "$(id -u)" -ne 0 ]]; then
-    echo >&2 "Error: '$p_entry' requires sudoing / root; refuse wrap as uid $(id -u)."
-    echo >&2 "Example: sudo make lt e:$p_entry"
+    echo >&2 "Error: '$a_entry' requires sudoing / root; refuse wrap as uid $(id -u)."
+    echo >&2 "Example: sudo make lt e:$a_entry"
     exit 1
   fi
 fi
 
-p_args="$*"
-p_owner="$(u_print_current_user)"
-p_uid="$(id -u)"
-p_euid="${EUID:-$p_uid}"
-p_run_as="$(id -un)"
-p_sudoing='false'
-if [[ -n "${SUDO_USER:-}" ]] || [[ "$p_euid" -eq 0 && "$p_owner" != "$p_run_as" ]]; then
-  p_sudoing='true'
+a_args="$*"
+a_owner="$(f_print_current_user)"
+a_uid="$(id -u)"
+a_euid="${EUID:-$a_uid}"
+a_run_as="$(id -un)"
+a_sudoing='false'
+if [[ -n "${SUDO_USER:-}" ]] || [[ "$a_euid" -eq 0 && "$a_owner" != "$a_run_as" ]]; then
+  a_sudoing='true'
 fi
 if [[ -n "${SUDO_USER:-}" ]]; then
-  p_owner="$SUDO_USER"
+  a_owner="$SUDO_USER"
 fi
 
-p_started_ms="$(date +%Y-%m-%dT%H:%M:%S.%3N)"
-p_lock_mode="${ASC_THREAD_LOCK_MODE:-skip}"
-p_retry_max="${ASC_WRAP_RETRY_MAX:-0}"
-p_retry_delay="${ASC_WRAP_RETRY_DELAY:-10s}"
-p_trigger="${ASC_THREAD_TRIGGER:-manual}"
+a_started_ms="$(date +%Y-%m-%dT%H:%M:%S.%3N)"
+a_lock_mode="${ASC_THREAD_LOCK_MODE:-skip}"
+a_retry_max="${ASC_WRAP_RETRY_MAX:-0}"
+a_retry_delay="${ASC_WRAP_RETRY_DELAY:-10s}"
+a_trigger="${ASC_THREAD_TRIGGER:-manual}"
 
 if [[ -n "${ASC_LOG_WRAP_ACTIVE:-}" ]]; then
-  p_output="data/logs/${p_entry}.txt"
+  a_output="data/logs/${a_entry}.txt"
 else
-  p_output='nohup.out'
+  a_output='nohup.out'
 fi
 
 mkdir -p data/threads
 
 # Pile-up prevention (P1 + P5) via YAML/PID before backgrounding.
-if u_thread_pileup_should_skip "$p_entry"; then
-  echo "Thread '$p_entry' already running (PID $thread_pid); skip."
+if f_thread_pileup_should_skip "$a_entry"; then
+  echo "Thread '$a_entry' already running (PID $thread_pid); skip."
   exit 0
 fi
 
 export ASC_WRAP_NONINTERACTIVE=1
 export GIT_TERMINAL_PROMPT=0
 
-export ASC_THREAD_ENTRY="$p_entry"
-export ASC_THREAD_OWNER="$p_owner"
-export ASC_THREAD_UID="$p_uid"
-export ASC_THREAD_EUID="$p_euid"
-export ASC_THREAD_RUN_AS="$p_run_as"
-export ASC_THREAD_SUDOING="$p_sudoing"
-export ASC_THREAD_SCRIPT="$p_script_real"
-export ASC_THREAD_ARGS="$p_args"
-export ASC_THREAD_STARTED_MS="$p_started_ms"
-export ASC_THREAD_OUTPUT="$p_output"
+export ASC_THREAD_ENTRY="$a_entry"
+export ASC_THREAD_OWNER="$a_owner"
+export ASC_THREAD_UID="$a_uid"
+export ASC_THREAD_EUID="$a_euid"
+export ASC_THREAD_RUN_AS="$a_run_as"
+export ASC_THREAD_SUDOING="$a_sudoing"
+export ASC_THREAD_SCRIPT="$a_script_real"
+export ASC_THREAD_ARGS="$a_args"
+export ASC_THREAD_STARTED_MS="$a_started_ms"
+export ASC_THREAD_OUTPUT="$a_output"
 export ASC_THREAD_STATUS='running'
 export ASC_THREAD_EXIT_CODE=''
 export ASC_THREAD_ENDED_MS=''
-export ASC_THREAD_MAX_ATTEMPTS="$p_retry_max"
-export ASC_THREAD_LOCK_MODE="$p_lock_mode"
-export ASC_THREAD_TRIGGER="$p_trigger"
+export ASC_THREAD_MAX_ATTEMPTS="$a_retry_max"
+export ASC_THREAD_LOCK_MODE="$a_lock_mode"
+export ASC_THREAD_TRIGGER="$a_trigger"
 export ASC_THREAD_NEEDS_INTERACTIVE='false'
 export ASC_WRAP_EMITTER="${ASC_WRAP_EMITTER:-manual}"
-export ASC_WRAP_RECEIVER="${ASC_WRAP_RECEIVER:-$p_entry}"
+export ASC_WRAP_RECEIVER="${ASC_WRAP_RECEIVER:-$a_entry}"
 export ASC_WRAP_KIND="${ASC_WRAP_KIND:-thread-wrap}"
 
 # Supervisor writes YAML (start + EXIT) so short jobs cannot race the parent.
-u_thread_supervised_run() {
+f_thread_supervised_run() {
   trap 'u_thread_supervisor_exit $?' EXIT
 
-  if ! u_thread_lock_acquire "$ASC_THREAD_ENTRY" "$p_lock_mode"; then
+  if ! f_thread_lock_acquire "$ASC_THREAD_ENTRY" "$a_lock_mode"; then
     echo "Thread '$ASC_THREAD_ENTRY' lock busy; skip."
     ASC_THREAD_STATUS='exited'
     ASC_THREAD_EXIT_CODE=0
@@ -160,23 +160,23 @@ u_thread_supervised_run() {
   export ASC_THREAD_PID="$BASHPID"
   export ASC_THREAD_PPID="$PPID"
 
-  u_thread_proc_tree "$BASHPID"
+  f_thread_proc_tree "$BASHPID"
   export ASC_THREAD_TREE="$(printf '%s\n' "${thread_tree[@]}")"
 
   local attempt=1
-  local max_try=$((p_retry_max + 1))
+  local max_try=$((a_retry_max + 1))
   local delay_s
   local rc=0
 
-  delay_s="$(u_thread_delay_seconds "$p_retry_delay")"
+  delay_s="$(f_thread_delay_seconds "$a_retry_delay")"
 
   while true; do
     export ASC_THREAD_ATTEMPT="$attempt"
-    u_thread_yml_write "$ASC_THREAD_ENTRY"
-    u_thread_chown_human "data/threads/${ASC_THREAD_ENTRY}.yml"
+    f_thread_yml_write "$ASC_THREAD_ENTRY"
+    f_thread_chown_human "data/threads/${ASC_THREAD_ENTRY}.yml"
 
     # Noninteractive: no stdin (fail-fast on prompts).
-    "$p_script_real" "$@" </dev/null
+    "$a_script_real" "$@" </dev/null
     rc=$?
 
     # Do not retry on SIGINT/SIGTERM-ish or success.
@@ -188,29 +188,29 @@ u_thread_supervised_run() {
       return "$rc"
     fi
 
-    echo "Thread retry $attempt/$p_retry_max after exit $rc (sleep ${delay_s}s) ..."
+    echo "Thread retry $attempt/$a_retry_max after exit $rc (sleep ${delay_s}s) ..."
     sleep "$delay_s"
     attempt=$((attempt + 1))
   done
 }
 
 if [[ -n "${ASC_LOG_WRAP_ACTIVE:-}" ]]; then
-  u_thread_supervised_run "$@" &
+  f_thread_supervised_run "$@" &
 else
   (
     trap '' HUP
-    u_thread_supervised_run "$@"
-  ) >> "$p_output" 2>&1 </dev/null &
+    f_thread_supervised_run "$@"
+  ) >> "$a_output" 2>&1 </dev/null &
 fi
-p_pid=$!
+a_pid=$!
 
 # Brief wait so supervisor can create the YAML before we print its path.
 sleep 0.05
 
-u_thread_chown_human "data/threads/${p_entry}.yml"
-u_thread_chown_human "data/threads/${p_entry}.lock"
+f_thread_chown_human "data/threads/${a_entry}.yml"
+f_thread_chown_human "data/threads/${a_entry}.lock"
 
-echo "Thread started (PID $p_pid)."
-echo "  script    : $p_script_real $*"
-echo "  thread    : data/threads/${p_entry}.yml"
-echo "  output    : $p_output"
+echo "Thread started (PID $a_pid)."
+echo "  script    : $a_script_real $*"
+echo "  thread    : data/threads/${a_entry}.yml"
+echo "  output    : $a_output"

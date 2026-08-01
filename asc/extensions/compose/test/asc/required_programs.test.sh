@@ -21,7 +21,7 @@
 # Can we use all required commands from this instance ?
 #
 test_dc_extension_required_programs() {
-  u_test_program_is_executable 'docker'
+  f_test_program_is_executable 'docker'
 
   assertTrue \
     "The program or alias '$p' appears to be missing (or is not executable) on current host or instance." \

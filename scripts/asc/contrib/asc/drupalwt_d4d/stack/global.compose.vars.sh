@@ -11,7 +11,7 @@
 # See https://github.com/wodby/docker4drupal/releases
 # -> https://github.com/wodby/docker4drupal/blob/5.4.25/.env
 #
-# @see u_instance_init() in asc/instance/instance.inc.sh
+# @see f_instance_init() in asc/instance/instance.inc.sh
 # @see asc/utilities/global.sh
 # @see asc/bootstrap.sh
 #

@@ -10,8 +10,8 @@
 # remote instance.
 #
 # @see asc/extensions/remote_db/remote/db_upload.sh
-# @see data/asc/remote-instances/${p_remote_id}.sh
-# @see u_remote_instances_setup() in asc/extensions/remote/remote.inc.sh
+# @see data/asc/remote-instances/${a_remote_id}.sh
+# @see f_remote_instances_setup() in asc/extensions/remote/remote.inc.sh
 #
 # @param 1 String : destination remote host ID.
 # @param 2 [optional] String : where the DB dump to restore comes from. It can
@@ -53,7 +53,7 @@ case "$remote_id" in 'prod'|'prod_'*)
   exit 1
 esac
 
-u_remote_check_id "$remote_id"
+f_remote_check_id "$remote_id"
 
 if [[ -z "$remote_subfolder" ]]; then
   remote_subfolder='local'
@@ -64,7 +64,7 @@ fi
 # remote instance (hence, the remote subfolder name will be 'local').
 if [[ -n "$from" ]]; then
   instance_ids=()
-  u_remote_get_instances
+  f_remote_get_instances
 
   for instance_id in "${instance_ids[@]}"; do
     case "$from" in "$instance_id")
@@ -84,15 +84,15 @@ declare -A dumps_dict
 # When we only read the 'base_dir' from definitions, we get exactly 1 key per
 # DB ID (and if we don't specify a DB ID, we get the base dirs of all DB defined
 # on that remote by default).
-u_remote_db_read_definition "$remote_id" "$db_id" 'base_dir'
+f_remote_db_read_definition "$remote_id" "$db_id" 'base_dir'
 
 for key in "${!dumps_dict[@]}"; do
   remote_dir="${dumps_dict[$key]}/$remote_subfolder";
 
   # TODO [wip]
-  remote_file="$(u_remote_exec_wrapper "$remote_id" "find $remote_dir -maxdepth 1 -type f -name '*.gz' -exec ls -1t '{}' + | head -n1")"
+  remote_file="$(f_remote_exec_wrapper "$remote_id" "find $remote_dir -maxdepth 1 -type f -name '*.gz' -exec ls -1t '{}' + | head -n1")"
 
-  # u_remote_exec_wrapper "$remote_id" \
+  # f_remote_exec_wrapper "$remote_id" \
   #   "if [[ ! -f $remote_file ]] ; then echo 'Error : no dump file found in $remote_dir' >&2 && exit 1 ; else echo 'Ok file $remote_file exists' && exit 0 ; fi"
   # if [[ $? -ne 0 ]]; then
   #   continue

@@ -12,7 +12,7 @@
 #   # Equivalent to :
 #   make logged-loop e:blueprint-generate
 #   # Or :
-#   asc/instance/logged_loop.sh e:blueprint-generate
+#   asc/instance/logged/loop.sh e:blueprint-generate
 #
 
 . asc/bootstrap.sh
@@ -22,7 +22,7 @@ logged_loop_variants='STACK_VERSION PROVISION_USING HOST_OS'
 hook -s 'log' -p 'pre' -a 'logged_loop' -v "$logged_loop_variants"
 hook -s 'loop' -p 'pre' -a 'logged_loop' -v "$logged_loop_variants"
 
-asc/log/wrap.sh asc/loop/wrap.sh "$@"
+asc/log/log.wrap.sh asc/loop/loop.wrap.sh "$@"
 
 hook -s 'log' -p 'post' -a 'logged_loop' -v "$logged_loop_variants"
 hook -s 'loop' -p 'post' -a 'logged_loop' -v "$logged_loop_variants"

@@ -3,7 +3,7 @@
 ##
 # Implements hook -s 'app instance' -a 'ensure_dirs_exist'
 #
-# @see u_instance_init()
+# @see f_instance_init()
 #
 
 if [ -n "$ASC_DB_DUMPS_DIR" ] && [ ! -d "$ASC_DB_DUMPS_DIR" ]; then

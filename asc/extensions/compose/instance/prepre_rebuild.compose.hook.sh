@@ -9,4 +9,4 @@
 # @see asc/instance/rebuild.sh
 #
 
-u_dc_instance_stop
+f_dc_instance_stop

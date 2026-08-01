@@ -11,9 +11,9 @@
 
 . asc/bootstrap.sh
 
-p_service="$1"
+a_service="$1"
 
-if [[ -z "$p_service" ]]; then
+if [[ -z "$a_service" ]]; then
   echo >&2
   echo "Error in $BASH_SOURCE line $LINENO: service name is required." >&2
   echo "-> Aborting (1)." >&2
@@ -23,4 +23,4 @@ fi
 
 shift 1
 
-docker compose run "$p_service" $@
+docker compose run "$a_service" $@

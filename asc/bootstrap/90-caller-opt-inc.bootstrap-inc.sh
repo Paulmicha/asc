@@ -38,7 +38,7 @@ else
 
   for file in "${_asc_bs_opt_candidates[@]}"; do
     [[ -f "$file" ]] || continue
-    u_autoload_override "$file" 'continue'
+    f_autoload_override "$file" 'continue'
     if [[ -n "${inc_override_evaled_code:-}" ]]; then
       eval "$inc_override_evaled_code"
     fi

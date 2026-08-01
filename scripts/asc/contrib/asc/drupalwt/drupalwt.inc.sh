@@ -6,7 +6,7 @@
 # This file is sourced during core ASC bootstrap.
 # @see asc/bootstrap.sh
 #
-# Convention : functions names are all prefixed by "u" (for "utility").
+# Convention : functions names are all prefixed by "f".
 #
 
 ##
@@ -21,17 +21,17 @@
 #   - DWT_MANAGE_SETTINGS_FILES
 #
 # @example
-#   u_dwt_write_settings
+#   f_dwt_write_settings
 #
-u_dwt_write_settings() {
+f_dwt_write_settings() {
   # Multi-DB (manually set using the ASC_DB_IDS global) support.
   # It is necessary to load every prefixed DB var before (re)writing Drupal
   # settings in case those use multiple databases (thus need those vars loaded
   # already).
-  # @see u_dwt_write_drupal_settings()
+  # @see f_dwt_write_drupal_settings()
   local db_id=''
   for db_id in $ASC_DB_IDS; do
-    u_db_set "$db_id"
+    f_db_set "$db_id"
   done
 
   case "$DWT_MULTISITE" in
@@ -40,22 +40,22 @@ u_dwt_write_settings() {
     true)
       local site_id
 
-      u_dwt_sites
+      f_dwt_sites
 
       # Each site's DB is managed as a distinct DB_ID. First, we load every
       # site-specific prefixed DB var in order to export them all at once.
       # It is necessary to load every prefixed DB var before (re)writing Drupal
       # settings in case those use multiple databases (thus need those vars
       # loaded already).
-      # @see u_dwt_write_drupal_settings()
+      # @see f_dwt_write_drupal_settings()
       for site_id in "${dwt_sites_ids[@]}"; do
-        u_db_set "$site_id"
+        f_db_set "$site_id"
       done
 
       # (Re)write Drupal settings files (e.g. sites/*/settings.php) for every site.
       case "$DWT_MANAGE_SETTINGS_FILES" in true)
         for site_id in "${dwt_sites_ids[@]}"; do
-          u_dwt_write_drupal_settings "$site_id"
+          f_dwt_write_drupal_settings "$site_id"
         done
       esac
 
@@ -63,14 +63,14 @@ u_dwt_write_settings() {
       # TODO [evol] Support custom output file (i.e. sites/sites_local.php)
       # + base file ?
       case "$DWT_MANAGE_MULTISITE_SETTINGS_FILE" in true)
-        u_dwt_write_multisite_settings
+        f_dwt_write_multisite_settings
       esac
       ;;
 
     # "Normal" setups : just write the Drupal settings file.
     *)
       case "$DWT_MANAGE_SETTINGS_FILES" in true)
-        u_dwt_write_drupal_settings
+        f_dwt_write_drupal_settings
       esac
       ;;
   esac
@@ -95,17 +95,17 @@ u_dwt_write_settings() {
 #   - dwt_sites_ids (if available)
 #
 # To list matches & check which one will be used (the most specific) :
-# $ p_site='my_site_id'
-#   u_hook_most_specific 'dry-run' \
+# $ a_site='my_site_id'
+#   hook_ms 'dry-run' \
 #     -s 'app' \
 #     -a 'drupal_settings' \
 #     -c 'tpl.php' \
-#     -v 'DRUPAL_VERSION HOST_TYPE INSTANCE_TYPE p_site' \
+#     -v 'DRUPAL_VERSION HOST_TYPE INSTANCE_TYPE a_site' \
 #     -t -d
-#   echo "match = $hook_most_specific_dry_run_match"
+#   echo "match = $most_specific_match"
 #
-u_dwt_write_drupal_settings() {
-  local p_site="$1"
+f_dwt_write_drupal_settings() {
+  local a_site="$1"
   local f
   local line
   local var_val
@@ -113,24 +113,24 @@ u_dwt_write_drupal_settings() {
   local var_name_c
   local token_prefix='{{ '
   local token_suffix=' }}'
-  local hook_most_specific_dry_run_match=''
+  local most_specific_match=''
 
-  if [[ -z "$p_site" ]]; then
-    p_site='default'
+  if [[ -z "$a_site" ]]; then
+    a_site='default'
   fi
 
   # Drupal settings template variants allow using separate files by site ID.
-  u_hook_most_specific 'dry-run' \
+  hook_ms 'dry-run' \
     -s 'app' \
     -a 'drupal_settings' \
     -c 'tpl.php' \
-    -v 'DRUPAL_VERSION HOST_TYPE INSTANCE_TYPE p_site' \
+    -v 'DRUPAL_VERSION HOST_TYPE INSTANCE_TYPE a_site' \
     -t
 
   # No declaration file found ? Can't carry on, there's nothing to do.
-  if [[ ! -f "$hook_most_specific_dry_run_match" ]]; then
+  if [[ ! -f "$most_specific_match" ]]; then
     echo >&2
-    echo "Error in u_dwt_write_settings() - $BASH_SOURCE line $LINENO: no Drupal settings template file was found." >&2
+    echo "Error in f_dwt_write_settings() - $BASH_SOURCE line $LINENO: no Drupal settings template file was found." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     return 1
@@ -138,13 +138,13 @@ u_dwt_write_drupal_settings() {
 
   # Get dir name from multi-site setup (if available).
   local site_dir='default'
-  local site_dir_var="dwt_sites_${p_site}_dir"
-  u_str_sanitize_var_name "$site_dir_var" 'site_dir_var'
+  local site_dir_var="dwt_sites_${a_site}_dir"
+  f_str_sanitize_var_name "$site_dir_var" 'site_dir_var'
   if [[ -n "${!site_dir_var}" ]]; then
     site_dir="${!site_dir_var}"
   fi
 
-  # Adjust the file settings path according to $p_site.
+  # Adjust the file settings path according to $a_site.
   local drupal_default_settings="$DRUPAL_SETTINGS_FILE"
   drupal_default_settings=${drupal_default_settings/'sites/default'/"sites/$site_dir"}
 
@@ -167,7 +167,7 @@ u_dwt_write_drupal_settings() {
 
   # Console feedback.
   echo "(Re)write Drupal local settings file ($drupal_settings) ..."
-  echo "  using template : $hook_most_specific_dry_run_match ..."
+  echo "  using template : $most_specific_match ..."
 
   case "$DWT_USE_SETTINGS_LOCAL_OVERRIDE" in 1|y*|true)
 
@@ -182,7 +182,7 @@ u_dwt_write_drupal_settings() {
       cp "$SERVER_DOCROOT/sites/default/default.settings.php" "$drupal_default_settings"
       if [[ $? -ne 0 ]]; then
         echo >&2
-        echo "Error in u_dwt_write_drupal_settings() - $BASH_SOURCE line $LINENO: failed to copy Drupal core default.settings.php to '$drupal_default_settings'." >&2
+        echo "Error in f_dwt_write_drupal_settings() - $BASH_SOURCE line $LINENO: failed to copy Drupal core default.settings.php to '$drupal_default_settings'." >&2
         echo "-> Aborting (2)." >&2
         echo >&2
         exit 2
@@ -213,7 +213,7 @@ EOF
     # in order to avoid appending it more than once (idempotence).
     else
       local haystack
-      u_fs_get_file_contents "$drupal_default_settings" 'haystack'
+      f_fs_get_file_contents "$drupal_default_settings" 'haystack'
       if [[ -z "$haystack" ]] || [[ "$haystack" != *"/settings.local.php"* ]]; then
         # Avoid errors due to file permissions.
         chmod u+w "$drupal_default_settings"
@@ -234,7 +234,7 @@ EOF
     rm -f "$drupal_settings"
     if [[ $? -ne 0 ]]; then
       echo >&2
-      echo "Error in u_dwt_write_drupal_settings() - $BASH_SOURCE line $LINENO: failed to replace the file '$drupal_settings'." >&2
+      echo "Error in f_dwt_write_drupal_settings() - $BASH_SOURCE line $LINENO: failed to replace the file '$drupal_settings'." >&2
       echo "-> Aborting (3)." >&2
       echo >&2
       exit 3
@@ -243,18 +243,18 @@ EOF
 
   # Avoid errors due to file permissions.
   chmod u+w "$SERVER_DOCROOT/sites/$site_dir"
-  cp "$hook_most_specific_dry_run_match" "$drupal_settings"
+  cp "$most_specific_match" "$drupal_settings"
 
   if [[ $? -ne 0 ]]; then
     echo >&2
-    echo "Error in u_dwt_write_drupal_settings() - $BASH_SOURCE line $LINENO: failed to copy template $hook_most_specific_dry_run_match to '$drupal_settings'." >&2
+    echo "Error in f_dwt_write_drupal_settings() - $BASH_SOURCE line $LINENO: failed to copy template $most_specific_match to '$drupal_settings'." >&2
     echo "-> Aborting (4)." >&2
     echo >&2
     exit 4
   fi
 
   # Start with read-only global vars (supports any global).
-  u_global_list
+  f_global_list
   for var_name in "${asc_globals_var_names[@]}"; do
     if grep -Fq "${token_prefix}${var_name}${token_suffix}" "$drupal_settings"; then
       var_val="${!var_name}"
@@ -268,7 +268,7 @@ EOF
         if [[ "${var_val:0:1}" != '/' ]]; then
           var_val="$PROJECT_DOCROOT/$var_val"
         fi
-        u_fs_relative_path "$var_val" "$SERVER_DOCROOT"
+        f_fs_relative_path "$var_val" "$SERVER_DOCROOT"
         var_val="$relative_path"
       esac
 
@@ -288,29 +288,29 @@ EOF
             if [[ "${var_val:0:1}" != '/' ]] && [[ "${APP_DOCROOT_C:0:1}" == '/' ]]; then
               var_val="$APP_DOCROOT_C/$var_val"
             fi
-            u_fs_relative_path "$var_val" "$SERVER_DOCROOT_C"
+            f_fs_relative_path "$var_val" "$SERVER_DOCROOT_C"
             var_val="$relative_path"
           esac
         fi
       esac
 
       sed -e "s,${token_prefix}${var_name}${token_suffix},${var_val},g" -i "$drupal_settings"
-      # echo "  [$p_site] replaced global '${token_prefix}${var_name}${token_suffix}' by '${var_val}'"
+      # echo "  [$a_site] replaced global '${token_prefix}${var_name}${token_suffix}' by '${var_val}'"
     fi
   done
 
   # Now, deal with DB-related variables (not necessarily globals). Any prefixed
   # or unprefixed DB_* var, including other site's, are supported everywhere.
   # All prefixed DB_* vars are already available in current scope.
-  # @see u_dwt_write_settings()
+  # @see f_dwt_write_settings()
   local unique_db_ids=()
 
   # First, reset unprefixed DB_* vars to current site's.
-  u_db_set "$p_site"
+  f_db_set "$a_site"
   local v=''
   local site_id=''
   local db_vars=''
-  u_db_vars_list
+  f_db_vars_list
   for v in $db_vars_list; do
     db_vars+="DB_${v} "
   done
@@ -319,7 +319,7 @@ EOF
   if [[ -n "${dwt_sites_ids[@]}" ]]; then
     for site_id in "${dwt_sites_ids[@]}"; do
       unique_db_ids+=("$site_id")
-      u_str_uppercase "$site_id" 'site_id'
+      f_str_uppercase "$site_id" 'site_id'
       for v in $db_vars_list; do
         db_vars+="${site_id}_DB_${v} "
       done
@@ -329,11 +329,11 @@ EOF
   # Multi-DB (manually set using the ASC_DB_IDS global) support.
   local db_id=''
   for db_id in $ASC_DB_IDS; do
-    if u_in_array "$db_id" unique_db_ids; then
+    if f_in_array "$db_id" unique_db_ids; then
       continue
     fi
     unique_db_ids+=("$db_id")
-    u_str_uppercase "$db_id" 'db_id'
+    f_str_uppercase "$db_id" 'db_id'
     for v in $db_vars_list; do
       db_vars+="${db_id}_DB_${v} "
     done
@@ -344,7 +344,7 @@ EOF
   for var_name in $db_vars; do
     if grep -Fq "${token_prefix}${var_name}${token_suffix}" "$drupal_settings"; then
       sed -e "s,${token_prefix}${var_name}${token_suffix},${!var_name},g" -i "$drupal_settings"
-      # echo "  [$p_site] replaced '${token_prefix}${var_name}${token_suffix}' by '${!var_name}'"
+      # echo "  [$a_site] replaced '${token_prefix}${var_name}${token_suffix}' by '${!var_name}'"
     fi
   done
 
@@ -353,7 +353,7 @@ EOF
   case "$DWT_MULTISITE" in true)
     local multisite_key
     local multisite_var
-    u_dwt_sites_yml_keys
+    f_dwt_sites_yml_keys
 
     for multisite_key in $dwt_sites_yml_keys; do
       # Except for 'config_sync_dir', which is handled below due to relative
@@ -363,14 +363,14 @@ EOF
       esac
 
       var_name="SITE_${multisite_key}"
-      u_str_uppercase "$var_name" 'var_name'
-      multisite_var="dwt_sites_${p_site}_${multisite_key}"
-      u_str_sanitize_var_name "$multisite_var" 'multisite_var'
+      f_str_uppercase "$var_name" 'var_name'
+      multisite_var="dwt_sites_${a_site}_${multisite_key}"
+      f_str_sanitize_var_name "$multisite_var" 'multisite_var'
       var_val="${!multisite_var}"
 
       if grep -Fq "${token_prefix}${var_name}${token_suffix}" "$drupal_settings"; then
         sed -e "s,${token_prefix}${var_name}${token_suffix},$var_val,g" -i "$drupal_settings"
-        # echo "  [$p_site] replaced multisite key '${token_prefix}${var_name}${token_suffix}' by '$var_val'"
+        # echo "  [$a_site] replaced multisite key '${token_prefix}${var_name}${token_suffix}' by '$var_val'"
       fi
     done
 
@@ -381,7 +381,7 @@ EOF
     #   $settings['file_public_path'] = '{{ DRUPAL_FILES_DIR }}';
     # in case of multi-sites setups, we would use :
     #   $settings['file_public_path'] = '{{ SITE_FILES_DIR }}';
-    # @see u_dwt_get_sites_writeable_paths()
+    # @see f_dwt_get_sites_writeable_paths()
     local multisite_writeable_paths_varnames=()
     multisite_writeable_paths_varnames+=("SITE_FILES_DIR")
     multisite_writeable_paths_varnames+=("SITE_TMP_DIR")
@@ -392,10 +392,10 @@ EOF
     dwt_sites_writeable_paths=()
     case "$PROVISION_USING" in
       compose|docker-compose)
-        u_dwt_get_sites_writeable_paths "$p_site" 'dc'
+        f_dwt_get_sites_writeable_paths "$a_site" 'dc'
         ;;
       *)
-        u_dwt_get_sites_writeable_paths "$p_site"
+        f_dwt_get_sites_writeable_paths "$a_site"
         ;;
     esac
 
@@ -412,7 +412,7 @@ EOF
             if [[ "${var_val:0:1}" != '/' ]] && [[ "${APP_DOCROOT_C:0:1}" == '/' ]]; then
               var_val="$APP_DOCROOT_C/$var_val"
             fi
-            u_fs_relative_path "$var_val" "$SERVER_DOCROOT_C"
+            f_fs_relative_path "$var_val" "$SERVER_DOCROOT_C"
             ;;
           *)
             # If the value does not start with '/', we assume it is relative to
@@ -420,7 +420,7 @@ EOF
             if [[ "${var_val:0:1}" != '/' ]]; then
               var_val="$PROJECT_DOCROOT/$var_val"
             fi
-            u_fs_relative_path "$var_val" "$SERVER_DOCROOT"
+            f_fs_relative_path "$var_val" "$SERVER_DOCROOT"
             ;;
         esac
         var_val="$relative_path"
@@ -428,13 +428,13 @@ EOF
 
       if grep -Fq "${token_prefix}${var_name}${token_suffix}" "$drupal_settings"; then
         sed -e "s,${token_prefix}${var_name}${token_suffix},$var_val,g" -i "$drupal_settings"
-        # echo "  [$p_site] replaced writeable path '${token_prefix}${var_name}${token_suffix}' by '$var_val'"
+        # echo "  [$a_site] replaced writeable path '${token_prefix}${var_name}${token_suffix}' by '$var_val'"
       fi
     done
   esac
 
   # Keep write-protection.
-  u_instance_get_permissions
+  f_instance_get_permissions
   chmod "$FS_P_FILES" "$drupal_settings"
   if [[ $? -ne 0 ]]; then
     echo >&2
@@ -465,28 +465,28 @@ EOF
 # @var dwt_sites_<SITE_ID>_db_* (id, name, host, port, user, etc.)
 #
 # To list matches & check which one will be used (the most specific) :
-# u_hook_most_specific 'dry-run' \
+# hook_ms 'dry-run' \
 #   -s 'app' \
 #   -a 'sites' \
 #   -c 'yml' \
 #   -v 'HOST_TYPE INSTANCE_TYPE' \
 #   -t -r -d
-# echo "match = $hook_most_specific_dry_run_match"
+# echo "match = $most_specific_match"
 #
 # Idem, but for a specific host remote ID :
 # dwt_remote_id='preprod'
-# u_hook_most_specific 'dry-run' \
+# hook_ms 'dry-run' \
 #   -s 'app' \
 #   -a 'sites' \
 #   -c 'yml' \
 #   -v 'HOST_TYPE INSTANCE_TYPE dwt_remote_id' \
 #   -t -r -d
-# echo "match = $hook_most_specific_dry_run_match"
+# echo "match = $most_specific_match"
 #
 # @example
 #   # Get all sites config :
-#   u_dwt_sites_yml_keys
-#   u_dwt_sites
+#   f_dwt_sites_yml_keys
+#   f_dwt_sites
 #   for site_id in "${dwt_sites_ids[@]}"; do
 #     for key in $dwt_sites_yml_keys; do
 #       var="dwt_sites_${site_id}_${key}"
@@ -496,8 +496,8 @@ EOF
 #   done
 #
 #   # Get a single site config :
-#   u_dwt_sites_yml_keys
-#   u_dwt_sites 'my_site_id'
+#   f_dwt_sites_yml_keys
+#   f_dwt_sites 'my_site_id'
 #   for key in $dwt_sites_yml_keys; do
 #     var="dwt_sites_my_site_id_${key}"
 #     val="${!var}"
@@ -505,7 +505,7 @@ EOF
 #   done
 #
 #   # Get sites IDs only :
-#   u_dwt_sites '*' 'ids_only'
+#   f_dwt_sites '*' 'ids_only'
 #   echo "There are ${#dwt_sites_ids[@]} sites defined in this local instance."
 #   for site_id in "${dwt_sites_ids[@]}"; do
 #     echo "$site_id"
@@ -513,14 +513,14 @@ EOF
 #
 #   # Get all sites config for given remote ID :
 #   dwt_remote_id='preprod'
-#   u_dwt_sites
+#   f_dwt_sites
 #
-u_dwt_sites() {
-  local p_site="$1"
-  local p_want="$2"
+f_dwt_sites() {
+  local a_site="$1"
+  local a_want="$2"
   local dwt_vars_prefix='dwt_sites_'
   local sites_parsed_yaml_str=''
-  local hook_most_specific_dry_run_match=''
+  local most_specific_match=''
   local hook_variants
 
   # Sites YAML definition variants must allow using separate files by remote ID.
@@ -530,11 +530,11 @@ u_dwt_sites() {
   fi
 
   # Defaults to dealing with all sites.
-  if [[ -z "$p_site" ]]; then
-    p_site='*'
+  if [[ -z "$a_site" ]]; then
+    a_site='*'
   fi
 
-  u_hook_most_specific 'dry-run' \
+  hook_ms 'dry-run' \
     -s 'app' \
     -a 'sites' \
     -c 'yml' \
@@ -548,9 +548,9 @@ u_dwt_sites() {
   fi
 
   # No declaration file found ? Can't carry on, there's nothing to do.
-  if [[ ! -f "$hook_most_specific_dry_run_match" ]]; then
+  if [[ ! -f "$most_specific_match" ]]; then
     echo >&2
-    echo "Error in u_dwt_sites() - $BASH_SOURCE line $LINENO: no multi-sites declaration was found." >&2
+    echo "Error in f_dwt_sites() - $BASH_SOURCE line $LINENO: no multi-sites declaration was found." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     return 1
@@ -559,28 +559,28 @@ u_dwt_sites() {
   # Use pseudo-memoization to reduce multiple calls impact.
   if [[ -n "$memoized_dwt_sites_parsed_yaml_str" ]] \
     && [[ -n "$memoized_dwt_sites_yaml_file" ]] \
-    && [[ "$hook_most_specific_dry_run_match" == "$memoized_dwt_sites_yaml_file" ]]
+    && [[ "$most_specific_match" == "$memoized_dwt_sites_yaml_file" ]]
   then
     sites_parsed_yaml_str="$memoized_dwt_sites_parsed_yaml_str"
   else
-    sites_parsed_yaml_str="$(u_yaml_parse "$hook_most_specific_dry_run_match" "$dwt_vars_prefix")"
+    sites_parsed_yaml_str="$(f_yaml_parse "$most_specific_match" "$dwt_vars_prefix")"
     memoized_dwt_sites_parsed_yaml_str="$sites_parsed_yaml_str"
-    memoized_dwt_sites_yaml_file="$hook_most_specific_dry_run_match"
+    memoized_dwt_sites_yaml_file="$most_specific_match"
   fi
 
   # Fetch only sites IDs (return early).
-  case "$p_want" in 'ids_only')
-    u_yaml_get_root_keys "$hook_most_specific_dry_run_match"
+  case "$a_want" in 'ids_only')
+    f_yaml_get_root_keys "$most_specific_match"
     dwt_sites_ids=("${yaml_keys[@]}")
     return
   esac
 
-  case "$p_site" in
+  case "$a_site" in
 
     # Deal with all sites.
     '*')
       eval "$sites_parsed_yaml_str"
-      u_yaml_get_root_keys "$hook_most_specific_dry_run_match"
+      f_yaml_get_root_keys "$most_specific_match"
       dwt_sites_ids=("${yaml_keys[@]}")
       ;;
 
@@ -593,7 +593,7 @@ u_dwt_sites() {
         parsed_var_leaf="=${parsed_line##*=}"
         parsed_var="${parsed_line%$parsed_var_leaf}"
         # Skip any line not matching prefix (by site).
-        case "$parsed_line" in "${dwt_vars_prefix}${p_site}"*)
+        case "$parsed_line" in "${dwt_vars_prefix}${a_site}"*)
           eval "$parsed_line"
         esac
       done <<< "$sites_parsed_yaml_str"
@@ -615,11 +615,11 @@ u_dwt_sites() {
 #
 # @example
 #   declare -A dwt_site_data
-#   u_dwt_site_data 'my_site_id'
+#   f_dwt_site_data 'my_site_id'
 #   echo "site dir = ${dwt_site_data[dir]}"
 #
-u_dwt_site_data() {
-  local p_site="$1"
+f_dwt_site_data() {
+  local a_site="$1"
   local var
   local key
   local sub_key
@@ -629,32 +629,32 @@ u_dwt_site_data() {
   local data_keys
 
   dwt_site_data=()
-  u_dwt_sites_yml_keys
+  f_dwt_sites_yml_keys
   data_keys="$dwt_sites_yml_keys"
 
   # Avoid unnecessarily reloading sites.*.yml config files.
   # Considers the "dir" key as mandatory (this is the entry used to check if
   # that site's config was loaded already in current shell scope).
-  var="dwt_sites_${p_site}_dir"
-  u_str_sanitize_var_name "$var" 'var'
+  var="dwt_sites_${a_site}_dir"
+  f_str_sanitize_var_name "$var" 'var'
   eval "var_isset=\"\${$var+set}\"" # <- Variables may be set to empty strings.
   if [[ -z "$var_isset" ]]; then
-    u_dwt_sites "$p_site"
+    f_dwt_sites "$a_site"
   fi
 
   # Add DB vars.
-  u_db_vars_list
+  f_db_vars_list
   for var in $db_vars_list; do
     var="db_$var"
-    u_str_sanitize_var_name "$var" 'var'
-    u_str_lowercase "$var" 'var'
+    f_str_sanitize_var_name "$var" 'var'
+    f_str_lowercase "$var" 'var'
     data_keys+=" $var"
   done
 
   # Assemble.
   for key in $data_keys; do
-    var="dwt_sites_${p_site}_${key}"
-    u_str_sanitize_var_name "$var" 'var'
+    var="dwt_sites_${a_site}_${key}"
+    f_str_sanitize_var_name "$var" 'var'
     eval "var_isset=\"\${$var+set}\"" # <- Variables may be set to empty strings.
     if [[ -n "$var_isset" ]]; then
       dwt_site_data[$key]="${!var}"
@@ -668,18 +668,18 @@ u_dwt_site_data() {
       # TODO conflict tipping : introduce sub-level to specify weight (e.g. "dev.2").
       case "$key" in 'domain')
         key='domains'
-        u_str_subsequences "$HOST_TYPE $INSTANCE_TYPE" '_'
+        f_str_subsequences "$HOST_TYPE $INSTANCE_TYPE" '_'
 
         for sub_key in $str_subsequences; do
-          var="dwt_sites_${p_site}_${key}_${sub_key}"
-          u_str_sanitize_var_name "$var" 'var'
+          var="dwt_sites_${a_site}_${key}_${sub_key}"
+          f_str_sanitize_var_name "$var" 'var'
           # echo "$var = '${!var}'"
           eval "var_isset=\"\${$var+set}\""
           if [[ -n "$var_isset" ]]; then
             # In case of multiple matching variants, take the most specific.
             if [[ -n "${dwt_site_data[domain]}" ]]; then
-              u_str_split1 'domain_specificity' "$sub_key" '_'
-              u_str_split1 'conflicting_domain_specificity' "${dwt_site_data[_domain_sub_key]}" '_'
+              f_str_split1 'domain_specificity' "$sub_key" '_'
+              f_str_split1 'conflicting_domain_specificity' "${dwt_site_data[_domain_sub_key]}" '_'
               # echo "  conflict : [${dwt_site_data[_domain_sub_key]}] ${dwt_site_data[domain]} <- [$sub_key] ${!var}"
               if [[ ${#domain_specificity[@]} -gt ${#conflicting_domain_specificity[@]} ]]; then
                 dwt_site_data[domain]="${!var}"
@@ -701,7 +701,7 @@ u_dwt_site_data() {
 ##
 # (Re)writes the multi-site config file (i.e. sites/sites.php).
 #
-# @requires the variables from u_dwt_sites() in calling scope :
+# @requires the variables from f_dwt_sites() in calling scope :
 # @var dwt_sites_ids
 # @var dwt_sites_<SITE_ID>_*
 #
@@ -713,15 +713,15 @@ u_dwt_site_data() {
 #
 # @example
 #   # Will use sites/example.sites.php as base, (re)writes sites/sites.php.
-#   u_dwt_write_multisite_settings
+#   f_dwt_write_multisite_settings
 #
 #   # Customize base file
-#   u_dwt_write_multisite_settings 'path/to/base/file'
+#   f_dwt_write_multisite_settings 'path/to/base/file'
 #
 #   # Customize resulting file.
-#   u_dwt_write_multisite_settings '' "$SERVER_DOCROOT/sites/sites_local.php"
+#   f_dwt_write_multisite_settings '' "$SERVER_DOCROOT/sites/sites_local.php"
 #
-u_dwt_write_multisite_settings() {
+f_dwt_write_multisite_settings() {
   local base_file="$1"
   local target_file="$2"
 
@@ -736,7 +736,7 @@ u_dwt_write_multisite_settings() {
     rm -f "$target_file"
     if [[ $? -ne 0 ]]; then
       echo >&2
-      echo "Error in u_dwt_write_multisite_settings() - $BASH_SOURCE line $LINENO: unable to remove the multisite settings file to recreate '$target_file'." >&2
+      echo "Error in f_dwt_write_multisite_settings() - $BASH_SOURCE line $LINENO: unable to remove the multisite settings file to recreate '$target_file'." >&2
       echo "-> Aborting (1)." >&2
       echo >&2
       exit 1
@@ -747,7 +747,7 @@ u_dwt_write_multisite_settings() {
     cp "$base_file" "$target_file"
     if [[ $? -ne 0 ]]; then
       echo >&2
-      echo "Error in u_dwt_write_multisite_settings() - $BASH_SOURCE line $LINENO: unable to copy '$base_file' to '$target_file'." >&2
+      echo "Error in f_dwt_write_multisite_settings() - $BASH_SOURCE line $LINENO: unable to copy '$base_file' to '$target_file'." >&2
       echo "-> Aborting (2)." >&2
       echo >&2
       exit 2
@@ -768,11 +768,11 @@ u_dwt_write_multisite_settings() {
   for site_id in "${dwt_sites_ids[@]}"; do
     # Sites' dir :
     var="dwt_sites_${site_id}_dir"
-    u_str_sanitize_var_name "$var" 'var'
+    f_str_sanitize_var_name "$var" 'var'
     site_dir="${!var}"
     # Sites' domain :
     var="dwt_sites_${site_id}_domain"
-    u_str_sanitize_var_name "$var" 'var'
+    f_str_sanitize_var_name "$var" 'var'
     site_domain="${!var}"
     if [[ -z "$site_domain" ]]; then
       site_domain="${site_id}.${INSTANCE_DOMAIN}"
@@ -809,11 +809,11 @@ u_dwt_write_multisite_settings() {
 #
 # @example
 #   # For local sites :
-#   u_dwt_sites
+#   f_dwt_sites
 #   for site_id in "${dwt_sites_ids[@]}"; do
-#     u_str_sanitize_var_name "$site_id" 'site_id'
+#     f_str_sanitize_var_name "$site_id" 'site_id'
 #     dwt_sites_writeable_paths=()
-#     u_dwt_get_sites_writeable_paths "$site_id"
+#     f_dwt_get_sites_writeable_paths "$site_id"
 #     echo "Writeable_path for site '$site_id' :"
 #     for writeable_path in "${dwt_sites_writeable_paths[@]}"; do
 #       echo "  $writeable_path"
@@ -821,11 +821,11 @@ u_dwt_write_multisite_settings() {
 #   done
 #
 #   # For local sites, using the docker-compose version of the paths :
-#   u_dwt_sites
+#   f_dwt_sites
 #   for site_id in "${dwt_sites_ids[@]}"; do
-#     u_str_sanitize_var_name "$site_id" 'site_id'
+#     f_str_sanitize_var_name "$site_id" 'site_id'
 #     dwt_sites_writeable_paths=()
-#     u_dwt_get_sites_writeable_paths "$site_id" 'dc'
+#     f_dwt_get_sites_writeable_paths "$site_id" 'dc'
 #     echo "Writeable_path for site '$site_id' :"
 #     for writeable_path in "${dwt_sites_writeable_paths[@]}"; do
 #       echo "  $writeable_path"
@@ -834,20 +834,20 @@ u_dwt_write_multisite_settings() {
 #
 #   # For remote sites - here, on the 'prod' remote instance :
 #   dwt_remote_id='prod'
-#   u_dwt_sites
+#   f_dwt_sites
 #   for site_id in "${dwt_sites_ids[@]}"; do
-#     u_str_sanitize_var_name "$site_id" 'site_id'
+#     f_str_sanitize_var_name "$site_id" 'site_id'
 #     dwt_sites_writeable_paths=()
-#     u_dwt_get_sites_writeable_paths "$site_id"
+#     f_dwt_get_sites_writeable_paths "$site_id"
 #     echo "Writeable_path for site '$site_id' :"
 #     for writeable_path in "${dwt_sites_writeable_paths[@]}"; do
 #       echo "  $writeable_path"
 #     done
 #   done
 #
-u_dwt_get_sites_writeable_paths() {
-  local p_site="$1"
-  local p_dc_variants="$2"
+f_dwt_get_sites_writeable_paths() {
+  local a_site="$1"
+  local a_dc_variants="$2"
 
   # local path_names='files_dir tmp_dir translation_dir config_sync_dir private_dir'
   local path_names='files_dir tmp_dir config_sync_dir private_dir'
@@ -859,11 +859,11 @@ u_dwt_get_sites_writeable_paths() {
 
     # In a multi-site setup, all of these paths may be set in the YAML sites
     # declarations, e.g. : sites.local.yml or sites.prod.yml in project docroot.
-    v="dwt_sites_${p_site}_${path_name}"
+    v="dwt_sites_${a_site}_${path_name}"
     path_val="${!v}"
 
     if [[ -n "$path_val" ]]; then
-      if [[ -n "$p_dc_variants" ]]; then
+      if [[ -n "$a_dc_variants" ]]; then
         # In the YAML sites declaration, for paths like the config sync dir,
         # it contains the APP_DOCROOT (otherwise the ensure_dirs_exist.hook.sh
         # would not be possible).
@@ -882,22 +882,22 @@ u_dwt_get_sites_writeable_paths() {
     else
       # In the absence of specific paths defined in sites' YAML files, fallback
       # to replace all 'sites/default' bits from the defaults.
-      v="dwt_sites_${p_site}_dir"
+      v="dwt_sites_${a_site}_dir"
       site_dir="${!v}"
 
       if [[ -z "$site_dir" ]]; then
         echo >&2
-        echo "Error in $BASH_SOURCE line $LINENO: missing a site dir for '$p_site'." >&2
+        echo "Error in $BASH_SOURCE line $LINENO: missing a site dir for '$a_site'." >&2
         echo "-> Aborting (1)." >&2
         echo >&2
         exit 1
       fi
 
       v="DRUPAL_${path_name}"
-      if [[ -n "$p_dc_variants" ]]; then
+      if [[ -n "$a_dc_variants" ]]; then
         v="DRUPAL_${path_name}_C"
       fi
-      u_str_uppercase "$v" 'v'
+      f_str_uppercase "$v" 'v'
       path_val="${!v}"
 
       if [[ -n "$path_val" ]]; then
@@ -919,9 +919,9 @@ u_dwt_get_sites_writeable_paths() {
 # @var dwt_sites_yml_keys
 #
 # @example
-#   u_dwt_sites_yml_keys
+#   f_dwt_sites_yml_keys
 #   echo "$dwt_sites_yml_keys"
 #
-u_dwt_sites_yml_keys() {
+f_dwt_sites_yml_keys() {
   dwt_sites_yml_keys='domain dir install_profile config_sync_dir config_split'
 }

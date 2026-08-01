@@ -13,5 +13,5 @@
 
 . asc/bootstrap.sh
 
-u_db_set
-u_moodle_write_settings
+f_db_set
+f_moodle_write_settings

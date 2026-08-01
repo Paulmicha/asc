@@ -3,8 +3,8 @@
 ##
 # Implements hook -p 'post' -a 'init' -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'.
 #
-# @see u_moodle_write_settings() in asc/extensions/moodle_d4php/moodle_d4php.inc.sh
-# @see u_instance_init() in asc/instance/instance.inc.sh
+# @see f_moodle_write_settings() in asc/extensions/moodle_d4php/moodle_d4php.inc.sh
+# @see f_instance_init() in asc/instance/instance.inc.sh
 #
 
-u_moodle_write_settings
+f_moodle_write_settings

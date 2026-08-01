@@ -20,42 +20,42 @@
 
 . asc/bootstrap.sh
 
-p_entry="$1"
-p_max_bytes="${2:-1048576}"
+a_entry="$1"
+a_max_bytes="${2:-1048576}"
 
 if [[ ! -d data/logs ]]; then
   exit 0
 fi
 
-u_log_rotate_file() {
-  local p_log_file="$1"
-  local p_size=''
+f_log_rotate_file() {
+  local a_log_file="$1"
+  local a_size=''
 
-  if [[ ! -f "$p_log_file" ]]; then
+  if [[ ! -f "$a_log_file" ]]; then
     return 0
   fi
 
-  p_size="$(stat -c '%s' "$p_log_file" 2>/dev/null || echo 0)"
+  a_size="$(stat -c '%s' "$a_log_file" 2>/dev/null || echo 0)"
 
-  if [[ "$p_size" -lt "$p_max_bytes" ]]; then
+  if [[ "$a_size" -lt "$a_max_bytes" ]]; then
     return 0
   fi
 
-  p_rotated="${p_log_file}.1"
+  a_rotated="${a_log_file}.1"
 
-  if [[ -f "$p_rotated" ]]; then
-    mv -f "$p_rotated" "${p_log_file}.2"
+  if [[ -f "$a_rotated" ]]; then
+    mv -f "$a_rotated" "${a_log_file}.2"
   fi
 
-  mv -f "$p_log_file" "$p_rotated"
-  touch "$p_log_file"
+  mv -f "$a_log_file" "$a_rotated"
+  touch "$a_log_file"
 
-  echo "Rotated: $p_log_file -> $p_rotated (${p_size} bytes)"
+  echo "Rotated: $a_log_file -> $a_rotated (${a_size} bytes)"
 }
 
-if [[ -n "$p_entry" ]]; then
-  p_entry=${p_entry#'e:'}
-  u_log_rotate_file "data/logs/${p_entry}.txt"
+if [[ -n "$a_entry" ]]; then
+  a_entry=${a_entry#'e:'}
+  f_log_rotate_file "data/logs/${a_entry}.txt"
 
   exit 0
 fi
@@ -63,10 +63,10 @@ fi
 shopt -s nullglob
 log_files=(data/logs/*.txt)
 
-for p_log_file in "${log_files[@]}"; do
-  case "$p_log_file" in
+for a_log_file in "${log_files[@]}"; do
+  case "$a_log_file" in
     *.sidecar.txt) continue;;
   esac
 
-  u_log_rotate_file "$p_log_file"
+  f_log_rotate_file "$a_log_file"
 done

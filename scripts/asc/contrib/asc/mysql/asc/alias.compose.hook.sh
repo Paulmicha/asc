@@ -20,7 +20,7 @@
 #
 # By default, the target container name will be the DB_HOST value.
 #
-# @see u_db_set() in asc/extensions/db/db.inc.sh
+# @see f_db_set() in asc/extensions/db/db.inc.sh
 #
 
 if [[ -z "$dc_db_service_name" ]]; then

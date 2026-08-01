@@ -41,7 +41,7 @@
 ##
 # Strip surrounding quotes from a .env / yaml scalar (local helper).
 #
-_u_nested_asc_unquote() {
+f_nested_asc_unquote() {
   local v="$1"
   v="${v#\'}"
   v="${v%\'}"
@@ -53,8 +53,8 @@ _u_nested_asc_unquote() {
 ##
 # Load nested instance app map from child .env or env.yml (local only).
 #
-_u_nested_asc_load_apps() {
-  local p_docroot="$1"
+f_nested_asc_load_apps() {
+  local a_docroot="$1"
   local line
   local key
   local val
@@ -64,7 +64,7 @@ _u_nested_asc_load_apps() {
   nested_asc_legacy_app=''
   nested_asc_legacy_server=''
 
-  if [[ -f "$p_docroot/.env" ]]; then
+  if [[ -f "$a_docroot/.env" ]]; then
     while IFS= read -r line || [[ -n "$line" ]]; do
       case "$line" in
         'ASC_APPS='*)
@@ -93,8 +93,8 @@ _u_nested_asc_load_apps() {
           esac
           ;;
       esac
-    done < "$p_docroot/.env"
-  elif [[ -f "$p_docroot/env.yml" ]]; then
+    done < "$a_docroot/.env"
+  elif [[ -f "$a_docroot/env.yml" ]]; then
     while IFS= read -r line || [[ -n "$line" ]]; do
       case "$line" in
         asc_apps:*|'asc_apps:'*)
@@ -116,17 +116,17 @@ _u_nested_asc_load_apps() {
           nested_asc_legacy_server="$(_u_nested_asc_unquote "$val")"
           ;;
       esac
-    done < "$p_docroot/env.yml"
+    done < "$a_docroot/env.yml"
   fi
 }
 
 ##
 # Print one app branch under the project tree.
 #
-_u_nested_asc_print_app() {
-  local p_docroot="$1"
-  local p_app="$2"
-  local p_is_last="$3"
+f_nested_asc_print_app() {
+  local a_docroot="$1"
+  local a_app="$2"
+  local a_is_last="$3"
   local app_u
   local doc_var
   local srv_var
@@ -136,16 +136,16 @@ _u_nested_asc_print_app() {
   local branch
   local nest
 
-  u_str_uppercase "$p_app" 'app_u'
+  f_str_uppercase "$a_app" 'app_u'
   doc_var="nested_asc_app_docroot_${app_u}"
   srv_var="nested_asc_app_server_${app_u}"
-  doc_rel="${!doc_var:-$p_app}"
+  doc_rel="${!doc_var:-$a_app}"
   srv_rel="${!srv_var:-}"
 
-  doc_rel="${doc_rel#$p_docroot/}"
-  srv_rel="${srv_rel#$p_docroot/}"
+  doc_rel="${doc_rel#$a_docroot/}"
+  srv_rel="${srv_rel#$a_docroot/}"
 
-  if [[ "$p_is_last" == '1' ]]; then
+  if [[ "$a_is_last" == '1' ]]; then
     branch='└──'
     nest='    '
   else
@@ -153,20 +153,20 @@ _u_nested_asc_print_app() {
     nest='│   '
   fi
 
-  if [[ -d "$p_docroot/$doc_rel" ]]; then
-    echo "  ${branch} ${doc_rel}/              ← App \"${p_app}\" (\$${app_u}_DOCROOT)"
+  if [[ -d "$a_docroot/$doc_rel" ]]; then
+    echo "  ${branch} ${doc_rel}/              ← App \"${a_app}\" (\$${app_u}_DOCROOT)"
     if [[ -n "$srv_rel" ]]; then
       case "$srv_rel" in
         "${doc_rel}/"*)
           srv_under="${srv_rel#${doc_rel}/}"
-          if [[ -d "$p_docroot/$srv_rel" ]]; then
+          if [[ -d "$a_docroot/$srv_rel" ]]; then
             echo "  ${nest}└── ${srv_under}/          ← Public web (\$${app_u}_SERVER_DOCROOT)"
           else
             echo "  ${nest}└── ${srv_under}/          ← [optional] \$${app_u}_SERVER_DOCROOT — missing"
           fi
           ;;
         *)
-          if [[ -d "$p_docroot/$srv_rel" ]]; then
+          if [[ -d "$a_docroot/$srv_rel" ]]; then
             echo "  ${nest}└── ${srv_rel}/          ← Public web (\$${app_u}_SERVER_DOCROOT)"
           else
             echo "  ${nest}└── ${srv_rel}/          ← [optional] \$${app_u}_SERVER_DOCROOT — missing"
@@ -177,7 +177,7 @@ _u_nested_asc_print_app() {
       echo "  ${nest}└── (no \$${app_u}_SERVER_DOCROOT) ← [optional]"
     fi
   else
-    echo "  ${branch} ${doc_rel}/              ← App \"${p_app}\" (\$${app_u}_DOCROOT) — missing"
+    echo "  ${branch} ${doc_rel}/              ← App \"${a_app}\" (\$${app_u}_DOCROOT) — missing"
   fi
 }
 
@@ -187,43 +187,43 @@ _u_nested_asc_print_app() {
 # @param 1 String : absolute path to the nested project root.
 # @param 2 [optional] String : short id to display (default: basename).
 #
-u_nested_asc_print() {
-  local p_docroot="$1"
-  local p_short_id="${2:-}"
+f_nested_asc_print() {
+  local a_docroot="$1"
+  local a_short_id="${2:-}"
   local app
   local leg_app
   local leg_srv
 
-  if [[ -z "$p_docroot" || ! -d "$p_docroot" ]]; then
-    echo "Error in u_nested_asc_print() - $BASH_SOURCE line $LINENO: invalid docroot '$p_docroot'." >&2
+  if [[ -z "$a_docroot" || ! -d "$a_docroot" ]]; then
+    echo "Error in f_nested_asc_print() - $BASH_SOURCE line $LINENO: invalid docroot '$a_docroot'." >&2
     return 1
   fi
 
-  if [[ ! -f "$p_docroot/asc/bootstrap.sh" ]]; then
-    echo "Error in u_nested_asc_print() - $BASH_SOURCE line $LINENO: not a ASC instance ('$p_docroot/asc/bootstrap.sh' missing)." >&2
+  if [[ ! -f "$a_docroot/asc/bootstrap.sh" ]]; then
+    echo "Error in f_nested_asc_print() - $BASH_SOURCE line $LINENO: not a ASC instance ('$a_docroot/asc/bootstrap.sh' missing)." >&2
     return 2
   fi
 
-  if [[ -z "$p_short_id" ]]; then
-    p_short_id="${p_docroot##*/}"
+  if [[ -z "$a_short_id" ]]; then
+    a_short_id="${a_docroot##*/}"
   fi
 
-  _u_nested_asc_load_apps "$p_docroot"
+  _u_nested_asc_load_apps "$a_docroot"
 
-  echo "${p_short_id}  ${p_docroot}/     ← Project root (\$PROJECT_DOCROOT)"
+  echo "${a_short_id}  ${a_docroot}/     ← Project root (\$PROJECT_DOCROOT)"
 
   if [[ -n "$nested_asc_apps" ]]; then
     for app in $nested_asc_apps; do
-      _u_nested_asc_print_app "$p_docroot" "$app" 0
+      _u_nested_asc_print_app "$a_docroot" "$app" 0
     done
   elif [[ -n "$nested_asc_legacy_app" ]]; then
     leg_app="$nested_asc_legacy_app"
     leg_srv="${nested_asc_legacy_server:-}"
-    leg_app="${leg_app#$p_docroot/}"
-    leg_srv="${leg_srv#$p_docroot/}"
-    if [[ -d "$p_docroot/$leg_app" ]]; then
+    leg_app="${leg_app#$a_docroot/}"
+    leg_srv="${leg_srv#$a_docroot/}"
+    if [[ -d "$a_docroot/$leg_app" ]]; then
       echo "  ├── ${leg_app}/              ← Application dir (\$APP_DOCROOT)"
-      if [[ -n "$leg_srv" && -d "$p_docroot/$leg_srv" ]]; then
+      if [[ -n "$leg_srv" && -d "$a_docroot/$leg_srv" ]]; then
         case "$leg_srv" in
           "${leg_app}/"*)
             echo "  │   └── ${leg_srv#${leg_app}/}/          ← Public web (\$SERVER_DOCROOT)"
@@ -244,21 +244,21 @@ u_nested_asc_print() {
 
   echo "  ├── asc/              ← ASC \"core\" source files. Update = delete + replace entire folder"
 
-  if [[ -d "$p_docroot/scripts" ]]; then
+  if [[ -d "$a_docroot/scripts" ]]; then
     echo "  ├── scripts/          ← Current project specific scripts"
-    if [[ -d "$p_docroot/scripts/asc" ]]; then
+    if [[ -d "$a_docroot/scripts/asc" ]]; then
       echo "  │   └── asc/          ← ASC-related project-specific extension, local files and overrides"
-      if [[ -d "$p_docroot/scripts/asc/extend" ]]; then
+      if [[ -d "$a_docroot/scripts/asc/extend" ]]; then
         echo "  │       ├── extend/   ← Custom project-specific ASC extension"
       else
         echo "  │       ├── extend/   ← [optional] missing"
       fi
-      if [[ -d "$p_docroot/data/asc" ]]; then
+      if [[ -d "$a_docroot/data/asc" ]]; then
         echo "  │       ├── local/    ← [git-ignored] Generated files specific to this local instance"
       else
         echo "  │       ├── local/    ← [git-ignored] missing"
       fi
-      if [[ -d "$p_docroot/scripts/asc/override" ]]; then
+      if [[ -d "$a_docroot/scripts/asc/override" ]]; then
         echo "  │       └── override/ ← Allows to replace virtually any file sourced in ASC scripts"
       else
         echo "  │       └── override/ ← [optional] missing"
@@ -270,13 +270,13 @@ u_nested_asc_print() {
     echo "  ├── scripts/          ← [optional] missing"
   fi
 
-  if [[ -f "$p_docroot/.gitignore" ]]; then
+  if [[ -f "$a_docroot/.gitignore" ]]; then
     echo "  ├── .gitignore        ← Present"
   else
     echo "  ├── .gitignore        ← missing"
   fi
 
-  if [[ -f "$p_docroot/Makefile" ]]; then
+  if [[ -f "$a_docroot/Makefile" ]]; then
     echo "  ├── Makefile          ← The \"make\" entry point"
   else
     echo "  ├── Makefile          ← missing"
@@ -289,7 +289,7 @@ u_nested_asc_print() {
 # Map one or many.
 case "$1" in
   '')
-    u_nested_asc_find
+    f_nested_asc_find
     if [[ -z "$nested_asc_instances" ]]; then
       echo "No nested ASC instances found under $HOME/Documents."
       exit 0
@@ -297,17 +297,17 @@ case "$1" in
     echo "Nested ASC instances (ref → path):"
     echo
     for _nested_docroot in $nested_asc_instances; do
-      u_nested_asc_short_id "$_nested_docroot" "$nested_asc_instances"
-      u_nested_asc_print "$_nested_docroot" "$nested_asc_short_id"
+      f_nested_asc_short_id "$_nested_docroot" "$nested_asc_instances"
+      f_nested_asc_print "$_nested_docroot" "$nested_asc_short_id"
     done
     ;;
 
   *)
-    if ! u_nested_asc_resolve "$1"; then
+    if ! f_nested_asc_resolve "$1"; then
       exit $?
     fi
-    u_nested_asc_short_id "$nested_asc_resolved" "$nested_asc_instances"
-    u_nested_asc_print "$nested_asc_resolved" "$nested_asc_short_id"
+    f_nested_asc_short_id "$nested_asc_resolved" "$nested_asc_instances"
+    f_nested_asc_print "$nested_asc_resolved" "$nested_asc_short_id"
     exit $?
     ;;
 esac

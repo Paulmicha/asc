@@ -20,7 +20,7 @@ case "$DWT_USE_CRONTAB" in 1|y*|true)
   echo "Cleanup any potential Drupal cron job for instance $INSTANCE_DOMAIN on local host ..."
 
   # @see asc/extensions/drupalwt/app/install.hook.sh
-  u_host_crontab_remove "cd $PROJECT_DOCROOT && make drush cron"
+  f_host_crontab_remove "cd $PROJECT_DOCROOT && make drush cron"
 
   echo "Cleanup any potential Drupal cron job for instance $INSTANCE_DOMAIN on local host : done."
   echo

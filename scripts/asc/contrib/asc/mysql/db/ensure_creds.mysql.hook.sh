@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 
 ##
-# Implements u_hook_most_specific -s 'db' -a 'ensure_creds' -v 'DB_DRIVER DB_ID INSTANCE_TYPE'.
+# Implements hook_ms -s 'db' -a 'ensure_creds' -v 'DB_DRIVER DB_ID INSTANCE_TYPE'.
 #
 # @requires the following var in calling scope :
 # @var db_exists
 #
-# @see u_db_exists() in asc/extensions/db/db.inc.sh
+# @see f_db_exists() in asc/extensions/db/db.inc.sh
 #
 # @example
-#   u_db_ensure_creds
-#   u_db_ensure_creds 'custom_db_id'
+#   f_db_ensure_creds
+#   f_db_ensure_creds 'custom_db_id'
 #
 
 echo "Ensuring $DB_ID $DB_DRIVER database '$DB_NAME' on $DB_HOST has proper grants setup for user $DB_USER ..."

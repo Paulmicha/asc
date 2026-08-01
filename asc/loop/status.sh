@@ -10,20 +10,20 @@
 
 . asc/bootstrap.sh
 
-u_loop_monitor_enabled() {
+f_loop_monitor_enabled() {
   case "${ASC_MONITORING:-1}" in 0|false|FALSE|off|OFF) return 1 ;; esac
   case "${ASC_LOOP_MONITOR:-1}" in 0|false|FALSE|off|OFF) return 1 ;; esac
   return 0
 }
 
-u_loop_monitor_one() {
-  local p_id="$1"
-  local reg="data/asc/loop/${p_id}.sh"
+f_loop_monitor_one() {
+  local a_id="$1"
+  local reg="data/asc/loop/${a_id}.sh"
   local unit=''
   local state=''
 
   if [[ ! -f "$reg" ]]; then
-    echo "loop-monitor: no registry for '$p_id'"
+    echo "loop-monitor: no registry for '$a_id'"
     return 1
   fi
 
@@ -31,27 +31,27 @@ u_loop_monitor_one() {
   . "$reg"
   unit="${ASC_LOOP_UNIT:-}"
   if [[ -z "$unit" ]]; then
-    echo "loop-monitor: empty unit for '$p_id'"
+    echo "loop-monitor: empty unit for '$a_id'"
     return 1
   fi
 
   state="$(systemctl --user is-active "$unit" 2>/dev/null || echo unknown)"
-  printf '%-40s %-12s %s\n' "$p_id" "$state" "$unit"
+  printf '%-40s %-12s %s\n' "$a_id" "$state" "$unit"
 }
 
-u_loop_monitor_default() {
-  local p_filter="${1:-}"
+f_loop_monitor_default() {
+  local a_filter="${1:-}"
   local f
   local id
 
-  if ! u_loop_monitor_enabled; then
+  if ! f_loop_monitor_enabled; then
     echo "loop-monitor: skipped (ASC_MONITORING / ASC_LOOP_MONITOR off)."
     return 0
   fi
 
-  if [[ -n "$p_filter" ]]; then
-    p_filter="${p_filter#e:}"
-    u_loop_monitor_one "$p_filter"
+  if [[ -n "$a_filter" ]]; then
+    a_filter="${a_filter#e:}"
+    f_loop_monitor_one "$a_filter"
     return $?
   fi
 
@@ -65,9 +65,9 @@ u_loop_monitor_default() {
   for f in data/asc/loop/*.sh; do
     id="${f##*/}"
     id="${id%.sh}"
-    u_loop_monitor_one "$id"
+    f_loop_monitor_one "$id"
   done
   shopt -u nullglob
 }
 
-u_loop_monitor_default "$@"
+f_loop_monitor_default "$@"

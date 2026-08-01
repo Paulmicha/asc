@@ -34,14 +34,14 @@ global PROVISION_USING "[default]=asc [help]='Generic differenciator used by man
 
 global HOST_TYPE "[default]=local [help]='Idem. E.g. local, remote...'"
 
-global HOST_OS "$(u_host_os)"
+global HOST_OS "$(f_host_os)"
 
 # [optional] Provide additional custom makefile includes, and short subjects
 # or actions replacements used for generating Makefile task names.
-# @see u_make_generate()
-# @see u_make_task_name()
+# @see f_make_generate()
+# @see f_make_task_name()
 # @see Makefile
-global ASC_MAKE_INC "[append]='$(u_asc_extensions_get_makefiles)'"
+global ASC_MAKE_INC "[append]='$(f_asc_extensions_get_makefiles)'"
 
 global ASC_SYNONYMS "[append]='asc-cache-clear/cc'"
 global ASC_SYNONYMS "[append]='asc-cache-rebuild/cr'"
@@ -56,15 +56,15 @@ global ASC_SYNONYMS "[append]='lookup-path/pl'"
 global ASC_SYNONYMS "[append]='registry/reg'"
 # global ASC_SYNONYMS "[append]='wrapper/bridge'"
 
-# Per-case test registry written by u_make_generate_test_cases() during reinit.
-# @see u_make_generate_test_cases() in asc/make/make.inc.sh
-# @see u_test_case_cache_load() in asc/test/test.inc.sh
+# Per-case test registry written by f_make_generate_test_cases() during reinit.
+# @see f_make_generate_test_cases() in asc/make/make.inc.sh
+# @see f_test_case_cache_load() in asc/test/test.inc.sh
 global ASC_TEST_CASE_CACHE "[default]='data/asc/cache/test-cases.sh'"
 global ASC_TEST_CASE_ENVS "[default]='local preprod recette prod'"
 
 # 2. ASC "apps" (or components) enforce a naming convention for dynamically
 # generated globals var names. Space-separated list. Defaults to "site".
-# @see u_instance_init() in asc/instance/instance.inc.sh
+# @see f_instance_init() in asc/instance/instance.inc.sh
 global ASC_APPS "[default]='site' [help]='ASC apps allow for example to provide as many compose definitions, domains, etc. as we need. Each app may have its own git repo, its own database(s), etc.'"
 
 

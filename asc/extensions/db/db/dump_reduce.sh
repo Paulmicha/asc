@@ -57,7 +57,7 @@ fi
 extracted_file=''
 compressed_file=''
 
-u_fs_extract_in_place "$db_dump_file"
+f_fs_extract_in_place "$db_dump_file"
 
 # Debug.
 if [[ -n "$extracted_file" ]]; then

@@ -6,7 +6,7 @@
 # Applies writeable permissions for multisite setups.
 #
 # This file is dynamically included when the "hook" is triggered.
-# @see u_instance_set_permissions() in asc/instance/instance.inc.sh
+# @see f_instance_set_permissions() in asc/instance/instance.inc.sh
 #
 # To verify which files can be used (and will be sourced) when this hook is
 # triggered :
@@ -14,9 +14,9 @@
 #
 
 case "$DWT_MULTISITE" in 'true')
-  u_dwt_sites
+  f_dwt_sites
   for site_id in "${dwt_sites_ids[@]}"; do
-    u_str_sanitize_var_name "$site_id" 'site_id'
+    f_str_sanitize_var_name "$site_id" 'site_id'
 
     # The 'default' site should be done already (see WRITEABLE_DIRS and
     # PROTECTED_FILES globals).
@@ -26,7 +26,7 @@ case "$DWT_MULTISITE" in 'true')
     esac
 
     dwt_sites_writeable_paths=()
-    u_dwt_get_sites_writeable_paths "$site_id"
+    f_dwt_get_sites_writeable_paths "$site_id"
     for writeable_dir in "${dwt_sites_writeable_paths[@]}"; do
       # HACK : docker-compose projects may have subdirs where this returns many
       # errors we don't care about, so we prevent errors from polluting output.

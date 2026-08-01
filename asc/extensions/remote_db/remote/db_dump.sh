@@ -39,12 +39,12 @@ if [[ -z "$remote_id" ]]; then
   remote_id='prod'
 fi
 
-u_remote_check_id "$remote_id"
+f_remote_check_id "$remote_id"
 
 echo "Creating DB dumps on remote instance '$remote_id' ..."
 
-u_remote_instance_load "$remote_id"
-u_remote_db_prepare_dumps "$remote_id" "$db_id"
+f_remote_instance_load "$remote_id"
+f_remote_db_prepare_dumps "$remote_id" "$db_id"
 
 # We no longer require the argument "$2" from here, so it's fine to reuse this
 # var name.
@@ -53,7 +53,7 @@ db_id=''
 db_ids=()
 cmds=()
 
-u_db_get_ids
+f_db_get_ids
 
 for db_id in "${db_ids[@]}"; do
   # Debug.
@@ -107,7 +107,7 @@ done
 # echo "$joined_str"
 
 if [[ -n "$joined_str" ]]; then
-  u_remote_exec_wrapper "$remote_id" $joined_str
+  f_remote_exec_wrapper "$remote_id" $joined_str
 fi
 
 echo "Creating DB dumps on remote instance '$remote_id' : done."

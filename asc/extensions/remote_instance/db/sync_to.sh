@@ -21,4 +21,4 @@
 #
 
 . asc/bootstrap.sh
-u_remote_sync_db_to $@
+f_remote_sync_db_to $@

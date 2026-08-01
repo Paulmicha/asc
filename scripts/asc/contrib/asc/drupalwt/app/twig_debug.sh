@@ -17,9 +17,9 @@ echo "Switching on Twig debug mode..."
 case "$DWT_MULTISITE" in
   # Multi-site support.
   true)
-    u_dwt_sites
+    f_dwt_sites
     for site_id in "${dwt_sites_ids[@]}"; do
-      u_str_sanitize_var_name "$site_id" 'site_id'
+      f_str_sanitize_var_name "$site_id" 'site_id'
       var="dwt_sites_${site_id}_dir"
       site_dir="${!var}"
       chmod u+w "$SERVER_DOCROOT/sites/$site_dir"

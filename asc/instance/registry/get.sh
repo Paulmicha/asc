@@ -18,5 +18,5 @@
 #
 
 . asc/bootstrap.sh
-u_instance_registry_get "$@"
+f_instance_registry_get "$@"
 echo "$reg_val"

@@ -51,8 +51,8 @@
 # Prerequisites check : can't guarantee idempotence if ASC globals were already
 # loaded in current shell scope - because they are "readonly", which would be
 # incompatible with the globals aggregation and assignment process.
-# @see u_instance_init() in asc/instance/instance.inc.sh
-# @see global() + u_global_assign_value() in asc/utilities/global.sh
+# @see f_instance_init() in asc/instance/instance.inc.sh
+# @see global() + f_global_assign_value() in asc/utilities/global.sh
 # Detect via a core readonly (ASC_MAKE_INC may be empty when no extension
 # ships a make.mk).
 if declare -p PROJECT_DOCROOT 2>/dev/null | grep -qE '^declare -[^ ]*r'; then
@@ -89,13 +89,13 @@ fi
 
 # If previously initialized local instance, we need to make sure we don't run
 # the setup script before uninit.
-purge_list=()
-purge_list+=('.env')
-purge_list+=('data/asc/global.vars.sh')
-purge_list+=('data/asc/generated.mk')
-purge_list+=('data/asc/cache/make.sh')
+purge_list_arr=()
+purge_list_arr+=('.env')
+purge_list_arr+=('data/asc/global.vars.sh')
+purge_list_arr+=('data/asc/generated.mk')
+purge_list_arr+=('data/asc/cache/make.sh')
 
-for entry in "${purge_list[@]}"; do
+for entry in "${purge_list_arr[@]}"; do
   if [[ -f "$entry" ]]; then
     echo >&2
     echo "Setup cannot run, because first, uninit is required." >&2

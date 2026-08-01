@@ -17,7 +17,7 @@
 ##
 # Are all required ASC core globals successfully initialized ?
 #
-# @see u_asc_extend()
+# @see f_asc_extend()
 #
 test_asc_has_essential_globals() {
   assertFalse 'Global ASC_SUBJECTS is empty (bootstrap test failed)' "[ -e $ASC_SUBJECTS ]"
@@ -34,7 +34,7 @@ test_asc_autoload_override_works() {
 
   # Test without match.
   override_flag=''
-  u_autoload_override "$override_source" 'override_flag="NOK"'
+  f_autoload_override "$override_source" 'override_flag="NOK"'
   eval "$inc_override_evaled_code"
   assertTrue 'Flag should be empty at this stage ("override" alteration mechanism failed)' "[ -e $override_flag ]"
 
@@ -45,7 +45,7 @@ test_asc_autoload_override_works() {
 #!/usr/bin/env bash
 override_flag='not-empty'
 EOF
-  u_autoload_override "$override_source" '# (we have to pass some inoperant code here to carry on with the test)'
+  f_autoload_override "$override_source" '# (we have to pass some inoperant code here to carry on with the test)'
   eval "$inc_override_evaled_code"
   assertFalse 'Flag should not be empty at this stage ("override" alteration mechanism failed)' "[ -e $override_flag ]"
 }

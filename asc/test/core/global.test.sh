@@ -20,7 +20,7 @@
 #
 
 . asc/bootstrap.sh
-. asc/test/asc.inc.sh
+. asc/test/test.inc.sh
 
 ##
 # Creates temporary files for verification purposes in current test case.
@@ -32,7 +32,7 @@ oneTimeSetUp() {
   local s_upper
 
   # Hook dry-run results are cached at init/warmup; clear those before creating
-  # temporary global.vars.sh files so u_global_lookup_paths can see them.
+  # temporary global.vars.sh files so f_global_lookup_paths can see them.
   # @see hook() in asc/utilities/hook.sh
   rm -f data/asc/cache/hook.*global*vars*
 
@@ -40,7 +40,7 @@ oneTimeSetUp() {
     # Skip subjects whose folder is not a normal subject namespace (bootstrap
     # phases live under asc/bootstrap/ without being a hook subject dir).
     case "$s" in bootstrap) continue ;; esac
-    u_str_uppercase "$s" 's_upper'
+    f_str_uppercase "$s" 's_upper'
     cat > "asc/$s/global.vars.sh" <<EOF
 #!/usr/bin/env bash
 global NFTASCGEVHNC_VAR_ASC_$s_upper 'test'
@@ -88,7 +88,7 @@ global NFTASCGEVHNC_EXT_INSTANCE_VAR_1 'test'
 EOF
 
   # Forces detection of our newly created temporary extension.
-  u_asc_extend
+  f_asc_extend
 }
 
 ##
@@ -96,8 +96,8 @@ EOF
 #
 test_asc_global_aggregate() {
   local global_lookup_paths=''
-  local p_ascii_dry_run=1
-  local p_ascii_yes=1
+  local a_ascii_dry_run=1
+  local a_ascii_yes=1
   local test_asc_global_aggregate=1
 
   unset GLOBALS
@@ -107,15 +107,15 @@ test_asc_global_aggregate() {
   GLOBALS_UNIQUE_KEYS=()
   GLOBALS_DRY_RUN=0
 
-  u_global_aggregate
-  # u_global_debug
+  f_global_aggregate
+  # f_global_debug
 
   local s
   local s_upper
   local s_varname
   for s in $ASC_SUBJECTS; do
     case "$s" in bootstrap) continue ;; esac
-    u_str_uppercase "$s" 's_upper'
+    f_str_uppercase "$s" 's_upper'
     s_varname="NFTASCGEVHNC_VAR_ASC_${s_upper}"
     assertEquals "Value of NFTASCGEVHNC_VAR_ASC_$s_upper is missing or incorrect." "test" "${!s_varname}"
   done

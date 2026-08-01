@@ -7,7 +7,7 @@
 #
 
 case "$DWT_MULTISITE" in true)
-  u_dwt_sites '*' 'ids_only'
+  f_dwt_sites '*' 'ids_only'
   for site_id in "${dwt_sites_ids[@]}"; do
     multi_db_ids+=" $site_id"
   done

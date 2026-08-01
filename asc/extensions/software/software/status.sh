@@ -11,4 +11,4 @@
 
 . asc/bootstrap.sh
 
-u_software_provision status
+f_software_provision status

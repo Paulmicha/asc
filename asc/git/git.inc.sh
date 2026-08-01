@@ -6,13 +6,13 @@
 # This file is sourced during core ASC bootstrap.
 # @see asc/bootstrap.sh
 #
-# Convention : functions names are all prefixed by "u" (for "utility").
+# Convention : functions names are all prefixed by "f".
 #
 
 ##
 # Basic Git log "processor".
 #
-# Forwards all arguments to u_git_find_commits() in order to allow filtering
+# Forwards all arguments to f_git_find_commits() in order to allow filtering
 # commits to be processed, except the following first 2 optional arguments :
 #
 # @params 1 & 2 [optional] Strings : "callback" code to eval for each line.
@@ -27,16 +27,16 @@
 #     - d : commit date
 #     - s : commit timestamp
 #
-# @see u_git_find_commits()
+# @see f_git_find_commits()
 #
 # @example
 #   # Print log lines of all *merge* commits from the past 2 months in
 #   # chronological order :
-#   u_git_log --merges -s '2 months ago' -i
+#   f_git_log --merges -s '2 months ago' -i
 #
 #   # Print the most recent commits from the past 3 weeks using format :
 #   # <datestamp> <commit ID> <author email>
-#   u_git_log --callback 'echo "$d $h $e"' -s '3 weeks ago'
+#   f_git_log --callback 'echo "$d $h $e"' -s '3 weeks ago'
 #
 #   # Print only merge commits' titles from 'master' branch from the past 3
 #   # months in chronological order, filtering out some strings using a custom
@@ -46,10 +46,10 @@
 #     t=${t//"'"/}
 #     echo "$t"
 #   }
-#   u_git_log -c '_print_log_line' --merges -b 'master' -s '3 months ago' -i
+#   f_git_log -c '_print_log_line' --merges -b 'master' -s '3 months ago' -i
 #
-u_git_log() {
-  local p_evaled_code
+f_git_log() {
+  local a_evaled_code
   local i
   local h
   local t
@@ -61,17 +61,17 @@ u_git_log() {
   # 2 args for simplicity.
   case "$1" in -c | --callback )
     shift
-    p_evaled_code="$1"
+    a_evaled_code="$1"
     shift
   esac
 
   # By default, this will output all log lines to stdout using the following
   # format : <line number> : <datestamp> <short commit ID> <commit message>
-  if [[ -z "$p_evaled_code" ]]; then
-    p_evaled_code='echo "$i : $d ${h:0:8} $t"'
+  if [[ -z "$a_evaled_code" ]]; then
+    a_evaled_code='echo "$i : $d ${h:0:8} $t"'
   fi
 
-  u_git_find_commits "$@"
+  f_git_find_commits "$@"
 
   for ((i = 0 ; i < ${#git_commits_hashes[@]} ; i++)); do
     h="${git_commits_hashes[$i]}"
@@ -79,7 +79,7 @@ u_git_log() {
     e="${git_commits_emails[$i]}"
     d="${git_commits_dates[$i]}"
     s="${git_commits_timestamps[$i]}"
-    eval "$p_evaled_code"
+    eval "$a_evaled_code"
   done
 }
 
@@ -97,30 +97,30 @@ u_git_log() {
 # @example
 #   # Search log messages in all branches and get all files changed in all
 #   # matching commits :
-#   u_git_find_changed_files 'JRA-224'
+#   f_git_find_changed_files 'JRA-224'
 #   for f in "${git_changed_files[@]}"; do
 #     echo "$f"
 #   done
 #
 #   # Same, by only search in a specific branch only :
-#   u_git_find_changed_files 'JRA-224' 'my-branch-name'
+#   f_git_find_changed_files 'JRA-224' 'my-branch-name'
 #   for f in "${git_changed_files[@]}"; do
 #     echo "$f"
 #   done
 #
-u_git_find_changed_files() {
-  local p_search="$1"
-  local p_source_branch="$2"
+f_git_find_changed_files() {
+  local a_search="$1"
+  local a_source_branch="$2"
 
   # By default, search in all branches.
-  if [[ -z "$p_source_branch" ]]; then
-    p_source_branch='--all'
+  if [[ -z "$a_source_branch" ]]; then
+    a_source_branch='--all'
   fi
 
-  u_git_find_commits \
-    -m "$p_search" \
+  f_git_find_commits \
+    -m "$a_search" \
     -f '<have-changed>' \
-    -b "$p_source_branch" \
+    -b "$a_source_branch" \
     -v
 }
 
@@ -148,8 +148,8 @@ u_git_find_changed_files() {
 # @example
 #   # Search log messages in all branches and get all files changed in all
 #   # matching commits :
-#   u_git_find_commits -m 'JRA-123[^0-9]' -f '<have-changed>' -v # <- Vars are set on 1st call.
-#   u_git_find_commits -m 'JRA-124[^0-9]' -f '<have-changed>'    # <- Vars are NOT reset on 2nd call.
+#   f_git_find_commits -m 'JRA-123[^0-9]' -f '<have-changed>' -v # <- Vars are set on 1st call.
+#   f_git_find_commits -m 'JRA-124[^0-9]' -f '<have-changed>'    # <- Vars are NOT reset on 2nd call.
 #   for f in "${git_changed_files[@]}"; do
 #     echo "$f"
 #   done
@@ -164,7 +164,7 @@ u_git_find_changed_files() {
 #
 #   # TODO [doc] write more examples using the rest of arguments.
 #
-u_git_find_commits() {
+f_git_find_commits() {
   local search_params=''
   local branch_filter=''
   local email_filter=''
@@ -297,7 +297,7 @@ u_git_find_commits() {
 
   while IFS= read -r git_log_line _; do
     iteration_can_carry_on='false'
-    u_str_split1 'commit_arr' "$git_log_line" '|'
+    f_str_split1 'commit_arr' "$git_log_line" '|'
 
     commit_date="${commit_arr[0]}"
     commit_email="${commit_arr[1]}"
@@ -345,7 +345,7 @@ u_git_find_commits() {
 
     # Apply file filters.
     if [[ -n "$file_filter" ]]; then
-      commit_changed_files="$(u_git_wrapper diff-tree --no-commit-id --name-only -r "$commit_hash")"
+      commit_changed_files="$(f_git_wrapper diff-tree --no-commit-id --name-only -r "$commit_hash")"
 
       case "$file_filter" in
 
@@ -359,7 +359,7 @@ u_git_find_commits() {
           fi
           iteration_can_carry_on='true'
           for f in $commit_changed_files; do
-            u_array_add_once "$f" git_changed_files
+            f_array_add_once "$f" git_changed_files
           done
           ;;
 
@@ -380,7 +380,7 @@ u_git_find_commits() {
           case "$any_file_matches" in 'true')
             iteration_can_carry_on='true'
             for f in $commit_changed_files; do
-              u_array_add_once "$f" git_changed_files
+              f_array_add_once "$f" git_changed_files
             done
           esac
           ;;
@@ -412,19 +412,19 @@ u_git_find_commits() {
   # - %cs : committer date, short format (YYYY-MM-DD)
   # - %ct : committer date, UNIX timestamp
   # See https://git-scm.com/docs/git-log
-  done < <(u_git_wrapper "log $search_params --pretty='format:%cd|%ae|%H|%ct|%s' --date=format:'%Y%m%d'")
+  done < <(f_git_wrapper "log $search_params --pretty='format:%cd|%ae|%H|%ct|%s' --date=format:'%Y%m%d'")
 
   # Finally, invert all arrays order if requested.
   case "$invert_order" in 'true')
-    u_array_reverse "${git_commits_hashes[@]}"
+    f_array_reverse "${git_commits_hashes[@]}"
     git_commits_hashes=("${reversed_arr[@]}")
-    u_array_reverse "${git_commits_titles[@]}"
+    f_array_reverse "${git_commits_titles[@]}"
     git_commits_titles=("${reversed_arr[@]}")
-    u_array_reverse "${git_commits_emails[@]}"
+    f_array_reverse "${git_commits_emails[@]}"
     git_commits_emails=("${reversed_arr[@]}")
-    u_array_reverse "${git_commits_dates[@]}"
+    f_array_reverse "${git_commits_dates[@]}"
     git_commits_dates=("${reversed_arr[@]}")
-    u_array_reverse "${git_commits_timestamps[@]}"
+    f_array_reverse "${git_commits_timestamps[@]}"
     git_commits_timestamps=("${reversed_arr[@]}")
   esac
 }
@@ -432,14 +432,14 @@ u_git_find_commits() {
 ##
 # Searches git log using multiple terms.
 #
-# Same as u_git_find_commits() but allows matching several search terms (OR).
+# Same as f_git_find_commits() but allows matching several search terms (OR).
 #
 # @example
 #   # Find commits where title contains either 'JRA-123', 'jRA-124' or 'jRA-125'
 #   # in 'master' branch, using numerical filter suffix, ordered by timestamp in
 #   # ascending order (older to newer).
 #   search_terms='JRA-123 JRA-124 JRA-125'
-#   u_git_mfind_commits "$search_terms" --nfs -b 'master' -i
+#   f_git_mfind_commits "$search_terms" --nfs -b 'master' -i
 #
 #   # Looping example :
 #   for ((i = 0 ; i < ${#git_commits_hashes[@]} ; i++)); do
@@ -451,8 +451,8 @@ u_git_find_commits() {
 #     echo "$i : $d ($s) / $t ($h)"
 #   done
 #
-u_git_mfind_commits() {
-  local p_search_terms="$1"
+f_git_mfind_commits() {
+  local a_search_terms="$1"
 
   # All remaining arguments are forwarded, except for some options that require
   # specific pre-processing.
@@ -489,8 +489,8 @@ u_git_mfind_commits() {
   git_commits_timestamps=()
   git_changed_files=()
 
-  for search_term in $p_search_terms; do
-    u_git_find_commits "$search_op" "$search_term" $forwarded_args
+  for search_term in $a_search_terms; do
+    f_git_find_commits "$search_op" "$search_term" $forwarded_args
   done
 
   # Prepare sorting by timestamp.
@@ -523,7 +523,7 @@ u_git_mfind_commits() {
     commits_to_sort["$k|s"]="$s"
   done
 
-  u_array_qsort "${!commits_to_sort[@]}"
+  f_array_qsort "${!commits_to_sort[@]}"
 
   git_commits_hashes=()
   git_commits_titles=()
@@ -534,7 +534,7 @@ u_git_mfind_commits() {
   local k_split_arr
 
   for k in "${sorted_arr[@]}"; do
-    u_str_split1 'k_split_arr' "$k" '|'
+    f_str_split1 'k_split_arr' "$k" '|'
 
     case "${k_split_arr[1]}" in
       h) git_commits_hashes+=("${commits_to_sort[$k]}") ;;
@@ -547,15 +547,15 @@ u_git_mfind_commits() {
 
   # Sorting in descending order requires to invert current result at this stage.
   case "$sort" in 'DESC')
-    u_array_reverse "${git_commits_hashes[@]}"
+    f_array_reverse "${git_commits_hashes[@]}"
     git_commits_hashes=("${reversed_arr[@]}")
-    u_array_reverse "${git_commits_titles[@]}"
+    f_array_reverse "${git_commits_titles[@]}"
     git_commits_titles=("${reversed_arr[@]}")
-    u_array_reverse "${git_commits_emails[@]}"
+    f_array_reverse "${git_commits_emails[@]}"
     git_commits_emails=("${reversed_arr[@]}")
-    u_array_reverse "${git_commits_dates[@]}"
+    f_array_reverse "${git_commits_dates[@]}"
     git_commits_dates=("${reversed_arr[@]}")
-    u_array_reverse "${git_commits_timestamps[@]}"
+    f_array_reverse "${git_commits_timestamps[@]}"
     git_commits_timestamps=("${reversed_arr[@]}")
   esac
 }
@@ -605,28 +605,28 @@ u_git_mfind_commits() {
 #   "$PROJECT_DOCROOT/.git/hooks".
 #
 # @example
-#   u_git_write_hooks
-#   u_git_write_hooks 'pre-commit post-merge'
-#   u_git_write_hooks '' /my/custom/path/to/.git/hooks
+#   f_git_write_hooks
+#   f_git_write_hooks 'pre-commit post-merge'
+#   f_git_write_hooks '' /my/custom/path/to/.git/hooks
 #
-u_git_write_hooks() {
-  local p_git_hooks="$1"
-  local p_git_hook_dir="$2"
+f_git_write_hooks() {
+  local a_git_hooks="$1"
+  local a_git_hook_dir="$2"
 
-  if [[ -z "$p_git_hooks" ]]; then
-    p_git_hooks='pre-applypatch pre-commit post-checkout post-merge pre-push post-receive'
+  if [[ -z "$a_git_hooks" ]]; then
+    a_git_hooks='pre-applypatch pre-commit post-checkout post-merge pre-push post-receive'
   fi
 
-  if [[ -z "$p_git_hook_dir" ]]; then
-    p_git_hook_dir="$PROJECT_DOCROOT/.git/hooks"
+  if [[ -z "$a_git_hook_dir" ]]; then
+    a_git_hook_dir="$PROJECT_DOCROOT/.git/hooks"
 
     if [[ -n "$APP_DOCROOT" ]]; then
-      p_git_hook_dir="$APP_DOCROOT/.git/hooks"
+      a_git_hook_dir="$APP_DOCROOT/.git/hooks"
     fi
 
-    if [[ ! -d "$p_git_hook_dir" ]]; then
+    if [[ ! -d "$a_git_hook_dir" ]]; then
       echo >&2
-      echo "Error in u_git_write_hooks() - $BASH_SOURCE line $LINENO: the Git hook dir '$p_git_hook_dir' is missing." >&2
+      echo "Error in f_git_write_hooks() - $BASH_SOURCE line $LINENO: the Git hook dir '$a_git_hook_dir' is missing." >&2
       echo "-> Aborting (1)." >&2
       echo >&2
       exit 1
@@ -660,14 +660,14 @@ u_git_write_hooks() {
   git_hooks_whitelist+=('sendemail-validate')
   git_hooks_whitelist+=('fsmonitor-watchman')
 
-  for git_hook in $p_git_hooks; do
+  for git_hook in $a_git_hooks; do
 
     # Whitelist allowed values for git hooks.
-    if u_in_array "$git_hook" 'git_hooks_whitelist'; then
-      git_hook_script_path="$p_git_hook_dir/$git_hook"
+    if f_in_array "$git_hook" 'git_hooks_whitelist'; then
+      git_hook_script_path="$a_git_hook_dir/$git_hook"
 
       relative_path=''
-      u_fs_relative_path "$git_hook_script_path"
+      f_fs_relative_path "$git_hook_script_path"
 
       # When Git triggers its hook, the path in which the script runs is either
       # APP_DOCROOT or PROJECT_DOCROOT.
@@ -683,8 +683,8 @@ u_git_write_hooks() {
 # This file is automatically generated during "instance init", and it will be
 # entirely overwritten every time it is executed.
 #
-# @see u_git_write_hooks() in asc/git/git.inc.sh
-# @see u_instance_init() in asc/instance/instance.inc.sh
+# @see f_git_write_hooks() in asc/git/git.inc.sh
+# @see f_instance_init() in asc/instance/instance.inc.sh
 #
 
 cd $PROJECT_DOCROOT && \
@@ -697,7 +697,7 @@ EOF
 
     else
       echo >&2
-      echo "Error in u_git_write_hooks() - $BASH_SOURCE line $LINENO: the value '$git_hook' is invalid." >&2
+      echo "Error in f_git_write_hooks() - $BASH_SOURCE line $LINENO: the value '$git_hook' is invalid." >&2
       echo "-> Aborting (2)." >&2
       echo >&2
       exit 2
@@ -713,32 +713,32 @@ EOF
 #
 # @example
 #   # List staged files in current path.
-#   staged="$(u_git_get_staged_files)"
+#   staged="$(f_git_get_staged_files)"
 #   for f in $staged; do
 #     echo "staged file : $f"
 #   done
 #
 #   # List staged files in given path.
-#   staged="$(u_git_get_staged_files path/to/work/tree)"
+#   staged="$(f_git_get_staged_files path/to/work/tree)"
 #   for f in $staged; do
 #     echo "staged file : $f"
 #   done
 #
-u_git_get_staged_files() {
-  local p_git_work_tree="$1"
-  local p_git_dir=''
+f_git_get_staged_files() {
+  local a_git_work_tree="$1"
+  local a_git_dir=''
 
-  if [[ -z "$p_git_work_tree" ]]; then
-    p_git_work_tree="$APP_DOCROOT"
+  if [[ -z "$a_git_work_tree" ]]; then
+    a_git_work_tree="$APP_DOCROOT"
   fi
 
   if [[ -n "$2" ]]; then
-    p_git_dir="$2"
+    a_git_dir="$2"
   else
-    p_git_dir="$p_git_work_tree/.git"
+    a_git_dir="$a_git_work_tree/.git"
   fi
 
-  echo "$(u_git_wrapper diff --name-only --cached)"
+  echo "$(f_git_wrapper diff --name-only --cached)"
 }
 
 ##
@@ -749,48 +749,48 @@ u_git_get_staged_files() {
 #
 # @example
 #   # List unmerged files in current path.
-#   unmerged_paths="$(u_git_get_unmerged_paths)"
+#   unmerged_paths="$(f_git_get_unmerged_paths)"
 #   for f in $unmerged_paths; do
 #     echo "unmerged : $f"
 #   done
 #
 #   # List unmerged files in given path.
-#   unmerged_paths="$(u_git_get_unmerged_paths path/to/work/tree)"
+#   unmerged_paths="$(f_git_get_unmerged_paths path/to/work/tree)"
 #   for f in $unmerged_paths; do
 #     echo "unmerged : $f"
 #   done
 #
-u_git_get_unmerged_paths() {
-  local p_git_work_tree="$1"
-  local p_git_dir=''
+f_git_get_unmerged_paths() {
+  local a_git_work_tree="$1"
+  local a_git_dir=''
 
-  if [[ -z "$p_git_work_tree" ]]; then
-    p_git_work_tree="$APP_DOCROOT"
+  if [[ -z "$a_git_work_tree" ]]; then
+    a_git_work_tree="$APP_DOCROOT"
   fi
 
   if [[ -n "$2" ]]; then
-    p_git_dir="$2"
+    a_git_dir="$2"
   else
-    p_git_dir="$p_git_work_tree/.git"
+    a_git_dir="$a_git_work_tree/.git"
   fi
 
-  echo "$(u_git_wrapper diff --name-only --diff-filter=U)"
+  echo "$(f_git_wrapper diff --name-only --diff-filter=U)"
 }
 
 ##
 # Wraps git calls to exec commands from another dir.
 #
 # Uses the following variables in calling scope if available :
-# @var p_git_work_tree # Defaults to current dir.
-# @var p_git_dir # Defaults to "$p_git_work_tree/.git" if $p_git_work_tree is set.
-# @var p_git_debug # When not empty, prints the git command without running it.
+# @var a_git_work_tree # Defaults to current dir.
+# @var a_git_dir # Defaults to "$a_git_work_tree/.git" if $a_git_work_tree is set.
+# @var a_git_debug # When not empty, prints the git command without running it.
 #
 # The path to the git working dir (git work tree) defaults to current dir. It
 # falls back to normal git calls in this case. All arguments are directly
 # forwarded to the git program.
 #
 # @example
-#   p_git_work_tree=/path/to/git/work-tree
+#   a_git_work_tree=/path/to/git/work-tree
 #   giw status
 #
 function giw() {
@@ -820,21 +820,21 @@ function giw() {
   # echo "  $escaped_args"
   # return
 
-  if [[ -n "$p_git_work_tree" ]]; then
-    local git_dir="$p_git_work_tree/.git"
+  if [[ -n "$a_git_work_tree" ]]; then
+    local git_dir="$a_git_work_tree/.git"
 
-    if [[ -n "$p_git_dir" ]]; then
-      git_dir="$p_git_dir"
+    if [[ -n "$a_git_dir" ]]; then
+      git_dir="$a_git_dir"
     fi
 
-    if [[ -n "$p_git_debug" ]]; then
+    if [[ -n "$a_git_debug" ]]; then
       echo "giw() debug :"
-      echo "git --git-dir=$git_dir --work-tree=$p_git_work_tree $escaped_args"
+      echo "git --git-dir=$git_dir --work-tree=$a_git_work_tree $escaped_args"
     else
-      eval "git --git-dir=$git_dir --work-tree=$p_git_work_tree $escaped_args"
+      eval "git --git-dir=$git_dir --work-tree=$a_git_work_tree $escaped_args"
     fi
   else
-    if [[ -n "$p_git_debug" ]]; then
+    if [[ -n "$a_git_debug" ]]; then
       echo "giw() debug :"
       echo "git $escaped_args"
     else
@@ -856,17 +856,17 @@ function giw() {
 # TODO @deprecated
 #
 # @example
-#   u_git_wrapper status
+#   f_git_wrapper status
 #
 #   # Execute the same command in another dir.
-#   p_git_work_tree=path/to/git-work-tree
-#   u_git_wrapper status
+#   a_git_work_tree=path/to/git-work-tree
+#   f_git_wrapper status
 #
-u_git_wrapper() {
-  local work_tree="$p_git_work_tree"
+f_git_wrapper() {
+  local work_tree="$a_git_work_tree"
 
   if [[ -z "$work_tree" ]] && [[ -n "$APP_DOCROOT" ]]; then
-    p_git_work_tree="$APP_DOCROOT"
+    a_git_work_tree="$APP_DOCROOT"
     giw "$@"
   else
     giw "$@"

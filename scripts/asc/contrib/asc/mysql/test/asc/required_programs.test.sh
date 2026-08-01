@@ -28,7 +28,7 @@ test_mysql_extension_required_programs() {
   local programs_to_check='mysql mysqldump'
 
   for p in $programs_to_check; do
-    u_test_program_is_executable "$p"
+    f_test_program_is_executable "$p"
     assertTrue \
       "The program or alias '$p' appears to be missing (or is not executable) on current host or instance." \
       "[ $? -eq 0 ]"

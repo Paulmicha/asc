@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 ##
-# Global (env) vars for the 'compose' ASC extension.
+# Global (env) vars for the 'compose' ASC extension (DC = Docker Compose).
 #
 # This file is used during "instance init" to generate the global environment
 # variables specific to current project instance.
 #
-# @see u_instance_init() in asc/instance/instance.inc.sh
+# @see f_instance_init() in asc/instance/instance.inc.sh
 # @see asc/utilities/global.sh
 # @see asc/bootstrap.sh
 #
@@ -44,7 +44,7 @@ esac
 global DC_SUBDOMAIN_SEP "[default]='.' [help]='Subdomain or prefix separator for use in Traefik labels. E.g. if instance domain is example.com, one of its services could want to use backend.example.com -> separator = ’.’ in this case. Otherwise, if instance domain is stage.example.com, a service wanting another subdomain would be mailpit-stage.example.com -> here, separator = ’-’.'"
 
 # [optional] Shorter generated make tasks names.
-# @see u_make_task_name() in asc/instance/instance.inc.sh
+# @see f_make_task_name() in asc/instance/instance.inc.sh
 global ASC_SYNONYMS "[append]='compose/dc'"
 global ASC_SYNONYMS "[append]='service-exec/se'"
 global ASC_SYNONYMS "[append]='service-run/sr'"

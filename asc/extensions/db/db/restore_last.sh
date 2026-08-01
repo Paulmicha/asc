@@ -3,7 +3,7 @@
 ##
 # Empties database + imports the most recent local dump file.
 #
-# @param 1 [optional] String : the database ID ($DB_ID), see u_db_set().
+# @param 1 [optional] String : the database ID ($DB_ID), see f_db_set().
 #   Defaults to 'default'.
 # @param 2 [optional] String : subfolder in DB dumps dir.
 #   Defaults to 'local'.
@@ -24,4 +24,4 @@
 . asc/bootstrap.sh
 
 # @see asc/extensions/db/db.inc.sh
-u_db_restore_last $@
+f_db_restore_last $@

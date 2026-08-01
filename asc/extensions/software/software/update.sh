@@ -11,5 +11,5 @@
 
 . asc/bootstrap.sh
 
-u_software_parse_args "$@"
-u_software_provision apply
+f_software_parse_args "$@"
+f_software_provision apply

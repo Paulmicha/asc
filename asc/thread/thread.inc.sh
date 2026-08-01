@@ -9,7 +9,7 @@
 # @see asc/bootstrap.sh
 # @see changelog/2026/07/16-asc-opt-inc-eager-audit.md
 #
-# Convention : functions names are all prefixed by "u" (for "utility").
+# Convention : functions names are all prefixed by "f".
 #
 
 ##
@@ -21,10 +21,10 @@
 # @param 1 String : starting PID.
 # @param 2 [optional] Number : max depth (default 8).
 #
-u_thread_proc_tree() {
-  local p_pid="$1"
-  local p_max="${2:-8}"
-  local cur="$p_pid"
+f_thread_proc_tree() {
+  local a_pid="$1"
+  local a_max="${2:-8}"
+  local cur="$a_pid"
   local depth=0
   local ppid
   local comm
@@ -32,7 +32,7 @@ u_thread_proc_tree() {
 
   thread_tree=()
 
-  while [[ -n "$cur" && "$cur" -gt 0 && $depth -lt $p_max ]]; do
+  while [[ -n "$cur" && "$cur" -gt 0 && $depth -lt $a_max ]]; do
     if [[ ! -r "/proc/$cur/stat" ]]; then
       break
     fi
@@ -68,17 +68,17 @@ u_thread_proc_tree() {
 #   entry owner uid euid run_as sudoing script args pid ppid started_ms status
 #   exit_code ended_ms output attempt max_attempts lock_mode trigger needs_interactive
 #
-u_thread_yml_write() {
-  local p_entry="$1"
-  local p_yml
+f_thread_yml_write() {
+  local a_entry="$1"
+  local a_yml
   local y_keys
   declare -A y_sc=()
 
-  p_yml="data/threads/${p_entry}.yml"
+  a_yml="data/threads/${a_entry}.yml"
   mkdir -p data/threads
 
-  y_sc[entry]="${ASC_THREAD_ENTRY:-${thread_entry:-$p_entry}}"
-  y_sc[owner]="${ASC_THREAD_OWNER:-${thread_owner:-$(u_print_current_user)}}"
+  y_sc[entry]="${ASC_THREAD_ENTRY:-${thread_entry:-$a_entry}}"
+  y_sc[owner]="${ASC_THREAD_OWNER:-${thread_owner:-$(f_print_current_user)}}"
   y_sc[uid]="${ASC_THREAD_UID:-${thread_uid:-$(id -u)}}"
   y_sc[euid]="${ASC_THREAD_EUID:-${thread_euid:-${EUID:-$(id -u)}}}"
   y_sc[run_as]="${ASC_THREAD_RUN_AS:-${thread_run_as:-$(id -un)}}"
@@ -109,13 +109,13 @@ u_thread_yml_write() {
   fi
 
   if [[ ${#thread_tree[@]} -gt 0 ]]; then
-    u_yaml_write "$p_yml" y_sc y_keys tree thread_tree
+    f_yaml_write "$a_yml" y_sc y_keys tree thread_tree
   else
-    u_yaml_write "$p_yml" y_sc y_keys
+    f_yaml_write "$a_yml" y_sc y_keys
   fi
 
   # Host sibling index (no-op when ASC_MONITORING / ASC_HOST_THREAD_MONITOR off).
-  u_thread_host_publish "$p_entry"
+  f_thread_host_publish "$a_entry"
 }
 
 ##
@@ -124,38 +124,38 @@ u_thread_yml_write() {
 # @param 1 String : make entry point name.
 #
 # @example
-#   u_thread_yml_load 'transcribe-all'
+#   f_thread_yml_load 'transcribe-all'
 #   echo "$thread_pid $thread_status"
 #
-u_thread_yml_load() {
-  local p_entry="$1"
-  local p_yml="data/threads/${p_entry}.yml"
+f_thread_yml_load() {
+  local a_entry="$1"
+  local a_yml="data/threads/${a_entry}.yml"
 
-  if [[ ! -f "$p_yml" ]]; then
+  if [[ ! -f "$a_yml" ]]; then
     return 1
   fi
 
   # bash-yaml uses += for lists; clear before reload.
   unset thread_tree
 
-  eval "$(u_yaml_parse "$p_yml" 'thread_')"
-  u_thread_yml_strip_quotes
+  eval "$(f_yaml_parse "$a_yml" 'thread_')"
+  f_thread_yml_strip_quotes
 }
 
 ##
 # Marks a loaded thread record as stale and rewrites its YAML.
 #
-# Requires a prior successful u_thread_yml_load (thread_* vars set).
+# Requires a prior successful f_thread_yml_load (thread_* vars set).
 # Strips yaml-parser quote artifacts before rewrite.
 #
-u_thread_yml_mark_stale() {
-  local p_entry="${thread_entry:-}"
+f_thread_yml_mark_stale() {
+  local a_entry="${thread_entry:-}"
 
-  if [[ -z "$p_entry" ]]; then
+  if [[ -z "$a_entry" ]]; then
     return 1
   fi
 
-  u_thread_yml_strip_quotes
+  f_thread_yml_strip_quotes
 
   thread_status='stale'
   ASC_THREAD_ENTRY="$thread_entry"
@@ -183,13 +183,13 @@ u_thread_yml_mark_stale() {
     ASC_THREAD_TREE="$(printf '%s\n' "${thread_tree[@]}")"
   fi
 
-  u_thread_yml_write "$p_entry"
+  f_thread_yml_write "$a_entry"
 }
 
 ##
 # Strip surrounding quotes left on scalars by bash-yaml parse round-trips.
 #
-u_thread_yml_strip_quotes() {
+f_thread_yml_strip_quotes() {
   local _v
   local _k
 
@@ -220,15 +220,15 @@ u_thread_yml_strip_quotes() {
 #
 # @param 1 Number : exit code of the wrapped script.
 #
-u_thread_supervisor_exit() {
-  local p_rc="$1"
+f_thread_supervisor_exit() {
+  local a_rc="$1"
 
   ASC_THREAD_STATUS='exited'
-  ASC_THREAD_EXIT_CODE="$p_rc"
+  ASC_THREAD_EXIT_CODE="$a_rc"
   ASC_THREAD_ENDED_MS="$(date +%Y-%m-%dT%H:%M:%S.%3N)"
 
   # Common "needs TTY / interactive input" signals.
-  case "$p_rc" in
+  case "$a_rc" in
     75|126|130)
       ASC_THREAD_NEEDS_INTERACTIVE='true'
       ;;
@@ -238,7 +238,7 @@ u_thread_supervisor_exit() {
     mapfile -t thread_tree <<< "${ASC_THREAD_TREE}"
   fi
 
-  u_thread_yml_write "${ASC_THREAD_ENTRY}"
+  f_thread_yml_write "${ASC_THREAD_ENTRY}"
 
   # Release flock if held on fd 9.
   if { true >&9; } 2>/dev/null; then
@@ -249,30 +249,30 @@ u_thread_supervisor_exit() {
 ##
 # Chown path to invoking human when sudoing (S1).
 #
-u_thread_chown_human() {
-  local p_path="$1"
+f_thread_chown_human() {
+  local a_path="$1"
 
-  if [[ ! -e "$p_path" ]]; then
+  if [[ ! -e "$a_path" ]]; then
     return 0
   fi
 
   if [[ -n "${SUDO_USER:-}" ]]; then
-    chown "$SUDO_USER:" "$p_path" 2>/dev/null || true
+    chown "$SUDO_USER:" "$a_path" 2>/dev/null || true
   fi
 }
 
 ##
 # Pile-up check: return 0 if safe to start, 1 if should skip (already running).
 #
-u_thread_pileup_should_skip() {
-  local p_entry="$1"
-  local yml="data/threads/${p_entry}.yml"
+f_thread_pileup_should_skip() {
+  local a_entry="$1"
+  local yml="data/threads/${a_entry}.yml"
 
   if [[ ! -f "$yml" ]]; then
     return 1
   fi
 
-  if ! u_thread_yml_load "$p_entry"; then
+  if ! f_thread_yml_load "$a_entry"; then
     return 1
   fi
 
@@ -280,7 +280,7 @@ u_thread_pileup_should_skip() {
     if kill -0 "$thread_pid" 2>/dev/null; then
       return 0
     fi
-    u_thread_yml_mark_stale
+    f_thread_yml_mark_stale
   fi
 
   return 1
@@ -291,16 +291,16 @@ u_thread_pileup_should_skip() {
 #
 # Uses fd 9. Returns 0 on lock acquired, 1 on skip.
 #
-u_thread_lock_acquire() {
-  local p_entry="$1"
-  local p_mode="${2:-skip}"
-  local lock="data/threads/${p_entry}.lock"
+f_thread_lock_acquire() {
+  local a_entry="$1"
+  local a_mode="${2:-skip}"
+  local lock="data/threads/${a_entry}.lock"
 
   mkdir -p data/threads
   eval "exec 9>\"$lock\""
-  u_thread_chown_human "$lock"
+  f_thread_chown_human "$lock"
 
-  case "$p_mode" in
+  case "$a_mode" in
     wait)
       flock 9 || return 1
       ;;
@@ -317,7 +317,7 @@ u_thread_lock_acquire() {
 ##
 # Parse delay like 10s / 2m into integer seconds (echo).
 #
-u_thread_delay_seconds() {
+f_thread_delay_seconds() {
   local d="${1:-10s}"
   if [[ "$d" =~ ^([0-9]+)s$ ]]; then
     echo "${BASH_REMATCH[1]}"
@@ -344,24 +344,24 @@ u_thread_delay_seconds() {
 #   Defaults to : 'thread_output_mtime_ms'.
 #
 # @example
-#   u_thread_output_mtime_ms 'data/logs/foo.txt'
+#   f_thread_output_mtime_ms 'data/logs/foo.txt'
 #   echo "$thread_output_mtime_ms"
 #
-u_thread_output_mtime_ms() {
-  local p_file="$1"
-  local p_var_name="$2"
+f_thread_output_mtime_ms() {
+  local a_file="$1"
+  local a_var_name="$2"
 
-  if [[ -z "$p_var_name" ]]; then
-    p_var_name='thread_output_mtime_ms'
+  if [[ -z "$a_var_name" ]]; then
+    a_var_name='thread_output_mtime_ms'
   fi
 
-  if [[ ! -f "$p_file" ]]; then
-    printf -v "$p_var_name" '%s' ''
+  if [[ ! -f "$a_file" ]]; then
+    printf -v "$a_var_name" '%s' ''
     return 1
   fi
 
-  printf -v "$p_var_name" '%s' \
-    "$(date -r "$p_file" '+%Y-%m-%dT%H:%M:%S.%3N' 2>/dev/null || true)"
+  printf -v "$a_var_name" '%s' \
+    "$(date -r "$a_file" '+%Y-%m-%dT%H:%M:%S.%3N' 2>/dev/null || true)"
 }
 
 ##
@@ -369,7 +369,7 @@ u_thread_output_mtime_ms() {
 #
 # Writes thread_host_index_dir in calling scope.
 #
-u_thread_host_index_dir() {
+f_thread_host_index_dir() {
   local home="${HOME:-}"
   if [[ -z "$home" ]]; then
     home="$(getent passwd "${SUDO_USER:-$(id -un)}" 2>/dev/null | cut -d: -f6 || true)"
@@ -383,7 +383,7 @@ u_thread_host_index_dir() {
 ##
 # True when host thread monitoring / publish is enabled.
 #
-u_thread_host_monitor_enabled() {
+f_thread_host_monitor_enabled() {
   case "${ASC_MONITORING:-1}" in 0|false|FALSE|off|OFF) return 1 ;; esac
   case "${ASC_HOST_THREAD_MONITOR:-1}" in 0|false|FALSE|off|OFF) return 1 ;; esac
   return 0
@@ -397,32 +397,32 @@ u_thread_host_monitor_enabled() {
 #
 # @param 1 String : make entry name.
 #
-u_thread_host_publish() {
-  local p_entry="$1"
+f_thread_host_publish() {
+  local a_entry="$1"
   local docroot
   local slug
   local host_file
   local y_keys
   declare -A y_sc=()
 
-  if [[ -z "$p_entry" ]]; then
+  if [[ -z "$a_entry" ]]; then
     return 1
   fi
 
-  if ! u_thread_host_monitor_enabled; then
+  if ! f_thread_host_monitor_enabled; then
     return 0
   fi
 
   docroot="${PROJECT_DOCROOT:-$(pwd)}"
-  u_thread_host_index_dir
+  f_thread_host_index_dir
   mkdir -p "$thread_host_index_dir"
 
-  slug="$(printf '%s\n' "${docroot}::${p_entry}" | sha256sum | awk '{print $1}')"
+  slug="$(printf '%s\n' "${docroot}::${a_entry}" | sha256sum | awk '{print $1}')"
   slug="${slug:0:16}"
   host_file="${thread_host_index_dir}/${slug}.yml"
 
   y_sc[docroot]="$docroot"
-  y_sc[entry]="${ASC_THREAD_ENTRY:-$p_entry}"
+  y_sc[entry]="${ASC_THREAD_ENTRY:-$a_entry}"
   y_sc[pid]="${ASC_THREAD_PID:-${thread_pid:-}}"
   y_sc[status]="${ASC_THREAD_STATUS:-${thread_status:-}}"
   y_sc[owner]="${ASC_THREAD_OWNER:-${thread_owner:-}}"
@@ -430,7 +430,7 @@ u_thread_host_publish() {
   y_sc[trigger]="${ASC_THREAD_TRIGGER:-${thread_trigger:-manual}}"
   y_keys=(docroot entry pid status owner mtime trigger)
 
-  u_yaml_write "$host_file" y_sc y_keys
+  f_yaml_write "$host_file" y_sc y_keys
 }
 
 ##
@@ -445,18 +445,18 @@ u_thread_host_publish() {
 ##
 # Appends one printf-%q encoded arg to thread_entry_args[idx] (or stage args).
 #
-u_thread_args_append() {
-  local p_arr_name="$1"
-  local p_idx="$2"
-  local p_val="$3"
+f_thread_args_append() {
+  local a_arr_name="$1"
+  local a_idx="$2"
+  local a_val="$3"
   local enc
-  local -n _u_ta_ref="$p_arr_name"
+  local -n _u_ta_ref="$a_arr_name"
 
-  printf -v enc '%q' "$p_val"
-  if [[ -n "${_u_ta_ref[$p_idx]}" ]]; then
-    _u_ta_ref[$p_idx]+=" $enc"
+  printf -v enc '%q' "$a_val"
+  if [[ -n "${_u_ta_ref[$a_idx]}" ]]; then
+    _u_ta_ref[$a_idx]+=" $enc"
   else
-    _u_ta_ref[$p_idx]="$enc"
+    _u_ta_ref[$a_idx]="$enc"
   fi
 }
 
@@ -466,9 +466,9 @@ u_thread_args_append() {
 # @param 1 String : make entry.
 # @param 2 String : printf-%q encoded args (may be empty).
 #
-u_thread_run_make_step() {
-  local p_entry="$1"
-  local p_encoded="$2"
+f_thread_run_make_step() {
+  local a_entry="$1"
+  local a_encoded="$2"
   local -a args=()
   local found=0
   local e=''
@@ -481,23 +481,23 @@ u_thread_run_make_step() {
     real_scripts=()
     . data/asc/cache/make.sh
     for e in "${make_entries[@]}"; do
-      if [[ "$e" == "$p_entry" ]]; then
+      if [[ "$e" == "$a_entry" ]]; then
         found=1
         break
       fi
     done
     if [[ $found -ne 1 ]]; then
-      echo >&2 "Error: unknown make entry '$p_entry'."
+      echo >&2 "Error: unknown make entry '$a_entry'."
       return 127
     fi
   fi
 
-  if [[ -n "$p_encoded" ]]; then
+  if [[ -n "$a_encoded" ]]; then
     # shellcheck disable=SC2086
-    eval "args=($p_encoded)"
+    eval "args=($a_encoded)"
   fi
 
-  make "$p_entry" "${args[@]}"
+  make "$a_entry" "${args[@]}"
 }
 
 ##
@@ -508,7 +508,7 @@ u_thread_run_make_step() {
 #
 # @return 1 on parse error (e.g. a: before any e:).
 #
-u_thread_parse_e_args() {
+f_thread_parse_e_args() {
   thread_join="${ASC_THREAD_JOIN:-&&}"
   thread_max_workers="${ASC_THREAD_MAX_WORKERS:-4}"
   thread_entries=()
@@ -532,7 +532,7 @@ u_thread_parse_e_args() {
           echo >&2 "Error: a: arg before any e: entry ($arg)."
           return 1
         fi
-        u_thread_args_append thread_entry_args "$current" "${arg#a:}"
+        f_thread_args_append thread_entry_args "$current" "${arg#a:}"
         ;;
       e:*)
         rest="${arg#e:}"
@@ -596,7 +596,7 @@ u_thread_parse_e_args() {
 #
 # @return 1 on parse error.
 #
-u_thread_parse_pipe_stages() {
+f_thread_parse_pipe_stages() {
   thread_stage_kind=()
   thread_stage_value=()
   thread_stage_args=()
@@ -617,7 +617,7 @@ u_thread_parse_pipe_stages() {
           echo >&2 "Error: a: only applies to make stages ($arg)."
           return 1
         fi
-        u_thread_args_append thread_stage_args "$current" "${arg#a:}"
+        f_thread_args_append thread_stage_args "$current" "${arg#a:}"
         ;;
       e:*)
         rest="${arg#e:}"
@@ -661,13 +661,13 @@ u_thread_parse_pipe_stages() {
 #
 # @return step rc (&& fail-fast) or worst nonzero (;).
 #
-u_thread_run_sequence() {
+f_thread_run_sequence() {
   local i
   local rc=0
   local worst=0
 
   for i in "${!thread_entries[@]}"; do
-    u_thread_run_make_step "${thread_entries[$i]}" "${thread_entry_args[$i]}"
+    f_thread_run_make_step "${thread_entries[$i]}" "${thread_entry_args[$i]}"
     rc=$?
     if (( rc == 0 )); then
       continue
@@ -686,7 +686,7 @@ u_thread_run_sequence() {
 ##
 # Runs parsed batch with wave barriers (thread_max_workers) and wait; exit worst.
 #
-u_thread_run_batch() {
+f_thread_run_batch() {
   local i=0
   local n=${#thread_entries[@]}
   local workers=$thread_max_workers
@@ -704,7 +704,7 @@ u_thread_run_batch() {
     w=0
     while (( i < n && w < workers )); do
       (
-        u_thread_run_make_step "${thread_entries[$i]}" "${thread_entry_args[$i]}"
+        f_thread_run_make_step "${thread_entries[$i]}" "${thread_entry_args[$i]}"
       ) &
       pids+=($!)
       i=$((i + 1))
@@ -728,7 +728,7 @@ u_thread_run_batch() {
 ##
 # Runs parsed pipe stages under pipefail.
 #
-u_thread_run_pipe() {
+f_thread_run_pipe() {
   local i
   local n=${#thread_stage_kind[@]}
   local cmd=''

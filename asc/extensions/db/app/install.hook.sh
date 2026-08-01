@@ -21,12 +21,12 @@
 
 case "$ASC_DB_INITIAL_IMPORT" in true)
   db_ids=()
-  u_db_get_ids
+  f_db_get_ids
 
   for db_id in "${db_ids[@]}"; do
     echo "Importing initial DB dump for $db_id DB ..."
 
-    u_db_setup "$db_id"
+    f_db_setup "$db_id"
 
     echo "Importing initial DB dump for $db_id DB : done."
     echo

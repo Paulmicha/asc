@@ -17,10 +17,10 @@
 
 . asc/bootstrap.sh
 
-if ! u_thread_parse_pipe_stages "$@"; then
+if ! f_thread_parse_pipe_stages "$@"; then
   echo >&2 "Aborting (1)."
   exit 1
 fi
 
-u_thread_run_pipe
+f_thread_run_pipe
 exit $?

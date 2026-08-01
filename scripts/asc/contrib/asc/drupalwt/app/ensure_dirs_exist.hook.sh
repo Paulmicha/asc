@@ -35,9 +35,9 @@ done
 
 # Multisite support.
 case "$DWT_MULTISITE" in 'true')
-  u_dwt_sites
+  f_dwt_sites
   for site_id in "${dwt_sites_ids[@]}"; do
-    u_str_sanitize_var_name "$site_id" 'site_id'
+    f_str_sanitize_var_name "$site_id" 'site_id'
 
     # The 'default' dir should be done already.
     # @see asc/extensions/drupalwt/app/global.vars.sh
@@ -46,7 +46,7 @@ case "$DWT_MULTISITE" in 'true')
     esac
 
     dwt_sites_writeable_paths=()
-    u_dwt_get_sites_writeable_paths "$site_id"
+    f_dwt_get_sites_writeable_paths "$site_id"
     for required_dir in "${dwt_sites_writeable_paths[@]}"; do
       if [[ ! -d "$required_dir" ]]; then
         echo "Creating missing dir ${required_dir}"

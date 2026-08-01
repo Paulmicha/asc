@@ -12,7 +12,7 @@
 
 # Ensure generated defs exist.
 if [[ ! -d data/asc/cron ]] || [[ -z "$(echo data/asc/cron/*.sh 2>/dev/null)" ]]; then
-  u_cron_settings_setup || exit 1
+  f_cron_settings_setup || exit 1
 fi
 
-u_cron_sync "$@"
+f_cron_sync "$@"

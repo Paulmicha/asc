@@ -58,7 +58,7 @@
 # @example
 #   # Calling this funcion without arguments = use defaults mentionned above,
 #   # depending on ASC_DB_MODE (see asc/extensions/db/global.vars.sh).
-#   u_db_set
+#   f_db_set
 #   # Result :
 #   # - all DB_* variables exported contain the 'default' DB values.
 #   # - a copy of every variable prefixed with DB_ID is exported. E.g. :
@@ -68,10 +68,10 @@
 #
 #   # Explicitly set DB_ID (TODO [wip] write tests for multi-db projects).
 #   # Alternatively, a local variable $ASC_DB_ID may be used in calling scope.
-#   u_db_set id_example
+#   f_db_set id_example
 #   # Or :
 #   ASC_DB_ID='id_example'
-#   u_db_set
+#   f_db_set
 #   # Result :
 #   echo "$ID_EXAMPLE_DB_NAME"
 #   echo "$ID_EXAMPLE_DB_USER"
@@ -82,21 +82,21 @@
 #   # exported values will not be re-loaded.
 #   # The 2nd arg is a flag which can force re-loading these values. This allows
 #   # to support cases where some stored values (e.g. registry) might be updated.
-#   u_db_set id_example 1
+#   f_db_set id_example 1
 #
-u_db_set() {
-  local p_db_id="$1"
-  local p_force_reload="$2"
+f_db_set() {
+  local a_db_id="$1"
+  local a_force_reload="$2"
   local db_id
   local asc_db_id
   local reg_val
 
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
-    echo "u_db_set $p_db_id"
+    echo "u_db_set $a_db_id"
   fi
 
-  if [[ -z "$p_db_id" ]]; then
+  if [[ -z "$a_db_id" ]]; then
     # TODO deprecate fallback to probably unused ASC_DB_ID ?
     if [[ -n "$ASC_DB_ID" ]]; then
       db_id="$ASC_DB_ID"
@@ -110,16 +110,16 @@ u_db_set() {
       db_id='default'
     fi
   else
-    db_id="$p_db_id"
+    db_id="$a_db_id"
   fi
 
-  u_str_sanitize_var_name "$db_id" 'db_id'
+  f_str_sanitize_var_name "$db_id" 'db_id'
 
   if [[ -n "$DB_ID" ]]; then
     # If DB credentials vars are already exported in current shell scope for given
     # db_id, no need to reload (unless explicitly asked).
     case "$DB_ID" in "$db_id")
-      if [[ -z "$p_force_reload" ]]; then
+      if [[ -z "$a_force_reload" ]]; then
         if [[ -n "$ASC_DB_DEBUG" ]]; then
           echo "DB_ID:$DB_ID == db_id:$db_id -> skip reload"
         fi
@@ -131,7 +131,7 @@ u_db_set() {
     # (or the force reload is requested), then we first need to UNSET all the
     # unprefixed DB_* variables so that the default values are properly set
     # below.
-    u_db_unset
+    f_db_unset
   fi
 
   export DB_ID="$db_id"
@@ -142,7 +142,7 @@ u_db_set() {
   local db_var=''
   local prefixed_db_var=''
 
-  u_db_vars_list
+  f_db_vars_list
 
   for v in $db_vars_list; do
     case "$v" in 'ID')
@@ -151,7 +151,7 @@ u_db_set() {
 
     db_var="DB_$v"
     prefixed_db_var="${db_id}_${db_var}"
-    u_str_uppercase "$prefixed_db_var" 'prefixed_db_var'
+    f_str_uppercase "$prefixed_db_var" 'prefixed_db_var'
 
     if [[ -z "${!prefixed_db_var}" ]]; then
       continue
@@ -241,13 +241,13 @@ u_db_set() {
         # in temporary virtual machines inaccessible to the outside world, but
         # it is obviously a security risk.
         reg_val=''
-        u_instance_registry_get "${db_id}.DB_PASS"
+        f_instance_registry_get "${db_id}.DB_PASS"
 
         # Generate random local instance DB password and store it for subsequent
         # calls.
         if [[ -z "$reg_val" ]]; then
           export DB_PASS="$(< /dev/urandom tr -dc A-Za-z0-9 | head -c14; echo)"
-          u_instance_registry_set "${db_id}.DB_PASS" "$DB_PASS"
+          f_instance_registry_set "${db_id}.DB_PASS" "$DB_PASS"
         else
           export DB_PASS="$reg_val"
         fi
@@ -272,12 +272,12 @@ u_db_set() {
   db_var=''
   prefixed_db_var=''
 
-  u_db_vars_list
+  f_db_vars_list
 
   for v in $db_vars_list; do
     db_var="DB_$v"
     prefixed_db_var="${db_id}_${db_var}"
-    u_str_uppercase "$prefixed_db_var" 'prefixed_db_var'
+    f_str_uppercase "$prefixed_db_var" 'prefixed_db_var'
     export "$prefixed_db_var=${!db_var}"
   done
 
@@ -288,7 +288,7 @@ u_db_set() {
   # Failsafe.
   if [[ -z "$DB_NAME" ]]; then
     echo >&2
-    echo "Error in u_db_set() - $BASH_SOURCE line $LINENO: DB_NAME is empty." >&2
+    echo "Error in f_db_set() - $BASH_SOURCE line $LINENO: DB_NAME is empty." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     exit 1
@@ -299,11 +299,11 @@ u_db_set() {
 # Unsets all DB_* variables so that the correct values can then be (re)set.
 #
 # Required because the default values would not be correctly set if we switched
-# between databases in the same shell scope - i.e. as in u_db_set_all()
+# between databases in the same shell scope - i.e. as in f_db_set_all()
 #
-# @see u_db_set()
+# @see f_db_set()
 #
-u_db_unset() {
+f_db_unset() {
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
     echo "u_db_unset"
@@ -311,7 +311,7 @@ u_db_unset() {
 
   local v
 
-  u_db_vars_list
+  f_db_vars_list
 
   for v in $db_vars_list; do
     eval "unset DB_$v"
@@ -335,10 +335,10 @@ u_db_unset() {
 #
 # @example
 #   db_ids=()
-#   u_db_get_ids
+#   f_db_get_ids
 #   echo "${db_ids[@]}"
 #
-u_db_get_ids() {
+f_db_get_ids() {
   local db_id
   local multi_db_ids=''
 
@@ -346,11 +346,11 @@ u_db_get_ids() {
   # Defaults to ASC_APPS.
   if [[ -n "$ASC_DB_IDS" ]]; then
     for db_id in $ASC_DB_IDS; do
-      u_array_add_once "$db_id" db_ids
+      f_array_add_once "$db_id" db_ids
     done
   elif [[ -n "$ASC_APPS" ]]; then
     for asc_app in $ASC_APPS; do
-      u_array_add_once "$asc_app" db_ids
+      f_array_add_once "$asc_app" db_ids
     done
   fi
 
@@ -361,7 +361,7 @@ u_db_get_ids() {
 
   if [[ -n "$multi_db_ids" ]]; then
     for db_id in $multi_db_ids; do
-      u_array_add_once "$db_id" db_ids
+      f_array_add_once "$db_id" db_ids
     done
   fi
 }
@@ -374,21 +374,21 @@ u_db_get_ids() {
 #   1. Using the read-only "append-type" global ASC_DB_IDS
 #   2. Implementing hook -s 'db' -a 'set_multi_db_ids' -v 'INSTANCE_TYPE'
 #     (adding space-separated values to scoped variable multi_db_ids).
-# @see u_db_set()
+# @see f_db_set()
 #
 # @example
-#   u_db_set_all
+#   f_db_set_all
 #   # Result (given 2 ids : 'default' + 'example') :
 #   echo "$DB_ID" # <- Prints 'default'
 #   echo "$DB_USER" # <- Prints the user name for 'default' database.
 #   echo "$EXAMPLE_DB_USER" # <- Prints the user name for 'example' database.
 #   # etc.
 #
-u_db_set_all() {
+f_db_set_all() {
   local db_id
   local db_ids=()
 
-  u_db_get_ids
+  f_db_get_ids
 
   if [[ -n "${db_ids[@]}" ]]; then
     for db_id in "${db_ids[@]}"; do
@@ -396,13 +396,13 @@ u_db_set_all() {
       case "$db_id" in 'default')
         continue
       esac
-      u_db_set "$db_id"
+      f_db_set "$db_id"
     done
   fi
 
   # Default DB is loaded last. This allows for the DB "selected" by default
   # after ASC bootstrap is done to be DB_ID='default'.
-  u_db_set
+  f_db_set
 }
 
 ##
@@ -414,10 +414,10 @@ u_db_set_all() {
 # @var db_vars_list
 #
 # @example
-#   u_db_vars_list
+#   f_db_vars_list
 #   echo "$db_vars_list"
 #
-u_db_vars_list() {
+f_db_vars_list() {
   db_vars_list='ID DRIVER HOST PORT NAME USER PASS ADMIN_USER ADMIN_PASS TABLES_SKIP_DATA DUMP_FILE_EXTENSION DUMPS_LOCAL_DIR DUMPS_PATTERN'
 }
 
@@ -437,36 +437,36 @@ u_db_vars_list() {
 # $ make hook-debug ms s:db a:exists v:DB_DRIVER HOST_TYPE INSTANCE_TYPE
 #
 # @param 1 String : the database name to check.
-# @param 2 [optional] String : the database ID ($DB_ID), see u_db_set().
+# @param 2 [optional] String : the database ID ($DB_ID), see f_db_set().
 #   Defaults to 'default'.
 # @param 3 [optional] String : force reload flag (bypasses optimization) if the
 #   DB credentials vars are already exported in current shell scope.
 #   TODO deprecate this argument and export a specific variable instead.
 #
 # @example
-#   if u_db_exists 'my_db_name'; then
+#   if f_db_exists 'my_db_name'; then
 #     echo "Ok, 'my_db_name' exists."
 #   else
 #     echo "Error : 'my_db_name' does not exist (or I do not have permission to access it)."
 #   fi
 #
-u_db_exists() {
-  local p_db_name="$1"
-  local p_db_id="$2"
-  local p_force_reload_flag="$3"
+f_db_exists() {
+  local a_db_name="$1"
+  local a_db_id="$2"
+  local a_force_reload_flag="$3"
 
   local db_exists=''
 
-  u_db_set "$p_db_id" "$p_force_reload_flag"
+  f_db_set "$a_db_id" "$a_force_reload_flag"
 
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
     db_exists=true
-    echo "u_db_exists $p_db_name $p_db_id"
+    echo "u_db_exists $a_db_name $a_db_id"
     echo "  DB_HOST = $DB_HOST"
     echo "  DB_NAME = $DB_NAME"
   else
-    u_hook_most_specific -s 'db' -a 'exists' -v 'DB_DRIVER DB_ID INSTANCE_TYPE'
+    hook_ms -s 'db' -a 'exists' -v 'DB_DRIVER DB_ID INSTANCE_TYPE'
   fi
 
   case "$db_exists" in true)
@@ -485,29 +485,29 @@ u_db_exists() {
 #
 # @see asc/instance/setup.sh
 # @see asc/extensions/drush/instance/wait_for.compose.hook.sh
-# @see u_instance_registry_get() in asc/instance/instance.inc.sh
+# @see f_instance_registry_get() in asc/instance/instance.inc.sh
 #
 # @param 1 String : the database ID ($DB_ID).
 # @param 2 [optional] String : the flag. Defaults to 'is_already_setup'.
 #
 # @example
 #   # Checks the default flag - to know if the DB is already setup (created).
-#   if u_db_is_flagged 'my_db_id'; then
+#   if f_db_is_flagged 'my_db_id'; then
 #     echo "Yes, 'my_db_id' was already setup."
 #   else
 #     echo "No."
 #   fi
 #
 #   # Works for any flag. Negative check example :
-#   if ! u_db_is_flagged 'my_db_id' 'is_locked'; then
+#   if ! f_db_is_flagged 'my_db_id' 'is_locked'; then
 #     echo "No, 'my_db_id' is not locked."
 #   fi
 #
-u_db_is_flagged() {
+f_db_is_flagged() {
   local reg_val
 
-  u_db_get_flag_key $@
-  u_instance_registry_get "$key"
+  f_db_get_flag_key $@
+  f_instance_registry_get "$key"
 
   if [[ -n "$reg_val" ]]; then
     return 0
@@ -519,41 +519,41 @@ u_db_is_flagged() {
 ##
 # Flags given DB as already setup (created) using local registry.
 #
-# @see u_db_is_already_setup()
+# @see f_db_is_already_setup()
 # @see asc/instance/setup.sh
 # @see asc/extensions/drush/instance/wait_for.compose.hook.sh
-# @see u_instance_registry_set() in asc/instance/instance.inc.sh
+# @see f_instance_registry_set() in asc/instance/instance.inc.sh
 #
 # @param 1 String : the database ID ($DB_ID).
 # @param 2 [optional] String : the flag. Defaults to 'is_already_setup'.
 #
 # @example
-#   u_db_mark_as_already_setup 'site'
+#   f_db_mark_as_already_setup 'site'
 #
-u_db_flag() {
-  u_db_get_flag_key $@
-  u_instance_registry_set "$key" true
+f_db_flag() {
+  f_db_get_flag_key $@
+  f_instance_registry_set "$key" true
 }
 
 ##
 # Flags all defined DB_IDs using local registry.
 #
-# @see u_db_unflag()
+# @see f_db_unflag()
 #
 # @param 1 [optional] String : the flag. Defaults to 'is_already_setup'.
 #
 # @example
-#   u_db_flag_all
+#   f_db_flag_all
 #
-u_db_flag_all() {
+f_db_flag_all() {
   local db_id
   local db_ids=()
 
-  u_db_get_ids
+  f_db_get_ids
 
   if [[ -n "${db_ids[@]}" ]]; then
     for db_id in "${db_ids[@]}"; do
-      u_db_flag "$db_id" "$1"
+      f_db_flag "$db_id" "$1"
     done
   fi
 }
@@ -561,41 +561,41 @@ u_db_flag_all() {
 ##
 # Unflags given DB as already setup (created) using local registry.
 #
-# @see u_db_is_already_setup()
+# @see f_db_is_already_setup()
 # @see asc/instance/setup.sh
 # @see asc/extensions/drush/instance/wait_for.compose.hook.sh
-# @see u_instance_registry_del() in asc/instance/instance.inc.sh
+# @see f_instance_registry_del() in asc/instance/instance.inc.sh
 #
 # @param 1 String : the database ID ($DB_ID).
 # @param 2 [optional] String : the flag. Defaults to 'is_already_setup'.
 #
 # @example
-#   u_db_mark_as_already_setup 'site'
+#   f_db_mark_as_already_setup 'site'
 #
-u_db_unflag() {
-  u_db_get_flag_key $@
-  u_instance_registry_del "$key"
+f_db_unflag() {
+  f_db_get_flag_key $@
+  f_instance_registry_del "$key"
 }
 
 ##
 # Unflags all defined DB_IDs using local registry.
 #
-# @see u_db_unflag()
+# @see f_db_unflag()
 #
 # @param 1 [optional] String : the flag. Defaults to 'is_already_setup'.
 #
 # @example
-#   u_db_unflag_all
+#   f_db_unflag_all
 #
-u_db_unflag_all() {
+f_db_unflag_all() {
   local db_id
   local db_ids=()
 
-  u_db_get_ids
+  f_db_get_ids
 
   if [[ -n "${db_ids[@]}" ]]; then
     for db_id in "${db_ids[@]}"; do
-      u_db_unflag "$db_id" "$1"
+      f_db_unflag "$db_id" "$1"
     done
   fi
 }
@@ -613,21 +613,21 @@ u_db_unflag_all() {
 # @param 2 [optional] String : the flag. Defaults to 'is_already_setup'.
 #
 # @example
-#   u_db_get_flag_key 'site' 'is_already_setup'
+#   f_db_get_flag_key 'site' 'is_already_setup'
 #   echo "key = $key"
 #
-u_db_get_flag_key() {
-  local p_db_id="$1"
-  local p_flag="$2"
+f_db_get_flag_key() {
+  local a_db_id="$1"
+  local a_flag="$2"
 
-  if [[ -z "$p_flag" ]]; then
-    p_flag='is_already_setup'
+  if [[ -z "$a_flag" ]]; then
+    a_flag='is_already_setup'
   fi
 
-  key="db_${p_db_id}_flag_${p_flag}"
+  key="db_${a_db_id}_flag_${a_flag}"
 
   if [[ -n "$STACK_VERSION" ]]; then
-    key="db_${STACK_VERSION}_${p_db_id}_flag_${p_flag}"
+    key="db_${STACK_VERSION}_${a_db_id}_flag_${a_flag}"
   fi
 }
 
@@ -646,31 +646,31 @@ u_db_get_flag_key() {
 # To check the most specific match (if any is found) :
 # $ make hook-debug ms s:db a:create v:DB_DRIVER HOST_TYPE INSTANCE_TYPE
 #
-# @param 1 [optional] String : the database ID ($DB_ID), see u_db_set().
+# @param 1 [optional] String : the database ID ($DB_ID), see f_db_set().
 #   Defaults to 'default'.
 # @param 2 [optional] String : force reload flag (bypasses optimization) if the
 #   DB credentials vars are already exported in current shell scope.
 #   TODO deprecate this argument and export a specific variable instead.
 #
 # @example
-#   u_db_create
+#   f_db_create
 #
-u_db_create() {
-  local p_db_id="$1"
-  local p_force_reload_flag="$2"
+f_db_create() {
+  local a_db_id="$1"
+  local a_force_reload_flag="$2"
 
-  u_db_set "$p_db_id" "$p_force_reload_flag"
+  f_db_set "$a_db_id" "$a_force_reload_flag"
 
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
-    echo "u_db_create $p_db_id"
+    echo "u_db_create $a_db_id"
     echo "  DB_HOST = $DB_HOST"
     echo "  DB_NAME = $DB_NAME"
   else
-    u_hook_most_specific -s 'db' -a 'create' -v 'DB_DRIVER DB_ID INSTANCE_TYPE'
+    hook_ms -s 'db' -a 'create' -v 'DB_DRIVER DB_ID INSTANCE_TYPE'
   fi
 
-  u_db_ensure_creds "$p_db_id" "$p_force_reload_flag"
+  f_db_ensure_creds "$a_db_id" "$a_force_reload_flag"
 }
 
 ##
@@ -688,29 +688,29 @@ u_db_create() {
 # To check the most specific match (if any is found) :
 # $ make hook-debug ms s:db a:destroy v:DB_DRIVER HOST_TYPE INSTANCE_TYPE
 #
-# @param 1 [optional] String : the database ID ($DB_ID), see u_db_set().
+# @param 1 [optional] String : the database ID ($DB_ID), see f_db_set().
 #   Defaults to 'default'.
 # @param 2 [optional] String : force reload flag (bypasses optimization) if the
 #   DB credentials vars are already exported in current shell scope.
 #   TODO deprecate this argument and export a specific variable instead.
 #
 # @example
-#   u_db_destroy
-#   u_db_destroy 'custom_db_id'
+#   f_db_destroy
+#   f_db_destroy 'custom_db_id'
 #
-u_db_destroy() {
-  local p_db_id="$1"
-  local p_force_reload_flag="$2"
+f_db_destroy() {
+  local a_db_id="$1"
+  local a_force_reload_flag="$2"
 
-  u_db_set "$p_db_id" "$p_force_reload_flag"
+  f_db_set "$a_db_id" "$a_force_reload_flag"
 
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
-    echo "u_db_destroy $p_db_id"
+    echo "u_db_destroy $a_db_id"
     echo "  DB_HOST = $DB_HOST"
     echo "  DB_NAME = $DB_NAME"
   else
-    u_hook_most_specific -s 'db' -a 'destroy' -v 'DB_DRIVER DB_ID INSTANCE_TYPE'
+    hook_ms -s 'db' -a 'destroy' -v 'DB_DRIVER DB_ID INSTANCE_TYPE'
   fi
 }
 
@@ -735,39 +735,39 @@ u_db_destroy() {
 # $ make hook-debug ms s:db a:exec v:DB_DRIVER DB_ID INSTANCE_TYPE PROVISION_USING
 #
 # @param 1 String : the dump file path.
-# @param 2 [optional] String : the database ID ($DB_ID), see u_db_set().
+# @param 2 [optional] String : the database ID ($DB_ID), see f_db_set().
 #   Defaults to 'default'.
 # @param 3 [optional] String : force reload flag (bypasses optimization) if the
 #   DB credentials vars are already exported in current shell scope.
 #   TODO deprecate this argument and export a specific variable instead.
 #
 # @example
-#   u_db_exec 'path/to/dump/file.sql.tgz'
+#   f_db_exec 'path/to/dump/file.sql.tgz'
 #
-u_db_exec() {
-  local p_dump_file_path="$1"
-  local p_db_id="$2"
-  local p_force_reload_flag="$3"
+f_db_exec() {
+  local a_dump_file_path="$1"
+  local a_db_id="$2"
+  local a_force_reload_flag="$3"
 
   local db_dump_dir
   local db_dump_file
   local leaf
 
-  if [[ ! -f "$p_dump_file_path" ]]; then
+  if [[ ! -f "$a_dump_file_path" ]]; then
     echo >&2
-    echo "Error in u_db_exec() - $BASH_SOURCE line $LINENO: the DB dump file '$p_dump_file_path' is missing or inaccessible." >&2
+    echo "Error in f_db_exec() - $BASH_SOURCE line $LINENO: the DB dump file '$a_dump_file_path' is missing or inaccessible." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     exit 1
   fi
 
-  u_db_set "$p_db_id" "$p_force_reload_flag"
+  f_db_set "$a_db_id" "$a_force_reload_flag"
 
-  db_dump_file="$p_dump_file_path"
+  db_dump_file="$a_dump_file_path"
 
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
-    echo "u_db_exec $p_dump_file_path $p_db_id"
+    echo "u_db_exec $a_dump_file_path $a_db_id"
     echo "  DB_HOST = $DB_HOST"
     echo "  DB_NAME = $DB_NAME"
   fi
@@ -776,7 +776,7 @@ u_db_exec() {
   local extracted_file=''
   local compressed_file=''
 
-  u_fs_extract_in_place "$db_dump_file"
+  f_fs_extract_in_place "$db_dump_file"
 
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
@@ -804,7 +804,7 @@ u_db_exec() {
 
   if [[ ! -f "$db_dump_file" ]]; then
     echo >&2
-    echo "Error in u_db_exec() - $BASH_SOURCE line $LINENO: missing uncompressed dump file :" >&2
+    echo "Error in f_db_exec() - $BASH_SOURCE line $LINENO: missing uncompressed dump file :" >&2
     echo "  $db_dump_file" >&2
     echo "  -> Aborting (2)." >&2
     echo >&2
@@ -813,7 +813,7 @@ u_db_exec() {
 
   # Implementations MUST use var $db_dump_file as input path (source file).
   if [[ -z "$ASC_DB_DEBUG" ]]; then
-    u_hook_most_specific -s 'db' -a 'exec' -v 'DB_DRIVER DB_ID INSTANCE_TYPE PROVISION_USING'
+    hook_ms -s 'db' -a 'exec' -v 'DB_DRIVER DB_ID INSTANCE_TYPE PROVISION_USING'
   fi
 
   # Remove uncompressed version of the dump when we're done.
@@ -824,7 +824,7 @@ u_db_exec() {
 
     if [[ $? -ne 0 ]]; then
       echo >&2
-      echo "Error in u_db_exec() - $BASH_SOURCE line $LINENO: failed to remove uncompressed dump file '$db_dump_file'." >&2
+      echo "Error in f_db_exec() - $BASH_SOURCE line $LINENO: failed to remove uncompressed dump file '$db_dump_file'." >&2
       echo "-> Aborting (3)." >&2
       echo >&2
       exit 3
@@ -833,7 +833,7 @@ u_db_exec() {
 }
 
 ##
-# Same as u_db_exec() but for running inline query.
+# Same as f_db_exec() but for running inline query.
 #
 # To list all the possible paths that can be used, use :
 # $ make hook-debug s:db a:query v:DB_DRIVER DB_ID INSTANCE_TYPE PROVISION_USING
@@ -842,31 +842,31 @@ u_db_exec() {
 # $ make hook-debug ms s:db a:query v:DB_DRIVER DB_ID INSTANCE_TYPE PROVISION_USING
 #
 # @param 1 String : the query.
-# @param 2 [optional] String : the database ID ($DB_ID), see u_db_set().
+# @param 2 [optional] String : the database ID ($DB_ID), see f_db_set().
 #   Defaults to 'default'.
 # @param 3 [optional] String : force reload flag (bypasses optimization) if the
 #   DB credentials vars are already exported in current shell scope.
 #   TODO deprecate this argument and export a specific variable instead.
 #
 # @example
-#   u_db_query 'UPDATE users SET name = "foobar" WHERE email = "foo@bar.com";'
+#   f_db_query 'UPDATE users SET name = "foobar" WHERE email = "foo@bar.com";'
 #
-u_db_query() {
-  local p_query="$1"
-  local p_db_id="$2"
-  local p_force_reload_flag="$3"
+f_db_query() {
+  local a_query="$1"
+  local a_db_id="$2"
+  local a_force_reload_flag="$3"
 
-  u_db_set "$p_db_id" "$p_force_reload_flag"
+  f_db_set "$a_db_id" "$a_force_reload_flag"
 
   echo "Running query in $DB_DRIVER DB '$DB_NAME' ..."
 
-  # Implementations MUST use var $p_query as input.
+  # Implementations MUST use var $a_query as input.
   if [[ -z "$ASC_DB_DEBUG" ]]; then
-    u_hook_most_specific -s 'db' -a 'query' -v 'DB_DRIVER DB_ID INSTANCE_TYPE PROVISION_USING'
+    hook_ms -s 'db' -a 'query' -v 'DB_DRIVER DB_ID INSTANCE_TYPE PROVISION_USING'
   else
     echo
     echo "[debug] would run query :"
-    echo "$p_query"
+    echo "$a_query"
     echo
   fi
 
@@ -898,23 +898,23 @@ u_db_query() {
 # $ make hook-debug ms s:db a:dump v:DB_DRIVER HOST_TYPE INSTANCE_TYPE
 #
 # @param 1 String : the dump file path.
-# @param 2 [optional] String : the database ID ($DB_ID), see u_db_set().
+# @param 2 [optional] String : the database ID ($DB_ID), see f_db_set().
 #   Defaults to 'default'.
 # @param 3 [optional] String : force reload flag (bypasses optimization) if the
 #   DB credentials vars are already exported in current shell scope.
 #   TODO deprecate this argument and export a specific variable instead.
 #
 # @example
-#   u_db_dump 'path/to/dump/file.sql'
+#   f_db_dump 'path/to/dump/file.sql'
 #
-u_db_dump() {
-  local p_dump_file_path="$1"
-  local p_db_id="$2"
-  local p_force_reload_flag="$3"
+f_db_dump() {
+  local a_dump_file_path="$1"
+  local a_db_id="$2"
+  local a_force_reload_flag="$3"
 
   if [[ -z "$ASC_DB_DUMPS_DIR" ]]; then
     echo >&2
-    echo "Error in u_db_dump() - $BASH_SOURCE line $LINENO: the required global 'ASC_DB_DUMPS_DIR' is undefined." >&2
+    echo "Error in f_db_dump() - $BASH_SOURCE line $LINENO: the required global 'ASC_DB_DUMPS_DIR' is undefined." >&2
     echo "Current instance must be (re)initialized with the 'db' extension enabled." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
@@ -925,9 +925,9 @@ u_db_dump() {
   local db_dump_file
   local db_dump_file_name
 
-  u_db_set "$p_db_id" "$p_force_reload_flag"
+  f_db_set "$a_db_id" "$a_force_reload_flag"
 
-  db_dump_file="$p_dump_file_path"
+  db_dump_file="$a_dump_file_path"
   db_dump_dir="${db_dump_file%/${db_dump_file##*/}}"
 
   # The "backup" action should only have to create a new file. If it already
@@ -935,7 +935,7 @@ u_db_dump() {
   # beforehand (e.g. existing file deleted or moved).
   if [[ -f "$db_dump_file" ]]; then
     echo >&2
-    echo "Error in u_db_dump() - $BASH_SOURCE line $LINENO: destination file '$db_dump_file' already exists." >&2
+    echo "Error in f_db_dump() - $BASH_SOURCE line $LINENO: destination file '$db_dump_file' already exists." >&2
     echo "-> Aborting (2)." >&2
     echo >&2
     exit 2
@@ -946,7 +946,7 @@ u_db_dump() {
 
     if [[ $? -ne 0 ]]; then
       echo >&2
-      echo "Error in u_db_dump() - $BASH_SOURCE line $LINENO: failed to create new backup dir '$db_dump_dir'." >&2
+      echo "Error in f_db_dump() - $BASH_SOURCE line $LINENO: failed to create new backup dir '$db_dump_dir'." >&2
       echo "-> Aborting (1)." >&2
       echo >&2
       exit 1
@@ -955,16 +955,16 @@ u_db_dump() {
 
   # Implementations MUST use var $db_dump_file as output path (resulting file).
   if [[ -n "$ASC_DB_DEBUG" ]]; then
-    echo "u_db_dump $p_dump_file_path $p_db_id"
+    echo "u_db_dump $a_dump_file_path $a_db_id"
     echo "  DB_HOST = $DB_HOST"
     echo "  DB_NAME = $DB_NAME"
   else
-    u_hook_most_specific -s 'db' -a 'dump' -v 'DB_DRIVER DB_ID INSTANCE_TYPE'
+    hook_ms -s 'db' -a 'dump' -v 'DB_DRIVER DB_ID INSTANCE_TYPE'
   fi
 
   if [ ! -f "$db_dump_file" ]; then
     echo >&2
-    echo "Error in u_db_dump() - $BASH_SOURCE line $LINENO: file '$db_dump_file' does not exist." >&2
+    echo "Error in f_db_dump() - $BASH_SOURCE line $LINENO: file '$db_dump_file' does not exist." >&2
     echo "-> Aborting (2)." >&2
     echo >&2
     exit 2
@@ -977,7 +977,7 @@ u_db_dump() {
 
   if [[ $? -ne 0 ]]; then
     echo >&2
-    echo "Error in u_db_dump() - $BASH_SOURCE line $LINENO: failed to compress dump file '$db_dump_file'." >&2
+    echo "Error in f_db_dump() - $BASH_SOURCE line $LINENO: failed to compress dump file '$db_dump_file'." >&2
     echo "-> Aborting (3)." >&2
     echo >&2
     exit 3
@@ -991,7 +991,7 @@ u_db_dump() {
 
   if [[ $? -ne 0 ]]; then
     echo >&2
-    echo "Error in u_db_dump() - $BASH_SOURCE line $LINENO: failed to remove uncompressed dump file '$db_dump_file'." >&2
+    echo "Error in f_db_dump() - $BASH_SOURCE line $LINENO: failed to remove uncompressed dump file '$db_dump_file'." >&2
     echo "-> Aborting (4)." >&2
     echo >&2
     exit 4
@@ -1013,34 +1013,34 @@ u_db_dump() {
 # To check the most specific match (if any is found) :
 # $ make hook-debug ms s:db a:clear v:DB_DRIVER DB_ID INSTANCE_TYPE
 #
-# @param 1 [optional] String : the database ID ($DB_ID), see u_db_set().
+# @param 1 [optional] String : the database ID ($DB_ID), see f_db_set().
 #   Defaults to 'default'.
 # @param 2 [optional] String : force reload flag (bypasses optimization) if the
 #   DB credentials vars are already exported in current shell scope.
 #   TODO deprecate this argument and export a specific variable instead.
 #
 # @example
-#   u_db_clear
+#   f_db_clear
 #
-u_db_clear() {
-  local p_db_id="$1"
-  local p_force_reload_flag="$2"
+f_db_clear() {
+  local a_db_id="$1"
+  local a_force_reload_flag="$2"
 
-  u_db_set "$p_db_id" "$p_force_reload_flag"
+  f_db_set "$a_db_id" "$a_force_reload_flag"
 
   # Only attempt to clear if DB exists.
-  if ! u_db_exists "$DB_NAME" "$p_db_id"; then
+  if ! f_db_exists "$DB_NAME" "$a_db_id"; then
     echo "Notice: DB name '$DB_NAME' does not appear to exist -> skip clearing."
     return;
   fi
 
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
-    echo "u_db_clear $p_db_id"
+    echo "u_db_clear $a_db_id"
     echo "  DB_HOST = $DB_HOST"
     echo "  DB_NAME = $DB_NAME"
   else
-    u_hook_most_specific -s 'db' -a 'clear' -v 'DB_DRIVER DB_ID INSTANCE_TYPE'
+    hook_ms -s 'db' -a 'clear' -v 'DB_DRIVER DB_ID INSTANCE_TYPE'
   fi
 }
 
@@ -1048,40 +1048,40 @@ u_db_clear() {
 # Empties database + imports given dump file.
 #
 # @param 1 String : the dump file path.
-# @param 2 [optional] String : the database ID ($DB_ID), see u_db_set().
+# @param 2 [optional] String : the database ID ($DB_ID), see f_db_set().
 #   Defaults to 'default'.
 # @param 3 [optional] String : force reload flag (bypasses optimization) if the
 #   DB credentials vars are already exported in current shell scope.
 #   TODO deprecate this argument and export a specific variable instead.
 #
 # @example
-#   u_db_restore 'path/to/dump/file.sql'
-#   u_db_restore 'path/to/dump/file.sql' 'my_custom_db_id'
+#   f_db_restore 'path/to/dump/file.sql'
+#   f_db_restore 'path/to/dump/file.sql' 'my_custom_db_id'
 #
-u_db_restore() {
-  local p_dump_file_path="$1"
-  local p_db_id="$2"
-  local p_force_reload_flag="$3"
+f_db_restore() {
+  local a_dump_file_path="$1"
+  local a_db_id="$2"
+  local a_force_reload_flag="$3"
 
-  if [[ ! -f "$p_dump_file_path" ]]; then
+  if [[ ! -f "$a_dump_file_path" ]]; then
     echo >&2
-    echo "Error in u_db_restore() - $BASH_SOURCE line $LINENO: the DB dump file '$p_dump_file_path' is missing or inaccessible." >&2
+    echo "Error in f_db_restore() - $BASH_SOURCE line $LINENO: the DB dump file '$a_dump_file_path' is missing or inaccessible." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     exit 1
   fi
 
-  u_db_clear "$p_db_id" "$p_force_reload_flag"
-  u_db_exec "$p_dump_file_path" "$p_db_id" "$p_force_reload_flag"
+  f_db_clear "$a_db_id" "$a_force_reload_flag"
+  f_db_exec "$a_dump_file_path" "$a_db_id" "$a_force_reload_flag"
 }
 
 ##
 # Empties database + imports the last (= most recent) dump file available.
 #
-# @see u_fs_get_most_recent()
+# @see f_fs_get_most_recent()
 # @requires globals ASC_DB_DUMPS_DIR in calling scope.
 #
-# @param 1 [optional] String : the database ID ($DB_ID), see u_db_set().
+# @param 1 [optional] String : the database ID ($DB_ID), see f_db_set().
 #   Defaults to 'default'.
 # @param 2 [optional] String : subfolder in DB dumps dir.
 #   Defaults to 'local'.
@@ -1090,16 +1090,16 @@ u_db_restore() {
 #   TODO deprecate this argument and export a specific variable instead.
 #
 # @example
-#   u_db_restore_last
+#   f_db_restore_last
 #
-u_db_restore_last() {
-  local p_db_id="$1"
-  local p_subdir="$2"
-  local p_force_reload_flag="$3"
+f_db_restore_last() {
+  local a_db_id="$1"
+  local a_subdir="$2"
+  local a_force_reload_flag="$3"
 
   if [[ -z "$ASC_DB_DUMPS_DIR" ]]; then
     echo >&2
-    echo "Error in u_db_restore_last() - $BASH_SOURCE line $LINENO: the required global 'ASC_DB_DUMPS_DIR' is undefined." >&2
+    echo "Error in f_db_restore_last() - $BASH_SOURCE line $LINENO: the required global 'ASC_DB_DUMPS_DIR' is undefined." >&2
     echo "Current instance must be (re)initialized with the 'db' extension enabled." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
@@ -1108,24 +1108,24 @@ u_db_restore_last() {
 
   if [[ ! -d "$ASC_DB_DUMPS_DIR" ]]; then
     echo >&2
-    echo "Error in u_db_restore_last() - $BASH_SOURCE line $LINENO: the dir $ASC_DB_DUMPS_DIR does not exist." >&2
+    echo "Error in f_db_restore_last() - $BASH_SOURCE line $LINENO: the dir $ASC_DB_DUMPS_DIR does not exist." >&2
     echo "-> Aborting (2)." >&2
     echo >&2
     exit 2
   fi
 
-  if [[ -z "$p_db_id" ]]; then
-    p_db_id='default'
+  if [[ -z "$a_db_id" ]]; then
+    a_db_id='default'
   fi
 
-  if [[ -z "$p_subdir" ]]; then
-    p_subdir='local'
+  if [[ -z "$a_subdir" ]]; then
+    a_subdir='local'
   fi
 
-  u_db_restore \
-    "$(u_fs_get_most_recent $ASC_DB_DUMPS_DIR/$p_subdir/$p_db_id)" \
-    "$p_db_id" \
-    "$p_force_reload_flag"
+  f_db_restore \
+    "$(f_fs_get_most_recent $ASC_DB_DUMPS_DIR/$a_subdir/$a_db_id)" \
+    "$a_db_id" \
+    "$a_force_reload_flag"
 }
 
 ##
@@ -1142,26 +1142,26 @@ u_db_restore_last() {
 #
 # @var routine_dump_file
 #
-# @param 1 [optional] String : the database ID ($DB_ID), see u_db_set().
+# @param 1 [optional] String : the database ID ($DB_ID), see f_db_set().
 #   Defaults to 'default'.
 # @param 2 [optional] String : force reload flag (bypasses optimization) if the
 #   DB credentials vars are already exported in current shell scope.
 #   TODO deprecate this argument and export a specific variable instead.
 #
 # @example
-#   u_db_routine_backup
+#   f_db_routine_backup
 #   echo "routine_dump_file = $routine_dump_file"
 #
 #   # Resulting dump file path example :
 #   # data/db-dumps/local/default/2024-08-08.17-25-29_local-default.paul.sql
 #
-u_db_routine_backup() {
-  local p_db_id="$1"
-  local p_force_reload_flag="$2"
+f_db_routine_backup() {
+  local a_db_id="$1"
+  local a_force_reload_flag="$2"
 
   if [[ -z "$ASC_DB_DUMPS_DIR" ]]; then
     echo >&2
-    echo "Error in u_db_routine_backup() - $BASH_SOURCE line $LINENO: the required global 'ASC_DB_DUMPS_DIR' is undefined." >&2
+    echo "Error in f_db_routine_backup() - $BASH_SOURCE line $LINENO: the required global 'ASC_DB_DUMPS_DIR' is undefined." >&2
     echo "Current instance must be (re)initialized with the 'db' extension enabled." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
@@ -1170,14 +1170,14 @@ u_db_routine_backup() {
 
   if [[ -z "$ASC_DB_DUMPS_LOCAL_PATTERN" ]]; then
     echo >&2
-    echo "Error in u_db_routine_backup() - $BASH_SOURCE line $LINENO: the required global 'ASC_DB_DUMPS_LOCAL_PATTERN' is undefined." >&2
+    echo "Error in f_db_routine_backup() - $BASH_SOURCE line $LINENO: the required global 'ASC_DB_DUMPS_LOCAL_PATTERN' is undefined." >&2
     echo "Current instance must be (re)initialized with the 'db' extension enabled." >&2
     echo "-> Aborting (2)." >&2
     echo >&2
     exit 2
   fi
 
-  u_db_set "$p_db_id" "$p_force_reload_flag"
+  f_db_set "$a_db_id" "$a_force_reload_flag"
 
   local db_routine_new_backup_file
   local db_backup_file_middle
@@ -1198,18 +1198,18 @@ u_db_routine_backup() {
 
   # Init var used in the pattern.
   # @see asc/extensions/db/global.vars.sh
-  # @see u_str_convert_tokens() in
+  # @see f_str_convert_tokens() in
   local DUMP_FILE_EXTENSION="$db_backup_file_ext"
 
-  u_str_convert_tokens ASC_DB_DUMPS_LOCAL_PATTERN 'db_routine_new_backup_file'
+  f_str_convert_tokens ASC_DB_DUMPS_LOCAL_PATTERN 'db_routine_new_backup_file'
 
   # Debug.
   # echo "db_routine_new_backup_file = '$db_routine_new_backup_file'"
 
-  u_db_dump \
+  f_db_dump \
     "$ASC_DB_DUMPS_DIR/local/$DB_ID/$db_routine_new_backup_file" \
-    "$p_db_id" \
-    "$p_force_reload_flag"
+    "$a_db_id" \
+    "$a_force_reload_flag"
 
   # Some tasks need the generated dump file path.
   routine_dump_file="${db_routine_new_backup_file}.gz"
@@ -1225,7 +1225,7 @@ u_db_routine_backup() {
 #   file. Any other value is a "find" file name filter that will return a single
 #   matching dump (the most recent in case there are several matches).
 #   Defaults to 'last'.
-# @param 2 [optional] String : the database ID ($DB_ID), see u_db_set().
+# @param 2 [optional] String : the database ID ($DB_ID), see f_db_set().
 #   Defaults to 'default'.
 # @param 3 [optional] String : subfolder in DB dumps dir.
 #   Defaults to 'local'.
@@ -1234,50 +1234,50 @@ u_db_routine_backup() {
 #   TODO deprecate this argument and export a specific variable instead.
 #
 # @example
-#   most_recent_dump_file="$(u_db_get_dump)"
+#   most_recent_dump_file="$(f_db_get_dump)"
 #   echo "Result = '$most_recent_dump_file'"
 #
-#   new_routine_dump_file="$(u_db_get_dump 'new')"
+#   new_routine_dump_file="$(f_db_get_dump 'new')"
 #   echo "Result = '$new_routine_dump_file'"
 #
-#   initial_dump_file="$(u_db_get_dump 'initial')"
+#   initial_dump_file="$(f_db_get_dump 'initial')"
 #   echo "Result = '$initial_dump_file'"
 #
-u_db_get_dump() {
-  local p_option="$1"
-  local p_db_id="$2"
-  local p_subdir="$3"
-  local p_force_reload_flag="$4"
+f_db_get_dump() {
+  local a_option="$1"
+  local a_db_id="$2"
+  local a_subdir="$3"
+  local a_force_reload_flag="$4"
 
-  if [[ -z "$p_option" ]]; then
-    p_option='last'
+  if [[ -z "$a_option" ]]; then
+    a_option='last'
   fi
 
-  if [[ -z "$p_db_id" ]]; then
-    p_db_id='default'
+  if [[ -z "$a_db_id" ]]; then
+    a_db_id='default'
   fi
 
-  if [[ -z "$p_subdir" ]]; then
-    p_subdir='local'
+  if [[ -z "$a_subdir" ]]; then
+    a_subdir='local'
   fi
 
   local dump_to_return
 
-  case "$p_option" in
+  case "$a_option" in
     'last')
-      dump_to_return="$(u_fs_get_most_recent "$ASC_DB_DUMPS_DIR/$p_subdir/$p_db_id")"
+      dump_to_return="$(f_fs_get_most_recent "$ASC_DB_DUMPS_DIR/$a_subdir/$a_db_id")"
       ;;
 
     # The 'new' option means create immediately a new routine dump and return
     # its file path.
     'new')
-      u_db_routine_backup "$p_db_id" "$p_force_reload_flag"
+      f_db_routine_backup "$a_db_id" "$a_force_reload_flag"
       dump_to_return="$routine_dump_file"
       ;;
 
     # Any other value is a "find" file name filter.
     *)
-      dump_to_return="$(u_fs_get_most_recent "$ASC_DB_DUMPS_DIR/$p_subdir/$p_db_id" "$p_option")"
+      dump_to_return="$(f_fs_get_most_recent "$ASC_DB_DUMPS_DIR/$a_subdir/$a_db_id" "$a_option")"
       ;;
   esac
 
@@ -1289,81 +1289,81 @@ u_db_get_dump() {
 ##
 # Ensures the DB credentials are setup (DB user exists, has grants, etc).
 #
-# @param 1 [optional] String : the database ID ($DB_ID), see u_db_set().
+# @param 1 [optional] String : the database ID ($DB_ID), see f_db_set().
 #   Defaults to 'default'.
 # @param 2 [optional] String : force reload flag (bypasses optimization) if the
 #   DB credentials vars are already exported in current shell scope.
 #   TODO deprecate this argument and export a specific variable instead.
 #
 # @example
-#   u_db_ensure_creds
-#   u_db_ensure_creds 'custom_db_id'
+#   f_db_ensure_creds
+#   f_db_ensure_creds 'custom_db_id'
 #
-u_db_ensure_creds() {
-  local p_db_id="$1"
-  local p_force_reload_flag="$2"
+f_db_ensure_creds() {
+  local a_db_id="$1"
+  local a_force_reload_flag="$2"
 
-  u_db_set "$p_db_id" "$p_force_reload_flag"
+  f_db_set "$a_db_id" "$a_force_reload_flag"
 
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
     echo
-    echo "u_db_ensure_creds $p_db_id"
+    echo "u_db_ensure_creds $a_db_id"
     echo "  DB_HOST = $DB_HOST"
     echo "  DB_NAME = $DB_NAME"
     echo "  DB_USER = $DB_USER"
   else
-    u_hook_most_specific -s 'db' -a 'ensure_creds' -v 'DB_DRIVER DB_ID INSTANCE_TYPE'
+    hook_ms -s 'db' -a 'ensure_creds' -v 'DB_DRIVER DB_ID INSTANCE_TYPE'
   fi
 }
 
 ##
 # Setup a new database (create + import initial dump).
 #
-# @param 1 [optional] String : the database ID ($DB_ID), see u_db_set().
+# @param 1 [optional] String : the database ID ($DB_ID), see f_db_set().
 #   Defaults to 'default'.
 # @param 2 [optional] String : force reload flag (bypasses optimization) if the
 #   DB credentials vars are already exported in current shell scope.
 #   TODO deprecate this argument and export a specific variable instead.
 #
 # @example
-#   u_db_setup
-#   u_db_setup 'custom_db_id'
+#   f_db_setup
+#   f_db_setup 'custom_db_id'
 #
-u_db_setup() {
-  local p_db_id="$1"
-  local p_force_reload_flag="$2"
+f_db_setup() {
+  local a_db_id="$1"
+  local a_force_reload_flag="$2"
 
-  u_db_set "$p_db_id" "$p_force_reload_flag"
+  f_db_set "$a_db_id" "$a_force_reload_flag"
 
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
     echo
-    echo "u_db_setup $p_db_id"
+    echo "u_db_setup $a_db_id"
     echo "  DB_HOST = $DB_HOST"
     echo "  DB_NAME = $DB_NAME"
   fi
 
   # Only create the database if it does not already exist.
-  if u_db_exists "$DB_NAME" "$p_db_id"; then
+  if f_db_exists "$DB_NAME" "$a_db_id"; then
     echo "The $DB_ID database ('$DB_NAME') exists already."
   else
-    u_db_create "$DB_ID" "$p_force_reload_flag"
+    f_db_create "$DB_ID" "$a_force_reload_flag"
   fi
 
   # Only move on to the initial DB import if configured to do so.
   case "$ASC_DB_INITIAL_IMPORT" in true)
-    u_db_restore_any "$DB_ID"
+    f_db_restore_any "$DB_ID"
   esac
 
   # Flag the DB as already setup.
-  if u_db_exists "$DB_NAME" "$p_db_id"; then
-    u_db_flag "$DB_ID"
+  if f_db_exists "$DB_NAME" "$a_db_id"; then
+    f_db_flag "$DB_ID"
   else
-    u_db_unflag "$DB_ID"
+    f_db_unflag "$DB_ID"
 
     echo >&2
-    echo "Error in u_db_setup() - $BASH_SOURCE line $LINENO: the $DB_ID database '$DB_NAME' was not created." >&2
+    echo "Error in f_db_setup() - $BASH_SOURCE line $LINENO: the $DB_ID database '$DB_NAME' was not created." >&2
     echo "-> Aborting (2)." >&2
     echo >&2
     exit 2
@@ -1378,25 +1378,25 @@ u_db_setup() {
 # The dump file can be in any subfolder, as long as it corresponds to the
 # corrrect DB ID.
 #
-# @param 1 [optional] String : the database ID ($DB_ID), see u_db_set().
+# @param 1 [optional] String : the database ID ($DB_ID), see f_db_set().
 #   Defaults to 'default'.
 # @param 2 [optional] String : force reload flag (bypasses optimization) if the
 #   DB credentials vars are already exported in current shell scope.
 #   TODO deprecate this argument and export a specific variable instead.
 #
 # @example
-#   u_db_restore_any
-#   u_db_restore_any 'custom_db_id'
+#   f_db_restore_any
+#   f_db_restore_any 'custom_db_id'
 #
-u_db_restore_any() {
-  local p_db_id="$1"
-  local p_force_reload_flag="$2"
+f_db_restore_any() {
+  local a_db_id="$1"
+  local a_force_reload_flag="$2"
 
-  u_db_set "$p_db_id" "$p_force_reload_flag"
+  f_db_set "$a_db_id" "$a_force_reload_flag"
 
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
-    echo "u_db_restore_any $p_db_id"
+    echo "u_db_restore_any $a_db_id"
     echo "  DB_HOST = $DB_HOST"
     echo "  DB_NAME = $DB_NAME"
   fi
@@ -1410,13 +1410,13 @@ u_db_restore_any() {
 
   # If the "remote" ASC extension is enabled, look for dumps previously
   # downloaded. We can check if extension is enabled by verifying that the
-  # function u_remote_get_instances() is defined.
+  # function f_remote_get_instances() is defined.
   # @see asc/extensions/remote/remote.inc.sh
   local instance_id
   local instance_ids=()
 
-  if type u_remote_get_instances >/dev/null 2>&1 ; then
-    u_remote_get_instances
+  if type f_remote_get_instances >/dev/null 2>&1 ; then
+    f_remote_get_instances
   fi
 
   if [[ -n "${instance_ids[@]}" ]]; then
@@ -1430,7 +1430,7 @@ u_db_restore_any() {
 
   # The 'prod' remote (if it exists) dumps take priority.
   if [[ -d "$ASC_DB_DUMPS_DIR/prod/$DB_ID" ]]; then
-    initial_dump_file="$(u_fs_get_most_recent "$ASC_DB_DUMPS_DIR/prod/$DB_ID" '*.gz')"
+    initial_dump_file="$(f_fs_get_most_recent "$ASC_DB_DUMPS_DIR/prod/$DB_ID" '*.gz')"
   fi
 
   if [[ ! -f "$initial_dump_file" ]]; then
@@ -1439,7 +1439,7 @@ u_db_restore_any() {
         continue
       fi
 
-      initial_dump_file="$(u_fs_get_most_recent "$ASC_DB_DUMPS_DIR/$lookup_subdir/$DB_ID" '*.gz')"
+      initial_dump_file="$(f_fs_get_most_recent "$ASC_DB_DUMPS_DIR/$lookup_subdir/$DB_ID" '*.gz')"
 
       if [[ -f "$initial_dump_file" ]]; then
         break
@@ -1469,7 +1469,7 @@ u_db_restore_any() {
         continue
       fi
 
-      initial_dump_file="$(u_fs_get_most_recent "$ASC_DB_DUMPS_DIR/$instance_id/$DB_ID" '*.gz')"
+      initial_dump_file="$(f_fs_get_most_recent "$ASC_DB_DUMPS_DIR/$instance_id/$DB_ID" '*.gz')"
 
       if [[ -f "$initial_dump_file" ]]; then
         break
@@ -1479,7 +1479,7 @@ u_db_restore_any() {
 
   if [[ ! -f "$initial_dump_file" ]]; then
     echo >&2
-    echo "Error in u_db_restore_any() - $BASH_SOURCE line $LINENO: no dump file was found." >&2
+    echo "Error in f_db_restore_any() - $BASH_SOURCE line $LINENO: no dump file was found." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     exit 1
@@ -1487,7 +1487,7 @@ u_db_restore_any() {
 
   echo "Importing $DB_ID DB dump file '$initial_dump_file' ..."
 
-  u_db_restore "$initial_dump_file" "$DB_ID"
+  f_db_restore "$initial_dump_file" "$DB_ID"
 
   if [[ $? -ne 0 ]]; then
     echo >&2

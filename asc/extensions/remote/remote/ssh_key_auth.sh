@@ -16,10 +16,10 @@
 
 . asc/bootstrap.sh
 
-p_id="$1"
-p_key="$2"
+a_id="$1"
+a_key="$2"
 
-u_remote_check_id "$p_id"
+f_remote_check_id "$a_id"
 
 public_key_path="$HOME/.ssh/id_rsa.pub"
 
@@ -27,15 +27,15 @@ if [[ -n "$ASC_SSH_PUBKEY" ]]; then
   public_key_path="$ASC_SSH_PUBKEY"
 fi
 
-if [[ -n "$p_key" ]]; then
-  public_key_path="$p_key"
+if [[ -n "$a_key" ]]; then
+  public_key_path="$a_key"
 fi
 
-u_remote_instance_load "$p_id"
+f_remote_instance_load "$a_id"
 
 if [[ -z "$REMOTE_INSTANCE_SSH_CONNECT_CMD" ]]; then
   echo >&2
-  echo "Error in $BASH_SOURCE line $LINENO: no conf found for remote id '$p_id'." >&2
+  echo "Error in $BASH_SOURCE line $LINENO: no conf found for remote id '$a_id'." >&2
   echo "-> Aborting (1)." >&2
   echo >&2
   exit 1

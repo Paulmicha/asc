@@ -7,7 +7,7 @@
 # Uninstall only when SOFTWARE_PRUNE=1 (opt-in).
 #
 # Helpers come from provision.opt-inc.sh (seeded into the hook cache before this
-# file is sourced — see u_hook_opt_inc_append_candidates).
+# file is sourced — see f_hook_opt_inc_append_candidates).
 #
 # @see asc/host/provision.sh
 # @see asc/extensions/software/host/provision.opt-inc.sh
@@ -17,4 +17,4 @@
 #   SOFTWARE_PRUNE=1 make host-provision
 #
 
-u_software_provision apply
+f_software_provision apply

@@ -8,7 +8,7 @@
 #
 # @param 1 [optional] String : the subfolder in the DB dumps dir.
 #   Defaults to an empty string, meaning : all subfolders will be listed.
-# @param 2 [optional] String : the database ID ($DB_ID), see u_db_set().
+# @param 2 [optional] String : the database ID ($DB_ID), see f_db_set().
 #   Defaults to an empty string, meaning : list dumps of all defined DB IDs.
 #
 # @example
@@ -19,8 +19,8 @@
 
 . asc/bootstrap.sh
 
-p_subdir="$1"
-p_db_id="$2"
+a_subdir="$1"
+a_db_id="$2"
 
 if [[ -z "$ASC_DB_DUMPS_DIR" ]]; then
   echo >&2
@@ -34,15 +34,15 @@ fi
 subdir=''
 db_ids=()
 
-u_db_get_ids
-u_fs_dir_list "$ASC_DB_DUMPS_DIR"
+f_db_get_ids
+f_fs_dir_list "$ASC_DB_DUMPS_DIR"
 
 echo "Listing dumps in :"
 
 for subdir in $dir_list; do
-  if [[ -n "$p_subdir" ]]; then
+  if [[ -n "$a_subdir" ]]; then
     case "$subdir" in
-      "$p_subdir")
+      "$a_subdir")
         echo "  $subdir :"
         ;;
       *)
@@ -56,11 +56,11 @@ for subdir in $dir_list; do
   for db_id in "${db_ids[@]}"; do
     dir="$ASC_DB_DUMPS_DIR/$subdir/$db_id"
 
-    u_fs_relative_path "$dir"
+    f_fs_relative_path "$dir"
 
-    if [[ -n "$p_db_id" ]]; then
+    if [[ -n "$a_db_id" ]]; then
       case "$db_id" in
-        "$p_db_id")
+        "$a_db_id")
           echo "    $db_id ($relative_path) :"
           ;;
         *)
@@ -72,7 +72,7 @@ for subdir in $dir_list; do
     fi
 
     file_list_arr=()
-    u_fs_file_list "$dir"
+    f_fs_file_list "$dir"
 
     for file in "${file_list_arr[@]}"; do
       echo "      $file"

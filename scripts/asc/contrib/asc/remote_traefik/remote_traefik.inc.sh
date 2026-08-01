@@ -6,31 +6,31 @@
 # This file is sourced during core ASC bootstrap.
 # @see asc/bootstrap.sh
 #
-# Convention : functions names are all prefixed by "u" (for "utility").
+# Convention : functions names are all prefixed by "f".
 #
 
 ##
 # Generates local Acme config file for Let's Encrypt.
 #
 # To list matches & check which one will be used (the most specific) :
-# $ p_site='my_site_id'
-#   u_hook_most_specific 'dry-run' \
+# $ a_site='my_site_id'
+#   hook_ms 'dry-run' \
 #     -s 'stack' \
 #     -a 'traefik' \
 #     -c 'tpl.yml' \
 #     -v 'INSTANCE_TYPE' \
 #     -t -d
-#   echo "match = $hook_most_specific_dry_run_match"
+#   echo "match = $most_specific_match"
 #
-u_traefik_generate_acme_conf() {
+f_traefik_generate_acme_conf() {
   local var_val
   local var_name
   local token_prefix='{{ '
   local token_suffix=' }}'
   local traefik_conf="$PROJECT_DOCROOT/data/asc/traefik.yml"
-  local hook_most_specific_dry_run_match=''
+  local most_specific_match=''
 
-  u_hook_most_specific 'dry-run' \
+  hook_ms 'dry-run' \
     -s 'stack' \
     -a 'traefik' \
     -c 'tpl.yml' \
@@ -38,9 +38,9 @@ u_traefik_generate_acme_conf() {
     -t
 
   # No declaration file found ? Can't carry on, there's nothing to do.
-  if [[ ! -f "$hook_most_specific_dry_run_match" ]]; then
+  if [[ ! -f "$most_specific_match" ]]; then
     echo >&2
-    echo "Error in u_traefik_generate_acme_conf() - $BASH_SOURCE line $LINENO: no settings template file was found." >&2
+    echo "Error in f_traefik_generate_acme_conf() - $BASH_SOURCE line $LINENO: no settings template file was found." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     return 1
@@ -50,10 +50,10 @@ u_traefik_generate_acme_conf() {
   if [[ -f "$traefik_conf" ]]; then
     rm -f "$traefik_conf"
   fi
-  cp "$hook_most_specific_dry_run_match" "$traefik_conf"
+  cp "$most_specific_match" "$traefik_conf"
 
   # Replace read-only global vars (supports any global) placeholders.
-  u_global_list
+  f_global_list
   for var_name in "${asc_globals_var_names[@]}"; do
     if grep -Fq "${token_prefix}${var_name}${token_suffix}" "$traefik_conf"; then
       var_val="${!var_name}"

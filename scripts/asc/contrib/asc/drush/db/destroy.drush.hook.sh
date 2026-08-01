@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 ##
-# Implements u_hook_most_specific -s 'db' -a 'destroy' -v 'DB_DRIVER HOST_TYPE INSTANCE_TYPE'.
+# Implements hook_ms -s 'db' -a 'destroy' -v 'DB_DRIVER HOST_TYPE INSTANCE_TYPE'.
 #
 # This file is dynamically included when the "hook" is triggered.
-# @see u_db_destroy() in asc/extensions/db/db.inc.sh
+# @see f_db_destroy() in asc/extensions/db/db.inc.sh
 #
 # The following variables are available here :
 #   - DB_ID - defaults to 'default'.
@@ -17,7 +17,7 @@
 #   - DB_ADMIN_USER - defaults to DB_USER.
 #   - DB_ADMIN_PASS - defaults to DB_PASS.
 #   - DB_TABLES_SKIP_DATA - defaults to an empty string.
-# @see u_db_set() in asc/extensions/db/db.inc.sh
+# @see f_db_set() in asc/extensions/db/db.inc.sh
 #
 # @example
 #   make db-destroy
@@ -27,7 +27,7 @@
 
 fallback_hook_implementation="asc/extensions/${DRUSH_DB_DRIVER_FALLBACK}/db/destroy.${DRUSH_DB_DRIVER_FALLBACK}.hook.sh"
 
-if u_asc_extension_exists "$DRUSH_DB_DRIVER_FALLBACK"; then
+if f_asc_extension_exists "$DRUSH_DB_DRIVER_FALLBACK"; then
   echo "Drush DB Driver fallback for 'destroy' action :"
   echo "  OK, the '$DRUSH_DB_DRIVER_FALLBACK' extension exists and is enabled."
 else

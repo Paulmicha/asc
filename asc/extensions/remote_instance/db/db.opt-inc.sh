@@ -11,7 +11,7 @@
 # @see asc/extensions/db
 # @see asc/bootstrap/90-caller-opt-inc.bootstrap-inc.sh
 #
-# Convention : functions names are all prefixed by "u" (for "utility").
+# Convention : functions names are all prefixed by "f".
 #
 
 ##
@@ -29,18 +29,18 @@
 #
 # @examples
 #   # Using the default database :
-#   u_remote_sync_db_to my_remote_id
-#   u_remote_sync_db_to my_remote_id new
-#   u_remote_sync_db_to my_remote_id path/to/local/dump/file.sql.tgz
+#   f_remote_sync_db_to my_remote_id
+#   f_remote_sync_db_to my_remote_id new
+#   f_remote_sync_db_to my_remote_id path/to/local/dump/file.sql.tgz
 #
 #   # Specifying the database (by DB_ID) :
-#   u_remote_sync_db_to my_remote_id '' my_db_id
-#   u_remote_sync_db_to my_remote_id new my_db_id
-#   u_remote_sync_db_to my_remote_id path/to/local/dump/file.sql.tgz my_db_id
+#   f_remote_sync_db_to my_remote_id '' my_db_id
+#   f_remote_sync_db_to my_remote_id new my_db_id
+#   f_remote_sync_db_to my_remote_id path/to/local/dump/file.sql.tgz my_db_id
 #
-u_remote_sync_db_to() {
-  local p_id="$1"
-  local p_option="$2"
+f_remote_sync_db_to() {
+  local a_id="$1"
+  local a_option="$2"
 
   local rst_dump_file
   local rst_dump_file_relative_path
@@ -50,35 +50,35 @@ u_remote_sync_db_to() {
   local rst_dump_dir_on_remote
   local rst_dump_file_on_remote
 
-  u_remote_instance_load "$p_id"
+  f_remote_instance_load "$a_id"
 
   if [[ -z "$REMOTE_INSTANCE_SSH_CONNECT_CMD" ]]; then
     echo >&2
-    echo "Error in u_remote_sync_db_to() - $BASH_SOURCE line $LINENO: no conf found for remote id '$p_id'." >&2
+    echo "Error in f_remote_sync_db_to() - $BASH_SOURCE line $LINENO: no conf found for remote id '$a_id'." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     return 1
   fi
 
-  u_db_set "$3" "$4"
+  f_db_set "$3" "$4"
 
   # Handle variants given 1st argument.
-  if [[ -n "$p_option" ]]; then
-    if [[ -f "$p_option" ]]; then
-      rst_dump_file="$p_option"
+  if [[ -n "$a_option" ]]; then
+    if [[ -f "$a_option" ]]; then
+      rst_dump_file="$a_option"
     else
-      case "$p_option" in new)
-        u_db_routine_backup
+      case "$a_option" in new)
+        f_db_routine_backup
         rst_dump_file="$routine_dump_file"
       esac
     fi
   else
-    rst_dump_file="$(u_fs_get_most_recent $ASC_DB_DUMPS_DIR)"
+    rst_dump_file="$(f_fs_get_most_recent $ASC_DB_DUMPS_DIR)"
   fi
 
   if [[ ! -f "$rst_dump_file" ]]; then
     echo >&2
-    echo "Error in u_remote_sync_db_to() - $BASH_SOURCE line $LINENO: no dump file to send." >&2
+    echo "Error in f_remote_sync_db_to() - $BASH_SOURCE line $LINENO: no dump file to send." >&2
     echo "-> Aborting (2)." >&2
     echo >&2
     return 2
@@ -89,12 +89,12 @@ u_remote_sync_db_to() {
 
   # 1. Get the dump file relative path.
   relative_path=''
-  u_fs_relative_path "$rst_dump_file"
+  f_fs_relative_path "$rst_dump_file"
   rst_dump_file_relative_path="$relative_path"
 
   # 2. Transform its path for use on the remote.
   relative_path=''
-  u_fs_relative_path "$ASC_DB_DUMPS_DIR"
+  f_fs_relative_path "$ASC_DB_DUMPS_DIR"
   rst_dump_local_base_path="$relative_path/local/$DB_ID"
   rst_dump_remote_base_path="$relative_path/manually-uploaded-sync/$DB_ID"
   rst_dump_file_on_remote="${rst_dump_file_relative_path//$rst_dump_local_base_path/$rst_dump_remote_base_path}"
@@ -102,21 +102,21 @@ u_remote_sync_db_to() {
   # 3. Create the containing folder on the remote (if it doesn't exist yet).
   rst_leaf="${rst_dump_file##*/}"
   rst_dir_on_remote="${rst_dump_file_on_remote%/$rst_leaf}"
-  echo "Ensure dir '$rst_dir_on_remote' exists on remote '$p_id' ..."
-  u_remote_exec_wrapper "$p_id" \
+  echo "Ensure dir '$rst_dir_on_remote' exists on remote '$a_id' ..."
+  f_remote_exec_wrapper "$a_id" \
     mkdir -p "$rst_dir_on_remote"
-  echo "Ensure dir '$rst_dir_on_remote' exists on remote '$p_id' : done."
+  echo "Ensure dir '$rst_dir_on_remote' exists on remote '$a_id' : done."
 
   # 4. Send the file.
-  echo "Sending dump file '$rst_dump_file_relative_path' to remote '$p_id' ..."
-  u_remote_upload "$p_id" "$rst_dump_file_relative_path" "$rst_dump_file_on_remote"
-  echo "Sending dump file '$rst_dump_file_relative_path' to remote '$p_id' : done."
+  echo "Sending dump file '$rst_dump_file_relative_path' to remote '$a_id' ..."
+  f_remote_upload "$a_id" "$rst_dump_file_relative_path" "$rst_dump_file_on_remote"
+  echo "Sending dump file '$rst_dump_file_relative_path' to remote '$a_id' : done."
 
   # 5. Restore it on the remote.
-  echo "Restoring '$rst_dump_file_on_remote' on remote '$p_id' ..."
-  u_remote_exec_wrapper "$p_id" \
+  echo "Restoring '$rst_dump_file_on_remote' on remote '$a_id' ..."
+  f_remote_exec_wrapper "$a_id" \
     make db-restore "$rst_dump_file_on_remote"
-  echo "Restoring '$rst_dump_file_on_remote' on remote '$p_id' : done."
+  echo "Restoring '$rst_dump_file_on_remote' on remote '$a_id' : done."
   echo
 }
 
@@ -124,7 +124,7 @@ u_remote_sync_db_to() {
 # Fetches DB dump from given remote and restores it locally.
 #
 # TODO avoid duplicated code
-# @see u_remote_download_db_from
+# @see f_remote_download_db_from
 #
 # Optionally creates a new dump before fetching it, or uses most recent
 # remote instance DB dump (default). Always wipes out and restores the dump on
@@ -138,18 +138,18 @@ u_remote_sync_db_to() {
 #
 # @examples
 #   # Using the default database :
-#   u_remote_sync_db_from my_remote_id
-#   u_remote_sync_db_from my_remote_id new
-#   u_remote_sync_db_from my_remote_id path/to/remote/dump/file.sql.tgz
+#   f_remote_sync_db_from my_remote_id
+#   f_remote_sync_db_from my_remote_id new
+#   f_remote_sync_db_from my_remote_id path/to/remote/dump/file.sql.tgz
 #
 #   # Specifying the database by DB_ID (e.g. 'my_db_id') :
-#   u_remote_sync_db_from my_remote_id '' my_db_id
-#   u_remote_sync_db_from my_remote_id new my_db_id
-#   u_remote_sync_db_from my_remote_id path/to/remote/dump/file.sql.tgz my_db_id
+#   f_remote_sync_db_from my_remote_id '' my_db_id
+#   f_remote_sync_db_from my_remote_id new my_db_id
+#   f_remote_sync_db_from my_remote_id path/to/remote/dump/file.sql.tgz my_db_id
 #
-u_remote_sync_db_from() {
-  local p_id="$1"
-  local p_option="$2"
+f_remote_sync_db_from() {
+  local a_id="$1"
+  local a_option="$2"
 
   local rsf_remote_dump_file
   local rsf_dump_local_base_path
@@ -157,28 +157,28 @@ u_remote_sync_db_from() {
   local rsf_leaf
   local rsf_local_dump_file
 
-  u_remote_instance_load "$p_id"
+  f_remote_instance_load "$a_id"
 
   if [[ -z "$REMOTE_INSTANCE_SSH_CONNECT_CMD" ]]; then
     echo >&2
-    echo "Error in u_remote_sync_db_from() - $BASH_SOURCE line $LINENO: no conf found for remote id '$p_id'." >&2
+    echo "Error in f_remote_sync_db_from() - $BASH_SOURCE line $LINENO: no conf found for remote id '$a_id'." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     return 1
   fi
 
-  u_db_set "$3" "$4"
+  f_db_set "$3" "$4"
 
   # Handle variants given 1st argument.
-  if [[ -n "$p_option" ]]; then
+  if [[ -n "$a_option" ]]; then
     # No check if file exists on the remote instance (perf).
-    rsf_remote_dump_file="$p_option"
-    case "$p_option" in new)
-      rsf_remote_dump_file="$(asc/extensions/remote_asc/remote/exec.sh "$p_id" "asc/extensions/db/db/get_dump.sh new")"
+    rsf_remote_dump_file="$a_option"
+    case "$a_option" in new)
+      rsf_remote_dump_file="$(asc/extensions/remote_asc/remote/exec.sh "$a_id" "asc/extensions/db/db/get_dump.sh new")"
       rsf_remote_dump_file="${rsf_remote_dump_file#$REMOTE_INSTANCE_DOCROOT/}"
     esac
   else
-    rsf_remote_dump_file="$(asc/extensions/remote_asc/remote/exec.sh "$p_id" "asc/extensions/db/db/get_dump.sh")"
+    rsf_remote_dump_file="$(asc/extensions/remote_asc/remote/exec.sh "$a_id" "asc/extensions/db/db/get_dump.sh")"
     rsf_remote_dump_file="${rsf_remote_dump_file#$REMOTE_INSTANCE_DOCROOT/}"
   fi
 
@@ -186,26 +186,26 @@ u_remote_sync_db_from() {
   # after the remote instance id in order to avoid any risks of collision.
   rsf_leaf="${rsf_remote_dump_file##*/}"
   relative_path=''
-  u_fs_relative_path "$ASC_DB_DUMPS_DIR"
-  rsf_dump_local_base_path="$relative_path/$p_id/$DB_ID"
+  f_fs_relative_path "$ASC_DB_DUMPS_DIR"
+  rsf_dump_local_base_path="$relative_path/$a_id/$DB_ID"
   rsf_dump_remote_base_path="$relative_path/local/$DB_ID"
   rsf_local_dump_file="${rsf_remote_dump_file//$rsf_dump_remote_base_path/$rsf_dump_local_base_path}"
 
-  echo "Fetching dump file '$rsf_remote_dump_file' from remote '$p_id' ..."
-  u_remote_download "$p_id" "$rsf_remote_dump_file" "$rsf_local_dump_file"
+  echo "Fetching dump file '$rsf_remote_dump_file' from remote '$a_id' ..."
+  f_remote_download "$a_id" "$rsf_remote_dump_file" "$rsf_local_dump_file"
 
   if [[ ! -f "$rsf_local_dump_file" ]]; then
     echo >&2
-    echo "Error in u_remote_sync_db_from() - $BASH_SOURCE line $LINENO: failed to fetch remote dump file." >&2
+    echo "Error in f_remote_sync_db_from() - $BASH_SOURCE line $LINENO: failed to fetch remote dump file." >&2
     echo "-> Aborting (2)." >&2
     echo >&2
     return 2
   else
-    echo "Fetching dump file '$rsf_remote_dump_file' from remote '$p_id' : done."
+    echo "Fetching dump file '$rsf_remote_dump_file' from remote '$a_id' : done."
   fi
 
   echo "Restoring it locally ..."
-  u_db_restore "$rsf_local_dump_file"
+  f_db_restore "$rsf_local_dump_file"
   echo "Restoring it locally : done."
   echo
 }
@@ -214,7 +214,7 @@ u_remote_sync_db_from() {
 # Just fetches DB dump from given remote (without restoring it locally).
 #
 # TODO avoid duplicated code
-# @see u_remote_sync_db_from
+# @see f_remote_sync_db_from
 #
 # Optionally creates a new dump before fetching it, or uses most recent
 # remote instance DB dump (default). Always wipes out and restores the dump on
@@ -228,18 +228,18 @@ u_remote_sync_db_from() {
 #
 # @examples
 #   # Using the default database :
-#   u_remote_download_db_from my_remote_id
-#   u_remote_download_db_from my_remote_id new
-#   u_remote_download_db_from my_remote_id path/to/remote/dump/file.sql.tgz
+#   f_remote_download_db_from my_remote_id
+#   f_remote_download_db_from my_remote_id new
+#   f_remote_download_db_from my_remote_id path/to/remote/dump/file.sql.tgz
 #
 #   # Specifying the database by DB_ID (e.g. 'my_db_id') :
-#   u_remote_download_db_from my_remote_id '' my_db_id
-#   u_remote_download_db_from my_remote_id new my_db_id
-#   u_remote_download_db_from my_remote_id path/to/remote/dump/file.sql.tgz my_db_id
+#   f_remote_download_db_from my_remote_id '' my_db_id
+#   f_remote_download_db_from my_remote_id new my_db_id
+#   f_remote_download_db_from my_remote_id path/to/remote/dump/file.sql.tgz my_db_id
 #
-u_remote_download_db_from() {
-  local p_id="$1"
-  local p_option="$2"
+f_remote_download_db_from() {
+  local a_id="$1"
+  local a_option="$2"
 
   local rsf_remote_dump_file
   local rsf_dump_local_base_path
@@ -247,28 +247,28 @@ u_remote_download_db_from() {
   local rsf_leaf
   local rsf_local_dump_file
 
-  u_remote_instance_load "$p_id"
+  f_remote_instance_load "$a_id"
 
   if [[ -z "$REMOTE_INSTANCE_SSH_CONNECT_CMD" ]]; then
     echo >&2
-    echo "Error in u_remote_sync_db_from() - $BASH_SOURCE line $LINENO: no conf found for remote id '$p_id'." >&2
+    echo "Error in f_remote_sync_db_from() - $BASH_SOURCE line $LINENO: no conf found for remote id '$a_id'." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     return 1
   fi
 
-  u_db_set "$3" "$4"
+  f_db_set "$3" "$4"
 
   # Handle variants given 1st argument.
-  if [[ -n "$p_option" ]]; then
+  if [[ -n "$a_option" ]]; then
     # No check if file exists on the remote instance (perf).
-    rsf_remote_dump_file="$p_option"
-    case "$p_option" in new)
-      rsf_remote_dump_file="$(asc/extensions/remote_asc/remote/exec.sh "$p_id" "asc/extensions/db/db/get_dump.sh new")"
+    rsf_remote_dump_file="$a_option"
+    case "$a_option" in new)
+      rsf_remote_dump_file="$(asc/extensions/remote_asc/remote/exec.sh "$a_id" "asc/extensions/db/db/get_dump.sh new")"
       rsf_remote_dump_file="${rsf_remote_dump_file#$REMOTE_INSTANCE_DOCROOT/}"
     esac
   else
-    rsf_remote_dump_file="$(asc/extensions/remote_asc/remote/exec.sh "$p_id" "asc/extensions/db/db/get_dump.sh")"
+    rsf_remote_dump_file="$(asc/extensions/remote_asc/remote/exec.sh "$a_id" "asc/extensions/db/db/get_dump.sh")"
     rsf_remote_dump_file="${rsf_remote_dump_file#$REMOTE_INSTANCE_DOCROOT/}"
   fi
 
@@ -276,22 +276,22 @@ u_remote_download_db_from() {
   # after the remote instance id in order to avoid any risks of collision.
   rsf_leaf="${rsf_remote_dump_file##*/}"
   relative_path=''
-  u_fs_relative_path "$ASC_DB_DUMPS_DIR"
-  rsf_dump_local_base_path="$relative_path/$p_id/$DB_ID"
+  f_fs_relative_path "$ASC_DB_DUMPS_DIR"
+  rsf_dump_local_base_path="$relative_path/$a_id/$DB_ID"
   rsf_dump_remote_base_path="$relative_path/local/$DB_ID"
   rsf_local_dump_file="${rsf_remote_dump_file//$rsf_dump_remote_base_path/$rsf_dump_local_base_path}"
 
-  echo "Fetching dump file '$rsf_remote_dump_file' from remote '$p_id' ..."
-  u_remote_download "$p_id" "$rsf_remote_dump_file" "$rsf_local_dump_file"
+  echo "Fetching dump file '$rsf_remote_dump_file' from remote '$a_id' ..."
+  f_remote_download "$a_id" "$rsf_remote_dump_file" "$rsf_local_dump_file"
 
   if [[ ! -f "$rsf_local_dump_file" ]]; then
     echo >&2
-    echo "Error in u_remote_sync_db_from() - $BASH_SOURCE line $LINENO: failed to fetch remote dump file." >&2
+    echo "Error in f_remote_sync_db_from() - $BASH_SOURCE line $LINENO: failed to fetch remote dump file." >&2
     echo "-> Aborting (2)." >&2
     echo >&2
     return 2
   else
-    echo "Fetching dump file '$rsf_remote_dump_file' from remote '$p_id' : done."
+    echo "Fetching dump file '$rsf_remote_dump_file' from remote '$a_id' : done."
   fi
 
   echo

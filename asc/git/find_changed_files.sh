@@ -22,7 +22,7 @@
 
 . asc/bootstrap.sh
 
-u_git_find_changed_files $@
+f_git_find_changed_files $@
 
 for f in "${git_changed_files[@]}"; do
   echo "$f"

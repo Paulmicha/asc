@@ -3,7 +3,7 @@
 ##
 # Gets local instance DB credentials (in fact, all DB information).
 #
-# @see u_db_set()
+# @see f_db_set()
 #
 # Uses the following env. var. if it is defined in current shell scope to select
 # which database credentials to load :
@@ -42,14 +42,14 @@ db_ids=()
 if [[ -n "$1" ]]; then
   db_ids+=("$1")
 else
-  u_db_get_ids
+  f_db_get_ids
 fi
 
-u_db_vars_list
+f_db_vars_list
 echo
 
 for db_id in "${db_ids[@]}"; do
-  u_db_set $db_id
+  f_db_set $db_id
 
   for v in $db_vars_list; do
     var_name="DB_$v"

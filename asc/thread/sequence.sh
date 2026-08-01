@@ -13,10 +13,10 @@
 
 . asc/bootstrap.sh
 
-if ! u_thread_parse_e_args "$@"; then
+if ! f_thread_parse_e_args "$@"; then
   echo >&2 "Aborting (1)."
   exit 1
 fi
 
-u_thread_run_sequence
+f_thread_run_sequence
 exit $?

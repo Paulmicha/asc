@@ -21,7 +21,7 @@
 # $ make hook-debug ms s:db a:exec v:DB_DRIVER DB_ID INSTANCE_TYPE PROVISION_USING
 #
 # @param 1 String : the dump file path.
-# @param 2 [optional] String : the database ID ($DB_ID), see u_db_set().
+# @param 2 [optional] String : the database ID ($DB_ID), see f_db_set().
 #   Defaults to 'default'.
 # @param 3 [optional] String : force reload flag (bypasses optimization) if the
 #   DB credentials vars are already exported in current shell scope.
@@ -38,4 +38,4 @@
 . asc/bootstrap.sh
 
 # @see asc/extensions/db/db.inc.sh
-u_db_exec $@
+f_db_exec $@

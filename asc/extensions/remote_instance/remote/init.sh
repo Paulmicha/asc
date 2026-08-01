@@ -20,14 +20,14 @@
 . asc/bootstrap.sh
 
 remote_id="$1"
-u_remote_check_id "$remote_id"
+f_remote_check_id "$remote_id"
 shift
 
-u_remote_instance_load "$remote_id"
+f_remote_instance_load "$remote_id"
 
 if [[ -z "$REMOTE_INSTANCE_SSH_CONNECT_CMD" ]]; then
   echo >&2
-  echo "Error in u_remote_exec_wrapper() - $BASH_SOURCE line $LINENO: no conf found for remote id '$remote_id'." >&2
+  echo "Error in f_remote_exec_wrapper() - $BASH_SOURCE line $LINENO: no conf found for remote id '$remote_id'." >&2
   echo "-> Aborting (1)." >&2
   echo >&2
   exit 1
@@ -57,10 +57,10 @@ if [[ "$git_origin" =~ $regex_with_user ]]; then
 fi
 if [[ -n "$APP_GIT_ORIGIN" ]]; then
   if [[ "$APP_GIT_ORIGIN" =~ $regex ]]; then
-    u_array_add_once "${BASH_REMATCH[1]}" hosts
+    f_array_add_once "${BASH_REMATCH[1]}" hosts
   fi
   if [[ "$APP_GIT_ORIGIN" =~ $regex_with_user ]]; then
-    u_array_add_once "${BASH_REMATCH[1]}" hosts_with_user
+    f_array_add_once "${BASH_REMATCH[1]}" hosts_with_user
   fi
 fi
 

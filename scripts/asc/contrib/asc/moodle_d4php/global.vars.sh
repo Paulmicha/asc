@@ -6,7 +6,7 @@
 # This file is used during "instance init" to generate the global environment
 # variables specific to current project instance.
 #
-# @see u_instance_init() in asc/instance/instance.inc.sh
+# @see f_instance_init() in asc/instance/instance.inc.sh
 # @see asc/utilities/global.sh
 # @see asc/bootstrap.sh
 #
@@ -18,7 +18,7 @@ global MOODLE_VERSION "[default]=3 [help]='Used to match config.php templates in
 
 global MOODLE_CRON_FREQ "[default]='*/1 * * * *'"
 
-global MOODLE_BASIC_AUTH_USERS "[default]='$(u_str_basic_auth_credentials moodle_basic_auth_creds)' [help]='Http Basic Auth credentials for pubicly accessible services of remote instance whose type is “dev” or “stage”. Defauts to login : “admin”, and a randomly generated password that can be retrieved locally from a remote instance with the command : make remote-moodle-basic-auth (see asc/extensions/moodle_d4php/remote/moodle_basic_auth.sh)'"
+global MOODLE_BASIC_AUTH_USERS "[default]='$(f_str_basic_auth_credentials moodle_basic_auth_creds)' [help]='Http Basic Auth credentials for pubicly accessible services of remote instance whose type is “dev” or “stage”. Defauts to login : “admin”, and a randomly generated password that can be retrieved locally from a remote instance with the command : make remote-moodle-basic-auth (see asc/extensions/moodle_d4php/remote/moodle_basic_auth.sh)'"
 
 global MOODLE_DATA_DIR "[default]=app/moodledata"
 global MOODLE_DATA_DIR_C "[default]=/var/moodledata"

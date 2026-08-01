@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ##
-# Implements u_hook_most_specific -s 'agent' -a 'stop' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
+# Implements hook_ms -s 'agent' -a 'stop' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
 #
 # Unload one or more running models from memory (`ollama stop`).
 #
@@ -21,9 +21,9 @@ if ! command -v ollama >/dev/null 2>&1; then
   exit 1
 fi
 
-p_models="${p_models:-${agent_MODEL:-${agent_OLLAMA_MODEL:-}}}"
+a_models="${a_models:-${agent_MODEL:-${agent_OLLAMA_MODEL:-}}}"
 
-if [[ -z "$p_models" ]]; then
+if [[ -z "$a_models" ]]; then
   echo >&2
   echo "Error in $BASH_SOURCE line $LINENO - no model specified." >&2
   echo "Usage: make agent-stop MODEL [MODEL…]  (or export agent_MODEL)" >&2
@@ -33,9 +33,9 @@ if [[ -z "$p_models" ]]; then
   exit 2
 fi
 
-for p_model in $p_models; do
-  echo "Stopping model '$p_model' ..."
-  ollama stop "$p_model" || exit $?
+for a_model in $a_models; do
+  echo "Stopping model '$a_model' ..."
+  ollama stop "$a_model" || exit $?
 done
 
 echo "Over."

@@ -21,4 +21,4 @@
 #
 
 . asc/bootstrap.sh
-u_remote_download_db_from $@
+f_remote_download_db_from $@

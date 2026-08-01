@@ -10,7 +10,7 @@
 # fs_perms_pre_set) when needed.
 #
 # This file is dynamically included when the "hook" is triggered.
-# @see u_instance_set_permissions() in asc/instance/instance.inc.sh
+# @see f_instance_set_permissions() in asc/instance/instance.inc.sh
 #
 # To verify which files can be used (and will be sourced) when this hook is
 # triggered :
@@ -79,7 +79,7 @@ if [[ -d './scripts/asc' ]]; then
 fi
 
 # ASC "actions" - and the ones of its active extensions - need to be executable.
-u_asc_get_actions
+f_asc_get_actions
 
 for f in "${asc_action_scripts[@]}"; do
   chmod "$FS_E_FILES" "$f"
@@ -105,7 +105,7 @@ for scope in './asc' './scripts/asc'; do
 
   # Test files (*.test.sh).
   file_list=''
-  u_fs_file_list "$scope" '*.test.sh' 32
+  f_fs_file_list "$scope" '*.test.sh' 32
 
   for f in $file_list; do
     chmod "$FS_E_FILES" "$scope/$f"
@@ -122,19 +122,33 @@ for scope in './asc' './scripts/asc'; do
 
   # ASC make shortcut scripts (*.make.sh), wrappers (*.wrap.sh), and helpers.
   # escape.sh / list_entry_points.sh live only under ./asc.
-  file_list=''
-  u_fs_file_list "$scope" '*.make.sh' 32
-
+  # NB: f_fs_file_list always writes to file_list — save each pattern before the
+  # next call so make.sh entries are not clobbered by the wrap.sh lookup.
+  make_list=''
   wrap_list=''
-  u_fs_file_list "$scope" '*.wrap.sh' 32
+  exec_list=''
 
-  file_list+=" $wrap_list"
+  f_fs_file_list "$scope" '*.make.sh' 32
+  make_list="$file_list"
+
+  f_fs_file_list "$scope" '*.wrap.sh' 32
+  wrap_list="$file_list"
+
+  exec_list="$make_list $wrap_list"
 
   if [[ "$scope" == './asc' ]]; then
-    file_list+=' escape.sh make/list_entry_points.sh'
+    exec_list+=' escape.sh bootstrap.sh make/list_entry_points.sh test/case.run.sh test/core.sh'
+    # Nested instance entry points (compat wrappers are depth-1; implementations
+    # live one level deeper and are also invoked directly by tests).
+    for nf in batch chain loop pipe sequence thread; do
+      exec_list+=" instance/logged/${nf}.sh"
+    done
+    for nf in del get set; do
+      exec_list+=" instance/registry/${nf}.sh"
+    done
   fi
 
-  for f in $file_list; do
+  for f in $exec_list; do
     if [[ ! -f "$scope/$f" ]]; then
       continue
     fi

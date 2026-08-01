@@ -9,7 +9,7 @@
 # @see asc/extensions/mysql
 # @see asc/extensions/pgsql
 #
-# @param 1 [optional] String : the database ID ($DB_ID), see u_db_set().
+# @param 1 [optional] String : the database ID ($DB_ID), see f_db_set().
 #   Defaults to 'default'.
 # @param 2 [optional] String : force reload flag (bypasses optimization) if the
 #   DB credentials vars are already exported in current shell scope.
@@ -26,4 +26,4 @@
 . asc/bootstrap.sh
 
 # @see asc/extensions/db/db.inc.sh
-u_db_setup $@
+f_db_setup $@

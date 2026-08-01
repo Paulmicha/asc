@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ##
-# Lists background threads started via asc/thread/wrap.sh.
+# Lists background threads started via asc/thread/thread.wrap.sh.
 #
 # @example
 #   make thread-list
@@ -31,26 +31,26 @@ printf '%-28s %-8s %-10s %-10s %-24s %-24s %s\n' \
 printf '%-28s %-8s %-10s %-10s %-24s %-24s %s\n' \
   '----' '---' '-----' '------' '-------' '----------' '------'
 
-for p_yml in "${yml_files[@]}"; do
-  p_entry="${p_yml##*/}"
-  p_entry="${p_entry%.yml}"
+for a_yml in "${yml_files[@]}"; do
+  a_entry="${a_yml##*/}"
+  a_entry="${a_entry%.yml}"
 
   unset thread_tree
   unset thread_entry thread_owner thread_pid thread_status
   unset thread_started_ms thread_output
 
-  if ! u_thread_yml_load "$p_entry"; then
+  if ! f_thread_yml_load "$a_entry"; then
     continue
   fi
 
   if [[ "$thread_status" == 'running' ]] \
     && ! kill -0 "$thread_pid" 2>/dev/null; then
-    u_thread_yml_mark_stale
+    f_thread_yml_mark_stale
   fi
 
-  p_last='-'
-  u_thread_output_mtime_ms "$thread_output" 'p_last'
-  [[ -n "$p_last" ]] || p_last='-'
+  a_last='-'
+  f_thread_output_mtime_ms "$thread_output" 'a_last'
+  [[ -n "$a_last" ]] || a_last='-'
 
   printf '%-28s %-8s %-10s %-10s %-24s %-24s %s\n' \
     "$thread_entry" \
@@ -58,6 +58,6 @@ for p_yml in "${yml_files[@]}"; do
     "$thread_owner" \
     "$thread_status" \
     "$thread_started_ms" \
-    "$p_last" \
+    "$a_last" \
     "$thread_output"
 done

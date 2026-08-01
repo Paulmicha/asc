@@ -62,29 +62,29 @@
 # @param ... : command and args to run after cd.
 #
 # @example
-#   u_nested_asc_exec /abs/path/to/my-project make reinit
+#   f_nested_asc_exec /abs/path/to/my-project make reinit
 #
-u_nested_asc_exec() {
-  local p_docroot="$1"
+f_nested_asc_exec() {
+  local a_docroot="$1"
   shift
 
-  if [[ -z "$p_docroot" || ! -d "$p_docroot" ]]; then
-    echo "Error in u_nested_asc_exec() - $BASH_SOURCE line $LINENO: invalid docroot '$p_docroot'." >&2
+  if [[ -z "$a_docroot" || ! -d "$a_docroot" ]]; then
+    echo "Error in f_nested_asc_exec() - $BASH_SOURCE line $LINENO: invalid docroot '$a_docroot'." >&2
     return 1
   fi
 
-  if [[ ! -f "$p_docroot/asc/bootstrap.sh" ]]; then
-    echo "Error in u_nested_asc_exec() - $BASH_SOURCE line $LINENO: not a ASC instance ('$p_docroot')." >&2
+  if [[ ! -f "$a_docroot/asc/bootstrap.sh" ]]; then
+    echo "Error in f_nested_asc_exec() - $BASH_SOURCE line $LINENO: not a ASC instance ('$a_docroot')." >&2
     return 2
   fi
 
   if [[ $# -eq 0 ]]; then
-    echo "Error in u_nested_asc_exec() - $BASH_SOURCE line $LINENO: command required." >&2
-    echo "Usage: u_nested_asc_exec <docroot> <command> [args...]" >&2
+    echo "Error in f_nested_asc_exec() - $BASH_SOURCE line $LINENO: command required." >&2
+    echo "Usage: f_nested_asc_exec <docroot> <command> [args...]" >&2
     return 3
   fi
 
-  p_docroot="$(cd "$p_docroot" && pwd)"
+  a_docroot="$(cd "$a_docroot" && pwd)"
 
   env -i \
     HOME="$HOME" \
@@ -93,7 +93,7 @@ u_nested_asc_exec() {
     LANG="${LANG:-}" \
     LC_CTYPE="${LC_ALL:-${LC_CTYPE:-$LANG}}" \
     TERM="${TERM:-}" \
-    bash -c 'cd "$1" && shift && exec "$@"' bash "$p_docroot" "$@"
+    bash -c 'cd "$1" && shift && exec "$@"' bash "$a_docroot" "$@"
 }
 
 ##
@@ -102,11 +102,11 @@ u_nested_asc_exec() {
 # Strips a leading e: when present (make-caller form). Bare names are the
 # direct entry-point form. Does not validate that the entry exists in the child.
 #
-u_nested_asc_expand_entry() {
+f_nested_asc_expand_entry() {
   local entry="${1#e:}"
 
   if [[ -z "$entry" ]]; then
-    echo "Error in u_nested_asc_expand_entry() - $BASH_SOURCE line $LINENO: empty make entry." >&2
+    echo "Error in f_nested_asc_expand_entry() - $BASH_SOURCE line $LINENO: empty make entry." >&2
     return 1
   fi
 
@@ -129,7 +129,7 @@ fi
 _nested_ref="$1"
 shift
 
-if ! u_nested_asc_resolve "$_nested_ref"; then
+if ! f_nested_asc_resolve "$_nested_ref"; then
   exit $?
 fi
 
@@ -170,9 +170,9 @@ nested_asc_cmd=()
 if [[ $_nested_raw -eq 1 ]]; then
   nested_asc_cmd=("$@")
 else
-  u_nested_asc_expand_entry "$@" || exit $?
+  f_nested_asc_expand_entry "$@" || exit $?
 fi
 set -- "${nested_asc_cmd[@]}"
 
-u_nested_asc_exec "$nested_asc_resolved" "$@"
+f_nested_asc_exec "$nested_asc_resolved" "$@"
 exit $?

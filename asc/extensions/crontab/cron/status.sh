@@ -9,9 +9,9 @@
 
 . asc/bootstrap.sh
 
-u_cron_require_crontab || exit 1
+f_cron_require_crontab || exit 1
 
-marker="$(u_cron_project_marker)"
+marker="$(f_cron_project_marker)"
 begin="# ASC-CRON-BEGIN ${marker}"
 end="# ASC-CRON-END ${marker}"
 
@@ -34,7 +34,7 @@ else
 fi
 
 echo "=== Host crontab managed block ==="
-current="$(u_cron_crontab_list)"
+current="$(f_cron_crontab_list)"
 if printf '%s\n' "$current" | grep -qxF "$begin"; then
   printf '%s\n' "$current" | awk -v b="$begin" -v e="$end" '
     $0 == b {show=1}

@@ -9,4 +9,4 @@
 # @see asc/extensions/moodle_d4php/moodle_d4php.inc.sh
 #
 
-u_moodle_write_settings
+f_moodle_write_settings

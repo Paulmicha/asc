@@ -6,7 +6,7 @@
 # This file is sourced during core ASC bootstrap.
 # @see asc/bootstrap.sh
 #
-# Convention : functions names are all prefixed by "u" (for "utility").
+# Convention : functions names are all prefixed by "f".
 #
 
 ##
@@ -48,9 +48,9 @@
 #
 # @link https://docs.docker.com/compose/extends/#adding-and-overriding-configuration
 #
-u_dc_write_yml() {
+f_dc_write_yml() {
   local f
-  local hook_most_specific_dry_run_match=''
+  local most_specific_match=''
 
   local compose_file
   local compose_name
@@ -63,21 +63,21 @@ u_dc_write_yml() {
   # Do both compose + compose.override in one loop.
   for compose_name in $lookup; do
     compose_file="$compose_name.yml"
-    hook_most_specific_dry_run_match=''
+    most_specific_match=''
 
     # Remove existing files if previously generated.
     if [[ -f "$compose_file" ]]; then
       rm "$compose_file"
     fi
 
-    u_hook_most_specific 'dry-run' -s 'stack' -a "$compose_name" -c "yml" -v 'DC_YML_VARIANTS' -t
+    hook_ms 'dry-run' -s 'stack' -a "$compose_name" -c "yml" -v 'DC_YML_VARIANTS' -t
 
-    if [[ -n "$hook_most_specific_dry_run_match" ]]; then
-      echo "Generating $compose_file file (from $hook_most_specific_dry_run_match) ..."
+    if [[ -n "$most_specific_match" ]]; then
+      echo "Generating $compose_file file (from $most_specific_match) ..."
 
-      cp "$hook_most_specific_dry_run_match" "$compose_file"
+      cp "$most_specific_match" "$compose_file"
 
-      echo "Generating $compose_file file (from $hook_most_specific_dry_run_match) : done."
+      echo "Generating $compose_file file (from $most_specific_match) : done."
     fi
   done
 }

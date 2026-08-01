@@ -30,7 +30,7 @@ hook -a 'global' -c 'vars.sh' -t -d
 if [ -n "$ASC_EXTENSIONS" ]; then
   for extension in $ASC_EXTENSIONS; do
     ext_path=''
-    u_asc_extension_path "$extension"
+    f_asc_extension_path "$extension"
     echo "$ext_path/$extension/global.vars.sh "
     if [ -f "$ext_path/$extension/global.vars.sh" ]; then
       echo "  exists"
@@ -44,7 +44,7 @@ if [[ -n "$PROVISION_USING" ]]; then
   if [ -n "$ASC_EXTENSIONS" ]; then
     for extension in $ASC_EXTENSIONS; do
       ext_path=''
-      u_asc_extension_path "$extension"
+      f_asc_extension_path "$extension"
       echo "$ext_path/$extension/global.${PROVISION_USING}.vars.sh "
       if [ -f "$ext_path/$extension/global.${PROVISION_USING}.vars.sh" ]; then
         echo "  exists"

@@ -12,8 +12,8 @@
 # @see asc/make/default.mk
 # @see data/asc/generated.mk
 # @see data/asc/cache/make.sh
-# @see u_instance_init() in asc/instance/instance.inc.sh
-# @see u_make_generate() in asc/make/make.inc.sh
+# @see f_instance_init() in asc/instance/instance.inc.sh
+# @see f_make_generate() in asc/make/make.inc.sh
 #
 # @example
 #   # Calling :
@@ -55,12 +55,12 @@
 # echo "raw args :"
 # echo "  $@"
 
-p_real_script="$1"
+a_real_script="$1"
 shift
 
-if [[ ! -f "$p_real_script" ]]; then
+if [[ ! -f "$a_real_script" ]]; then
   echo >&2
-  echo "Error in $BASH_SOURCE line $LINENO : script '$p_real_script' not found." >&2
+  echo "Error in $BASH_SOURCE line $LINENO : script '$a_real_script' not found." >&2
   echo "-> Aborting (1)." >&2
   echo >&2
   exit 1
@@ -78,16 +78,16 @@ if [[ -f data/asc/cache/make.sh ]]; then
   . data/asc/cache/make.sh
 else
   # Default to hardcoded values.
-  u_make_list_hardcoded
+  f_make_list_hardcoded
 fi
 
 # Debug.
 # echo
-# echo "p_real_script = $p_real_script"
+# echo "a_real_script = $a_real_script"
 # echo "make_entry_point = $make_entry_point"
 
 # Won't use that here to do all in one loop below.
-# u_make_check_args $@
+# f_make_check_args $@
 
 rest_of_args="$@"
 
@@ -117,7 +117,7 @@ while [ $# -gt 0 ]; do
       echo "The value '$arg' is reserved as a Make entry point." >&2
       echo "Use the following equivalent command instead :" >&2
       echo >&2
-      echo "  $p_real_script $rest_of_args" >&2
+      echo "  $a_real_script $rest_of_args" >&2
       echo >&2
       exit 2
     esac
@@ -126,10 +126,10 @@ while [ $# -gt 0 ]; do
   # Revert the special characters swap to send correct script argument.
   # @see asc/escape.sh
   # @see asc/make/make.inc.sh
-  u_make_unescape "$arg" 'arg'
+  f_make_unescape "$arg" 'arg'
 
   # Any value which must be quoted is rewritten with single quotes.
-  u_str_escape_single_quotes "$arg"
+  f_str_escape_single_quotes "$arg"
 
   escaped_args+="$escaped_arg "
 
@@ -146,14 +146,14 @@ done
 # echo "  $escaped_args"
 # echo
 # echo "call :"
-# echo "  $p_real_script $escaped_args"
+# echo "  $a_real_script $escaped_args"
 # echo
 
-case "$p_real_script" in
+case "$a_real_script" in
   */test/case.run.sh)
-    eval "$p_real_script $(printf '%q' "$invoked_make_target") $escaped_args"
+    eval "$a_real_script $(printf '%q' "$invoked_make_target") $escaped_args"
     ;;
   *)
-    eval "$p_real_script $escaped_args"
+    eval "$a_real_script $escaped_args"
     ;;
 esac

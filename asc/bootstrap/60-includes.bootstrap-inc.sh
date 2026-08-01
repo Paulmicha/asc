@@ -12,7 +12,7 @@
 if [[ -n "$ASC_INC" ]]; then
   for file in $ASC_INC; do
     # Any additional include may be overridden.
-    u_autoload_override "$file" 'continue'
+    f_autoload_override "$file" 'continue'
     if [[ -n "$inc_override_evaled_code" ]]; then
       eval "$inc_override_evaled_code"
     fi

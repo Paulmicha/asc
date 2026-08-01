@@ -4,14 +4,14 @@
 # Deletes any traces of previous init in current project instance.
 #
 # The following hook is provided for letting extensions clean up their own
-# generated files and/or alter the purge_list :
+# generated files and/or alter the purge_list_arr :
 #
 # $ make hook-debug s:instance a:uninit v:STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE
 #
 # These implementations may optionally alter entries to the following var in
 # calling scope :
 #
-# @var purge_list
+# @var purge_list_arr
 #
 # @example
 #   make uninit
@@ -21,20 +21,20 @@
 
 . asc/bootstrap.sh
 
-purge_list=()
+purge_list_arr=()
 
 # Manual cleanup of ASC global env vars.
-purge_list+=('.env')
-purge_list+=('data/asc/global.vars.sh')
+purge_list_arr+=('.env')
+purge_list_arr+=('data/asc/global.vars.sh')
 
 # ASC make shortcuts too.
-purge_list+=('data/asc/generated.mk')
+purge_list_arr+=('data/asc/generated.mk')
 
-# Let extensions clean up their own generated files and/or alter the purge_list.
+# Let extensions clean up their own generated files and/or alter the purge_list_arr.
 hook -s 'instance' -a 'uninit' -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'
 
-# Process the purge_list.
-for entry in "${purge_list[@]}"; do
+# Process the purge_list_arr.
+for entry in "${purge_list_arr[@]}"; do
   if [[ -z "$entry" ]]; then
     continue
   fi

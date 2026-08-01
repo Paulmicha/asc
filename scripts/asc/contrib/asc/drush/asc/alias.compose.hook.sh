@@ -25,7 +25,7 @@
 # By default, the target container name will be the DRUSH_SERVICE_NAME value.
 #
 # @see asc/extensions/drush/asc/global.compose.vars.sh
-# @see u_db_set() in asc/extensions/db/db.inc.sh
+# @see f_db_set() in asc/extensions/db/db.inc.sh
 #
 
 if [[ -z "$dc_drush_service_name" ]]; then

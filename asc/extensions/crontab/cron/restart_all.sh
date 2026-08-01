@@ -9,12 +9,12 @@
 
 . asc/bootstrap.sh
 
-u_cron_require_crontab || exit 1
-u_cron_crontab_write_block ''
+f_cron_require_crontab || exit 1
+f_cron_crontab_write_block ''
 
 if [[ ! -d data/asc/cron ]]; then
-  u_cron_settings_setup || exit 1
+  f_cron_settings_setup || exit 1
 fi
 
-u_cron_sync
+f_cron_sync
 echo "Restarted all enabled cron host lines."

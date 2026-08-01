@@ -47,4 +47,4 @@
 #
 
 . asc/bootstrap.sh
-u_git_write_hooks "$@"
+f_git_write_hooks "$@"

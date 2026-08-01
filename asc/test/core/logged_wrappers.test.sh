@@ -17,12 +17,12 @@
 . asc/bootstrap.sh
 
 # Extract PID from "Log started (PID N)." lines.
-_u_test_log_pid() {
+f_test_log_pid() {
   local output="$1"
   echo "$output" | sed -n 's/.*PID \([0-9][0-9]*\).*/\1/p' | head -1
 }
 
-_u_test_wait_pid() {
+f_test_wait_pid() {
   local pid="$1"
   local i
 
@@ -55,7 +55,7 @@ test_logged_chain_parent_observability() {
   rm -f data/logs/chain.txt data/logs/chain.sidecar.txt
 
   # Two quiet steps: make debug (echo.make.sh) via e:N: ordering.
-  output="$(asc/instance/logged_chain.sh \
+  output="$(asc/instance/logged/chain.sh \
     e:1:debug a:"${marker}-1" \
     e:2:debug a:"${marker}-2" 2>&1)" || exit_code=$?
 
@@ -86,7 +86,7 @@ test_logged_batch_parent_observability() {
 
   rm -f data/logs/thread-batch.txt data/logs/thread-batch.sidecar.txt
 
-  output="$(asc/instance/logged_batch.sh \
+  output="$(asc/instance/logged/batch.sh \
     e:debug a:"${marker}-a" \
     e:debug a:"${marker}-b" 2>&1)" || exit_code=$?
 
@@ -118,7 +118,7 @@ test_logged_pipe_shell_stages_observability() {
 
   rm -f data/logs/thread-pipe.txt data/logs/thread-pipe.sidecar.txt
 
-  output="$(asc/instance/logged_pipe.sh \
+  output="$(asc/instance/logged/pipe.sh \
     "echo ${marker}" \
     "grep ${marker}" 2>&1)" || exit_code=$?
 

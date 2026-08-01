@@ -17,13 +17,13 @@
 #   asc/extensions/remote_traefik/remote/traefik_basic_auth.sh 'stage'
 #
 
-p_remote_id="$1"
+a_remote_id="$1"
 
-if [[ -z "$p_remote_id" ]]; then
-  p_remote_id='prod'
+if [[ -z "$a_remote_id" ]]; then
+  a_remote_id='prod'
 fi
 
-u_remote_check_id "$p_remote_id"
+f_remote_check_id "$a_remote_id"
 
-asc/extensions/remote/remote/exec.sh "$p_remote_id" \
+asc/extensions/remote/remote/exec.sh "$a_remote_id" \
   asc/instance/registry_get.sh 'traefik_dashboard_creds'

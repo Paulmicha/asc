@@ -4,7 +4,7 @@
 # Instance initialization process ("instance init").
 #
 # Uses env.yml files.
-# @see u_instance_init() in asc/instance/instance.inc.sh
+# @see f_instance_init() in asc/instance/instance.inc.sh
 #
 # @example
 #   # Calling this script without any arguments will use prompts in terminal
@@ -37,4 +37,4 @@ ASC_BS_SKIP_GLOBALS=1
 
 . asc/bootstrap.sh
 
-u_instance_init $@
+f_instance_init $@

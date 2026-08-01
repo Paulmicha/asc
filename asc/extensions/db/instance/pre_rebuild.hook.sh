@@ -10,4 +10,4 @@
 # @see asc/extensions/compose/instance/rebuild.compose.hook.sh
 #
 
-u_db_set_all
+f_db_set_all

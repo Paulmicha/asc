@@ -28,9 +28,9 @@
 # Can't have read-only variables here, so we need to extract just the
 # variables we need.
 # TODO support all globals for reinits ? For ex. as in :
-# @see u_traefik_generate_acme_conf() in asc/extensions/remote_traefik/remote_traefik.inc.sh
+# @see f_traefik_generate_acme_conf() in asc/extensions/remote_traefik/remote_traefik.inc.sh
 # -> here, we could just pass a custom option that would instruct the
-# u_instance_init() function to dynamically get all existing values ?
+# f_instance_init() function to dynamically get all existing values ?
 if [[ -f '.env' ]]; then
   while IFS= read -r line _; do
     case "$line" in
@@ -64,11 +64,11 @@ if [[ -f '.env' ]]; then
   done < '.env'
 elif [[ -f 'env.yml' ]]; then
   # The file env.yml, if it exists, is the "fallback" source of truth.
-  . asc/utilities/shell.sh
-  . asc/utilities/string.sh
-  . asc/utilities/yaml.sh
+  . asc/utils/shell/shell.opt-inc.sh
+  . asc/utils/str/str.opt-inc.sh
+  . asc/yml/yml.inc.sh
 
-  eval "$(u_yaml_parse 'env.yml' 'yaml_')"
+  eval "$(f_yaml_parse 'env.yml' 'yaml_')"
 
   if [[ -n "$yaml_stack_version" ]]; then
     STACK_VERSION="$yaml_stack_version"
@@ -88,7 +88,7 @@ fi
 # Except individual public key path for ASC remote instances operations.
 # @see scripts/asc/extend/remote/post_init.hook.sh
 # Also except ASC_DB_ID for the db extension.
-# @see u_db_set() in asc/extensions/db/db.inc.sh
+# @see f_db_set() in asc/extensions/db/db.inc.sh
 # Also except common shell env vars some programs use.
 env -i \
   ASC_SSH_PUBKEY="$ASC_SSH_PUBKEY" \

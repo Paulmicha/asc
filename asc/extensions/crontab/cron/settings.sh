@@ -9,7 +9,7 @@
 
 . asc/bootstrap.sh
 
-u_cron_settings_setup || exit 1
+f_cron_settings_setup || exit 1
 
 echo
 echo "=== Effective crontab definitions ==="

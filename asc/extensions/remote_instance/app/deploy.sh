@@ -20,13 +20,13 @@
 #   asc/extensions/remote_asc/app/deploy.sh 'dev'
 #
 
-p_remote_id="$1"
+a_remote_id="$1"
 
-if [[ -z "$p_remote_id" ]]; then
-  p_remote_id='prod'
+if [[ -z "$a_remote_id" ]]; then
+  a_remote_id='prod'
 fi
 
-u_remote_check_id "$remote_id"
+f_remote_check_id "$remote_id"
 
-asc/extensions/remote_asc/remote/exec.sh "$p_remote_id" \
+asc/extensions/remote_asc/remote/exec.sh "$a_remote_id" \
   'asc/app/update.sh'

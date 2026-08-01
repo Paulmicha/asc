@@ -11,7 +11,7 @@
 # @see asc/extensions/db
 # @see asc/bootstrap/90-caller-opt-inc.bootstrap-inc.sh
 #
-# Convention : functions names are all prefixed by "u" (for "utility").
+# Convention : functions names are all prefixed by "f".
 #
 
 ##
@@ -51,29 +51,29 @@
 #   # Get the matching pattern to retrieve the most recent dump file for a given
 #   # DB ID in a dir that may contain dumps from different DBs.
 #   pattern=''
-#   u_remote_db_replace_datestamp '{{ DUMPS_DATESTAMP }}_foobar_{{ DOMAIN }}.sql'
+#   f_remote_db_replace_datestamp '{{ DUMPS_DATESTAMP }}_foobar_{{ DOMAIN }}.sql'
 #   echo "pattern = '$pattern'" # <- yields : '*_foobar_{{ DOMAIN }}.sql'
 #
 #   # Get a DB dump file name for a specific datestamp.
 #   pattern=''
-#   u_remote_db_replace_datestamp '{{ %Y-%m-%d.%H-%M-%S }}_foobar_{{ DOMAIN }}.sql' '2024-08-07.12-32-47'
+#   f_remote_db_replace_datestamp '{{ %Y-%m-%d.%H-%M-%S }}_foobar_{{ DOMAIN }}.sql' '2024-08-07.12-32-47'
 #   echo "pattern = '$pattern'" # <- yields : '2024-08-07.12-32-47_foobar_{{ DOMAIN }}.sql'
 #
 #   # The remaining tokens may be replaced like usual - here's a bit more
 #   # realistic usage example :
 #   pattern=''
 #   tokens_replaced=''
-#   u_remote_db_replace_datestamp '{{ %Y-%m-%d.%H-%M-%S }}_foobar_{{ DOMAIN }}.sql' '2024-08-07.12-32-47'
-#   u_remote_definition_tokens_replace 'prod' "${pattern}.gz"
+#   f_remote_db_replace_datestamp '{{ %Y-%m-%d.%H-%M-%S }}_foobar_{{ DOMAIN }}.sql' '2024-08-07.12-32-47'
+#   f_remote_definition_tokens_replace 'prod' "${pattern}.gz"
 #   echo "$tokens_replaced" # <- yields for example : '2024-08-07.12-32-47_foobar_www.foobar.com.sql.gz'
 #
-u_remote_db_replace_datestamp() {
-  local p_str="$1"
-  local p_replace="$2"
-  local p_token="$3"
-  local p_result_var_name="$4"
+f_remote_db_replace_datestamp() {
+  local a_str="$1"
+  local a_replace="$2"
+  local a_token="$3"
+  local a_result_var_name="$4"
 
-  if [[ -z "$p_str" ]]; then
+  if [[ -z "$a_str" ]]; then
     echo >&2
     echo "Missing input string. Usage example :" >&2
     echo "u_remote_db_replace_datestamp '{{ DUMPS_DATESTAMP }}_foobar_{{ DOMAIN }}.sql'" >&2
@@ -82,19 +82,19 @@ u_remote_db_replace_datestamp() {
   fi
 
   # By default, provide a glob pattern (to match files with "find").
-  if [[ -z "$p_replace" ]]; then
-    p_replace='*'
+  if [[ -z "$a_replace" ]]; then
+    a_replace='*'
   fi
 
-  if [[ -z "$p_result_var_name" ]]; then
-    p_result_var_name='pattern'
+  if [[ -z "$a_result_var_name" ]]; then
+    a_result_var_name='pattern'
   fi
 
   # If no token is provided, look for the most "promising" one.
-  if [[ -z "$p_token" ]]; then
+  if [[ -z "$a_token" ]]; then
     local token=''
     local match_count=0
-    local regex_loop_str="$p_str"
+    local regex_loop_str="$a_str"
     local regex="\{\{[[:space:]]*([^[:space:]]+)[[:space:]]*\}\}"
 
     while [[ "$regex_loop_str" =~ $regex ]]; do
@@ -113,9 +113,9 @@ u_remote_db_replace_datestamp() {
         match_count+=1
 
         # TODO see if the multi-glob pattern really works (edge case).
-        if [[ "$p_replace" != '*' && $match_count -gt 1 ]]; then
+        if [[ "$a_replace" != '*' && $match_count -gt 1 ]]; then
           echo >&2
-          echo "Error in u_remote_db_replace_datestamp() - $BASH_SOURCE line $LINENO: Found more than 1 token that could be the datestamp." >&2
+          echo "Error in f_remote_db_replace_datestamp() - $BASH_SOURCE line $LINENO: Found more than 1 token that could be the datestamp." >&2
           echo "-> Can't carry on (2)." >&2
           echo "In this case, use the 3rd argument to explicitly specify which token is the datestamp, e.g. :" >&2
           echo "u_remote_db_replace_datestamp '{{ %Y-%m-%d.%H-%M-%S }}_foobar_{{ DOMAIN }}.sql' '2024-08-07.12-32-47' '{{ %Y-%m-%d.%H-%M-%S }}'" >&2
@@ -123,20 +123,20 @@ u_remote_db_replace_datestamp() {
           return 2
         fi
 
-        p_token="$token"
+        a_token="$token"
       esac
     done
   fi
 
-  if [[ -z "$p_token" ]]; then
+  if [[ -z "$a_token" ]]; then
     echo >&2
-    echo "Error in u_remote_db_replace_datestamp() - $BASH_SOURCE line $LINENO: unable to recognize the datestamp token." >&2
+    echo "Error in f_remote_db_replace_datestamp() - $BASH_SOURCE line $LINENO: unable to recognize the datestamp token." >&2
     echo "-> Can't carry on (3)." >&2
     return 3
   fi
 
   # Write result to var in calling scope.
-  printf -v "$p_result_var_name" '%s' "${p_str//$p_token/$p_replace}"
+  printf -v "$a_result_var_name" '%s' "${a_str//$a_token/$a_replace}"
 }
 
 ##
@@ -160,61 +160,61 @@ u_remote_db_replace_datestamp() {
 # @example
 #   # Get the latest dump for 'default' DB :
 #   latest_dump=''
-#   u_remote_db_get_latest_dump 'prod'
+#   f_remote_db_get_latest_dump 'prod'
 #   echo "latest_dump = $latest_dump"
 #
 #   # Get the latest dump for 'api' DB :
 #   latest_dump=''
-#   u_remote_db_get_latest_dump 'prod' 'api'
+#   f_remote_db_get_latest_dump 'prod' 'api'
 #   echo "latest_dump = $latest_dump"
 #
-u_remote_db_get_latest_dump() {
-  local p_remote_id="$1"
-  local p_db_id="$2"
-  local p_subfolder="$3"
-  local p_var_name="$4"
+f_remote_db_get_latest_dump() {
+  local a_remote_id="$1"
+  local a_db_id="$2"
+  local a_subfolder="$3"
+  local a_var_name="$4"
 
-  if [[ -z "$p_remote_id" ]]; then
-    p_remote_id='prod'
+  if [[ -z "$a_remote_id" ]]; then
+    a_remote_id='prod'
   fi
 
-  if [[ -z "$p_db_id" ]]; then
-    p_db_id='default'
+  if [[ -z "$a_db_id" ]]; then
+    a_db_id='default'
   fi
 
-  if [[ -z "$p_subfolder" ]]; then
-    p_subfolder='local'
+  if [[ -z "$a_subfolder" ]]; then
+    a_subfolder='local'
   fi
 
-  if [[ -z "$p_var_name" ]]; then
-    p_var_name='latest_dump'
+  if [[ -z "$a_var_name" ]]; then
+    a_var_name='latest_dump'
   fi
 
   local dumps_dir=''
-  u_remote_definition_get_key "$p_remote_id" "dumps_${p_db_id}_base_dir" 'dumps_dir'
+  f_remote_definition_get_key "$a_remote_id" "dumps_${a_db_id}_base_dir" 'dumps_dir'
 
   if [[ -z "$dumps_dir" ]]; then
     echo >&2
-    echo "Error in u_remote_db_get_latest_dump() - $BASH_SOURCE line $LINENO: missing $p_remote_id remote dumps base dir for $p_db_id DB ID." >&2
+    echo "Error in f_remote_db_get_latest_dump() - $BASH_SOURCE line $LINENO: missing $a_remote_id remote dumps base dir for $a_db_id DB ID." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     exit 1
   fi
 
-  local remote_file="$(u_remote_exec_wrapper "$p_remote_id" "find $dumps_dir/$p_subfolder/$p_db_id -maxdepth 1 -type f -name '*.gz' -exec ls -1t '{}' + | head -n1")"
+  local remote_file="$(f_remote_exec_wrapper "$a_remote_id" "find $dumps_dir/$a_subfolder/$a_db_id -maxdepth 1 -type f -name '*.gz' -exec ls -1t '{}' + | head -n1")"
 
   # Debug.
   # echo "remote_file = '$remote_file'"
 
   if [[ -z "$remote_file" ]]; then
     echo >&2
-    echo "Error in u_remote_db_get_latest_dump() - $BASH_SOURCE line $LINENO: no (gz) dump file was found in remote dir '$dumps_dir/local'." >&2
+    echo "Error in f_remote_db_get_latest_dump() - $BASH_SOURCE line $LINENO: no (gz) dump file was found in remote dir '$dumps_dir/local'." >&2
     echo >&2
     exit 2
   fi
 
   # Write result to var in calling scope.
-  printf -v "$p_var_name" '%s' "$remote_file"
+  printf -v "$a_var_name" '%s' "$remote_file"
 }
 
 ##
@@ -232,8 +232,8 @@ u_remote_db_get_latest_dump() {
 # to dump. The result depends on the remote instances definitions (they can have
 # only 1 database to dump, or many).
 #
-# @see data/asc/remote-instances/${p_remote_id}.sh
-# @see u_remote_instances_setup() in asc/extensions/remote/remote.inc.sh
+# @see data/asc/remote-instances/${a_remote_id}.sh
+# @see f_remote_instances_setup() in asc/extensions/remote/remote.inc.sh
 # @see asc/extensions/remote_db/remote/db_dump.sh
 #
 # Uses the following dictionary which must already have been initialized in
@@ -248,13 +248,13 @@ u_remote_db_get_latest_dump() {
 #
 # @example
 #   declare -A dumps_dict
-#   u_remote_db_prepare_dumps 'prod'
+#   f_remote_db_prepare_dumps 'prod'
 #
-u_remote_db_prepare_dumps() {
-  local p_remote_id="$1"
-  local p_db_id="$2"
+f_remote_db_prepare_dumps() {
+  local a_remote_id="$1"
+  local a_db_id="$2"
 
-  u_remote_db_read_definition "$p_remote_id" "$p_db_id"
+  f_remote_db_read_definition "$a_remote_id" "$a_db_id"
 
   local db_id=''
   local db_ids=()
@@ -262,12 +262,12 @@ u_remote_db_prepare_dumps() {
   local cmds=()
   local dump_file=''
 
-  u_db_get_ids
+  f_db_get_ids
 
   for db_id in "${db_ids[@]}"; do
-    if [[ -n "$p_db_id" ]]; then
+    if [[ -n "$a_db_id" ]]; then
       case "$db_id" in
-        "$p_db_id")
+        "$a_db_id")
           echo "  only for DB '$db_id' ..."
           ;;
         # Skip any non-matching DB ID on given remote.
@@ -359,13 +359,13 @@ u_remote_db_prepare_dumps() {
         local VAR=''
         local DB_ID=''
 
-        u_str_uppercase "$db_id" 'DB_ID'
+        f_str_uppercase "$db_id" 'DB_ID'
 
         # (Make the var replacement more readable by reusing this local var).
         cmd="${dumps_dict[${db_id}.cmd]}"
 
         for var in $vars_to_map; do
-          u_str_uppercase "$var" 'VAR'
+          f_str_uppercase "$var" 'VAR'
           var="REMOTE_INSTANCE_DUMPS_${DB_ID}_ENV_MAP_${VAR}"
           val="${!var}"
 
@@ -380,7 +380,7 @@ u_remote_db_prepare_dumps() {
           # name contains another var name... It could be mitigated by executing
           # the replace in descending order of var name length, but it would
           # be "less brittle" to implement a proper regex here. As in :
-          # @see u_remote_definition_tokens_replace()
+          # @see f_remote_definition_tokens_replace()
           cmd="${cmd//\$$VAR/\$$val}"
         done
 
@@ -406,10 +406,10 @@ u_remote_db_prepare_dumps() {
 # This function resolves DB dump file paths, both on the remote instance and
 # locally, converting any token found in the remote instance definitions.
 #
-# @see u_remote_db_prepare_dumps()
+# @see f_remote_db_prepare_dumps()
 # @see asc/extensions/remote_db/remote/db_download.sh
-# @see data/asc/remote-instances/${p_remote_id}.sh
-# @see u_remote_instances_setup() in asc/extensions/remote/remote.inc.sh
+# @see data/asc/remote-instances/${a_remote_id}.sh
+# @see f_remote_instances_setup() in asc/extensions/remote/remote.inc.sh
 #
 # Uses the following dictionary which must already have been initialized in
 # calling scope :
@@ -434,33 +434,33 @@ u_remote_db_prepare_dumps() {
 #
 # @example
 #   declare -A dumps_dict
-#   u_remote_db_prepare_downloads 'prod'
+#   f_remote_db_prepare_downloads 'prod'
 #
-u_remote_db_prepare_downloads() {
-  local p_remote_id="$1"
-  local p_db_id="$2"
-  local p_dump_file="$3"
+f_remote_db_prepare_downloads() {
+  local a_remote_id="$1"
+  local a_db_id="$2"
+  local a_dump_file="$3"
 
   # To download dumps, we need to have a place to store them locally.
   if [[ -z "$ASC_DB_DUMPS_DIR" ]]; then
     echo >&2
-    echo "Error in u_remote_db_prepare_paths() - $BASH_SOURCE line $LINENO: missing ASC_DB_DUMPS_DIR env var." >&2
+    echo "Error in f_remote_db_prepare_paths() - $BASH_SOURCE line $LINENO: missing ASC_DB_DUMPS_DIR env var." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     return 1
   fi
 
-  u_remote_db_read_definition "$p_remote_id" "$p_db_id"
+  f_remote_db_read_definition "$a_remote_id" "$a_db_id"
 
   local db_id=''
   local db_ids=()
 
-  u_db_get_ids
+  f_db_get_ids
 
   for db_id in "${db_ids[@]}"; do
-    if [[ -n "$p_db_id" ]]; then
+    if [[ -n "$a_db_id" ]]; then
       case "$db_id" in
-        "$p_db_id")
+        "$a_db_id")
           echo "  only for DB '$db_id' ..."
           ;;
         # Skip any non-matching DB ID on given remote.
@@ -480,11 +480,11 @@ u_remote_db_prepare_downloads() {
       continue
     fi
 
-    # Without 'latest_symlink' and without 'p_dump_file', there's no easy way to
+    # Without 'latest_symlink' and without 'a_dump_file', there's no easy way to
     # know which file to download (TODO [evol] get the latest by modif date).
-    if [[ -z "$p_dump_file" ]] && [[ -z "${dumps_dict[${db_id}.latest_symlink]}" ]]; then
+    if [[ -z "$a_dump_file" ]] && [[ -z "${dumps_dict[${db_id}.latest_symlink]}" ]]; then
       echo >&2
-      echo "Error in u_remote_db_prepare_paths() - $BASH_SOURCE line $LINENO: need at least either 'latest_symlink' or param 3 'p_dump_file' to know which file to download." >&2
+      echo "Error in f_remote_db_prepare_paths() - $BASH_SOURCE line $LINENO: need at least either 'latest_symlink' or param 3 'a_dump_file' to know which file to download." >&2
       echo "-> Aborting (2)." >&2
       echo >&2
       return 2
@@ -495,10 +495,10 @@ u_remote_db_prepare_downloads() {
     # manipulate DB dumps from other instances (e.g. 'prod' dumps on a 'dev'
     # instance).
     dumps_dict["${db_id}.remote_dump_dir"]="${dumps_dict[${db_id}.base_dir]}/local/${db_id}"
-    dumps_dict["${db_id}.local_dump_dir"]="${ASC_DB_DUMPS_DIR}/${p_remote_id}/${db_id}"
+    dumps_dict["${db_id}.local_dump_dir"]="${ASC_DB_DUMPS_DIR}/${a_remote_id}/${db_id}"
 
-    if [[ -n "$p_dump_file" ]]; then
-      dumps_dict["${db_id}.remote_dump_file"]="$p_dump_file"
+    if [[ -n "$a_dump_file" ]]; then
+      dumps_dict["${db_id}.remote_dump_file"]="$a_dump_file"
     fi
 
     # Either fetch the symlink or retrieve the latest dump file name.
@@ -509,11 +509,11 @@ u_remote_db_prepare_downloads() {
     else
       local latest_dump=''
 
-      u_remote_db_get_latest_dump "$p_remote_id" "$db_id"
+      f_remote_db_get_latest_dump "$a_remote_id" "$db_id"
 
       if [[ -z "$latest_dump" ]]; then
         echo >&2
-        echo "Error in u_remote_db_prepare_downloads() - $BASH_SOURCE line $LINENO: unable to find latest DB dump file to download." >&2
+        echo "Error in f_remote_db_prepare_downloads() - $BASH_SOURCE line $LINENO: unable to find latest DB dump file to download." >&2
         echo "-> Aborting (3)." >&2
         echo >&2
         return 3
@@ -544,66 +544,66 @@ u_remote_db_prepare_downloads() {
 # @param 3 [optional] String : space-separated list of suffixes.
 #   Defaults to all the keys prefixed by 'data_dumps_'.
 #
-# @see u_remote_definition_get_keys() in asc/extensions/remote/remote.inc.sh
+# @see f_remote_definition_get_keys() in asc/extensions/remote/remote.inc.sh
 #
 # @example
 #   # Read 'prod' DB details.
 #   declare -A dumps_dict
-#   u_remote_db_read_definition
+#   f_remote_db_read_definition
 #   for key in "${!dumps_dict[@]}"; do
 #     echo "$key = ${dumps_dict[$key]}"
 #   done
 #
 #   # Only a specific DB ID :
-#   u_remote_db_read_definition 'prod' 'api'
+#   f_remote_db_read_definition 'prod' 'api'
 #
 #   # Only specific definitions :
-#   u_remote_db_read_definition 'prod' 'api' 'base_dir file'
+#   f_remote_db_read_definition 'prod' 'api' 'base_dir file'
 #
-u_remote_db_read_definition() {
-  local p_remote_id="$1"
-  local p_db_id="$2"
-  local p_definition_suffixes="$3"
+f_remote_db_read_definition() {
+  local a_remote_id="$1"
+  local a_db_id="$2"
+  local a_definition_suffixes="$3"
 
-  if [[ -z "$p_remote_id" ]]; then
-    p_remote_id='prod'
+  if [[ -z "$a_remote_id" ]]; then
+    a_remote_id='prod'
   fi
 
   # Only load remote instance definitions if necessary.
-  if [[ -z "$REMOTE_INSTANCE_ID" || "$REMOTE_INSTANCE_ID" != "$p_remote_id" ]]; then
-    u_remote_instance_load "$p_remote_id"
+  if [[ -z "$REMOTE_INSTANCE_ID" || "$REMOTE_INSTANCE_ID" != "$a_remote_id" ]]; then
+    f_remote_instance_load "$a_remote_id"
   fi
 
   local db_id=''
   local db_ids=()
   local suffix=''
 
-  u_db_get_ids
+  f_db_get_ids
 
-  if [[ -z "$p_definition_suffixes" ]]; then
+  if [[ -z "$a_definition_suffixes" ]]; then
     keys=()
-    u_remote_definition_get_keys
+    f_remote_definition_get_keys
 
     for key in "${keys[@]}"; do
       case "$key" in 'dumps_'*)
-        p_definition_suffixes+="$key "
+        a_definition_suffixes+="$key "
       esac
     done
   else
     # We need to rewrite the given suffixes so that they match the expected
     # variable names.
-    local rewrite_suffixes="$p_definition_suffixes"
-    p_definition_suffixes=''
+    local rewrite_suffixes="$a_definition_suffixes"
+    a_definition_suffixes=''
 
     for db_id in "${db_ids[@]}"; do
       for suffix in $rewrite_suffixes; do
-        p_definition_suffixes+="dumps_${db_id}_$suffix "
+        a_definition_suffixes+="dumps_${db_id}_$suffix "
       done
     done
   fi
 
   # Debug.
-  # echo "p_definition_suffixes = '$p_definition_suffixes'"
+  # echo "a_definition_suffixes = '$a_definition_suffixes'"
 
   local var=''
   local val=''
@@ -612,19 +612,19 @@ u_remote_db_read_definition() {
   local dump_file=''
 
   for db_id in "${db_ids[@]}"; do
-    if [[ -n "$p_db_id" ]]; then
+    if [[ -n "$a_db_id" ]]; then
       case "$db_id" in
         # Do nothing.
-        "$p_db_id") val='' ;;
+        "$a_db_id") val='' ;;
         # Skip any non-matching DB ID on given remote.
         *) continue ;;
       esac
     fi
 
     # Debug.
-    # echo "  p_definition_suffixes = '$p_definition_suffixes'"
+    # echo "  a_definition_suffixes = '$a_definition_suffixes'"
 
-    for suffix in $p_definition_suffixes; do
+    for suffix in $a_definition_suffixes; do
       # Restrict to current DB ID.
       case "$suffix" in
         # Do nothing.
@@ -633,7 +633,7 @@ u_remote_db_read_definition() {
         *) continue ;;
       esac
 
-      u_str_uppercase "$suffix" 'SUFFIX'
+      f_str_uppercase "$suffix" 'SUFFIX'
 
       # var="REMOTE_INSTANCE_DUMPS_${DB_ID}_${SUFFIX}"
       var="REMOTE_INSTANCE_${SUFFIX}"
@@ -644,7 +644,7 @@ u_remote_db_read_definition() {
       fi
 
       # Because of the way the suffix are filtered, here, we need to prune the
-      # lowercase part. See 'p_definition_suffixes' (param 3).
+      # lowercase part. See 'a_definition_suffixes' (param 3).
       suffix=${suffix/"dumps_${db_id}_"/}
 
       # No need to re-process what's already done.
@@ -660,7 +660,7 @@ u_remote_db_read_definition() {
       esac
 
       tokens_replaced=''
-      u_remote_definition_tokens_replace "$p_remote_id" "$val"
+      f_remote_definition_tokens_replace "$a_remote_id" "$val"
 
       # Debug.
       # echo "$var = $val"

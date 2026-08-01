@@ -6,7 +6,7 @@
 # This file is sourced during core ASC bootstrap.
 # @see asc/bootstrap.sh
 #
-# Convention : functions names are all prefixed by "u" (for "utility").
+# Convention : functions names are all prefixed by "f".
 #
 
 ##
@@ -27,41 +27,41 @@
 #
 # @example
 #   # Print the list of modified files every 2 seconds, if any :
-#   u_fs_watch_poll the/target/dir
+#   f_fs_watch_poll the/target/dir
 #
 #   # Run in parallel several file watcher polling (Ctrl+C to stop all at once) :
-#   u_fs_watch_poll the/target/dir 'npm run build' &
-#   u_fs_watch_poll another/dir 'gulp build' &
+#   f_fs_watch_poll the/target/dir 'npm run build' &
+#   f_fs_watch_poll another/dir 'gulp build' &
 #   wait
 #
-u_fs_watch_poll() {
-  local p_path="$1"
-  local p_callback="$2"
-  local p_filter_pattern="$3"
-  local p_polling_interval="$4"
+f_fs_watch_poll() {
+  local a_path="$1"
+  local a_callback="$2"
+  local a_filter_pattern="$3"
+  local a_polling_interval="$4"
   local name_arg=''
   local files_recently_changed=''
 
-  if [[ -z "$p_callback" ]]; then
-    p_callback='echo $files_recently_changed'
+  if [[ -z "$a_callback" ]]; then
+    a_callback='echo $files_recently_changed'
   fi
-  if [[ -n "$p_filter_pattern" ]]; then
-    name_arg="-name $p_filter_pattern"
+  if [[ -n "$a_filter_pattern" ]]; then
+    name_arg="-name $a_filter_pattern"
   fi
-  if [[ -z "$p_polling_interval" ]]; then
-    p_polling_interval='2'
+  if [[ -z "$a_polling_interval" ]]; then
+    a_polling_interval='2'
   fi
 
   while [[ true ]]; do
-    files_recently_changed=$(find $p_path -type f $name_arg -newermt "-$p_polling_interval seconds")
+    files_recently_changed=$(find $a_path -type f $name_arg -newermt "-$a_polling_interval seconds")
     if [[ -n $files_recently_changed ]] ; then
       echo
       echo "u_fs_watch_poll() : changes detected in the following file(s) : $files_recently_changed"
-      echo "  -> calling '$p_callback' ..."
+      echo "  -> calling '$a_callback' ..."
       echo
-      eval "$p_callback"
+      eval "$a_callback"
     fi
-    sleep $p_polling_interval
+    sleep $a_polling_interval
   done
 }
 
@@ -77,47 +77,47 @@ u_fs_watch_poll() {
 #
 # @example
 #   # Overwriting existing destination files in target dir :
-#   u_fs_merge_dirs my/src/dir the/target/dir
+#   f_fs_merge_dirs my/src/dir the/target/dir
 #
 #   # Preserving existing destination files in target dir :
-#   u_fs_merge_dirs my/src/dir the/target/dir 'no'
+#   f_fs_merge_dirs my/src/dir the/target/dir 'no'
 #
 #   # Overwriting existing destination files in target dir + not deleting the
 #   # source dir :
-#   u_fs_merge_dirs my/src/dir the/target/dir 'yes' 'no'
+#   f_fs_merge_dirs my/src/dir the/target/dir 'yes' 'no'
 #
 #   # Preserving existing destination files in target dir + not deleting the
 #   # source dir :
-#   u_fs_merge_dirs my/src/dir the/target/dir 'no' 'no'
+#   f_fs_merge_dirs my/src/dir the/target/dir 'no' 'no'
 #
-u_fs_merge_dirs() {
-  local p_src="$1"
-  local p_target="$2"
-  local p_overwriting="$3"
-  local p_remove_merged_src="$4"
+f_fs_merge_dirs() {
+  local a_src="$1"
+  local a_target="$2"
+  local a_overwriting="$3"
+  local a_remove_merged_src="$4"
 
   # Prerequisites checks.
-  if [[ -z "$p_src" ]] || [[ ! -d "$p_src" ]] \
-    || [[ -z "$p_target" ]] || [[ ! -d "$p_target" ]]
+  if [[ -z "$a_src" ]] || [[ ! -d "$a_src" ]] \
+    || [[ -z "$a_target" ]] || [[ ! -d "$a_target" ]]
   then
     echo >&2
-    echo "Error in u_fs_merge_dirs() - $BASH_SOURCE line $LINENO: invalid arguments." >&2
+    echo "Error in f_fs_merge_dirs() - $BASH_SOURCE line $LINENO: invalid arguments." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     return 1
   fi
 
   # Default value for $3 : to overwrite existing files.
-  if [[ -z "$p_overwriting" ]]; then
-    p_overwriting='yes'
+  if [[ -z "$a_overwriting" ]]; then
+    a_overwriting='yes'
   fi
 
   # Default value for $4 : to delete the source dir afterwards.
-  if [[ -z "$p_remove_merged_src" ]]; then
-    p_remove_merged_src='yes'
+  if [[ -z "$a_remove_merged_src" ]]; then
+    a_remove_merged_src='yes'
   fi
 
-  case "$p_overwriting" in
+  case "$a_overwriting" in
     # When overwriting existing files, we can use the 'tar' program to create an
     # exact copy of the source tree with the owner and permissions intact, and
     # if the target folder exists, only files that are already existing will be
@@ -125,11 +125,11 @@ u_fs_merge_dirs() {
     # See https://unix.stackexchange.com/a/373475 (adapted to avoid subshell)
     y*|Y*)
 
-      tar -C "$p_src" -cBf - . | tar -C "$p_target" -xBf -
+      tar -C "$a_src" -cBf - . | tar -C "$a_target" -xBf -
 
       if [[ $? -ne 0 ]]; then
         echo >&2
-        echo "Error in u_fs_merge_dirs() - $BASH_SOURCE line $LINENO: unable to merge with file overwrite." >&2
+        echo "Error in f_fs_merge_dirs() - $BASH_SOURCE line $LINENO: unable to merge with file overwrite." >&2
         echo "-> Aborting (2)." >&2
         echo >&2
         return 2
@@ -143,11 +143,11 @@ u_fs_merge_dirs() {
       local leaf=''
       local base_path=''
 
-      u_fs_file_list "$p_src" '' '99'
+      f_fs_file_list "$a_src" '' '99'
 
       for f in $file_list; do
         # Skip corresponding file in target dir if it already exists.
-        if [[ -f "$p_target/$f" ]]; then
+        if [[ -f "$a_target/$f" ]]; then
           continue
         fi
 
@@ -156,22 +156,22 @@ u_fs_merge_dirs() {
           leaf="${f##*/}"
           base_path="${f%/$leaf}"
 
-          mkdir -p "$p_target/$base_path"
+          mkdir -p "$a_target/$base_path"
 
           if [[ $? -ne 0 ]]; then
             echo >&2
-            echo "Error in u_fs_merge_dirs() - $BASH_SOURCE line $LINENO: unable to create target subdir '$p_target/$base_path'." >&2
+            echo "Error in f_fs_merge_dirs() - $BASH_SOURCE line $LINENO: unable to create target subdir '$a_target/$base_path'." >&2
             echo "-> Aborting (3)." >&2
             echo >&2
             return 3
           fi
         esac
 
-        mv "$p_src/$f" "$p_target/$f"
+        mv "$a_src/$f" "$a_target/$f"
 
         if [[ $? -ne 0 ]]; then
           echo >&2
-          echo "Error in u_fs_merge_dirs() - $BASH_SOURCE line $LINENO: unable to move file '$p_src/$f' to '$p_target/$f'." >&2
+          echo "Error in f_fs_merge_dirs() - $BASH_SOURCE line $LINENO: unable to move file '$a_src/$f' to '$a_target/$f'." >&2
           echo "-> Aborting (4)." >&2
           echo >&2
           return 4
@@ -181,11 +181,11 @@ u_fs_merge_dirs() {
   esac
 
   # Finally, remove the merged source dir if requested ('yes' by default).
-  case "$p_remove_merged_src" in y*|Y*)
-    rm -rf "$p_src"
+  case "$a_remove_merged_src" in y*|Y*)
+    rm -rf "$a_src"
     if [[ $? -ne 0 ]]; then
       echo >&2
-      echo "Error in u_fs_merge_dirs() - $BASH_SOURCE line $LINENO: unable to delete source dir '$p_src'." >&2
+      echo "Error in f_fs_merge_dirs() - $BASH_SOURCE line $LINENO: unable to delete source dir '$a_src'." >&2
       echo "-> Aborting (5)." >&2
       echo >&2
       return 5
@@ -209,46 +209,46 @@ u_fs_merge_dirs() {
 #
 # @example
 #   # Gets the last modified file in current dir (PROJECT_DOCROOT) :
-#   most_recent_file="$(u_fs_get_most_recent)"
+#   most_recent_file="$(f_fs_get_most_recent)"
 #   echo "most_recent_file = $most_recent_file"
 #
 #   # Gets the last modified file in path 'asc' :
-#   most_recent="$(u_fs_get_most_recent 'asc')"
+#   most_recent="$(f_fs_get_most_recent 'asc')"
 #   echo "most_recent = $most_recent"
 #
 #   # Gets the last modified '*.yml' file in path 'scripts' :
-#   most_recent="$(u_fs_get_most_recent 'scripts' '*.yml')"
+#   most_recent="$(f_fs_get_most_recent 'scripts' '*.yml')"
 #   echo "most_recent = $most_recent"
 #
 #   # Gets the last 3 files modified in path 'asc' up to 5 dir deep :
 #   while read -r file; do
 #     echo "$file"
-#   done <<< "$(u_fs_get_most_recent 'asc' '' 5 3)"
+#   done <<< "$(f_fs_get_most_recent 'asc' '' 5 3)"
 #
-u_fs_get_most_recent() {
-  local p_path="$1"
-  local p_filter_pattern="$2"
-  local p_max_depth="$3"
-  local p_n_files="$4"
+f_fs_get_most_recent() {
+  local a_path="$1"
+  local a_filter_pattern="$2"
+  local a_max_depth="$3"
+  local a_n_files="$4"
 
-  if [[ -z "$p_path" ]]; then
-    p_path='.'
+  if [[ -z "$a_path" ]]; then
+    a_path='.'
   fi
 
-  if [[ -z "$p_max_depth" ]]; then
-    p_max_depth=1
+  if [[ -z "$a_max_depth" ]]; then
+    a_max_depth=1
   fi
 
-  if [[ -z "$p_n_files" ]]; then
-    p_n_files=1
+  if [[ -z "$a_n_files" ]]; then
+    a_n_files=1
   fi
 
-  if [[ -n "$p_filter_pattern" ]]; then
-    find "$p_path" -maxdepth "$p_max_depth" -type f -name "$p_filter_pattern" -exec ls -1t '{}' + \
-      | head -n$p_n_files
+  if [[ -n "$a_filter_pattern" ]]; then
+    find "$a_path" -maxdepth "$a_max_depth" -type f -name "$a_filter_pattern" -exec ls -1t '{}' + \
+      | head -n$a_n_files
   else
-    find "$p_path" -maxdepth "$p_max_depth" -type f -exec ls -1t '{}' + \
-      | head -n$p_n_files
+    find "$a_path" -maxdepth "$a_max_depth" -type f -exec ls -1t '{}' + \
+      | head -n$a_n_files
   fi
 }
 
@@ -259,22 +259,22 @@ u_fs_get_most_recent() {
 #
 # @example
 #   my_file_contents=''
-#   u_fs_get_file_contents 'asc/.asc_subjects_ignore' 'my_file_contents'
+#   f_fs_get_file_contents 'asc/.asc_subjects_ignore' 'my_file_contents'
 #   echo "$my_file_contents"
 #
-u_fs_get_file_contents() {
-  local p_file_path="$1"
-  local p_var_name="$2"
+f_fs_get_file_contents() {
+  local a_file_path="$1"
+  local a_var_name="$2"
 
-  if [[ ! -f "$p_file_path" ]]; then
+  if [[ ! -f "$a_file_path" ]]; then
     echo >&2
-    echo "Error in u_fs_get_file_contents() - $BASH_SOURCE line $LINENO: file '$p_file_path' was not found." >&2
+    echo "Error in f_fs_get_file_contents() - $BASH_SOURCE line $LINENO: file '$a_file_path' was not found." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     return 1
   fi
 
-  u_str_sanitize_var_name "$p_var_name" 'p_var_name'
+  f_str_sanitize_var_name "$a_var_name" 'a_var_name'
 
   local line=''
   local contents=''
@@ -282,9 +282,9 @@ u_fs_get_file_contents() {
   while read line; do
     contents+="$line
 "
-  done < "$p_file_path"
+  done < "$a_file_path"
 
-  printf -v "$p_var_name" '%s' "$contents"
+  printf -v "$a_var_name" '%s' "$contents"
 }
 
 ##
@@ -301,15 +301,15 @@ u_fs_get_file_contents() {
 #
 # @example
 #   # List all dirs in current folder.
-#   u_fs_dir_list
+#   f_fs_dir_list
 #   echo "$dir_list"
 #
 #   # List all dirs whose name starts with '_' in current folder.
-#   u_fs_dir_list . '_*'
+#   f_fs_dir_list . '_*'
 #   echo "$dir_list"
 #
 #   # List all dirs in the "/path/to/dir" folder up to 3 levels deep.
-#   u_fs_dir_list /path/to/dir '' 3
+#   f_fs_dir_list /path/to/dir '' 3
 #   echo "$dir_list"
 #
 #   # Looping example :
@@ -317,46 +317,46 @@ u_fs_get_file_contents() {
 #     echo "$dir"
 #   done
 #
-u_fs_dir_list() {
-  local p_path="$1"
-  local p_filter_pattern="$2"
-  local p_maxdepth=$3
+f_fs_dir_list() {
+  local a_path="$1"
+  local a_filter_pattern="$2"
+  local a_maxdepth=$3
 
   dir_list=''
 
-  if [[ -z "$p_path" ]]; then
-    p_path='.'
+  if [[ -z "$a_path" ]]; then
+    a_path='.'
   fi
 
-  if [[ ! -d "$p_path" ]]; then
+  if [[ ! -d "$a_path" ]]; then
     return
   fi
 
-  if [[ -z "$p_maxdepth" ]]; then
-    p_maxdepth=1
+  if [[ -z "$a_maxdepth" ]]; then
+    a_maxdepth=1
   fi
 
   local i
 
   # If we need to look for dirs in deeper levels, use 'find' (subshell).
   # TODO remove depth argument and make a separate function ? #YAGNI
-  if [[ $p_maxdepth -gt 1 ]]; then
-    if [[ -z "$p_filter_pattern" ]]; then
-      dir_list="$(find "$p_path" -maxdepth "$p_maxdepth" -type d -printf '%P\n')"
+  if [[ $a_maxdepth -gt 1 ]]; then
+    if [[ -z "$a_filter_pattern" ]]; then
+      dir_list="$(find "$a_path" -maxdepth "$a_maxdepth" -type d -printf '%P\n')"
     else
-      dir_list="$(find "$p_path" -maxdepth "$p_maxdepth" -type d -name "$p_filter_pattern" -printf '%P\n')"
+      dir_list="$(find "$a_path" -maxdepth "$a_maxdepth" -type d -name "$a_filter_pattern" -printf '%P\n')"
     fi
 
   # Otherwise, just use the less expensive bash loop.
   else
-    if [[ "$p_path" != '.' ]]; then
-      pushd "$p_path" >/dev/null
+    if [[ "$a_path" != '.' ]]; then
+      pushd "$a_path" >/dev/null
     fi
 
     # The default globbing in bash does not include dirnames starting with a .
     shopt -s dotglob
 
-    if [[ -z "$p_filter_pattern" ]]; then
+    if [[ -z "$a_filter_pattern" ]]; then
       for i in * ; do
         if [ -d "$i" ]; then
           dir_list+="${i}
@@ -367,7 +367,7 @@ u_fs_dir_list() {
       for i in * ; do
         if [ -d "$i" ]; then
           case "$i" in
-            $p_filter_pattern)
+            $a_filter_pattern)
               dir_list+="${i}
 "
             ;;
@@ -376,7 +376,7 @@ u_fs_dir_list() {
       done
     fi
 
-    if [[ "$p_path" != '.' ]]; then
+    if [[ "$a_path" != '.' ]]; then
       popd >/dev/null
     fi
 
@@ -399,19 +399,19 @@ u_fs_dir_list() {
 #
 # @example
 #   # List all files in current folder.
-#   u_fs_file_list
+#   f_fs_file_list
 #   echo "$file_list"
 #
 #   # List '*.sh' files in current folder.
-#   u_fs_file_list . '*.sh'
+#   f_fs_file_list . '*.sh'
 #   echo "$file_list"
 #
 #   # List all files in the "/path/to/dir" folder up to 3 levels deep.
-#   u_fs_file_list /path/to/dir '' 3
+#   f_fs_file_list /path/to/dir '' 3
 #   echo "$file_list"
 #
 #   # Looping example :
-#   u_fs_file_list 'data/asc/remote-instances'
+#   f_fs_file_list 'data/asc/remote-instances'
 #   while read -r file; do
 #     echo "$file"
 #   done <<< "$file_list"
@@ -419,52 +419,52 @@ u_fs_dir_list() {
 #   # TODO [evol] deprecate the string variable to avoid issues with file names
 #   # containing space(s) and the last empty line :
 #   file_list_arr=()
-#   u_fs_file_list "$dir"
+#   f_fs_file_list "$dir"
 #   for file in "${file_list_arr[@]}"; do
 #     echo "file = $file"
 #   done
 #
-u_fs_file_list() {
-  local p_path="$1"
-  local p_filter_pattern="$2"
-  local p_maxdepth=$3
+f_fs_file_list() {
+  local a_path="$1"
+  local a_filter_pattern="$2"
+  local a_maxdepth=$3
 
   file_list=''
   file_list_arr=()
 
-  if [[ -z "$p_path" ]]; then
-    p_path='.'
+  if [[ -z "$a_path" ]]; then
+    a_path='.'
   fi
 
-  if [[ ! -d "$p_path" ]]; then
+  if [[ ! -d "$a_path" ]]; then
     return
   fi
 
-  if [[ -z "$p_maxdepth" ]]; then
-    p_maxdepth=1
+  if [[ -z "$a_maxdepth" ]]; then
+    a_maxdepth=1
   fi
 
   local i
 
   # If we need to look for files in deeper levels, use 'find' (subshell).
   # TODO remove depth argument and make a separate function ? #YAGNI
-  if [[ $p_maxdepth -gt 1 ]]; then
-    if [[ -z "$p_filter_pattern" ]]; then
-      file_list="$(find "$p_path" -maxdepth "$p_maxdepth" -type f -printf '%P\n')"
+  if [[ $a_maxdepth -gt 1 ]]; then
+    if [[ -z "$a_filter_pattern" ]]; then
+      file_list="$(find "$a_path" -maxdepth "$a_maxdepth" -type f -printf '%P\n')"
     else
-      file_list="$(find "$p_path" -maxdepth "$p_maxdepth" -type f -name "$p_filter_pattern" -printf '%P\n')"
+      file_list="$(find "$a_path" -maxdepth "$a_maxdepth" -type f -name "$a_filter_pattern" -printf '%P\n')"
     fi
 
   # Otherwise, just use the less expensive bash globbing.
   else
-    if [[ "$p_path" != '.' ]]; then
-      pushd "$p_path" >/dev/null
+    if [[ "$a_path" != '.' ]]; then
+      pushd "$a_path" >/dev/null
     fi
 
     # The default globbing in bash does not include filenames starting with a .
     shopt -s dotglob
 
-    if [[ -z "$p_filter_pattern" ]]; then
+    if [[ -z "$a_filter_pattern" ]]; then
       for i in * ; do
         if [[ -f "$i" ]]; then
           file_list_arr+=("$i")
@@ -476,7 +476,7 @@ u_fs_file_list() {
       for i in * ; do
         if [[ -f "$i" ]]; then
           case "$i" in
-            $p_filter_pattern)
+            $a_filter_pattern)
               file_list_arr+=("$i")
               file_list+="${i}
 "
@@ -486,7 +486,7 @@ u_fs_file_list() {
       done
     fi
 
-    if [[ "$p_path" != '.' ]]; then
+    if [[ "$a_path" != '.' ]]; then
       popd >/dev/null
     fi
 
@@ -507,32 +507,32 @@ u_fs_file_list() {
 #   Defaults to "$PROJECT_DOCROOT" or "$PWD".
 #
 # @example
-#   u_fs_relative_path "$PROJECT_DOCROOT/yetetets/testtset/fdsf.fd"
+#   f_fs_relative_path "$PROJECT_DOCROOT/yetetets/testtset/fdsf.fd"
 #   echo "$relative_path" # <- Prints : yetetets/testtset/fdsf.fd
 #
-#   u_fs_relative_path / /var/www/html
+#   f_fs_relative_path / /var/www/html
 #   echo "$relative_path" # <- Prints : ../../../
 #
-#   u_fs_relative_path /var/www/yetetets/testtset/fdsf.fd /opt/app
+#   f_fs_relative_path /var/www/yetetets/testtset/fdsf.fd /opt/app
 #   echo "$relative_path" # <- Prints : ../../var/www/yetetets/testtset/fdsf.fd
 #
-u_fs_relative_path() {
-  local p_target="$1"
-  local p_source="$2"
+f_fs_relative_path() {
+  local a_target="$1"
+  local a_source="$2"
 
-  if [[ -z "$p_source" ]]; then
-    p_source="${PROJECT_DOCROOT:=$PWD}"
+  if [[ -z "$a_source" ]]; then
+    a_source="${PROJECT_DOCROOT:=$PWD}"
   fi
 
   # Project-relative paths (e.g. data/db-dumps) are resolved against docroot first.
-  if [[ "$p_target" != /* ]]; then
-    p_target="$p_source/${p_target#./}"
+  if [[ "$a_target" != /* ]]; then
+    a_target="$a_source/${a_target#./}"
   fi
 
   local result=""
-  local common_part="$p_source"
+  local common_part="$a_source"
 
-  while [[ "${p_target#$common_part}" == "${p_target}" ]]; do
+  while [[ "${a_target#$common_part}" == "${a_target}" ]]; do
     # no match, means that candidate common part is not correct
     # go up one level (reduce common part)
     common_part="$(dirname $common_part)"
@@ -551,7 +551,7 @@ u_fs_relative_path() {
 
   # since we now have identified the common part,
   # compute the non-common part
-  forward_part="${p_target#$common_part}"
+  forward_part="${a_target#$common_part}"
 
   # and now stick all parts together
   if [[ -n $result ]] && [[ -n $forward_part ]]; then
@@ -574,33 +574,33 @@ u_fs_relative_path() {
 # @param 3 String : (writeable) file path.
 #
 # @example
-#   u_fs_update_or_append_line 'MY_VAR=' 'MY_VAR="new-val"' path/to/writeable/file
+#   f_fs_update_or_append_line 'MY_VAR=' 'MY_VAR="new-val"' path/to/writeable/file
 #
-u_fs_update_or_append_line() {
-  local p_pattern="$1"
-  local p_new_line="$2"
-  local p_file_path="$3"
+f_fs_update_or_append_line() {
+  local a_pattern="$1"
+  local a_new_line="$2"
+  local a_file_path="$3"
 
-  if [[ ! -f "$p_file_path" ]]; then
+  if [[ ! -f "$a_file_path" ]]; then
     echo >&2
-    echo "Error in u_fs_update_or_append_line() - $BASH_SOURCE line $LINENO: file $p_file_path was not found." >&2
+    echo "Error in f_fs_update_or_append_line() - $BASH_SOURCE line $LINENO: file $a_file_path was not found." >&2
     echo "Aborting (1)." >&2
     echo >&2
     return 1
   fi
 
   local haystack
-  u_fs_get_file_contents "$p_file_path" 'haystack'
+  f_fs_get_file_contents "$a_file_path" 'haystack'
   if [[ -z "$haystack" ]]; then
-    echo "$p_new_line" > "$p_file_path"
+    echo "$a_new_line" > "$a_file_path"
     return
   fi
 
   # Escape backslash, forward slash and ampersand for use as a sed replacement.
   # See https://stackoverflow.com/a/42727904
-  p_new_line=$(echo "$p_new_line" | sed -e 's/[\/&]/\\&/g')
+  a_new_line=$(echo "$a_new_line" | sed -e 's/[\/&]/\\&/g')
 
-  sed -e "s,${p_pattern}.*,${p_new_line},g" -i "$p_file_path"
+  sed -e "s,${a_pattern}.*,${a_new_line},g" -i "$a_file_path"
 }
 
 ##
@@ -610,26 +610,26 @@ u_fs_update_or_append_line() {
 # @param 2 String : (writeable) file path.
 #
 # @example
-#   u_fs_write_once '--test A' path/to/writeable/file # File contents appended.
-#   u_fs_write_once '--test A' path/to/writeable/file # (unchanged)
-#   u_fs_write_once '--test B' path/to/writeable/file # File contents appended.
+#   f_fs_write_once '--test A' path/to/writeable/file # File contents appended.
+#   f_fs_write_once '--test A' path/to/writeable/file # (unchanged)
+#   f_fs_write_once '--test B' path/to/writeable/file # File contents appended.
 #
-u_fs_write_once() {
-  local p_needle="$1"
-  local p_file_path="$2"
+f_fs_write_once() {
+  local a_needle="$1"
+  local a_file_path="$2"
 
   local haystack
-  u_fs_get_file_contents "$p_file_path" 'haystack'
+  f_fs_get_file_contents "$a_file_path" 'haystack'
 
   if [[ -z "$haystack" ]]; then
-    echo "$p_needle" > "$p_file_path"
+    echo "$a_needle" > "$a_file_path"
     return
   fi
 
-  local new_str="$(u_str_append_once $'\n'"$p_needle" "$haystack")"
+  local new_str="$(f_str_append_once $'\n'"$a_needle" "$haystack")"
 
   if [[ "$new_str" != "$haystack" ]]; then
-    echo "$new_str" > "$p_file_path"
+    echo "$new_str" > "$a_file_path"
   fi
 }
 
@@ -639,16 +639,16 @@ u_fs_write_once() {
 # See https://stackoverflow.com/questions/11245144/replace-whole-line-containing-a-string-using-sed
 #
 # @example
-#   u_fs_change_line "The existing line matching pattern" "The replacement text" path/to/file.ext
+#   f_fs_change_line "The existing line matching pattern" "The replacement text" path/to/file.ext
 #
-u_fs_change_line() {
-  local p_existing_line_match="$1"
-  local p_replacement="$2"
-  local p_file="$3"
+f_fs_change_line() {
+  local a_existing_line_match="$1"
+  local a_replacement="$2"
+  local a_file="$3"
 
-  local new=$(u_str_sed_escape "${p_replacement}")
+  local new=$(f_str_sed_escape "${a_replacement}")
 
-  sed "/$p_existing_line_match/c $new" -i "$p_file"
+  sed "/$a_existing_line_match/c $new" -i "$a_file"
 }
 
 ##
@@ -664,37 +664,37 @@ u_fs_change_line() {
 #
 # @example
 #   # Will compress given path to arhive file in current dir :
-#   u_fs_compress path/to/file.ext
+#   f_fs_compress path/to/file.ext
 #   # -> Result : ./file.ext.tgz
-#   u_fs_compress path/to/folder
+#   f_fs_compress path/to/folder
 #   # -> Result : ./folder.tgz
 #
 #   # Will compress given path to arhive file inside dir 'path/to' :
-#   u_fs_compress path/to/file.ext path/to
+#   f_fs_compress path/to/file.ext path/to
 #   # -> Result : path/to/file.ext.tgz
-#   u_fs_compress path/to/folder path/to
+#   f_fs_compress path/to/folder path/to
 #   # -> Result : path/to/folder.tgz
 #
 #   # Custom extension.
-#   u_fs_compress path/to/folder path/to tar.gz
+#   f_fs_compress path/to/folder path/to tar.gz
 #   # -> Result : path/to/folder.tar.gz
 #
-u_fs_compress() {
-  local p_path="$1"
-  local p_folder="$2"
-  local p_preferred_extension="$3"
+f_fs_compress() {
+  local a_path="$1"
+  local a_folder="$2"
+  local a_preferred_extension="$3"
 
-  if [[ ! -f "$p_path" ]] && [[ ! -d "$p_path" ]]; then
+  if [[ ! -f "$a_path" ]] && [[ ! -d "$a_path" ]]; then
     echo >&2
-    echo "Notice in u_fs_compress() - $BASH_SOURCE line $LINENO: directory or file '$p_path' was not found." >&2
+    echo "Notice in f_fs_compress() - $BASH_SOURCE line $LINENO: directory or file '$a_path' was not found." >&2
     echo "Aborting (1)." >&2
     echo >&2
     return 1
   fi
 
-  if [[ -n "$p_folder" ]] && [[ ! -d "$p_folder" ]]; then
+  if [[ -n "$a_folder" ]] && [[ ! -d "$a_folder" ]]; then
     echo >&2
-    echo "Notice in u_fs_compress() - $BASH_SOURCE line $LINENO: directory '$p_folder' was not found." >&2
+    echo "Notice in f_fs_compress() - $BASH_SOURCE line $LINENO: directory '$a_folder' was not found." >&2
     echo "Aborting (2)." >&2
     echo >&2
     return 2
@@ -703,41 +703,41 @@ u_fs_compress() {
   # TODO adapt tar parameters below depending on chosen extension.
   # TODO [evol] support other compression programs ?
   local extension='tgz'
-  if [[ -n "$p_preferred_extension" ]]; then
-    extension="$p_preferred_extension"
+  if [[ -n "$a_preferred_extension" ]]; then
+    extension="$a_preferred_extension"
   fi
 
-  if [[ -n "$p_folder" ]]; then
-    p_path="${p_path##*/}"
-    tar -C "$p_folder" -czf "$p_folder/$p_path.$extension" "$p_path"
+  if [[ -n "$a_folder" ]]; then
+    a_path="${a_path##*/}"
+    tar -C "$a_folder" -czf "$a_folder/$a_path.$extension" "$a_path"
   else
-    tar -czf "$p_path.$extension" "$p_path"
+    tar -czf "$a_path.$extension" "$a_path"
   fi
 
   return $?
 }
 
 ##
-# Same as u_fs_compress() but presetting folder to compress in place.
+# Same as f_fs_compress() but presetting folder to compress in place.
 #
 # @param 1 String : the path to compress.
 #
-# @see u_fs_compress()
+# @see f_fs_compress()
 #
 # @example
 #   # Will compress given path to arhive file inside dir 'path/to' :
-#   u_fs_compress_in_place path/to/file.ext
+#   f_fs_compress_in_place path/to/file.ext
 #   # -> Result : path/to/file.ext.tgz
-#   u_fs_compress_in_place path/to/folder
+#   f_fs_compress_in_place path/to/folder
 #   # -> Result : path/to/folder.tgz
 #
-u_fs_compress_in_place() {
-  local p_path_to_compress_in_place="$1"
-  local leaf="${p_path_to_compress_in_place##*/}"
-  local base_path="${p_path_to_compress_in_place%/$leaf}"
+f_fs_compress_in_place() {
+  local a_path_to_compress_in_place="$1"
+  local leaf="${a_path_to_compress_in_place##*/}"
+  local base_path="${a_path_to_compress_in_place%/$leaf}"
 
-  u_fs_compress \
-    "$p_path_to_compress_in_place" \
+  f_fs_compress \
+    "$a_path_to_compress_in_place" \
     "$base_path"
 
   return $?
@@ -748,16 +748,16 @@ u_fs_compress_in_place() {
 #
 # @example
 #   uncompressed_file=''
-#   u_fs_trim_compression_ext 'data/db-dumps/prod/default/2024-08-07.16-41-31_site_foobar.com.sql.gz'
+#   f_fs_trim_compression_ext 'data/db-dumps/prod/default/2024-08-07.16-41-31_site_foobar.com.sql.gz'
 #   echo "uncompressed_file = $uncompressed_file"
 #   # Yields 'data/db-dumps/prod/default/2024-08-07.16-41-31_site_foobar.com.sql'
 #
-u_fs_trim_compression_ext() {
-  local p_filepath="$1"
-  local p_output_var="$2"
+f_fs_trim_compression_ext() {
+  local a_filepath="$1"
+  local a_output_var="$2"
 
-  if [[ -z "$p_output_var" ]]; then
-    p_output_var='uncompressed_file'
+  if [[ -z "$a_output_var" ]]; then
+    a_output_var='uncompressed_file'
   fi
 
   local ext
@@ -765,13 +765,13 @@ u_fs_trim_compression_ext() {
   local compressed_extensions='.tar.gz .tar.bz2 .tar.xz .gz .zip .tgz .7z .cbt .tbz2 .txz .tar .bz2 .z'
 
   for ext in $compressed_extensions; do
-    result="${p_filepath%$ext}"
+    result="${a_filepath%$ext}"
 
     # Any result of this replace that changes the input file path means that
     # the extension matched (we can stop here).
-    if [[ "$result" != "$p_filepath" ]]; then
+    if [[ "$result" != "$a_filepath" ]]; then
       # Write result to var in calling scope.
-      printf -v "$p_output_var" '%s' "$result"
+      printf -v "$a_output_var" '%s' "$result"
       return
     fi
   done
@@ -804,33 +804,33 @@ u_fs_trim_compression_ext() {
 # @example
 #   # Extract given archive files in current dir :
 #   extracted_files=''
-#   u_fs_extract path/to/file.zip
+#   f_fs_extract path/to/file.zip
 #   echo "$extracted_files" # <- Outputs list of extracted contents.
 #
 #   # Extract given archive containing a single file to folder 'path/to' :
 #   extracted_file=''
-#   u_fs_extract path/to/file.sql.tgz path/to
+#   f_fs_extract path/to/file.sql.tgz path/to
 #   echo "$extracted_file" # <- Outputs e.g. path/to/file.sql
 #
 #   # Will leave the file untouched because it is not an archive file :
-#   u_fs_extract path/to/file.txt
+#   f_fs_extract path/to/file.txt
 #   echo $? # Will print '1' (indicates that the file was untouched).
 #
-u_fs_extract() {
-  local p_file="$1"
-  local p_folder="$2"
+f_fs_extract() {
+  local a_file="$1"
+  local a_folder="$2"
 
-  if [[ ! -f "$p_file" ]]; then
+  if [[ ! -f "$a_file" ]]; then
     echo >&2
-    echo "Notice in u_fs_extract() - $BASH_SOURCE line $LINENO: file '$p_file' was not found." >&2
+    echo "Notice in f_fs_extract() - $BASH_SOURCE line $LINENO: file '$a_file' was not found." >&2
     echo "Aborting (2)." >&2
     echo >&2
     return 2
   fi
 
-  if [[ -n "$p_folder" ]] && [[ ! -d "$p_folder" ]]; then
+  if [[ -n "$a_folder" ]] && [[ ! -d "$a_folder" ]]; then
     echo >&2
-    echo "Notice in u_fs_extract() - $BASH_SOURCE line $LINENO: directory '$p_folder' was not found." >&2
+    echo "Notice in f_fs_extract() - $BASH_SOURCE line $LINENO: directory '$a_folder' was not found." >&2
     echo "Aborting (3)." >&2
     echo >&2
     return 3
@@ -842,17 +842,17 @@ u_fs_extract() {
 
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
-    echo "u_fs_extract $p_file $p_folder"
+    echo "u_fs_extract $a_file $a_folder"
   fi
 
   local untouched=1
   local needs_copy='y'
-  local original_file="$p_file"
+  local original_file="$a_file"
 
   # If the uncompressed file already exists, consider it was uncompressed.
   local uncompressed_file=''
 
-  u_fs_trim_compression_ext "$p_file"
+  f_fs_trim_compression_ext "$a_file"
 
   if [[ -n "$uncompressed_file" && -f "$uncompressed_file" ]]; then
     echo "Uncompressed file $uncompressed_file already exists."
@@ -865,58 +865,58 @@ u_fs_extract() {
 
   # In order to correctly handle the 2nd parameter (destination folder), we
   # process the 'tar' command separately.
-  case "$p_file" in *.cbt|*.tar.bz2|*.tar.gz|*.tar.xz|*.tbz2|*.tgz|*.txz|*.tar)
+  case "$a_file" in *.cbt|*.tar.bz2|*.tar.gz|*.tar.xz|*.tbz2|*.tgz|*.txz|*.tar)
     needs_copy='n'
-    uncompressed_file="${p_file%$ext}"
+    uncompressed_file="${a_file%$ext}"
 
     # Get archive contents.
     # TODO Untested : *.tar.bz2 archives may need the '-j' flag.
     # TODO Check relative paths are correct.
     # TODO Too slow for big archives -> make optional ?
-    local contents_list_str=$(tar -tf "$p_file")
+    local contents_list_str=$(tar -tf "$a_file")
     local contents_list_arr=($contents_list_str)
 
     if [[ ${#contents_list_arr[@]} -gt 1 ]]; then
       extracted_files="$contents_list_str"
 
-      if [[ -n "$p_folder" ]]; then
+      if [[ -n "$a_folder" ]]; then
         extracted_files=''
         local i
 
         for i in "${contents_list_arr[@]}"; do
-          extracted_files+="$p_folder/$i
+          extracted_files+="$a_folder/$i
 "
         done
       fi
     else
       extracted_file="$contents_list_str"
 
-      if [[ -n "$p_folder" ]]; then
-        extracted_file="$p_folder/$contents_list_str"
+      if [[ -n "$a_folder" ]]; then
+        extracted_file="$a_folder/$contents_list_str"
       fi
     fi
 
-    if [[ -n "$p_folder" ]]; then
+    if [[ -n "$a_folder" ]]; then
       # Debug.
       if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  tar -xf $p_file -C $p_folder"
+        echo "  tar -xf $a_file -C $a_folder"
       fi
 
       untouched=0
-      tar -xf "$p_file" -C "$p_folder"
+      tar -xf "$a_file" -C "$a_folder"
     else
       # Debug.
       if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  tar -xf $p_file"
+        echo "  tar -xf $a_file"
       fi
 
       untouched=0
-      tar -xf "$p_file"
+      tar -xf "$a_file"
     fi
 
     if [[ $? -ne 0 ]]; then
       echo >&2
-      echo "Error in u_fs_extract() - $BASH_SOURCE line $LINENO: the tar command exited with non-zero code." >&2
+      echo "Error in f_fs_extract() - $BASH_SOURCE line $LINENO: the tar command exited with non-zero code." >&2
       echo "Aborting (4)." >&2
       echo >&2
       exit 4
@@ -929,106 +929,106 @@ u_fs_extract() {
 
   # TODO [wip] not all formats and programs were tested from this list.
   # See https://github.com/xvoland/Extract
-  case "$p_file" in
+  case "$a_file" in
     *.7z|*.arj|*.cab|*.cb7|*.chm|*.deb|*.dmg|*.iso|*.lzh|*.msi|*.pkg|*.rpm|*.udf|*.wim|*.xar)
       if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  7z x $p_file"
+        echo "  7z x $a_file"
       fi
       untouched=0
-      7z x "$p_file"
+      7z x "$a_file"
       ;;
 
     *.gz)
       if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  gunzip -k $p_file"
+        echo "  gunzip -k $a_file"
       fi
       untouched=0
-      gunzip -k "$p_file"
+      gunzip -k "$a_file"
       ;;
 
     *.cbz|*.epub|*.zip)
       if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  unzip $p_file"
+        echo "  unzip $a_file"
       fi
       untouched=0
-      unzip "$p_file"
+      unzip "$a_file"
       ;;
 
     *.bz2)
       if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  bunzip2 $p_file"
+        echo "  bunzip2 $a_file"
       fi
       untouched=0
-      bunzip2 "$p_file"
+      bunzip2 "$a_file"
       ;;
 
     *.cbr|*.rar)
       if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  unrar $p_file"
+        echo "  unrar $a_file"
       fi
       untouched=0
-      unrar x -ad "$p_file"
+      unrar x -ad "$a_file"
       ;;
 
     *.z)
       if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  uncompress $p_file"
+        echo "  uncompress $a_file"
       fi
       untouched=0
-      uncompress "$p_file"
+      uncompress "$a_file"
       ;;
 
     *.lzma)
       if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  uncompress $p_file"
+        echo "  uncompress $a_file"
       fi
       untouched=0
-      unlzma "$p_file"
+      unlzma "$a_file"
       ;;
 
     *.xz)
       if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  unxz $p_file"
+        echo "  unxz $a_file"
       fi
       untouched=0
-      unxz "$p_file"
+      unxz "$a_file"
       ;;
 
     *.exe)
       if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  cabextract $p_file"
+        echo "  cabextract $a_file"
       fi
       untouched=0
-      cabextract "$p_file"
+      cabextract "$a_file"
       ;;
 
     *.cpio)
       if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  cpio $p_file"
+        echo "  cpio $a_file"
       fi
       untouched=0
-      cpio -id < "$p_file"
+      cpio -id < "$a_file"
       ;;
 
     *.cba|*.ace)
       if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  unace $p_file"
+        echo "  unace $a_file"
       fi
       untouched=0
-      unace x "$p_file"
+      unace x "$a_file"
       ;;
   esac
 
   if [[ $? -ne 0 ]]; then
     echo >&2
-    echo "Error in u_fs_extract() - $BASH_SOURCE line $LINENO: the extract command exited with non-zero code." >&2
+    echo "Error in f_fs_extract() - $BASH_SOURCE line $LINENO: the extract command exited with non-zero code." >&2
     echo "Aborting (5)." >&2
     echo >&2
     exit 5
   fi
 
   if [[ $untouched -eq 0 ]]; then
-    u_fs_trim_compression_ext "$p_file"
+    f_fs_trim_compression_ext "$a_file"
 
     if [[ -n "$uncompressed_file" && -f "$uncompressed_file" ]]; then
       echo "File was uncompressed successfully to :"
@@ -1042,32 +1042,32 @@ u_fs_extract() {
 }
 
 ##
-# Same as u_fs_extract() but presetting folder to extract in place.
+# Same as f_fs_extract() but presetting folder to extract in place.
 #
 # @param 1 String : the archive file to extract.
 #
-# @see u_fs_extract()
+# @see f_fs_extract()
 #
 # @var extracted_file
 # @var extracted_files
 #
 # @example
 #   # Will extract given archive file in its folder :
-#   u_fs_extract_in_place path/to/file.ext.tgz
+#   f_fs_extract_in_place path/to/file.ext.tgz
 #   echo "extracted_file = $extracted_file"
 #
-u_fs_extract_in_place() {
-  local p_file_to_extract_in_place="$1"
+f_fs_extract_in_place() {
+  local a_file_to_extract_in_place="$1"
 
-  local leaf="${p_file_to_extract_in_place##*/}"
-  local base_path="${p_file_to_extract_in_place%/$leaf}"
+  local leaf="${a_file_to_extract_in_place##*/}"
+  local base_path="${a_file_to_extract_in_place%/$leaf}"
 
   # Reset calling scope vars receiving the result.
   extracted_file=''
   extracted_files=''
 
-  u_fs_extract \
-    "$p_file_to_extract_in_place" \
+  f_fs_extract \
+    "$a_file_to_extract_in_place" \
     "$base_path"
 
   return $?

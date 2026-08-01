@@ -10,13 +10,13 @@
 #   hook -s thread -a monitor
 #
 
-u_thread_monitor_enabled() {
+f_thread_monitor_enabled() {
   case "${ASC_MONITORING:-1}" in 0|false|FALSE|off|OFF) return 1 ;; esac
   case "${ASC_HOST_THREAD_MONITOR:-1}" in 0|false|FALSE|off|OFF) return 1 ;; esac
   return 0
 }
 
-u_thread_monitor_default() {
+f_thread_monitor_default() {
   local docroot
   local entry
   local yml
@@ -24,12 +24,12 @@ u_thread_monitor_default() {
   local healed=0
   local marked=0
 
-  if ! u_thread_monitor_enabled; then
+  if ! f_thread_monitor_enabled; then
     echo "thread-monitor: skipped (ASC_MONITORING / ASC_HOST_THREAD_MONITOR off)."
     return 0
   fi
 
-  u_thread_host_index_dir
+  f_thread_host_index_dir
   mkdir -p "$thread_host_index_dir"
 
   # Heal / refresh from this instance's YAML records.
@@ -38,13 +38,13 @@ u_thread_monitor_default() {
     for yml in data/threads/*.yml; do
       entry="${yml##*/}"
       entry="${entry%.yml}"
-      if u_thread_yml_load "$entry"; then
+      if f_thread_yml_load "$entry"; then
         if [[ "$thread_status" == 'running' ]] && ! kill -0 "$thread_pid" 2>/dev/null; then
-          u_thread_yml_mark_stale
+          f_thread_yml_mark_stale
           marked=$((marked + 1))
           echo "Marked stale: $entry (PID $thread_pid)"
         fi
-        u_thread_host_publish "$entry"
+        f_thread_host_publish "$entry"
         healed=$((healed + 1))
       fi
     done
@@ -57,7 +57,7 @@ u_thread_monitor_default() {
   for host_file in "$thread_host_index_dir"/*.yml; do
     unset thread_host_docroot thread_host_entry thread_host_pid thread_host_status
     # shellcheck disable=SC2034
-    eval "$(u_yaml_parse "$host_file" 'thread_host_')" 2>/dev/null || true
+    eval "$(f_yaml_parse "$host_file" 'thread_host_')" 2>/dev/null || true
     if [[ "${thread_host_docroot:-}" != "$docroot" ]]; then
       continue
     fi
@@ -73,11 +73,11 @@ u_thread_monitor_default() {
     if [[ "${thread_host_status:-}" == 'running' ]] \
       && [[ -n "${thread_host_pid:-}" ]] \
       && ! kill -0 "$thread_host_pid" 2>/dev/null; then
-      u_thread_yml_load "$entry" 2>/dev/null || true
+      f_thread_yml_load "$entry" 2>/dev/null || true
       if [[ "${thread_status:-}" == 'running' ]]; then
-        u_thread_yml_mark_stale 2>/dev/null || true
+        f_thread_yml_mark_stale 2>/dev/null || true
       fi
-      u_thread_host_publish "$entry"
+      f_thread_host_publish "$entry"
       echo "Host index heal: $entry (dead PID ${thread_host_pid})"
     fi
   done
@@ -86,4 +86,4 @@ u_thread_monitor_default() {
   echo "thread-monitor: refreshed=$healed marked_stale=$marked index=$thread_host_index_dir"
 }
 
-u_thread_monitor_default
+f_thread_monitor_default

@@ -10,7 +10,7 @@
 #   # Equivalent to :
 #   make logged-chain e:1:transcribe-ogg e:2:transcribe-ocr
 #   # Or :
-#   asc/instance/logged_chain.sh e:1:transcribe-ogg e:2:transcribe-ocr
+#   asc/instance/logged/chain.sh e:1:transcribe-ogg e:2:transcribe-ocr
 #
 
 . asc/bootstrap.sh
@@ -20,7 +20,7 @@ logged_chain_variants='STACK_VERSION PROVISION_USING HOST_OS'
 hook -s 'log' -p 'pre' -a 'logged_chain' -v "$logged_chain_variants"
 hook -s 'chain' -p 'pre' -a 'logged_chain' -v "$logged_chain_variants"
 
-asc/log/wrap.sh asc/instance/chain.sh "$@"
+asc/log/log.wrap.sh asc/instance/chain.sh "$@"
 
 hook -s 'log' -p 'post' -a 'logged_chain' -v "$logged_chain_variants"
 hook -s 'chain' -p 'post' -a 'logged_chain' -v "$logged_chain_variants"

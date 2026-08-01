@@ -6,7 +6,7 @@
 # This file is sourced during core ASC bootstrap.
 # @see asc/bootstrap.sh
 #
-# Convention : functions names are all prefixed by "u" (for "utility").
+# Convention : functions names are all prefixed by "f".
 #
 
 ##
@@ -14,14 +14,14 @@
 #
 # @see https://github.com/wodby/docker4drupal/blob/master/docker.mk
 #
-u_dc_instance_start() {
+f_dc_instance_start() {
   echo "Starting $INSTANCE_DOMAIN containers ..."
 
   docker compose pull
 
   if [[ $? -ne 0 ]]; then
     echo >&2
-    echo "Error in u_dc_instance_start() - $BASH_SOURCE line $LINENO : 'docker compose pull' exited with non-zero status." >&2
+    echo "Error in f_dc_instance_start() - $BASH_SOURCE line $LINENO : 'docker compose pull' exited with non-zero status." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     exit 1
@@ -31,7 +31,7 @@ u_dc_instance_start() {
 
   if [[ $? -ne 0 ]]; then
     echo >&2
-    echo "Error in u_dc_instance_start() - $BASH_SOURCE line $LINENO : 'docker compose up -d --remove-orphans' exited with non-zero status." >&2
+    echo "Error in f_dc_instance_start() - $BASH_SOURCE line $LINENO : 'docker compose up -d --remove-orphans' exited with non-zero status." >&2
     echo "-> Aborting (2)." >&2
     echo >&2
     exit 2
@@ -56,7 +56,7 @@ u_dc_instance_start() {
 #
 # @see https://github.com/wodby/docker4drupal/blob/master/docker.mk
 #
-u_dc_instance_stop() {
+f_dc_instance_stop() {
   echo "Stopping $INSTANCE_DOMAIN containers ..."
 
   docker compose stop
@@ -70,7 +70,7 @@ u_dc_instance_stop() {
 #
 # @see https://github.com/wodby/docker4drupal/blob/master/docker.mk
 #
-u_dc_instance_build() {
+f_dc_instance_build() {
   echo "Building $INSTANCE_DOMAIN containers ..."
 
   docker compose build --no-cache
@@ -84,7 +84,7 @@ u_dc_instance_build() {
 #
 # @see https://docs.docker.com/compose/reference/down/
 #
-u_dc_instance_destroy() {
+f_dc_instance_destroy() {
   echo "Destroying $INSTANCE_DOMAIN (stops and removes containers, networks, volumes, and images) ..."
 
   docker compose down --remove-orphans --volumes

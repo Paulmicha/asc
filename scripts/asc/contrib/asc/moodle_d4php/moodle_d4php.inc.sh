@@ -6,7 +6,7 @@
 # This file is sourced during core ASC bootstrap.
 # @see asc/bootstrap.sh
 #
-# Convention : functions names are all prefixed by "u" (for "utility").
+# Convention : functions names are all prefixed by "f".
 #
 
 ##
@@ -22,15 +22,15 @@
 #   - MOODLE_VERSION
 #
 # To list matches & check which one will be used (the most specific) :
-# $ u_hook_most_specific 'dry-run' \
+# $ hook_ms 'dry-run' \
 #     -s 'app' \
 #     -a 'config' \
 #     -c 'tpl.php' \
 #     -v 'MOODLE_VERSION HOST_TYPE INSTANCE_TYPE' \
 #     -t -d
-#   echo "match = $hook_most_specific_dry_run_match"
+#   echo "match = $most_specific_match"
 #
-u_moodle_write_settings() {
+f_moodle_write_settings() {
   local f
   local line
   local var_val
@@ -38,10 +38,10 @@ u_moodle_write_settings() {
   local var_name_c
   local token_prefix='{{ '
   local token_suffix=' }}'
-  local hook_most_specific_dry_run_match=''
+  local most_specific_match=''
 
   # Moodle settings template variants allow using separate files by site ID.
-  u_hook_most_specific 'dry-run' \
+  hook_ms 'dry-run' \
     -s 'app' \
     -a 'config' \
     -c 'tpl.php' \
@@ -49,9 +49,9 @@ u_moodle_write_settings() {
     -t
 
   # No declaration file found ? Can't carry on, there's nothing to do.
-  if [[ ! -f "$hook_most_specific_dry_run_match" ]]; then
+  if [[ ! -f "$most_specific_match" ]]; then
     echo >&2
-    echo "Error in u_moodle_write_settings() - $BASH_SOURCE line $LINENO: no Moodle settings template file was found." >&2
+    echo "Error in f_moodle_write_settings() - $BASH_SOURCE line $LINENO: no Moodle settings template file was found." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     return 1
@@ -64,7 +64,7 @@ u_moodle_write_settings() {
 
   # Console feedback.
   echo "(Re)write Moodle config file ($MOODLE_CONFIG_FILE) ..."
-  echo "  using template : $hook_most_specific_dry_run_match ..."
+  echo "  using template : $most_specific_match ..."
 
   # Replace $MOODLE_CONFIG_FILE file with the matching template and replace its
   # "token" values.
@@ -72,23 +72,23 @@ u_moodle_write_settings() {
     rm -f "$MOODLE_CONFIG_FILE"
     if [[ $? -ne 0 ]]; then
       echo >&2
-      echo "Error in u_moodle_write_drupal_settings() - $BASH_SOURCE line $LINENO: failed to replace the file '$MOODLE_CONFIG_FILE'." >&2
+      echo "Error in f_moodle_write_drupal_settings() - $BASH_SOURCE line $LINENO: failed to replace the file '$MOODLE_CONFIG_FILE'." >&2
       echo "-> Aborting (3)." >&2
       echo >&2
       exit 3
     fi
   fi
-  cp "$hook_most_specific_dry_run_match" "$MOODLE_CONFIG_FILE"
+  cp "$most_specific_match" "$MOODLE_CONFIG_FILE"
   if [[ $? -ne 0 ]]; then
     echo >&2
-    echo "Error in u_moodle_write_drupal_settings() - $BASH_SOURCE line $LINENO: failed to copy template $hook_most_specific_dry_run_match to '$MOODLE_CONFIG_FILE'." >&2
+    echo "Error in f_moodle_write_drupal_settings() - $BASH_SOURCE line $LINENO: failed to copy template $most_specific_match to '$MOODLE_CONFIG_FILE'." >&2
     echo "-> Aborting (4)." >&2
     echo >&2
     exit 4
   fi
 
   # Start with read-only global vars (supports any global).
-  u_global_list
+  f_global_list
   for var_name in "${asc_globals_var_names[@]}"; do
     if grep -Fq "${token_prefix}${var_name}${token_suffix}" "$MOODLE_CONFIG_FILE"; then
       var_val="${!var_name}"
@@ -106,7 +106,7 @@ u_moodle_write_settings() {
       esac
 
       sed -e "s,${token_prefix}${var_name}${token_suffix},${var_val},g" -i "$MOODLE_CONFIG_FILE"
-      # echo "  [$p_site] replaced '${token_prefix}${var_name}${token_suffix}' by '${var_val}'"
+      # echo "  [$a_site] replaced '${token_prefix}${var_name}${token_suffix}' by '${var_val}'"
     fi
   done
 
@@ -115,11 +115,11 @@ u_moodle_write_settings() {
   local unique_db_ids=()
 
   # First, reset unprefixed DB_* vars to default.
-  u_db_set
+  f_db_set
   local v=''
   local site_id=''
   local db_vars=''
-  u_db_vars_list
+  f_db_vars_list
   for v in $db_vars_list; do
     db_vars+="DB_${v} "
   done
@@ -127,11 +127,11 @@ u_moodle_write_settings() {
   # Multi-DB (manually set using the ASC_DB_IDS global) support.
   local db_id=''
   for db_id in $ASC_DB_IDS; do
-    if u_in_array "$db_id" unique_db_ids; then
+    if f_in_array "$db_id" unique_db_ids; then
       continue
     fi
     unique_db_ids+=("$db_id")
-    u_str_uppercase "$db_id" 'db_id'
+    f_str_uppercase "$db_id" 'db_id'
     for v in $db_vars_list; do
       db_vars+="${db_id}_DB_${v} "
     done
@@ -142,12 +142,12 @@ u_moodle_write_settings() {
   for var_name in $db_vars; do
     if grep -Fq "${token_prefix}${var_name}${token_suffix}" "$MOODLE_CONFIG_FILE"; then
       sed -e "s,${token_prefix}${var_name}${token_suffix},${!var_name},g" -i "$MOODLE_CONFIG_FILE"
-      # echo "  [$p_site] replaced '${token_prefix}${var_name}${token_suffix}' by '${!var_name}'"
+      # echo "  [$a_site] replaced '${token_prefix}${var_name}${token_suffix}' by '${!var_name}'"
     fi
   done
 
   # Keep write-protection.
-  u_instance_get_permissions
+  f_instance_get_permissions
   chmod "$FS_P_FILES" "$MOODLE_CONFIG_FILE"
   if [[ $? -ne 0 ]]; then
     echo >&2

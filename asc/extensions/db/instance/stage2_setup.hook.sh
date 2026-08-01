@@ -9,14 +9,14 @@
 #
 
 db_ids=()
-u_db_get_ids
+f_db_get_ids
 
 for db_id in "${db_ids[@]}"; do
-  if ! u_db_is_flagged "$db_id"; then
+  if ! f_db_is_flagged "$db_id"; then
     echo
     echo "[stage2-setup] setting up $db_id DB ..."
 
-    u_db_setup "$db_id"
+    f_db_setup "$db_id"
 
     echo "[stage2-setup] setting up $db_id DB : done."
   fi

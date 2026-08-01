@@ -14,8 +14,8 @@
 
 . asc/bootstrap.sh
 
-u_asc_get_actions
-u_array_qsort "${asc_action_names[@]}"
+f_asc_get_actions
+f_array_qsort "${asc_action_names[@]}"
 
 for val in "${sorted_arr[@]}"; do
   printf "%s\n" "$val"

@@ -6,7 +6,7 @@
 # This file is sourced during core ASC bootstrap.
 # @see asc/bootstrap.sh
 #
-# Convention : functions names are all prefixed by "u" (for "utility").
+# Convention : functions names are all prefixed by "f".
 #
 
 ##
@@ -29,24 +29,24 @@
 #
 # @example
 #   # For current instance :
-#   u_file_registry_get_path "$1"
+#   f_file_registry_get_path "$1"
 #   echo "$reg_file_path" # <- Prints the path to the file where value is stored for given key.
 #
 #   # For entire host :
-#   u_file_registry_get_path "$1" 'host'
+#   f_file_registry_get_path "$1" 'host'
 #   echo "$reg_file_path" # <- Idem (see example above).
 #
-u_file_registry_get_path() {
-  local p_key="$1"
-  local p_namespace="$2"
+f_file_registry_get_path() {
+  local a_key="$1"
+  local a_namespace="$2"
   local slug
 
-  u_str_sanitize "$p_key" '-' 'slug'
+  f_str_sanitize "$a_key" '-' 'slug'
   reg_file_path="data/asc/registry"
 
-  if [[ -n "$p_namespace" ]]; then
+  if [[ -n "$a_namespace" ]]; then
     local namespace
-    u_str_sanitize_var_name "$p_namespace" 'namespace'
+    f_str_sanitize_var_name "$a_namespace" 'namespace'
     reg_file_path="${FILE_REGISTRY_HOST_LEVEL_PATH:=/opt/asc-registry}/$namespace"
   fi
 

@@ -4,8 +4,8 @@
 # Download DB dump(s) from remote.
 #
 # @see asc/extensions/remote_db/remote/db_dump.sh
-# @see data/asc/remote-instances/${p_remote_id}.sh
-# @see u_remote_instances_setup() in asc/extensions/remote/remote.inc.sh
+# @see data/asc/remote-instances/${a_remote_id}.sh
+# @see f_remote_instances_setup() in asc/extensions/remote/remote.inc.sh
 #
 # @param 1 [optional] String : remote host ID.
 #   Defaults to 'prod'.
@@ -36,19 +36,19 @@ if [[ -z "$remote_id" ]]; then
   remote_id='prod'
 fi
 
-u_remote_check_id "$remote_id"
+f_remote_check_id "$remote_id"
 
 echo "Downloading DB dumps from remote instance '$remote_id' ..."
 
 declare -A dumps_dict
 
-u_remote_db_prepare_downloads "$remote_id" "$db_id" "$remote_file"
+f_remote_db_prepare_downloads "$remote_id" "$db_id" "$remote_file"
 
 db_id=''
 db_ids=()
 cmds=()
 
-u_db_get_ids
+f_db_get_ids
 
 for db_id in "${db_ids[@]}"; do
   if [[ -z "${dumps_dict["${db_id}.remote_dump_file_path"]}" ]] \
@@ -78,7 +78,7 @@ for db_id in "${db_ids[@]}"; do
   # Debug.
   # echo "u_remote_download $remote_id ${dumps_dict["${db_id}.remote_dump_file_path"]} ${dumps_dict["${db_id}.local_dump_dir"]}/"
 
-  u_remote_download "$remote_id" \
+  f_remote_download "$remote_id" \
     "${dumps_dict[${db_id}.remote_dump_file_path]}" \
     "${dumps_dict[${db_id}.local_dump_dir]}/"
 

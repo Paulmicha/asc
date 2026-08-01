@@ -138,7 +138,7 @@ fi
 
 # If a temporary copy was made, restore it.
 if [[ -d "$tmp_merge_dir" ]]; then
-  u_fs_merge_dirs "$tmp_merge_dir" "$APP_DOCROOT" "$merge_overwrite"
+  f_fs_merge_dirs "$tmp_merge_dir" "$APP_DOCROOT" "$merge_overwrite"
 
   if [[ $? -ne 0 ]]; then
     echo >&2

@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
 ##
-# Implements u_hook_most_specific -s 'db' -a 'exists' -v 'DB_DRIVER HOST_TYPE INSTANCE_TYPE'.
+# Implements hook_ms -s 'db' -a 'exists' -v 'DB_DRIVER HOST_TYPE INSTANCE_TYPE'.
 #
 # @requires the following var in calling scope :
 # @var db_exists
 #
-# @see u_db_exists() in asc/extensions/db/db.inc.sh
+# @see f_db_exists() in asc/extensions/db/db.inc.sh
 #
 # @example
-#   if u_db_exists 'my_db_name'; then
+#   if f_db_exists 'my_db_name'; then
 #     echo "Ok, 'my_db_name' exists."
 #   else
 #     echo "Error : 'my_db_name' does not exist (or I do not have permission to access it)."
@@ -17,11 +17,11 @@
 #
 
 # Debug.
-# echo "DRUSH DB Driver : Test if database '${p_db_name}' exists (user=$DB_USER, password="$DB_PASS", host="$DB_HOST", port="$DB_PORT")..."
+# echo "DRUSH DB Driver : Test if database '${a_db_name}' exists (user=$DB_USER, password="$DB_PASS", host="$DB_HOST", port="$DB_PORT")..."
 
 fallback_hook_implementation="asc/extensions/${DRUSH_DB_DRIVER_FALLBACK}/db/exists.${DRUSH_DB_DRIVER_FALLBACK}.hook.sh"
 
-if u_asc_extension_exists "$DRUSH_DB_DRIVER_FALLBACK"; then
+if f_asc_extension_exists "$DRUSH_DB_DRIVER_FALLBACK"; then
   echo "Drush DB Driver fallback for 'exists' action :"
   echo "  OK, the '$DRUSH_DB_DRIVER_FALLBACK' extension exists and is enabled."
 else

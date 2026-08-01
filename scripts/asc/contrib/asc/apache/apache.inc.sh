@@ -6,7 +6,7 @@
 # This file is sourced during core ASC bootstrap.
 # @see asc/bootstrap.sh
 #
-# Convention : functions names are all prefixed by "u" (for "utility").
+# Convention : functions names are all prefixed by "f".
 #
 
 ##
@@ -24,7 +24,7 @@
 # To check the most specific match (if any is found) :
 # $ make hook-debug ms s:config a:apache_vhost c:tpl.conf v:HOST_TYPE INSTANCE_TYPE INSTANCE_DOMAIN
 #
-u_apache_write_vhost_conf() {
+f_apache_write_vhost_conf() {
   local f
   local line
   local var_val
@@ -32,12 +32,12 @@ u_apache_write_vhost_conf() {
   local var_name_c
   local token_prefix='{{ '
   local token_suffix=' }}'
-  local hook_most_specific_dry_run_match=''
+  local most_specific_match=''
   local generated_vhost_filepath="/etc/apache2/sites-available/${INSTANCE_DOMAIN}.conf"
 
   echo "(Re)write Apache VHost config ..."
 
-  u_hook_most_specific 'dry-run' \
+  hook_ms 'dry-run' \
     -s 'config' \
     -a 'apache_vhost' \
     -c 'tpl.conf' \
@@ -46,18 +46,18 @@ u_apache_write_vhost_conf() {
 
   # When we have found a match, (over)write in place + replace its "token" values.
   # @see asc/extensions/drupalwt/global.vars.sh
-  if [[ -n "$hook_most_specific_dry_run_match" ]]; then
+  if [[ -n "$most_specific_match" ]]; then
     if [[ -f "$generated_vhost_filepath" ]]; then
       rm -f "$generated_vhost_filepath"
     fi
 
-    echo "... using template : '$hook_most_specific_dry_run_match' ..."
+    echo "... using template : '$most_specific_match' ..."
 
-    cp "$hook_most_specific_dry_run_match" "$generated_vhost_filepath"
+    cp "$most_specific_match" "$generated_vhost_filepath"
 
     # Replaces strings in settings file using our custom token naming
     # convention. Works with any global variable name.
-    u_global_list
+    f_global_list
     for var_name in "${asc_globals_var_names[@]}"; do
       if grep -Fq "${token_prefix}${var_name}${token_suffix}" "$generated_vhost_filepath"; then
         var_val="${!var_name}"
@@ -81,7 +81,7 @@ u_apache_write_vhost_conf() {
 
     # DB credentials may not all be declared using (readonly) globals, and there
     # may be distinct databases using a "modifier" scoped variable.
-    # @see u_db_set()
+    # @see f_db_set()
     # -> For projects using multiple databases, the distinction is made using
     # the following convention : prefix var names using $DB_ID, e.g. :
     # in the settings template, use {{ DEFAULT_DB_USER }}.
@@ -89,7 +89,7 @@ u_apache_write_vhost_conf() {
     local db_vars_backup="$db_vars"
     local asc_db_id=""
     for asc_db_id in $ASC_DB_IDS; do
-      u_str_uppercase "$asc_db_id" 'asc_db_id'
+      f_str_uppercase "$asc_db_id" 'asc_db_id'
       for var_name in $db_vars_backup; do
         db_vars+=" ${asc_db_id}_${var_name}"
       done

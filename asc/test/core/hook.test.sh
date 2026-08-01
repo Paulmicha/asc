@@ -17,7 +17,7 @@
 #
 
 . asc/bootstrap.sh
-. asc/test/asc.inc.sh
+. asc/test/test.inc.sh
 
 ##
 # Creates temporary files for verification purposes in current test case.
@@ -88,7 +88,7 @@ oneTimeSetUp() {
   touch "asc/extensions/nftaschdehnc/test/post_nftaschhnc_dry_run.$HOST_TYPE.hook.sh"
   touch "asc/extensions/nftaschdehnc/test/undo_nftaschhnc_dry_run.$HOST_TYPE.$INSTANCE_TYPE.hook.sh"
 
-  u_asc_extend
+  f_asc_extend
 }
 
 ##
@@ -112,8 +112,8 @@ asc/extensions/nftaschdehnc/stack/nftaschhnc_dry_run.hook.sh
   rm -f data/asc/cache/hook.*nftaschhnc*
   hook -a 'nftaschhnc_dry_run' -t
 
-  u_test_compare_expected_lookup_paths
-  u_test_lookup_paths_assertion "Single action hook test failed." $flag
+  f_test_compare_expected_lookup_paths
+  f_test_lookup_paths_assertion "Single action hook test failed." $flag
 }
 
 ##
@@ -127,8 +127,8 @@ asc/extensions/nftaschdehnc/test/nftaschhnc_dry_run.$INSTANCE_TYPE.hook.sh"
   rm -f data/asc/cache/hook.*nftaschhnc*
   hook -a 'nftaschhnc_dry_run' -s 'test' -t
 
-  u_test_compare_expected_lookup_paths
-  u_test_lookup_paths_assertion "Subject filter hook test failed." $flag
+  f_test_compare_expected_lookup_paths
+  f_test_lookup_paths_assertion "Subject filter hook test failed." $flag
 }
 
 ##
@@ -144,8 +144,8 @@ asc/extensions/nftaschdehnc/test/nftaschhnc_dry_run.$HOST_TYPE.hook.sh
   rm -f data/asc/cache/hook.*nftaschhnc*
   hook -a 'nftaschhnc_dry_run' -s 'test' -e 'nftaschdehnc' -v 'HOST_TYPE INSTANCE_TYPE' -t
 
-  u_test_compare_expected_lookup_paths
-  u_test_lookup_paths_assertion "Combinatory variants filter hook test failed." $flag
+  f_test_compare_expected_lookup_paths
+  f_test_lookup_paths_assertion "Combinatory variants filter hook test failed." $flag
 }
 
 ##
@@ -158,8 +158,8 @@ test_asc_hook_prefix() {
   rm -f data/asc/cache/hook.*nftaschhnc*
   hook -a 'nftaschhnc_dry_run' -p 'pre' -t
 
-  u_test_compare_expected_lookup_paths
-  u_test_lookup_paths_assertion "Prefix filter hook test failed." $flag
+  f_test_compare_expected_lookup_paths
+  f_test_lookup_paths_assertion "Prefix filter hook test failed." $flag
 }
 
 ##
@@ -174,8 +174,8 @@ asc/extensions/nftaschdehnc/test/post_nftaschhnc_dry_run.$INSTANCE_TYPE.hook.sh
   rm -f data/asc/cache/hook.*nftaschhnc*
   hook -a 'nftaschhnc_dry_run' -s 'test' -e 'nftaschdehnc' -p 'post' -t
 
-  u_test_compare_expected_lookup_paths
-  u_test_lookup_paths_assertion "Prefix + variants filter hook test failed." $flag
+  f_test_compare_expected_lookup_paths
+  f_test_lookup_paths_assertion "Prefix + variants filter hook test failed." $flag
 }
 
 ##
@@ -188,8 +188,8 @@ test_asc_hook_prefix_combinatory_variants() {
   rm -f data/asc/cache/hook.*nftaschhnc*
   hook -a 'nftaschhnc_dry_run' -s 'test' -v 'HOST_TYPE INSTANCE_TYPE' -p 'undo' -t
 
-  u_test_compare_expected_lookup_paths
-  u_test_lookup_paths_assertion "Prefix + combinatory variants filter hook test failed." $flag
+  f_test_compare_expected_lookup_paths
+  f_test_lookup_paths_assertion "Prefix + combinatory variants filter hook test failed." $flag
 }
 
 ##

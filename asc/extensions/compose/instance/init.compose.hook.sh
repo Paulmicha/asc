@@ -10,11 +10,11 @@
 # 'instance init'.
 #
 # @see asc/extensions/compose/global.vars.sh
-# @see u_dc_write_yml() in asc/extensions/compose/compose.inc.sh
-# @see u_instance_init() in asc/instance/instance.inc.sh
+# @see f_dc_write_yml() in asc/extensions/compose/compose.inc.sh
+# @see f_instance_init() in asc/instance/instance.inc.sh
 #
 
 case "$DC_MODE" in 'generate')
   # @see asc/extensions/compose/compose.inc.sh
-  u_dc_write_yml
+  f_dc_write_yml
 esac

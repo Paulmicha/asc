@@ -4,7 +4,7 @@
 # Implements hook -a 'init' -p 'pre'.
 #
 
-u_traefik_generate_acme_conf
+f_traefik_generate_acme_conf
 
 # This is the shared network to use in order to expose other docker-compose
 # stacks services through this traefik reverse proxy instance.

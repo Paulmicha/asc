@@ -6,7 +6,7 @@
 # This file is sourced during core ASC bootstrap.
 # @see asc/bootstrap.sh
 #
-# Convention : functions names are all prefixed by "u" (for "utility").
+# Convention : functions names are all prefixed by "f".
 #
 
 ##
@@ -16,9 +16,9 @@
 # ASC useful. It generates readonly global (env) vars, optional Git hooks
 # implementations, convenience "make" shortcuts for all subjects & actions, etc.
 #
-# @see u_global_aggregate()
-# @see u_global_write()
-# @see u_make_generate()
+# @see f_global_aggregate()
+# @see f_global_write()
+# @see f_make_generate()
 #
 # Default values :
 # @see asc/env/global.vars.sh
@@ -31,13 +31,13 @@
 # @example
 #   # Calling this script without any arguments will use prompts in terminal
 #   # to provide values for every globals.
-#   u_instance_init
+#   f_instance_init
 #
 #   # Initializes an instance of type 'dev', host type 'local', provisionned
 #   # using 'ansible', using 'my-project-2025' as stack version, with git origin :
 #   # 'git@my-git-origin.org:my-git-account/asc.git', app sources cloned in 'dist',
 #   # and using 'dist/web' as app dir - without terminal prompts (-y flag).
-#   u_instance_init \
+#   f_instance_init \
 #     -t 'dev' \
 #     -h 'local' \
 #     -p 'ansible' \
@@ -47,33 +47,33 @@
 #     -a 'dist/web' \
 #     -y
 #
-u_instance_init() {
+f_instance_init() {
   local app=''
 
   # Absolute path to project docroot.
-  local p_ascii_project_docroot=''
+  local a_ascii_project_docroot=''
 
   # Stack version allows stack upgrades (e.g. switching compose files).
-  local p_ascii_stack_version=''
+  local a_ascii_stack_version=''
 
   # Space-separated list of "apps" of components (e.g. 'site api cas').
-  local p_ascii_apps=''
+  local a_ascii_apps=''
 
   # Host type usually is 'local' or 'remote'.
-  local p_ascii_host_type=''
+  local a_ascii_host_type=''
 
   # Instance type usually is 'dev' or 'prod'.
-  local p_ascii_instance_type=''
+  local a_ascii_instance_type=''
 
   # Some variants may play on the provisionning tool, if any (i.e. docker
   # compose).
-  local p_ascii_provision_using=''
+  local a_ascii_provision_using=''
 
   # Flag to bypass interactive terminal prompts (input and/or confirmation).
-  local p_ascii_yes=0
+  local a_ascii_yes=0
 
   # Flag to test the aggregation process without writing anything.
-  local p_ascii_dry_run=0
+  local a_ascii_dry_run=0
 
   # Reads values optionally provided in YAML files placed in PROJECT_DOCROOT.
   # - yaml_parsed_sp_init contains a subset of vars - the default values,
@@ -90,72 +90,72 @@ u_instance_init() {
   # TODO [evol] also allow asc.$STACK_VERSION.yml (+ 1 pass) ?
   if [[ -f "env.yml" ]] || [[ -f ".env-local.yml" ]]; then
     if [[ -f "env.yml" ]]; then
-      u_instance_yaml_config_parse "env.yml"
+      f_instance_yaml_config_parse "env.yml"
     fi
 
     if [[ -f ".env-local.yml" ]]; then
-      u_instance_yaml_config_parse ".env-local.yml"
+      f_instance_yaml_config_parse ".env-local.yml"
     fi
 
     if [[ -n "$yaml_parsed_sp_init" ]]; then
       # This will evaluate variables declarations following the convention in :
-      # @see u_yaml_parse() in asc/utilities/yaml.sh
+      # @see f_yaml_parse() in asc/utilities/yaml.sh
       eval "$yaml_parsed_sp_init"
 
       # 1. Deal with hardcoded variable names used by ASC core. Some are needed
       # for the globals aggregation process (e.g. values depending on instance
       # type - dev, prod, or dependening on stack version, etc).
       if [[ -n "$YAML_PROJECT_DOCROOT" ]]; then
-        p_ascii_project_docroot="$YAML_PROJECT_DOCROOT"
+        a_ascii_project_docroot="$YAML_PROJECT_DOCROOT"
       fi
 
       if [[ -n "$YAML_STACK_VERSION" ]]; then
-        p_ascii_stack_version="$YAML_STACK_VERSION"
+        a_ascii_stack_version="$YAML_STACK_VERSION"
       fi
 
       if [[ -n "$YAML_ASC_APPS" ]]; then
-        p_ascii_apps="$YAML_ASC_APPS"
+        a_ascii_apps="$YAML_ASC_APPS"
       fi
 
       if [[ -n "$YAML_HOST_TYPE" ]]; then
-        p_ascii_host_type="$YAML_HOST_TYPE"
+        a_ascii_host_type="$YAML_HOST_TYPE"
       fi
 
       if [[ -n "$YAML_INSTANCE_TYPE" ]]; then
-        p_ascii_instance_type="$YAML_INSTANCE_TYPE"
+        a_ascii_instance_type="$YAML_INSTANCE_TYPE"
       fi
 
       if [[ -n "$YAML_PROVISION_USING" ]]; then
-        p_ascii_provision_using="$YAML_PROVISION_USING"
+        a_ascii_provision_using="$YAML_PROVISION_USING"
       fi
     fi
   fi
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -o) p_ascii_project_docroot="$2"; shift 2;;
-      -s) p_ascii_stack_version="$2"; shift 2;;
-      -a) p_ascii_apps="$2"; shift 2;;
-      -h) p_ascii_host_type="$2"; shift 2;;
-      -t) p_ascii_instance_type="$2"; shift 2;;
-      -p) p_ascii_provision_using="$2"; shift 2;;
-      -y) p_ascii_yes=1; shift 1;;
-      -r) p_ascii_dry_run=1; shift 1;;
+      -o) a_ascii_project_docroot="$2"; shift 2;;
+      -s) a_ascii_stack_version="$2"; shift 2;;
+      -a) a_ascii_apps="$2"; shift 2;;
+      -h) a_ascii_host_type="$2"; shift 2;;
+      -t) a_ascii_instance_type="$2"; shift 2;;
+      -p) a_ascii_provision_using="$2"; shift 2;;
+      -y) a_ascii_yes=1; shift 1;;
+      -r) a_ascii_dry_run=1; shift 1;;
       -*) echo "Error in $BASH_SOURCE line $LINENO: unknown option: $1" >&2; return;;
       *) echo "Notice in $BASH_SOURCE line $LINENO: unsupported unnamed argument: $1" >&2; shift 1;;
     esac
   done
 
-  if [[ -n "$p_ascii_project_docroot" ]]; then
-    PROJECT_DOCROOT="$p_ascii_project_docroot"
+  if [[ -n "$a_ascii_project_docroot" ]]; then
+    PROJECT_DOCROOT="$a_ascii_project_docroot"
   fi
 
-  if [[ -n "$p_ascii_stack_version" ]]; then
-    STACK_VERSION="$p_ascii_stack_version"
+  if [[ -n "$a_ascii_stack_version" ]]; then
+    STACK_VERSION="$a_ascii_stack_version"
   fi
 
-  if [[ -n "$p_ascii_apps" ]]; then
-    ASC_APPS="$p_ascii_apps"
+  if [[ -n "$a_ascii_apps" ]]; then
+    ASC_APPS="$a_ascii_apps"
 
     # for app in $ASC_APPS; do
     #   # "YAML_${app}_DOCROOT"
@@ -167,20 +167,20 @@ u_instance_init() {
     # done
   fi
 
-  if [[ -n "$p_ascii_host_type" ]]; then
-    HOST_TYPE="$p_ascii_host_type"
+  if [[ -n "$a_ascii_host_type" ]]; then
+    HOST_TYPE="$a_ascii_host_type"
   fi
 
-  if [[ -n "$p_ascii_instance_type" ]]; then
-    INSTANCE_TYPE="$p_ascii_instance_type"
+  if [[ -n "$a_ascii_instance_type" ]]; then
+    INSTANCE_TYPE="$a_ascii_instance_type"
   fi
 
-  if [[ -n "$p_ascii_provision_using" ]]; then
-    PROVISION_USING="$p_ascii_provision_using"
+  if [[ -n "$a_ascii_provision_using" ]]; then
+    PROVISION_USING="$a_ascii_provision_using"
   fi
 
   # Debug.
-  # echo "step 1 (after yaml_parsed_sp_init + optional args override passed to u_instance_init()) :"
+  # echo "step 1 (after yaml_parsed_sp_init + optional args override passed to f_instance_init()) :"
   # echo "  ASC_APPS = $ASC_APPS"
 
   # (Re)start global vars aggregation.
@@ -201,7 +201,7 @@ u_instance_init() {
   yaml_parsed_sp_init=''
   yaml_parsed_globals=''
 
-  u_instance_yaml_config_load
+  f_instance_yaml_config_load
 
   if [[ -n "$yaml_parsed_globals" ]]; then
     eval "$yaml_parsed_globals"
@@ -217,10 +217,10 @@ u_instance_init() {
   # echo "  ASC_APPS = $ASC_APPS"
 
   # Normal process runs after YAML globals.
-  u_global_aggregate
+  f_global_aggregate
 
   # Debug.
-  # echo "step 3 (after u_global_aggregate()) :"
+  # echo "step 3 (after f_global_aggregate()) :"
   # echo "  ASC_APPS = $ASC_APPS"
 
   # If used, loop through ASC_APPS.
@@ -233,16 +233,16 @@ u_instance_init() {
 
   # If we want to test instance init (when "dry run" flag is set), nothing is
   # written and hooks are replaced by a prefixed variant.
-  if [[ $p_ascii_dry_run -eq 1 ]]; then
-    u_global_debug
+  if [[ $a_ascii_dry_run -eq 1 ]]; then
+    f_global_debug
     hook -a 'init' -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE' -p 'dry_run'
     hook -s "$subjects instance" -a 'ensure_dirs_exist' -p 'dry_run'
     return
   fi
 
-  u_global_write
+  f_global_write
 
-  u_make_generate
+  f_make_generate
 
   # Trigger instance init (optional) extra processes.
   hook -p 'pre' -a 'init'
@@ -253,7 +253,7 @@ u_instance_init() {
   hook -s "$subjects instance" -a 'ensure_dirs_exist'
 
   # (Re)set file system permissions.
-  u_instance_set_permissions
+  f_instance_set_permissions
 
   # Trigger post-init (optional) extra processes.
   hook -p 'post' -a 'init'
@@ -266,8 +266,8 @@ u_instance_init() {
 # @var yaml_parsed_sp_init
 # @var yaml_parsed_globals
 #
-# @see u_instance_init()
-# @see u_instance_yaml_config_parse()
+# @see f_instance_init()
+# @see f_instance_yaml_config_parse()
 #
 # To verify which files can be used (besides ".env-local.yml" in this project
 # instance's docroot folder $PROJECT_DOCROOT + its variants) and check which one
@@ -279,8 +279,8 @@ u_instance_init() {
 # @example
 #   yaml_parsed_sp_init=''
 #   yaml_parsed_globals=''
-#   u_instance_yaml_config_load
-#   # -> Usage 1 - special args override for u_instance_init() :
+#   f_instance_yaml_config_load
+#   # -> Usage 1 - special args override for f_instance_init() :
 #   eval "$yaml_parsed_sp_init"
 #   echo "$YAML_SERVER_DOCROOT"
 #   echo "$YAML_APP_DOCROOT"
@@ -288,7 +288,7 @@ u_instance_init() {
 #   # -> Usage 2 - globals declarations :
 #   eval "$yaml_parsed_globals"
 #
-u_instance_yaml_config_load() {
+f_instance_yaml_config_load() {
   local instance_yaml_config_file
   local instance_yaml_config_root_files
 
@@ -297,7 +297,7 @@ u_instance_yaml_config_load() {
   # make hook-debug s:instance a:env c:yml v:STACK_VERSION HOST_TYPE INSTANCE_TYPE
   hook -s 'instance' -a 'env' -c 'yml' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE' -t -r
   for instance_yaml_config_file in $hook_dry_run_matches; do
-    u_instance_yaml_config_parse "$instance_yaml_config_file"
+    f_instance_yaml_config_parse "$instance_yaml_config_file"
   done
 
   # Also support PROJECT_DOCROOT env.yml files variations, as well as local,
@@ -318,7 +318,7 @@ env.$STACK_VERSION.$HOST_TYPE.$INSTANCE_TYPE.yml
 .env-local.$STACK_VERSION.$HOST_TYPE.$INSTANCE_TYPE.yml"
   for instance_yaml_config_file in $instance_yaml_config_root_files; do
     if [[ -f "$instance_yaml_config_file" ]]; then
-      u_instance_yaml_config_parse "$instance_yaml_config_file"
+      f_instance_yaml_config_parse "$instance_yaml_config_file"
     fi
   done
 }
@@ -332,18 +332,18 @@ env.$STACK_VERSION.$HOST_TYPE.$INSTANCE_TYPE.yml
 # @var yaml_parsed_sp_init
 # @var yaml_parsed_globals
 #
-# @see u_instance_init()
-# @see u_instance_yaml_config_load()
+# @see f_instance_init()
+# @see f_instance_yaml_config_load()
 #
 # For details on the syntax used to determine variable names from the YAML file
 # contents :
-# @see u_yaml_parse() in asc/utilities/yaml.sh
+# @see f_yaml_parse() in asc/utilities/yaml.sh
 #
 # @example
 #   yaml_parsed_sp_init=''
 #   yaml_parsed_globals=''
-#   u_instance_yaml_config_parse ./env.yml
-#   # -> Usage 1 - special args override for u_instance_init() :
+#   f_instance_yaml_config_parse ./env.yml
+#   # -> Usage 1 - special args override for f_instance_init() :
 #   eval "$yaml_parsed_sp_init"
 #   echo "$YAML_SERVER_DOCROOT"
 #   echo "$YAML_APP_DOCROOT"
@@ -351,7 +351,7 @@ env.$STACK_VERSION.$HOST_TYPE.$INSTANCE_TYPE.yml
 #   # -> Usage 2 - globals declarations :
 #   eval "$yaml_parsed_globals"
 #
-u_instance_yaml_config_parse() {
+f_instance_yaml_config_parse() {
   local yaml_config_filepath="$1"
   local parsed_line=''
   local parsed_var=''
@@ -362,7 +362,7 @@ u_instance_yaml_config_parse() {
 
   if [[ ! -f "$yaml_config_filepath" ]]; then
     echo >&2
-    echo "Error in u_instance_yaml_config_parse() - $BASH_SOURCE line $LINENO: given file path '$yaml_config_filepath' does not exist or is not accessible." >&2
+    echo "Error in f_instance_yaml_config_parse() - $BASH_SOURCE line $LINENO: given file path '$yaml_config_filepath' does not exist or is not accessible." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     return 1
@@ -376,7 +376,7 @@ u_instance_yaml_config_parse() {
     parsed_val="$(echo "$parsed_line" | awk -F '[()]' '{print $2}')"
     parsed_var_leaf="=${parsed_line#*=}"
     parsed_var="${parsed_line%$parsed_var_leaf}"
-    u_str_uppercase "$parsed_var" 'parsed_var'
+    f_str_uppercase "$parsed_var" 'parsed_var'
 
     # The "asc apps" entry should be at the beginning.
     # Idem for the remaining "core" variants.
@@ -433,7 +433,7 @@ u_instance_yaml_config_parse() {
 
     yaml_parsed_globals+="global $parsed_var $parsed_val ; "
 
-  done < <(u_yaml_parse "$yaml_config_filepath" 'yaml_')
+  done < <(f_yaml_parse "$yaml_config_filepath" 'yaml_')
 }
 
 ##
@@ -459,7 +459,7 @@ u_instance_yaml_config_parse() {
 # Application sources and other project paths are handled by extension hooks
 # (e.g. fs_perms_pre_set).
 #
-# @see u_instance_get_permissions()
+# @see f_instance_get_permissions()
 # @see asc/instance/fix_perms.sh
 # @see asc/instance/fs_perms_set.hook.sh
 #
@@ -477,8 +477,8 @@ u_instance_yaml_config_parse() {
 #   # Or :
 #   asc/instance/fix_perms.sh
 #
-u_instance_set_permissions() {
-  u_instance_get_permissions
+f_instance_set_permissions() {
+  f_instance_get_permissions
 
   # If used, loop through ASC_APPS.
   # Default to 'app' otherwise.
@@ -524,7 +524,7 @@ u_instance_set_permissions() {
 # $ make hook-debug s:app instance a:fs_perms_get v:STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE
 #
 # @example
-#   u_instance_get_permissions
+#   f_instance_get_permissions
 #   # Show the result :
 #   echo "file permissions = $FS_NW_FILES"
 #   echo "folder permissions = $FS_NW_DIRS"
@@ -533,7 +533,7 @@ u_instance_set_permissions() {
 #   echo "protected file permissions = $FS_P_FILES"
 #   echo "executable file permissions = $FS_E_FILES"
 #
-u_instance_get_permissions() {
+f_instance_get_permissions() {
   # If used, loop through ASC_APPS.
   # Default to 'app' otherwise.
   local subjects='app'
@@ -579,7 +579,7 @@ u_instance_get_permissions() {
 # By default, ASC resets ownership only in ./asc, ./scripts/asc, and ./.git.
 # Application sources and other project paths are handled by extension hooks.
 #
-# @see u_instance_get_ownership()
+# @see f_instance_get_ownership()
 # @see asc/instance/fix_ownership.sh
 # @see asc/instance/fs_ownership_set.hook.sh
 #
@@ -597,8 +597,8 @@ u_instance_get_permissions() {
 #   # Or :
 #   asc/instance/fix_ownership.sh
 #
-u_instance_set_ownership() {
-  u_instance_get_ownership
+f_instance_set_ownership() {
+  f_instance_get_ownership
 
   # If used, loop through ASC_APPS.
   # Default to 'app' otherwise.
@@ -640,12 +640,12 @@ u_instance_set_ownership() {
 # $ make hook-debug s:app instance a:fs_ownership_get v:STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE
 #
 # @example
-#   u_instance_get_ownership
+#   f_instance_get_ownership
 #   # Show the result :
 #   echo "ownership = $FS_OWNER:$FS_GROUP"
 #   echo "ownership for writeable files/dirs = $FS_W_OWNER:$FS_W_GROUP"
 #
-u_instance_get_ownership() {
+f_instance_get_ownership() {
   # If used, loop through ASC_APPS.
   # Default to 'app' otherwise.
   local subjects='app'
@@ -684,29 +684,29 @@ u_instance_get_ownership() {
 # parent-dirname.host-lan-0-43.localhost
 #
 # @example
-#   instance_domain="$(u_instance_domain)"
+#   instance_domain="$(f_instance_domain)"
 #   echo "instance_domain = $instance_domain"
 #
-u_instance_domain() {
-  local p_local_host_name="$1"
+f_instance_domain() {
+  local a_local_host_name="$1"
 
-  if [[ -z "$p_local_host_name" ]]; then
-    p_local_host_name="$(u_host_ip)"
+  if [[ -z "$a_local_host_name" ]]; then
+    a_local_host_name="$(f_host_ip)"
   fi
 
-  case "$p_local_host_name" in "192.168."*)
-    p_local_host_name="${p_local_host_name//192.168./lan-}"
+  case "$a_local_host_name" in "192.168."*)
+    a_local_host_name="${a_local_host_name//192.168./lan-}"
   esac
 
   # The dir name is slugified + we remove any '-dev-stack' suffix + lowercase.
   local dirname="${PWD##*/}"
-  u_str_sanitize "$dirname" '-' 'dirname'
+  f_str_sanitize "$dirname" '-' 'dirname'
   dirname="${dirname//-dev-stack/}"
-  u_str_lowercase "$dirname" 'dirname'
+  f_str_lowercase "$dirname" 'dirname'
 
-  if [[ -n "$p_local_host_name" ]]; then
-    p_local_host_name="${p_local_host_name//./-}"
-    echo "${dirname}.host-${p_local_host_name}.localhost"
+  if [[ -n "$a_local_host_name" ]]; then
+    a_local_host_name="${a_local_host_name//./-}"
+    echo "${dirname}.host-${a_local_host_name}.localhost"
     return
   fi
 
@@ -724,16 +724,16 @@ u_instance_domain() {
 # @see asc/extensions/file_registry
 #
 # @example
-#   u_instance_registry_set 'my_key' 1
+#   f_instance_registry_set 'my_key' 1
 #
-u_instance_registry_set() {
+f_instance_registry_set() {
   local reg_key="$1"
   local reg_val=$2
 
   # Disallow empty keys.
   if [[ -z "$reg_key" ]]; then
     echo >&2
-    echo "Error in u_instance_registry_set() - $BASH_SOURCE line $LINENO: key is required." >&2
+    echo "Error in f_instance_registry_set() - $BASH_SOURCE line $LINENO: key is required." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     exit 1
@@ -746,7 +746,7 @@ u_instance_registry_set() {
 
   # NB : any implementation of this hook MUST use the reg_val and reg_key
   # variables (which are restricted to this function scope).
-  u_hook_most_specific -s 'instance' -a 'registry_set' -v 'HOST_TYPE INSTANCE_TYPE'
+  hook_ms -s 'instance' -a 'registry_set' -v 'HOST_TYPE INSTANCE_TYPE'
 }
 
 ##
@@ -765,10 +765,10 @@ u_instance_registry_set() {
 # @var reg_val
 #
 # @example
-#   u_instance_registry_get 'my_key'
+#   f_instance_registry_get 'my_key'
 #   echo "$reg_val" # <- Prints the value if there is an entry for 'my_key'.
 #
-u_instance_registry_get() {
+f_instance_registry_get() {
   local reg_key="$1"
 
   # Prevents risks of intereference between multiple calls (since we reuse the
@@ -777,7 +777,7 @@ u_instance_registry_get() {
 
   # NB : any implementation of this hook MUST set its result using the reg_val
   # variable, in this case NOT restricted to this function scope.
-  u_hook_most_specific -s 'instance' -a 'registry_get' -v 'HOST_TYPE INSTANCE_TYPE'
+  hook_ms -s 'instance' -a 'registry_get' -v 'HOST_TYPE INSTANCE_TYPE'
 }
 
 ##
@@ -790,26 +790,26 @@ u_instance_registry_get() {
 # @see asc/extensions/file_registry
 #
 # @example
-#   u_instance_registry_del 'my_key'
+#   f_instance_registry_del 'my_key'
 #
-u_instance_registry_del() {
+f_instance_registry_del() {
   local reg_key="$1"
 
   # NB : any implementation of this hook MUST use the reg_key variable (which is
   # restricted to this function scope).
-  u_hook_most_specific -s 'instance' -a 'registry_del' -v 'HOST_TYPE INSTANCE_TYPE'
+  hook_ms -s 'instance' -a 'registry_del' -v 'HOST_TYPE INSTANCE_TYPE'
 }
 
 ##
 # Prevents running something more than once for current project instance.
 #
 # Checks boolean flag for this instance.
-# @see u_instance_registry_get()
-# @see u_instance_registry_set()
+# @see f_instance_registry_get()
+# @see f_instance_registry_set()
 #
 # @example
 #   # When you need to proceed inside the condition :
-#   if u_instance_once "my_once_id" ; then
+#   if f_instance_once "my_once_id" ; then
 #     echo "Proceed."
 #   else
 #     echo "Notice in $BASH_SOURCE line $LINENO : this has already been run on this instance."
@@ -818,23 +818,23 @@ u_instance_registry_del() {
 #   fi
 #
 #   # When you need to stop/exit inside the condition :
-#   if ! u_instance_once "my_once_id" ; then
+#   if ! f_instance_once "my_once_id" ; then
 #     echo "Notice in $BASH_SOURCE line $LINENO: already run for current project instance."
 #     echo "-> Aborting."
 #     exit
 #   fi
 #
-u_instance_once() {
-  local p_flag="$1"
+f_instance_once() {
+  local a_flag="$1"
 
   # TODO check what happens in case of unexpected collisions (if that var
   # already exists in calling scope).
   local reg_val
 
-  u_instance_registry_get "$p_flag"
+  f_instance_registry_get "$a_flag"
 
   if [[ $reg_val -ne 1 ]]; then
-    u_instance_registry_set "$p_flag"
+    f_instance_registry_set "$a_flag"
     return
   fi
 

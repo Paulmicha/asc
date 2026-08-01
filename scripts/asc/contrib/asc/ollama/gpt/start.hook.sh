@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ##
-# Implements u_hook_most_specific -s 'agent' -a 'start' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
+# Implements hook_ms -s 'agent' -a 'start' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
 #
 # Ensure `ollama` is in PATH and ollama.service / API are up. Model pull is
 # separate (`make agent-pull`). Override with start.<variants>.hook.sh if needed.
@@ -26,23 +26,23 @@ if ! command -v ollama >/dev/null 2>&1; then
   exit 1
 fi
 
-p_service_active='unknown'
-p_api_ok=0
+a_service_active='unknown'
+a_api_ok=0
 
 if curl -sf http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
-  p_api_ok=1
+  a_api_ok=1
 fi
 
-if [[ $p_api_ok -eq 0 ]]; then
+if [[ $a_api_ok -eq 0 ]]; then
   if systemctl is-active --quiet ollama 2>/dev/null; then
-    p_service_active='active'
+    a_service_active='active'
   elif systemctl is-active --quiet ollama.service 2>/dev/null; then
-    p_service_active='active'
+    a_service_active='active'
   else
-    p_service_active='inactive'
+    a_service_active='inactive'
   fi
 
-  if [[ "$p_service_active" != 'active' ]]; then
+  if [[ "$a_service_active" != 'active' ]]; then
     echo "Starting ollama.service ..."
 
     if systemctl start ollama 2>/dev/null; then

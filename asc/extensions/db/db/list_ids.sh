@@ -14,7 +14,7 @@
 . asc/bootstrap.sh
 
 db_ids=()
-u_db_get_ids
+f_db_get_ids
 
 echo "Here are all the database IDs defined in this project instance :"
 

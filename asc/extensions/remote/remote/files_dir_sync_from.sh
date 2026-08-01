@@ -36,11 +36,11 @@ if [[ -z "$remote_id" ]]; then
   remote_id='prod'
 fi
 
-u_remote_check_id "$remote_id"
+f_remote_check_id "$remote_id"
 
 echo "Fetching files from '$remote_id' remote ..."
 
-u_remote_instance_load "$remote_id"
+f_remote_instance_load "$remote_id"
 
 for suffix in $ASC_REMOTE_FILES_SUFFIXES; do
   if [[ -n "$files_type" ]]; then
@@ -55,8 +55,8 @@ for suffix in $ASC_REMOTE_FILES_SUFFIXES; do
     esac
   fi
 
-  u_str_sanitize_var_name "$suffix" 'suffix'
-  u_str_uppercase "$suffix" 'SUFFIX'
+  f_str_sanitize_var_name "$suffix" 'suffix'
+  f_str_uppercase "$suffix" 'SUFFIX'
 
   var="REMOTE_INSTANCE_FILES_${SUFFIX}_REMOTE"
   remote_dir="${!var}"
@@ -69,11 +69,11 @@ for suffix in $ASC_REMOTE_FILES_SUFFIXES; do
   fi
 
   tokens_replaced=''
-  u_remote_definition_tokens_replace "$remote_id" "$remote_dir"
+  f_remote_definition_tokens_replace "$remote_id" "$remote_dir"
   remote_dir="$tokens_replaced"
 
   tokens_replaced=''
-  u_remote_definition_tokens_replace "$remote_id" "$local_dir"
+  f_remote_definition_tokens_replace "$remote_id" "$local_dir"
   local_dir="$tokens_replaced"
 
   # Debug.

@@ -27,18 +27,18 @@
 
 . asc/bootstrap.sh
 
-p_remote_id="$1"
-p_new_type="$2"
+a_remote_id="$1"
+a_new_type="$2"
 
-if [[ -z "$p_remote_id" ]]; then
-  p_remote_id='prod'
+if [[ -z "$a_remote_id" ]]; then
+  a_remote_id='prod'
 fi
 
-u_remote_check_id "$p_remote_id"
+f_remote_check_id "$a_remote_id"
 
-if [[ -z "$p_new_type" ]]; then
-  p_new_type='prod'
+if [[ -z "$a_new_type" ]]; then
+  a_new_type='prod'
 fi
 
-. asc/extensions/remote_asc/remote/exec.sh "$p_remote_id" \
-  "asc/instance/switch_type.sh $p_new_type && asc/instance/restart.sh"
+. asc/extensions/remote_asc/remote/exec.sh "$a_remote_id" \
+  "asc/instance/switch_type.sh $a_new_type && asc/instance/restart.sh"

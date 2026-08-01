@@ -9,4 +9,4 @@
 # @see asc/extensions/compose/instance/instance.inc.sh
 #
 
-u_dc_instance_start
+f_dc_instance_start

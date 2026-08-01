@@ -17,11 +17,11 @@
 #   asc/extensions/moodle_d4php/remote/moodle_basic_auth.sh 'stage'
 #
 
-p_remote_id="$1"
+a_remote_id="$1"
 
-if [[ -z "$p_remote_id" ]]; then
-  p_remote_id='dev'
+if [[ -z "$a_remote_id" ]]; then
+  a_remote_id='dev'
 fi
 
-asc/extensions/remote/remote/exec.sh "$p_remote_id" \
+asc/extensions/remote/remote/exec.sh "$a_remote_id" \
   asc/instance/registry_get.sh 'moodle_basic_auth_creds'

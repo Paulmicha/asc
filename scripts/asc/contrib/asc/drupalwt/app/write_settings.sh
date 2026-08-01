@@ -13,5 +13,5 @@
 
 . asc/bootstrap.sh
 
-u_db_set
-u_dwt_write_settings
+f_db_set
+f_dwt_write_settings

@@ -10,4 +10,4 @@
 # @see asc/extensions/compose/instance/destroy.compose.hook.sh
 #
 
-u_db_unflag_all
+f_db_unflag_all

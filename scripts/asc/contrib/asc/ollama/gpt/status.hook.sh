@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ##
-# Implements u_hook_most_specific -s 'agent' -a 'status' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
+# Implements hook_ms -s 'agent' -a 'status' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
 #
 # Report Ollama binary, service/API reachability, and running models.
 #
@@ -19,23 +19,23 @@ fi
 
 echo "binary    : $(command -v ollama)"
 
-p_service='unknown'
+a_service='unknown'
 if systemctl is-active --quiet ollama 2>/dev/null \
   || systemctl is-active --quiet ollama.service 2>/dev/null; then
-  p_service='active'
+  a_service='active'
 elif systemctl is-enabled --quiet ollama 2>/dev/null \
   || systemctl is-enabled --quiet ollama.service 2>/dev/null; then
-  p_service='inactive (enabled)'
+  a_service='inactive (enabled)'
 elif command -v systemctl >/dev/null 2>&1; then
-  p_service='inactive'
+  a_service='inactive'
 fi
-echo "service   : $p_service"
+echo "service   : $a_service"
 
-p_api='down'
+a_api='down'
 if curl -sf http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
-  p_api='up (http://127.0.0.1:11434)'
+  a_api='up (http://127.0.0.1:11434)'
 fi
-echo "api       : $p_api"
+echo "api       : $a_api"
 
 echo
 echo "Running models (ollama ps):"

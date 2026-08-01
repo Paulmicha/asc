@@ -5,7 +5,7 @@
 #
 # (this script intentionally out of bootstrapped ASC includes)
 #
-# @see u_make_unescape() in asc/make/make.inc.sh
+# @see f_make_unescape() in asc/make/make.inc.sh
 #
 # @example
 #   asc/escape.sh 'arg1 with space' arg2

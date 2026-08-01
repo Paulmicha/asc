@@ -3,7 +3,7 @@
 ##
 # Implements hook -s 'app instance' -a 'ensure_dirs_exist'
 #
-# @see u_instance_init()
+# @see f_instance_init()
 #
 
 required_dirs="$MOODLE_DATA_DIR $MOODLE_PHPUNITDATA_DIR $MOODLE_BEHATDATA_DIR $MOODLE_BEHATFAILDUMPS_DIR"

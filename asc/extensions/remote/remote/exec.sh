@@ -34,7 +34,7 @@
 raw_args=$@
 remote_id="$1"
 
-u_remote_check_id "$remote_id"
+f_remote_check_id "$remote_id"
 
 cmd="$2"
 args=''
@@ -49,4 +49,4 @@ fi
 
 hook -s 'remote' -a 'exec'
 
-u_remote_exec_wrapper $raw_args
+f_remote_exec_wrapper $raw_args

@@ -9,7 +9,7 @@
 # sources and project root entries are handled by extension hooks when needed.
 #
 # This file is dynamically included when the "hook" is triggered.
-# @see u_instance_set_permissions() in asc/instance/instance.inc.sh
+# @see f_instance_set_permissions() in asc/instance/instance.inc.sh
 #
 # To verify which files can be used (and will be sourced) when this hook is
 # triggered :

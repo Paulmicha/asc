@@ -6,12 +6,12 @@
 # Uses the following vars in calling scope :
 # - reg_key
 #
-# @see u_instance_registry_del() in asc/instance/instance.inc.sh
+# @see f_instance_registry_del() in asc/instance/instance.inc.sh
 #
 
 reg_file_path=''
 
-u_file_registry_get_path "$reg_key"
+f_file_registry_get_path "$reg_key"
 
 if [[ -f "$reg_file_path" ]]; then
   rm "$reg_file_path"

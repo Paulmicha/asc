@@ -13,34 +13,34 @@
 #   # data/logs/transcribe-all.txt
 #   # And also add a new line in its corresponding "registry file" :
 #   # data/logs/transcribe-all.sidecar.txt
-#   asc/log/wrap.sh \
+#   asc/log/log.wrap.sh \
 #     asc/extensions/transcription/transcribe/all.sh
 #
 #   # Works with raw make entry points too :
 #   make log-wrap e:test-asc
 #   # Or :
-#   asc/log/wrap.sh test-asc
+#   asc/log/log.wrap.sh test-asc
 #
 #   # Works with thread-wrap inner wrapper (log captures, thread backgrounds) :
 #   make lt e:transcribe-all
 #   # Or :
-#   asc/instance/logged_thread.sh transcribe-all
+#   asc/instance/logged/thread.sh transcribe-all
 #   # Yields :
 #   #   data/logs/transcribe-all.txt (+ sidecar); PID in data/threads/
 #   # Equivalent (without pre-process and post-process hooks) :
-#   asc/log/wrap.sh asc/thread/wrap.sh transcribe-all
+#   asc/log/log.wrap.sh asc/thread/thread.wrap.sh transcribe-all
 #
 
 . asc/bootstrap.sh
 
-p_script="$1"
+a_script="$1"
 shift
 
-log_file="$p_script"
+log_file="$a_script"
 uses_thread_inner_wrap=0
 is_valid=0
 
-if [[ "$p_script" == *'thread/wrap.sh' ]]; then
+if [[ "$a_script" == *'thread.wrap.sh' ]]; then
   uses_thread_inner_wrap=1
   log_file="$1"
 fi
@@ -49,7 +49,7 @@ fi
 make_entries=()
 real_scripts=()
 
-u_make_list_entry_points
+f_make_list_entry_points
 
 for index in "${!real_scripts[@]}"; do
   task="${make_entries[index]}"
@@ -65,7 +65,7 @@ for index in "${!real_scripts[@]}"; do
   # Check other values against make entry points (whitelist).
   if [[ $uses_thread_inner_wrap -eq 0 ]]; then
     case "$log_file" in "$task")
-      p_script="$script"
+      a_script="$script"
       is_valid=1
     esac
   else
@@ -84,19 +84,19 @@ if [[ $is_valid -ne 1 ]]; then
 fi
 
 # Pile-up: do not truncate/restart logs if the entry thread is still running.
-p_entry_name="${log_file#e:}"
-if u_thread_pileup_should_skip "$p_entry_name"; then
-  echo "Log/thread '$p_entry_name' already running (PID $thread_pid); skip."
+a_entry_name="${log_file#e:}"
+if f_thread_pileup_should_skip "$a_entry_name"; then
+  echo "Log/thread '$a_entry_name' already running (PID $thread_pid); skip."
   exit 0
 fi
 
-u_hook_most_specific 'dry-run' -s 'log' -a 'storage' -v 'STACK_VERSION PROVISION_USING HOST_TYPE HOST_OS'
+hook_ms 'dry-run' -s 'log' -a 'storage' -v 'STACK_VERSION PROVISION_USING HOST_TYPE HOST_OS'
 
-if [[ ! -f "$hook_most_specific_dry_run_match" ]]; then
+if [[ ! -f "$most_specific_match" ]]; then
   echo >&2
   echo "Error in $BASH_SOURCE line $LINENO - no implementation match :" >&2
   echo >&2
-  echo "  u_hook_most_specific 'dry-run' -s 'log' -a 'storage' -v 'STACK_VERSION PROVISION_USING HOST_TYPE HOST_OS'" >&2
+  echo "  hook_ms 'dry-run' -s 'log' -a 'storage' -v 'STACK_VERSION PROVISION_USING HOST_TYPE HOST_OS'" >&2
   echo >&2
   echo "    STACK_VERSION = '$HOST_OS'" >&2
   echo "    PROVISION_USING = '$PROVISION_USING'" >&2
@@ -108,4 +108,4 @@ if [[ ! -f "$hook_most_specific_dry_run_match" ]]; then
   exit 1
 fi
 
-. "$hook_most_specific_dry_run_match" "$@"
+. "$most_specific_match" "$@"

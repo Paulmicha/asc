@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ##
-# Implements u_hook_most_specific -s 'agent' -a 'stop_all' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
+# Implements hook_ms -s 'agent' -a 'stop_all' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
 #
 # Unload every model currently loaded in memory (`ollama ps` → `ollama stop`).
 #
@@ -17,21 +17,21 @@ if ! command -v ollama >/dev/null 2>&1; then
   exit 1
 fi
 
-p_running=()
-while IFS= read -r p_name; do
-  [[ -n "$p_name" ]] || continue
-  p_running+=("$p_name")
+a_running=()
+while IFS= read -r a_name; do
+  [[ -n "$a_name" ]] || continue
+  a_running+=("$a_name")
 done < <(ollama ps 2>/dev/null | awk 'NR > 1 && $1 != "" { print $1 }')
 
-if [[ ${#p_running[@]} -eq 0 ]]; then
+if [[ ${#a_running[@]} -eq 0 ]]; then
   echo "No running Ollama models."
   echo "Over."
   exit 0
 fi
 
-for p_model in "${p_running[@]}"; do
-  echo "Stopping model '$p_model' ..."
-  ollama stop "$p_model" || exit $?
+for a_model in "${a_running[@]}"; do
+  echo "Stopping model '$a_model' ..."
+  ollama stop "$a_model" || exit $?
 done
 
 echo "Over."

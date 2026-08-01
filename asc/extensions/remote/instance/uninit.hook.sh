@@ -13,4 +13,4 @@
 #
 
 # @see asc/extensions/remote/remote.inc.sh
-u_remote_purge_instances
+f_remote_purge_instances

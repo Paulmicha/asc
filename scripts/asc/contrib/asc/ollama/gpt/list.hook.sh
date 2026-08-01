@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ##
-# Implements u_hook_most_specific -s 'agent' -a 'list' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
+# Implements hook_ms -s 'agent' -a 'list' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
 #
 # List locally available Ollama models (`ollama list`).
 #

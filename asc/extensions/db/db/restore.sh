@@ -4,7 +4,7 @@
 # Empties database + imports given dump file.
 #
 # @param 1 String : the dump file path.
-# @param 2 [optional] String : the database ID ($DB_ID), see u_db_set().
+# @param 2 [optional] String : the database ID ($DB_ID), see f_db_set().
 #   Defaults to 'default'.
 #
 # @example
@@ -18,4 +18,4 @@
 . asc/bootstrap.sh
 
 # @see asc/extensions/db/db.inc.sh
-u_db_restore $@
+f_db_restore $@

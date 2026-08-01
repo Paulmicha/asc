@@ -5,7 +5,7 @@
 #
 # Workaround error permissions 755 for acme.json are too open, please use 600.
 #
-# @see u_instance_set_permissions()
+# @see f_instance_set_permissions()
 #
 
 if [[ -f "$PROJECT_DOCROOT/data/asc/acme.json" ]]; then

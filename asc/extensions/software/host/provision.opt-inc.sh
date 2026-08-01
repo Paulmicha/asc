@@ -7,7 +7,7 @@
 # and/or loaded via software/software/software.opt-inc.sh for software-* actions.
 #
 # @see asc/extensions/software/host/provision.hook.sh
-# @see asc/utilities/hook.sh (u_hook_opt_inc_append_candidates)
+# @see asc/utilities/hook.sh (f_hook_opt_inc_append_candidates)
 # @see changelog/2026/07/16-asc-include-splitting-hook-mapped-deps.md
 #
 # Convention : function names are prefixed by "u".
@@ -16,9 +16,9 @@
 ##
 # Strip surrounding quotes left by bash-yaml scalars.
 #
-u_software_scalar() {
-  local p_val="$1"
-  local out="$p_val"
+f_software_scalar() {
+  local a_val="$1"
+  local out="$a_val"
 
   out="${out#\"}"
   out="${out%\"}"
@@ -31,11 +31,11 @@ u_software_scalar() {
 ##
 # Expand leading ~/ to $HOME.
 #
-u_software_expand_path() {
-  local p_path="$1"
+f_software_expand_path() {
+  local a_path="$1"
   local out
 
-  out="$(u_software_scalar "$p_path")"
+  out="$(f_software_scalar "$a_path")"
 
   case "$out" in
     '~'|'~/'*)
@@ -51,7 +51,7 @@ u_software_expand_path() {
 #
 # Sets SOFTWARE_PRUNE=1 when --prune is present in "$@".
 #
-u_software_parse_args() {
+f_software_parse_args() {
   local arg
 
   for arg in "$@"; do
@@ -68,7 +68,7 @@ u_software_parse_args() {
 #
 # @var software_manifest_files
 #
-u_software_manifest_paths() {
+f_software_manifest_paths() {
   software_manifest_files=()
 
   if [[ -f scripts/asc/extend/software/apps.manifest.yml ]]; then
@@ -87,7 +87,7 @@ u_software_manifest_paths() {
 ##
 # Load and merge manifests into sw_* arrays (bash-yaml).
 #
-u_software_load_manifests() {
+f_software_load_manifests() {
   local f
   local parsed
 
@@ -119,7 +119,7 @@ u_software_load_manifests() {
   sw_units__enable=()
   sw_units__requires=()
 
-  u_software_manifest_paths
+  f_software_manifest_paths
 
   if [[ ${#software_manifest_files[@]} -eq 0 ]]; then
     echo >&2
@@ -131,7 +131,7 @@ u_software_load_manifests() {
   fi
 
   for f in "${software_manifest_files[@]}"; do
-    parsed="$(u_yaml_parse "$f" 'sw_')"
+    parsed="$(f_yaml_parse "$f" 'sw_')"
     eval "$parsed"
   done
 
@@ -141,37 +141,37 @@ u_software_load_manifests() {
 ##
 # Managed-state file path (gitignored under data/asc).
 #
-u_software_managed_path() {
+f_software_managed_path() {
   echo 'data/asc/software/managed.list'
 }
 
 ##
 # Ensure local software state dir exists.
 #
-u_software_ensure_state_dir() {
+f_software_ensure_state_dir() {
   mkdir -p data/asc/software
 }
 
 ##
 # Record a managed install id (kind:name).
 #
-u_software_managed_add() {
-  local p_id="$1"
+f_software_managed_add() {
+  local a_id="$1"
   local path
   local line
 
-  u_software_ensure_state_dir
-  path="$(u_software_managed_path)"
+  f_software_ensure_state_dir
+  path="$(f_software_managed_path)"
 
   if [[ -f "$path" ]]; then
     while IFS= read -r line || [[ -n "$line" ]]; do
-      if [[ "$line" == "$p_id" ]]; then
+      if [[ "$line" == "$a_id" ]]; then
         return 0
       fi
     done < "$path"
   fi
 
-  echo "$p_id" >> "$path"
+  echo "$a_id" >> "$path"
 }
 
 ##
@@ -179,12 +179,12 @@ u_software_managed_add() {
 #
 # @var software_managed_ids
 #
-u_software_managed_load() {
+f_software_managed_load() {
   local path
   local line
 
   software_managed_ids=()
-  path="$(u_software_managed_path)"
+  path="$(f_software_managed_path)"
 
   if [[ ! -f "$path" ]]; then
     return 0
@@ -199,12 +199,12 @@ u_software_managed_load() {
 ##
 # Rewrite managed.list from software_managed_ids.
 #
-u_software_managed_save() {
+f_software_managed_save() {
   local path
   local id
 
-  u_software_ensure_state_dir
-  path="$(u_software_managed_path)"
+  f_software_ensure_state_dir
+  path="$(f_software_managed_path)"
 
   : > "$path"
 
@@ -216,21 +216,21 @@ u_software_managed_save() {
 ##
 # Remove one id from the managed list.
 #
-u_software_managed_remove() {
-  local p_id="$1"
+f_software_managed_remove() {
+  local a_id="$1"
   local kept=()
   local id
 
-  u_software_managed_load
+  f_software_managed_load
 
   for id in "${software_managed_ids[@]}"; do
-    if [[ "$id" != "$p_id" ]]; then
+    if [[ "$id" != "$a_id" ]]; then
       kept+=("$id")
     fi
   done
 
   software_managed_ids=("${kept[@]}")
-  u_software_managed_save
+  f_software_managed_save
 }
 
 ##
@@ -238,7 +238,7 @@ u_software_managed_remove() {
 #
 # @var software_desired_ids
 #
-u_software_desired_ids() {
+f_software_desired_ids() {
   local i
   local pkg
   local name
@@ -246,33 +246,33 @@ u_software_desired_ids() {
   software_desired_ids=()
 
   for pkg in "${sw_apt[@]}"; do
-    pkg="$(u_software_scalar "$pkg")"
+    pkg="$(f_software_scalar "$pkg")"
     [[ -n "$pkg" ]] && software_desired_ids+=("apt:$pkg")
   done
 
   for pkg in "${sw_pipx[@]}"; do
-    pkg="$(u_software_scalar "$pkg")"
+    pkg="$(f_software_scalar "$pkg")"
     name="${pkg%%==*}"
     [[ -n "$name" ]] && software_desired_ids+=("pipx:$name")
   done
 
   for ((i = 0; i < ${#sw_tarball__id[@]}; i++)); do
-    name="$(u_software_scalar "${sw_tarball__id[$i]}")"
+    name="$(f_software_scalar "${sw_tarball__id[$i]}")"
     [[ -n "$name" ]] && software_desired_ids+=("tarball:$name")
   done
 
   for ((i = 0; i < ${#sw_appimage__id[@]}; i++)); do
-    name="$(u_software_scalar "${sw_appimage__id[$i]}")"
+    name="$(f_software_scalar "${sw_appimage__id[$i]}")"
     [[ -n "$name" ]] && software_desired_ids+=("appimage:$name")
   done
 
   for ((i = 0; i < ${#sw_ensure__id[@]}; i++)); do
-    name="$(u_software_scalar "${sw_ensure__id[$i]}")"
+    name="$(f_software_scalar "${sw_ensure__id[$i]}")"
     [[ -n "$name" ]] && software_desired_ids+=("ensure:$name")
   done
 
   for ((i = 0; i < ${#sw_units__id[@]}; i++)); do
-    name="$(u_software_scalar "${sw_units__id[$i]}")"
+    name="$(f_software_scalar "${sw_units__id[$i]}")"
     [[ -n "$name" ]] && software_desired_ids+=("unit:$name")
   done
 }
@@ -280,12 +280,12 @@ u_software_desired_ids() {
 ##
 # Return 0 if id is in the desired set.
 #
-u_software_is_desired() {
-  local p_id="$1"
+f_software_is_desired() {
+  local a_id="$1"
   local id
 
   for id in "${software_desired_ids[@]}"; do
-    if [[ "$id" == "$p_id" ]]; then
+    if [[ "$id" == "$a_id" ]]; then
       return 0
     fi
   done
@@ -296,10 +296,10 @@ u_software_is_desired() {
 ##
 # Apt package status: missing | ok
 #
-u_software_apt_status() {
-  local p_pkg="$1"
+f_software_apt_status() {
+  local a_pkg="$1"
 
-  if dpkg-query -W -f='${Status}' "$p_pkg" 2>/dev/null | grep -q 'install ok installed'; then
+  if dpkg-query -W -f='${Status}' "$a_pkg" 2>/dev/null | grep -q 'install ok installed'; then
     echo 'ok'
   else
     echo 'missing'
@@ -311,18 +311,18 @@ u_software_apt_status() {
 #
 # Spec is name or name==version.
 #
-u_software_pipx_status() {
-  local p_spec="$1"
+f_software_pipx_status() {
+  local a_spec="$1"
   local name
   local want_ver
   local have
   local have_ver
 
-  name="${p_spec%%==*}"
+  name="${a_spec%%==*}"
   want_ver=''
 
-  if [[ "$p_spec" == *==* ]]; then
-    want_ver="${p_spec#*==}"
+  if [[ "$a_spec" == *==* ]]; then
+    want_ver="${a_spec#*==}"
   fi
 
   if ! command -v pipx >/dev/null 2>&1; then
@@ -350,16 +350,16 @@ u_software_pipx_status() {
 ##
 # Tarball app status via install_dir/.asc-software-version
 #
-u_software_tarball_status() {
-  local p_dir="$1"
-  local p_version="$2"
-  local p_binary="$3"
+f_software_tarball_status() {
+  local a_dir="$1"
+  local a_version="$2"
+  local a_binary="$3"
   local marker
   local have
   local bin_path
 
-  marker="${p_dir}/.asc-software-version"
-  bin_path="${p_dir}/${p_binary}"
+  marker="${a_dir}/.asc-software-version"
+  bin_path="${a_dir}/${a_binary}"
 
   if [[ ! -x "$bin_path" && ! -f "$bin_path" ]]; then
     echo 'missing'
@@ -369,7 +369,7 @@ u_software_tarball_status() {
   if [[ -f "$marker" ]]; then
     have="$(tr -d '[:space:]' < "$marker")"
 
-    if [[ "$have" == "$p_version" ]]; then
+    if [[ "$have" == "$a_version" ]]; then
       echo 'ok'
       return 0
     fi
@@ -385,20 +385,20 @@ u_software_tarball_status() {
 ##
 # AppImage status: missing | outdated | ok
 #
-u_software_appimage_status() {
-  local p_path="$1"
-  local p_sha="$2"
+f_software_appimage_status() {
+  local a_path="$1"
+  local a_sha="$2"
   local have
 
-  if [[ ! -f "$p_path" ]]; then
+  if [[ ! -f "$a_path" ]]; then
     echo 'missing'
     return 0
   fi
 
-  if [[ -n "$p_sha" ]]; then
-    have="$(sha256sum "$p_path" | awk '{ print $1 }')"
+  if [[ -n "$a_sha" ]]; then
+    have="$(sha256sum "$a_path" | awk '{ print $1 }')"
 
-    if [[ "$have" != "$p_sha" ]]; then
+    if [[ "$have" != "$a_sha" ]]; then
       echo 'outdated'
       return 0
     fi
@@ -410,10 +410,10 @@ u_software_appimage_status() {
 ##
 # Ensure-command status: missing | ok
 #
-u_software_ensure_status() {
-  local p_cmd="$1"
+f_software_ensure_status() {
+  local a_cmd="$1"
 
-  if command -v "$p_cmd" >/dev/null 2>&1; then
+  if command -v "$a_cmd" >/dev/null 2>&1; then
     echo 'ok'
   else
     echo 'missing'
@@ -423,10 +423,10 @@ u_software_ensure_status() {
 ##
 # systemd --user unit status: missing | ok
 #
-u_software_unit_status() {
-  local p_id="$1"
+f_software_unit_status() {
+  local a_id="$1"
 
-  if [[ -f "${HOME}/.config/systemd/user/${p_id}.service" ]]; then
+  if [[ -f "${HOME}/.config/systemd/user/${a_id}.service" ]]; then
     echo 'ok'
   else
     echo 'missing'
@@ -440,7 +440,7 @@ u_software_unit_status() {
 # @var software_diff_status
 # @var software_diff_extra
 #
-u_software_build_diff() {
+f_software_build_diff() {
   local i
   local pkg
   local name
@@ -459,66 +459,66 @@ u_software_build_diff() {
   software_diff_status=()
   software_diff_extra=()
 
-  u_software_desired_ids
-  u_software_managed_load
+  f_software_desired_ids
+  f_software_managed_load
 
   for pkg in "${sw_apt[@]}"; do
-    pkg="$(u_software_scalar "$pkg")"
+    pkg="$(f_software_scalar "$pkg")"
     [[ -z "$pkg" ]] && continue
-    st="$(u_software_apt_status "$pkg")"
+    st="$(f_software_apt_status "$pkg")"
     software_diff_ids+=("apt:$pkg")
     software_diff_status+=("$st")
   done
 
   for pkg in "${sw_pipx[@]}"; do
-    pkg="$(u_software_scalar "$pkg")"
+    pkg="$(f_software_scalar "$pkg")"
     [[ -z "$pkg" ]] && continue
     name="${pkg%%==*}"
-    st="$(u_software_pipx_status "$pkg")"
+    st="$(f_software_pipx_status "$pkg")"
     software_diff_ids+=("pipx:$name")
     software_diff_status+=("$st")
   done
 
   for ((i = 0; i < ${#sw_tarball__id[@]}; i++)); do
-    name="$(u_software_scalar "${sw_tarball__id[$i]}")"
-    ver="$(u_software_scalar "${sw_tarball__version[$i]}")"
-    dir="$(u_software_expand_path "${sw_tarball__install_dir[$i]}")"
-    bin="$(u_software_scalar "${sw_tarball__binary[$i]}")"
+    name="$(f_software_scalar "${sw_tarball__id[$i]}")"
+    ver="$(f_software_scalar "${sw_tarball__version[$i]}")"
+    dir="$(f_software_expand_path "${sw_tarball__install_dir[$i]}")"
+    bin="$(f_software_scalar "${sw_tarball__binary[$i]}")"
     [[ -z "$name" ]] && continue
-    st="$(u_software_tarball_status "$dir" "$ver" "$bin")"
+    st="$(f_software_tarball_status "$dir" "$ver" "$bin")"
     software_diff_ids+=("tarball:$name")
     software_diff_status+=("$st")
   done
 
   for ((i = 0; i < ${#sw_appimage__id[@]}; i++)); do
-    name="$(u_software_scalar "${sw_appimage__id[$i]}")"
-    path="$(u_software_expand_path "${sw_appimage__path[$i]}")"
-    sha="$(u_software_scalar "${sw_appimage__sha256[$i]:-}")"
+    name="$(f_software_scalar "${sw_appimage__id[$i]}")"
+    path="$(f_software_expand_path "${sw_appimage__path[$i]}")"
+    sha="$(f_software_scalar "${sw_appimage__sha256[$i]:-}")"
     [[ -z "$name" ]] && continue
-    st="$(u_software_appimage_status "$path" "$sha")"
+    st="$(f_software_appimage_status "$path" "$sha")"
     software_diff_ids+=("appimage:$name")
     software_diff_status+=("$st")
   done
 
   for ((i = 0; i < ${#sw_ensure__id[@]}; i++)); do
-    name="$(u_software_scalar "${sw_ensure__id[$i]}")"
-    cmd="$(u_software_scalar "${sw_ensure__command[$i]}")"
+    name="$(f_software_scalar "${sw_ensure__id[$i]}")"
+    cmd="$(f_software_scalar "${sw_ensure__command[$i]}")"
     [[ -z "$name" ]] && continue
-    st="$(u_software_ensure_status "$cmd")"
+    st="$(f_software_ensure_status "$cmd")"
     software_diff_ids+=("ensure:$name")
     software_diff_status+=("$st")
   done
 
   for ((i = 0; i < ${#sw_units__id[@]}; i++)); do
-    name="$(u_software_scalar "${sw_units__id[$i]}")"
+    name="$(f_software_scalar "${sw_units__id[$i]}")"
     [[ -z "$name" ]] && continue
-    st="$(u_software_unit_status "$name")"
+    st="$(f_software_unit_status "$name")"
     software_diff_ids+=("unit:$name")
     software_diff_status+=("$st")
   done
 
   for id in "${software_managed_ids[@]}"; do
-    if ! u_software_is_desired "$id"; then
+    if ! f_software_is_desired "$id"; then
       software_diff_extra+=("$id")
     fi
   done
@@ -527,7 +527,7 @@ u_software_build_diff() {
 ##
 # Print status diff summary.
 #
-u_software_print_diff() {
+f_software_print_diff() {
   local i
   local id
   local st
@@ -568,21 +568,21 @@ u_software_print_diff() {
 ##
 # Run apt-get install for one package (sudo if needed).
 #
-u_software_apt_install() {
-  local p_pkg="$1"
+f_software_apt_install() {
+  local a_pkg="$1"
 
   if [[ "$(id -u)" -eq 0 ]]; then
-    apt-get install -y "$p_pkg"
+    apt-get install -y "$a_pkg"
   else
-    sudo apt-get install -y "$p_pkg"
+    sudo apt-get install -y "$a_pkg"
   fi
 }
 
 ##
 # Install or upgrade a pipx package from name==version or name.
 #
-u_software_pipx_install() {
-  local p_spec="$1"
+f_software_pipx_install() {
+  local a_spec="$1"
   local name
   local st
 
@@ -591,15 +591,15 @@ u_software_pipx_install() {
     return 1
   fi
 
-  name="${p_spec%%==*}"
-  st="$(u_software_pipx_status "$p_spec")"
+  name="${a_spec%%==*}"
+  st="$(f_software_pipx_status "$a_spec")"
 
   case "$st" in
     missing)
-      pipx install "$p_spec"
+      pipx install "$a_spec"
       ;;
     outdated)
-      pipx install --force "$p_spec"
+      pipx install --force "$a_spec"
       ;;
     *)
       return 0
@@ -610,22 +610,22 @@ u_software_pipx_install() {
 ##
 # Download + unpack a versioned tarball into install_dir.
 #
-u_software_tarball_install() {
-  local p_id="$1"
-  local p_version="$2"
-  local p_url="$3"
-  local p_dir="$4"
-  local p_binary="$5"
+f_software_tarball_install() {
+  local a_id="$1"
+  local a_version="$2"
+  local a_url="$3"
+  local a_dir="$4"
+  local a_binary="$5"
   local url
   local tmp
   local archive
   local extracted
 
-  url="${p_url//\{version\}/$p_version}"
+  url="${a_url//\{version\}/$a_version}"
   tmp="$(mktemp -d)"
-  archive="${tmp}/${p_id}.tar.gz"
+  archive="${tmp}/${a_id}.tar.gz"
 
-  echo "Downloading $p_id v$p_version ..."
+  echo "Downloading $a_id v$a_version ..."
 
   if ! curl -fsSL "$url" -o "$archive"; then
     rm -rf "$tmp"
@@ -633,57 +633,57 @@ u_software_tarball_install() {
     return 1
   fi
 
-  mkdir -p "$p_dir"
+  mkdir -p "$a_dir"
   tar -xzf "$archive" -C "$tmp"
 
-  extracted="$(find "$tmp" -type f -name "$p_binary" | head -1)"
+  extracted="$(find "$tmp" -type f -name "$a_binary" | head -1)"
 
   if [[ -z "$extracted" || ! -f "$extracted" ]]; then
     rm -rf "$tmp"
-    echo >&2 "Error: binary '$p_binary' not found in archive."
+    echo >&2 "Error: binary '$a_binary' not found in archive."
     return 1
   fi
 
-  cp -a "$extracted" "${p_dir}/${p_binary}"
-  chmod +x "${p_dir}/${p_binary}"
-  echo "$p_version" > "${p_dir}/.asc-software-version"
+  cp -a "$extracted" "${a_dir}/${a_binary}"
+  chmod +x "${a_dir}/${a_binary}"
+  echo "$a_version" > "${a_dir}/.asc-software-version"
   rm -rf "$tmp"
 }
 
 ##
 # Download AppImage when URL is set.
 #
-u_software_appimage_install() {
-  local p_id="$1"
-  local p_url="$2"
-  local p_sha="$3"
-  local p_path="$4"
+f_software_appimage_install() {
+  local a_id="$1"
+  local a_url="$2"
+  local a_sha="$3"
+  local a_path="$4"
   local have
   local dir
 
-  if [[ -z "$p_url" ]]; then
-    echo >&2 "Skip appimage:$p_id — no url in manifest (file missing at $p_path)."
+  if [[ -z "$a_url" ]]; then
+    echo >&2 "Skip appimage:$a_id — no url in manifest (file missing at $a_path)."
     return 1
   fi
 
-  dir="$(dirname "$p_path")"
+  dir="$(dirname "$a_path")"
   mkdir -p "$dir"
 
-  echo "Downloading appimage:$p_id ..."
+  echo "Downloading appimage:$a_id ..."
 
-  if ! curl -fsSL "$p_url" -o "$p_path"; then
-    echo >&2 "Error: download failed for $p_url"
+  if ! curl -fsSL "$a_url" -o "$a_path"; then
+    echo >&2 "Error: download failed for $a_url"
     return 1
   fi
 
-  chmod +x "$p_path"
+  chmod +x "$a_path"
 
-  if [[ -n "$p_sha" ]]; then
-    have="$(sha256sum "$p_path" | awk '{ print $1 }')"
+  if [[ -n "$a_sha" ]]; then
+    have="$(sha256sum "$a_path" | awk '{ print $1 }')"
 
-    if [[ "$have" != "$p_sha" ]]; then
-      echo >&2 "Error: sha256 mismatch for $p_path"
-      echo >&2 "  expected: $p_sha"
+    if [[ "$have" != "$a_sha" ]]; then
+      echo >&2 "Error: sha256 mismatch for $a_path"
+      echo >&2 "  expected: $a_sha"
       echo >&2 "  got:      $have"
       return 1
     fi
@@ -693,28 +693,28 @@ u_software_appimage_install() {
 ##
 # Ensure a command via a known install method.
 #
-u_software_ensure_install() {
-  local p_id="$1"
-  local p_cmd="$2"
-  local p_method="$3"
+f_software_ensure_install() {
+  local a_id="$1"
+  local a_cmd="$2"
+  local a_method="$3"
 
-  if command -v "$p_cmd" >/dev/null 2>&1; then
+  if command -v "$a_cmd" >/dev/null 2>&1; then
     return 0
   fi
 
-  case "$p_method" in
+  case "$a_method" in
     ollama_install_sh)
       echo "Installing ollama via official install script ..."
       curl -fsSL https://ollama.com/install.sh | sh
       ;;
     *)
-      echo >&2 "Error: unknown ensure method '$p_method' for $p_id"
+      echo >&2 "Error: unknown ensure method '$a_method' for $a_id"
       return 1
       ;;
   esac
 
-  if ! command -v "$p_cmd" >/dev/null 2>&1; then
-    echo >&2 "Error: $p_cmd still missing after install."
+  if ! command -v "$a_cmd" >/dev/null 2>&1; then
+    echo >&2 "Error: $a_cmd still missing after install."
     return 1
   fi
 }
@@ -722,37 +722,37 @@ u_software_ensure_install() {
 ##
 # Install a systemd --user unit from a template path.
 #
-u_software_unit_install() {
-  local p_id="$1"
-  local p_template="$2"
-  local p_enable="$3"
+f_software_unit_install() {
+  local a_id="$1"
+  local a_template="$2"
+  local a_enable="$3"
   local dest
   local src
 
-  src="$p_template"
+  src="$a_template"
 
   if [[ ! -f "$src" ]]; then
-    if [[ -f "scripts/asc/extend/software/${p_template}" ]]; then
-      src="scripts/asc/extend/software/${p_template}"
-    elif [[ -f "asc/extensions/software/${p_template}" ]]; then
-      src="asc/extensions/software/${p_template}"
+    if [[ -f "scripts/asc/extend/software/${a_template}" ]]; then
+      src="scripts/asc/extend/software/${a_template}"
+    elif [[ -f "asc/extensions/software/${a_template}" ]]; then
+      src="asc/extensions/software/${a_template}"
     fi
   fi
 
   if [[ ! -f "$src" ]]; then
-    echo >&2 "Error: unit template not found: $p_template"
+    echo >&2 "Error: unit template not found: $a_template"
     return 1
   fi
 
-  dest="${HOME}/.config/systemd/user/${p_id}.service"
+  dest="${HOME}/.config/systemd/user/${a_id}.service"
   mkdir -p "$(dirname "$dest")"
   cp -a "$src" "$dest"
   systemctl --user daemon-reload
 
-  case "$(u_software_scalar "$p_enable")" in
+  case "$(f_software_scalar "$a_enable")" in
     true|yes|1)
-      systemctl --user enable --now "${p_id}.service" || \
-        systemctl --user enable "${p_id}.service"
+      systemctl --user enable --now "${a_id}.service" || \
+        systemctl --user enable "${a_id}.service"
       ;;
   esac
 }
@@ -760,7 +760,7 @@ u_software_unit_install() {
 ##
 # Apply install/upgrade for missing and outdated items.
 #
-u_software_apply_installs() {
+f_software_apply_installs() {
   local i
   local id
   local st
@@ -797,7 +797,7 @@ u_software_apply_installs() {
 
     case "$kind" in
       apt)
-        if ! u_software_apt_install "$name"; then
+        if ! f_software_apt_install "$name"; then
           rc=1
           continue
         fi
@@ -805,7 +805,7 @@ u_software_apply_installs() {
       pipx)
         pkg=''
         for pkg in "${sw_pipx[@]}"; do
-          pkg="$(u_software_scalar "$pkg")"
+          pkg="$(f_software_scalar "$pkg")"
           if [[ "${pkg%%==*}" == "$name" ]]; then
             break
           fi
@@ -815,7 +815,7 @@ u_software_apply_installs() {
           rc=1
           continue
         fi
-        if ! u_software_pipx_install "$pkg"; then
+        if ! f_software_pipx_install "$pkg"; then
           rc=1
           continue
         fi
@@ -823,7 +823,7 @@ u_software_apply_installs() {
       tarball)
         idx=-1
         for ((j = 0; j < ${#sw_tarball__id[@]}; j++)); do
-          if [[ "$(u_software_scalar "${sw_tarball__id[$j]}")" == "$name" ]]; then
+          if [[ "$(f_software_scalar "${sw_tarball__id[$j]}")" == "$name" ]]; then
             idx=$j
             break
           fi
@@ -832,11 +832,11 @@ u_software_apply_installs() {
           rc=1
           continue
         fi
-        ver="$(u_software_scalar "${sw_tarball__version[$idx]}")"
-        url="$(u_software_scalar "${sw_tarball__url[$idx]}")"
-        dir="$(u_software_expand_path "${sw_tarball__install_dir[$idx]}")"
-        bin="$(u_software_scalar "${sw_tarball__binary[$idx]}")"
-        if ! u_software_tarball_install "$name" "$ver" "$url" "$dir" "$bin"; then
+        ver="$(f_software_scalar "${sw_tarball__version[$idx]}")"
+        url="$(f_software_scalar "${sw_tarball__url[$idx]}")"
+        dir="$(f_software_expand_path "${sw_tarball__install_dir[$idx]}")"
+        bin="$(f_software_scalar "${sw_tarball__binary[$idx]}")"
+        if ! f_software_tarball_install "$name" "$ver" "$url" "$dir" "$bin"; then
           rc=1
           continue
         fi
@@ -844,7 +844,7 @@ u_software_apply_installs() {
       appimage)
         idx=-1
         for ((j = 0; j < ${#sw_appimage__id[@]}; j++)); do
-          if [[ "$(u_software_scalar "${sw_appimage__id[$j]}")" == "$name" ]]; then
+          if [[ "$(f_software_scalar "${sw_appimage__id[$j]}")" == "$name" ]]; then
             idx=$j
             break
           fi
@@ -853,10 +853,10 @@ u_software_apply_installs() {
           rc=1
           continue
         fi
-        url="$(u_software_scalar "${sw_appimage__url[$idx]:-}")"
-        sha="$(u_software_scalar "${sw_appimage__sha256[$idx]:-}")"
-        path="$(u_software_expand_path "${sw_appimage__path[$idx]}")"
-        if ! u_software_appimage_install "$name" "$url" "$sha" "$path"; then
+        url="$(f_software_scalar "${sw_appimage__url[$idx]:-}")"
+        sha="$(f_software_scalar "${sw_appimage__sha256[$idx]:-}")"
+        path="$(f_software_expand_path "${sw_appimage__path[$idx]}")"
+        if ! f_software_appimage_install "$name" "$url" "$sha" "$path"; then
           rc=1
           continue
         fi
@@ -864,7 +864,7 @@ u_software_apply_installs() {
       ensure)
         idx=-1
         for ((j = 0; j < ${#sw_ensure__id[@]}; j++)); do
-          if [[ "$(u_software_scalar "${sw_ensure__id[$j]}")" == "$name" ]]; then
+          if [[ "$(f_software_scalar "${sw_ensure__id[$j]}")" == "$name" ]]; then
             idx=$j
             break
           fi
@@ -873,9 +873,9 @@ u_software_apply_installs() {
           rc=1
           continue
         fi
-        cmd="$(u_software_scalar "${sw_ensure__command[$idx]}")"
-        method="$(u_software_scalar "${sw_ensure__method[$idx]}")"
-        if ! u_software_ensure_install "$name" "$cmd" "$method"; then
+        cmd="$(f_software_scalar "${sw_ensure__command[$idx]}")"
+        method="$(f_software_scalar "${sw_ensure__method[$idx]}")"
+        if ! f_software_ensure_install "$name" "$cmd" "$method"; then
           rc=1
           continue
         fi
@@ -883,7 +883,7 @@ u_software_apply_installs() {
       unit)
         idx=-1
         for ((j = 0; j < ${#sw_units__id[@]}; j++)); do
-          if [[ "$(u_software_scalar "${sw_units__id[$j]}")" == "$name" ]]; then
+          if [[ "$(f_software_scalar "${sw_units__id[$j]}")" == "$name" ]]; then
             idx=$j
             break
           fi
@@ -892,9 +892,9 @@ u_software_apply_installs() {
           rc=1
           continue
         fi
-        tpl="$(u_software_scalar "${sw_units__template[$idx]}")"
-        en="$(u_software_scalar "${sw_units__enable[$idx]:-false}")"
-        if ! u_software_unit_install "$name" "$tpl" "$en"; then
+        tpl="$(f_software_scalar "${sw_units__template[$idx]}")"
+        en="$(f_software_scalar "${sw_units__enable[$idx]:-false}")"
+        if ! f_software_unit_install "$name" "$tpl" "$en"; then
           rc=1
           continue
         fi
@@ -906,13 +906,13 @@ u_software_apply_installs() {
         ;;
     esac
 
-    u_software_managed_add "$id"
+    f_software_managed_add "$id"
   done
 
   # Adopt already-satisfied desired items so prune can track them later.
   for ((i = 0; i < ${#software_diff_ids[@]}; i++)); do
     if [[ "${software_diff_status[$i]}" == 'ok' ]]; then
-      u_software_managed_add "${software_diff_ids[$i]}"
+      f_software_managed_add "${software_diff_ids[$i]}"
     fi
   done
 
@@ -922,7 +922,7 @@ u_software_apply_installs() {
 ##
 # Opt-in uninstall of managed extras not in the manifest.
 #
-u_software_apply_prune() {
+f_software_apply_prune() {
   local id
   local kind
   local name
@@ -981,7 +981,7 @@ u_software_apply_prune() {
         ;;
     esac
 
-    u_software_managed_remove "$id"
+    f_software_managed_remove "$id"
   done
 }
 
@@ -990,30 +990,30 @@ u_software_apply_prune() {
 #
 # @param 1 String : status | apply
 #
-u_software_provision() {
-  local p_mode="${1:-apply}"
+f_software_provision() {
+  local a_mode="${1:-apply}"
   local rc=0
 
-  if ! u_software_load_manifests; then
+  if ! f_software_load_manifests; then
     return 1
   fi
 
-  u_software_build_diff
-  u_software_print_diff
+  f_software_build_diff
+  f_software_print_diff
 
-  case "$p_mode" in
+  case "$a_mode" in
     status)
       return 0
       ;;
     apply)
-      u_software_apply_installs || rc=$?
-      u_software_build_diff
-      u_software_apply_prune || rc=$?
+      f_software_apply_installs || rc=$?
+      f_software_build_diff
+      f_software_apply_prune || rc=$?
       echo "Software provision finished (exit=$rc)."
       return $rc
       ;;
     *)
-      echo >&2 "Error: unknown mode '$p_mode' (use status|apply)."
+      echo >&2 "Error: unknown mode '$a_mode' (use status|apply)."
       return 2
       ;;
   esac

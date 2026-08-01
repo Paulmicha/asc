@@ -7,7 +7,7 @@
 # - the application source files (clones repo if separate & not done already);
 # - a default selection of Git hooks (overwritten by ASC hooks).
 #
-# @see u_git_write_hooks() in asc/git/git.inc.sh
+# @see f_git_write_hooks() in asc/git/git.inc.sh
 #
 
 # Automatically clones the app repo if it is separate from the "dev stack" repo.
@@ -32,14 +32,14 @@ case "$APP_GIT_INIT_CLONE" in [Yy]*)
     # See https://stackoverflow.com/questions/2411031/how-do-i-clone-into-a-non-empty-directory
     else
       git init "$APP_DOCROOT"
-      u_git_wrapper remote add origin "$APP_GIT_ORIGIN"
-      u_git_wrapper fetch
-      u_git_wrapper checkout -t origin/master -f
+      f_git_wrapper remote add origin "$APP_GIT_ORIGIN"
+      f_git_wrapper fetch
+      f_git_wrapper checkout -t origin/master -f
     fi
   fi
 esac
 
 # (over)Writes Git hooks to use ASC hooks.
 case "$APP_GIT_INIT_HOOK" in [Yy]*)
-  u_git_write_hooks
+  f_git_write_hooks
 esac

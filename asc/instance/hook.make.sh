@@ -64,10 +64,10 @@ case "$hook_mode" in
   'most-specific')
     if [[ $debug_mode -eq 1 ]]; then
       formatted_args="${formatted_args//'-d -t'/}"
-      eval "u_hook_most_specific dry-run $formatted_args"
-      u_autoload_print_lookup_paths hook_most_specific_dry_run_match "u_hook_most_specific $formatted_args"
+      eval "hook_ms dry-run $formatted_args"
+      f_autoload_print_lookup_paths most_specific_match "hook_ms $formatted_args"
     else
-      eval "u_hook_most_specific $formatted_args"
+      eval "hook_ms $formatted_args"
     fi
   ;;
   *)

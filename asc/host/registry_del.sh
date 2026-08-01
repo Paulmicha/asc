@@ -18,4 +18,4 @@
 #
 
 . asc/bootstrap.sh
-u_host_registry_del "$@"
+f_host_registry_del "$@"

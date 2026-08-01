@@ -3,7 +3,7 @@
 ##
 # (Re)sets filesystem ownership.
 #
-# @see u_instance_set_ownership() in asc/instance/instance.inc.sh
+# @see f_instance_set_ownership() in asc/instance/instance.inc.sh
 # @see asc/instance/fs_ownership_set.hook.sh
 #
 # @example
@@ -14,4 +14,4 @@
 
 . asc/bootstrap.sh
 
-u_instance_set_ownership
+f_instance_set_ownership

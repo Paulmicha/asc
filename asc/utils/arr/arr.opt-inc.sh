@@ -6,7 +6,7 @@
 # This file is sourced during core ASC bootstrap.
 # @see asc/bootstrap.sh
 #
-# Convention : functions names are all prefixed by "u" (for "utility").
+# Convention : functions names are all prefixed by "f".
 #
 
 ##
@@ -17,13 +17,13 @@
 #
 # @example
 #   declare -a my_array=("test1" "test2" "test3");
-#   if u_in_array 'test1' my_array; then
+#   if f_in_array 'test1' my_array; then
 #     echo "Ok, 'test1' found in my_array"
 #   else
 #     echo "'test1' NOT found in my_array"
 #   fi
 #
-u_in_array() {
+f_in_array() {
   local needle="${1}"
   local haystack=${2}[@]
   local i
@@ -45,17 +45,17 @@ u_in_array() {
 #
 # @example
 #   declare -a my_array=("test1" "test2" "test3");
-#   u_array_add_once "test1" my_array
-#   u_array_add_once "test4" my_array
-#   u_array_add_once "test2" my_array
+#   f_array_add_once "test1" my_array
+#   f_array_add_once "test4" my_array
+#   f_array_add_once "test2" my_array
 #   # To debug result :
 #   declare -p my_array
 #
-u_array_add_once() {
+f_array_add_once() {
   local needle="${1}"
   local haystack_var_name="${2}"
 
-  if ! u_in_array "$needle" "$haystack_var_name"; then
+  if ! f_in_array "$needle" "$haystack_var_name"; then
     eval "$haystack_var_name+=($needle)"
   fi
 }
@@ -72,13 +72,13 @@ u_array_add_once() {
 #
 # @example
 #   array=(a c b f 3 5)
-#   u_array_qsort "${array[@]}"
+#   f_array_qsort "${array[@]}"
 #   # Check result :
 #   declare -p sorted_arr
 #   # -> output :
 #   #   declare -a sorted_arr='([0]="3" [1]="5" [2]="a" [3]="b" [4]="c" [5]="f")'
 #
-u_array_qsort() {
+f_array_qsort() {
   (($#==0)) && return 0
   local stack=( 0 $(($#-1)) ) beg end i pivot smaller larger
   sorted_arr=("$@")
@@ -125,16 +125,16 @@ u_array_qsort() {
 #   array[7]='b'
 #   array[32]='c'
 #   array[6785]='d'
-#   u_array_ksort
+#   f_array_ksort
 #   # Check result :
 #   declare -p sorted_arr
 #   # -> output :
 #   #   declare -a sorted_arr=([7]="b" [12]="a" [32]="c" [6785]="d")
 #
-u_array_ksort() {
+f_array_ksort() {
   local array_keys="${!array[@]}"
   local k
-  u_array_qsort "${array_keys[@]}"
+  f_array_qsort "${array_keys[@]}"
   array_keys="${sorted_arr[@]}"
   sorted_arr=()
   for k in $array_keys; do
@@ -154,13 +154,13 @@ u_array_ksort() {
 #
 # @example
 #   array=(a c b f 3 5)
-#   u_array_reverse "${array[@]}"
+#   f_array_reverse "${array[@]}"
 #   # Check result :
 #   declare -p reversed_arr
 #   # -> output :
 #   #   declare -a reversed_arr='([0]="3" [1]="5" [2]="f" [3]="b" [4]="c" [5]="a")'
 #
-u_array_reverse() {
+f_array_reverse() {
   local i
   local a
   local tmp_arr
@@ -185,7 +185,7 @@ u_array_reverse() {
 #
 # @example (associative array)
 #   declare -A a=([a]=123 [b]="foo bar" [c]="(blah)")
-#   u_array_print a
+#   f_array_print a
 #   # -> outputs :
 #   #   a=123
 #   #   b=foo bar
@@ -193,12 +193,12 @@ u_array_reverse() {
 #
 # @example (normal array)
 #   b=(abba acdc)
-#   u_array_print b
+#   f_array_print b
 #   # -> outputs :
 #   #   0=abba
 #   #   1=acdc
 #
-u_array_print() {
+f_array_print() {
   declare -n __p="$1"
   for k in "${!__p[@]}"; do
     printf "%s=%s\n" "$k" "${__p[$k]}"

@@ -7,11 +7,11 @@
 # - reg_key
 # - reg_val
 #
-# @see u_host_registry_set() in asc/host/host.inc.sh
+# @see f_host_registry_set() in asc/host/host.inc.sh
 #
 
 reg_file_path=''
 
-u_file_registry_get_path "$reg_key" 'host'
+f_file_registry_get_path "$reg_key" 'host'
 
 echo "$reg_val" > "$reg_file_path"

@@ -7,8 +7,8 @@
 # crendentials initialization so that the values can be written once then
 # always read (cf. registry), if applicable.
 #
-# @see u_db_set() in asc/extensions/db/db.inc.sh
-# @see u_instance_init() in asc/instance/instance.inc.sh
+# @see f_db_set() in asc/extensions/db/db.inc.sh
+# @see f_instance_init() in asc/instance/instance.inc.sh
 #
 
-u_db_set_all
+f_db_set_all

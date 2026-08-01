@@ -45,16 +45,16 @@ Ran 1 test.
 FAILED (failures=1)
 EOF
 
-  u_test_results_batch_begin "$batch_dir" 0
-  u_test_results_parse_shunit_suite 'demo' "$capture"
-  u_test_results_batch_end 0
+  f_test_results_batch_begin "$batch_dir" 0
+  f_test_results_parse_shunit_suite 'demo' "$capture"
+  f_test_results_batch_end 0
 
   assertTrue "missing case one output" \
-    "[ -f '${ASC_TEST_RESULTS_ROOT}/test/batch.demo.test_demo_one.txt' ]"
+    "[ -f '${ASC_TEST_RESULTS_ROOT}/frozen/batch.demo.test_demo_one.txt' ]"
   assertTrue "missing case two output" \
-    "[ -f '${ASC_TEST_RESULTS_ROOT}/test/batch.demo.test_demo_two.txt' ]"
+    "[ -f '${ASC_TEST_RESULTS_ROOT}/frozen/batch.demo.test_demo_two.txt' ]"
 
-  tree_file="${ASC_TEST_RESULTS_ROOT}/test/batch.yml"
+  tree_file="${ASC_TEST_RESULTS_ROOT}/test-batch.yml"
   assertTrue "missing tree file" "[ -f '${tree_file}' ]"
   grep -A5 '^demo:$' "$tree_file" | grep -q 'test_demo_one: PASS'
   assertEquals "case one should PASS" 0 "$?"
@@ -62,18 +62,6 @@ EOF
   assertEquals "case two should FAIL" 0 "$?"
 
   rm -f "$capture"
-}
-
-test_u_freeze_tests_parse_subset_rejects_env_before_kind() {
-  u_freeze_tests_parse_subset 'only:browser/preprod/headless' 2>/dev/null
-  assertEquals "env-before-kind should fail" 1 "$?"
-}
-
-test_u_freeze_tests_parse_browser_headless_path() {
-  freeze_tests_plan=()
-  u_freeze_tests_parse_subset 'only:browser/headless/preprod/as-user'
-  assertEquals "plan should have one item" 1 "${#freeze_tests_plan[@]}"
-  assertEquals "plan item" 'browser:headless:preprod:as-user' "${freeze_tests_plan[0]}"
 }
 
 . asc/vendor/shunit2/shunit2

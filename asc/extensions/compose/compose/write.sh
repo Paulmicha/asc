@@ -13,5 +13,5 @@
 
 case "$DC_MODE" in 'generate')
   # @see asc/extensions/compose/compose.inc.sh
-  u_dc_write_yml
+  f_dc_write_yml
 esac

@@ -18,7 +18,7 @@ make_entries=()
 real_scripts=()
 output=()
 
-u_make_list_entry_points
+f_make_list_entry_points
 
 for index in "${!real_scripts[@]}"; do
   task="${make_entries[index]}"
@@ -28,7 +28,7 @@ for index in "${!real_scripts[@]}"; do
   → $script")
 done
 
-u_array_qsort "${output[@]}"
+f_array_qsort "${output[@]}"
 
 for line in "${sorted_arr[@]}"; do
   echo "$line"

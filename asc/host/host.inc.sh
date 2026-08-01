@@ -6,14 +6,14 @@
 # This file is sourced during core ASC bootstrap.
 # @see asc/bootstrap.sh
 #
-# Convention : functions names are all prefixed by "u" (for "utility").
+# Convention : functions names are all prefixed by "f".
 #
 
 ##
 # Adds (once) a cronjob on local host.
 #
 # TODO [debt] Find better workaround to load PATH of required user. Currently :
-#   su $p_user -c "my command (param 1)"
+#   su $a_user -c "my command (param 1)"
 # -> avoid double quotes inside param 1 unless escaped (untested).
 #
 # @requires the 'crontab' software.
@@ -40,30 +40,30 @@
 #
 # @example
 #   # Run drupal cron task every 30 minutes (default) using current user (default) :
-#   u_host_crontab_add "cd $PROJECT_DOCROOT && make drush cron"
+#   f_host_crontab_add "cd $PROJECT_DOCROOT && make drush cron"
 #
 #   # Run drupal cron task every 20 minutes as user 'www-data' :
-#   u_host_crontab_add "cd $PROJECT_DOCROOT && make drush cron" '*/20 * * * *' 'www-data'
+#   f_host_crontab_add "cd $PROJECT_DOCROOT && make drush cron" '*/20 * * * *' 'www-data'
 #
-u_host_crontab_add() {
-  local p_cmd="$1"
-  local p_freq="$2"
-  local p_user="$3"
+f_host_crontab_add() {
+  local a_cmd="$1"
+  local a_freq="$2"
+  local a_user="$3"
 
-  if [[ -z "$p_freq" ]]; then
-    p_freq="*/30 * * * *"
+  if [[ -z "$a_freq" ]]; then
+    a_freq="*/30 * * * *"
   fi
 
-  if [[ -z "$p_user" ]]; then
-    p_user="$USER"
+  if [[ -z "$a_user" ]]; then
+    a_user="$USER"
   fi
 
   # TODO [debt] find better workaround to run with PATH of required user loaded.
   # @see http://www.lostsaloon.com/technology/how-to-run-cron-jobs-as-a-specific-user/
-  local cronjob="$p_freq su $p_user -c \"$p_cmd\""
+  local cronjob="$a_freq su $a_user -c \"$a_cmd\""
 
   # See https://stackoverflow.com/a/17975418
-  ( crontab -l | grep -v -F "$p_cmd" ; echo "$cronjob" ) | crontab -
+  ( crontab -l | grep -v -F "$a_cmd" ; echo "$cronjob" ) | crontab -
 }
 
 ##
@@ -73,17 +73,17 @@ u_host_crontab_add() {
 # See https://stackoverflow.com/a/17975418
 #
 # @param 1 String : the shell command of the active cron job to remove. It
-#   should match the one used in u_host_crontab_add() - i.e. no need to include
+#   should match the one used in f_host_crontab_add() - i.e. no need to include
 #   the user or frequency.
 #
-# @see u_host_crontab_add()
+# @see f_host_crontab_add()
 #
 # @example
-#   u_host_crontab_remove "cd $PROJECT_DOCROOT && make drush cron"
+#   f_host_crontab_remove "cd $PROJECT_DOCROOT && make drush cron"
 #
-u_host_crontab_remove() {
-  local p_cmd="$1"
-  ( crontab -l | grep -v -F "$p_cmd" ) | crontab -
+f_host_crontab_remove() {
+  local a_cmd="$1"
+  ( crontab -l | grep -v -F "$a_cmd" ) | crontab -
 }
 
 ##
@@ -91,7 +91,7 @@ u_host_crontab_remove() {
 #
 # See https://github.com/hbons/Dazzle/blob/master/dazzle.sh
 #
-u_host_ip() {
+f_host_ip() {
   # Fetch the external IP address :
   # 1. fetch all inet addresses (IPv4)
   # 2. select only global scope addresses
@@ -111,7 +111,7 @@ u_host_ip() {
 #
 # See https://unix.stackexchange.com/a/6348
 #
-u_host_os() {
+f_host_os() {
   local os=''
   local version=''
 
@@ -144,8 +144,8 @@ u_host_os() {
   fi
 
   # Prevent unexpected characters.
-  os=$(u_str_slug "$os")
-  version=$(u_str_slug "$version" '\.')
+  os=$(f_str_slug "$os")
+  version=$(f_str_slug "$version" '\.')
 
   # Prevent '-gnu-linux' in OS name.
   os=${os/-gnu-linux/""}
@@ -162,16 +162,16 @@ u_host_os() {
 # @see asc/extensions/file_registry
 #
 # @example
-#   u_host_registry_set 'my_key' 1
+#   f_host_registry_set 'my_key' 1
 #
-u_host_registry_set() {
+f_host_registry_set() {
   local reg_key="$1"
   local reg_val=$2
 
   # Disallow empty keys.
   if [[ -z "$reg_key" ]]; then
     echo >&2
-    echo "Error in u_host_registry_set() - $BASH_SOURCE line $LINENO: key is required." >&2
+    echo "Error in f_host_registry_set() - $BASH_SOURCE line $LINENO: key is required." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     exit 1
@@ -184,7 +184,7 @@ u_host_registry_set() {
 
   # NB : any implementation of this hook MUST use the reg_val and reg_key
   # variables (which are restricted to this function scope).
-  u_hook_most_specific -s 'host' -a 'registry_set' -v 'HOST_TYPE'
+  hook_ms -s 'host' -a 'registry_set' -v 'HOST_TYPE'
 }
 
 ##
@@ -201,10 +201,10 @@ u_host_registry_set() {
 # @var reg_val
 #
 # @example
-#   u_host_registry_get 'my_key'
+#   f_host_registry_get 'my_key'
 #   echo "$reg_val" # <- Prints the value if there is an entry for 'my_key'.
 #
-u_host_registry_get() {
+f_host_registry_get() {
   local reg_key="$1"
 
   # Prevents risks of intereference between multiple calls (since we reuse the
@@ -213,7 +213,7 @@ u_host_registry_get() {
 
   # NB : any implementation of this hook MUST set its result using the reg_val
   # variable, in this case NOT restricted to this function scope.
-  u_hook_most_specific -s 'host' -a 'registry_get' -v 'HOST_TYPE'
+  hook_ms -s 'host' -a 'registry_get' -v 'HOST_TYPE'
 }
 
 ##
@@ -226,26 +226,26 @@ u_host_registry_get() {
 # @see asc/extensions/file_registry
 #
 # @example
-#   u_host_registry_del 'my_key'
+#   f_host_registry_del 'my_key'
 #
-u_host_registry_del() {
+f_host_registry_del() {
   local reg_key="$1"
 
   # NB : any implementation of this hook MUST use the reg_key variable (which is
   # restricted to this function scope).
-  u_hook_most_specific -s 'host' -a 'registry_del' -v 'HOST_TYPE'
+  hook_ms -s 'host' -a 'registry_del' -v 'HOST_TYPE'
 }
 
 ##
 # Prevents running something more than once for entire host.
 #
 # Checks boolean flag for the entire local host.
-# @see u_host_registry_get()
-# @see u_host_registry_set()
+# @see f_host_registry_get()
+# @see f_host_registry_set()
 #
 # @example
 #   # When you need to proceed inside the condition :
-#   if u_host_once "my_once_id" ; then
+#   if f_host_once "my_once_id" ; then
 #     echo "Proceed."
 #   else
 #     echo "Notice in $BASH_SOURCE line $LINENO : this has already been run on this host."
@@ -254,23 +254,23 @@ u_host_registry_del() {
 #   fi
 #
 #   # When you need to stop/exit inside the condition :
-#   if ! u_host_once "my_once_id" ; then
+#   if ! f_host_once "my_once_id" ; then
 #     echo "Notice in $BASH_SOURCE line $LINENO : this has already been run on this host."
 #     echo "-> Aborting."
 #     exit
 #   fi
 #
-u_host_once() {
-  local p_flag="$1"
+f_host_once() {
+  local a_flag="$1"
 
   # TODO check what happens in case of unexpected collisions (if that var
   # already exists in calling scope).
   local reg_val
 
-  u_host_registry_get "$p_flag"
+  f_host_registry_get "$a_flag"
 
   if [[ $reg_val -ne 1 ]]; then
-    u_host_registry_set "$p_flag"
+    f_host_registry_set "$a_flag"
     return
   fi
 

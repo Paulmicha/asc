@@ -10,7 +10,7 @@
 #   # Equivalent to :
 #   make logged-batch e:blueprint-generate e:transcribe-all
 #   # Or :
-#   asc/instance/logged_batch.sh e:blueprint-generate e:transcribe-all
+#   asc/instance/logged/batch.sh e:blueprint-generate e:transcribe-all
 #
 
 . asc/bootstrap.sh
@@ -20,7 +20,7 @@ logged_batch_variants='STACK_VERSION PROVISION_USING HOST_OS'
 hook -s 'log' -p 'pre' -a 'logged_batch' -v "$logged_batch_variants"
 hook -s 'batch' -p 'pre' -a 'logged_batch' -v "$logged_batch_variants"
 
-asc/log/wrap.sh asc/thread/batch.sh "$@"
+asc/log/log.wrap.sh asc/thread/batch.sh "$@"
 
 hook -s 'log' -p 'post' -a 'logged_batch' -v "$logged_batch_variants"
 hook -s 'batch' -p 'post' -a 'logged_batch' -v "$logged_batch_variants"

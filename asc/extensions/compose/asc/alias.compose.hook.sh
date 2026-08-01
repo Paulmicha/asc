@@ -16,15 +16,15 @@ case "$DC_MODE" in
   # Automatically try to choose the most specific YAML file based on the
   # DC_YML_VARIANTS global (which provides hook variants for lookup paths).
   'auto')
-    hook_most_specific_dry_run_match=''
-    u_hook_most_specific 'dry-run' -s 'stack' -a 'compose' -c "yml" -v 'DC_YML_VARIANTS' -t
+    most_specific_match=''
+    hook_ms 'dry-run' -s 'stack' -a 'compose' -c "yml" -v 'DC_YML_VARIANTS' -t
 
-    if [[ -z "$hook_most_specific_dry_run_match" ]]; then
-      u_hook_most_specific 'dry-run' -s 'stack' -a 'docker-compose' -c "yml" -v 'DC_YML_VARIANTS' -t
+    if [[ -z "$most_specific_match" ]]; then
+      hook_ms 'dry-run' -s 'stack' -a 'docker-compose' -c "yml" -v 'DC_YML_VARIANTS' -t
     fi
 
-    if [[ -f "$hook_most_specific_dry_run_match" ]]; then
-      alias docker-compose="docker compose -f $hook_most_specific_dry_run_match"
+    if [[ -f "$most_specific_match" ]]; then
+      alias docker-compose="docker compose -f $most_specific_match"
     fi
     ;;
 

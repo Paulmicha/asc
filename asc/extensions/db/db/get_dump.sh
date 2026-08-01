@@ -10,7 +10,7 @@
 #   file. Any other value is a "find" file name filter that will return a single
 #   matching dump (the most recent in case there are several matches).
 #   Defaults to 'last'.
-# @param 2 [optional] String : the database ID ($DB_ID), see u_db_set().
+# @param 2 [optional] String : the database ID ($DB_ID), see f_db_set().
 #   Defaults to 'default'.
 # @param 3 [optional] String : subfolder in DB dumps dir.
 #   Defaults to 'local'.
@@ -35,4 +35,4 @@
 . asc/bootstrap.sh
 
 # @see asc/extensions/db/db.inc.sh
-u_db_get_dump $@
+f_db_get_dump $@

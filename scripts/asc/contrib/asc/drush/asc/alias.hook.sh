@@ -20,7 +20,7 @@
 # target the correct service.
 #
 # @see asc/extensions/drush/asc/global.compose.vars.sh
-# @see u_db_set() in asc/extensions/db/db.inc.sh
+# @see f_db_set() in asc/extensions/db/db.inc.sh
 #
 
 if [[ -d "$SERVER_DOCROOT" ]]; then

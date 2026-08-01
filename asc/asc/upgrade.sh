@@ -81,7 +81,7 @@ case "$proceed_with_download" in y|yes)
 
   asc_upstream_git='https://github.com/Paulmicha/asc.git'
   asc_branch="${ASC_BRANCH:-main}"
-  u_str_sanitize "$asc_branch" '-' 'asc_branch'
+  f_str_sanitize "$asc_branch" '-' 'asc_branch'
 
   git clone --depth 1 -b "$asc_branch" "$asc_upstream_git" "$tmp_dir"
 

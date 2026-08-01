@@ -22,11 +22,11 @@
 # using crontab. This setup is opt-in, i.e. the DWT_USE_CRONTAB global.
 # @see asc/extensions/drupalwt/global.vars.sh
 # @see asc/extensions/drupalwt/app/global.vars.sh
-# @see u_host_crontab_add() in asc/host/host.inc.sh
+# @see f_host_crontab_add() in asc/host/host.inc.sh
 case "$DWT_USE_CRONTAB" in 1|y*|true)
   echo "Setup Drupal cron job for instance $INSTANCE_DOMAIN on local host ..."
 
-  u_host_crontab_add "cd $PROJECT_DOCROOT && asc/extensions/drupalwt/instance/drush.sh cron" "$DWT_CRON_FREQ"
+  f_host_crontab_add "cd $PROJECT_DOCROOT && asc/extensions/drupalwt/instance/drush.sh cron" "$DWT_CRON_FREQ"
 
   echo "Setup Drupal cron job for instance $INSTANCE_DOMAIN on local host : done."
   echo

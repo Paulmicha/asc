@@ -37,7 +37,7 @@
 #   asc/extensions/drupalwt/new/site-install.sh "My project" 'minimal'
 #
 #   # To specify superadmin credentials :
-#   superadmin_password="$(u_str_random)"
+#   superadmin_password="$(f_str_random)"
 #   echo "Your superadmin login credentials will be : admin / $superadmin_password"
 #   asc/extensions/drupalwt/new/site-install.sh "My project" 'minimal' 'admin' "$superadmin_password"
 #
@@ -55,14 +55,14 @@ case "$DWT_MULTISITE" in
     if [[ -z "$dwt_site_to_install" ]]; then
       dwt_site_to_install='default'
     fi
-    u_dwt_sites "$dwt_site_to_install"
+    f_dwt_sites "$dwt_site_to_install"
     multisite_install_profile_var="dwt_sites_${dwt_site_to_install}_install_profile"
-    u_db_set "$dwt_site_to_install"
+    f_db_set "$dwt_site_to_install"
     ;;
 
   # "Normal" setups.
   *)
-    u_db_set
+    f_db_set
     ;;
 esac
 

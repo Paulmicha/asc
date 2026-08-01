@@ -34,11 +34,11 @@
 #   Defaults to "$HOME/Documents".
 #
 # @example
-#   u_nested_asc_find
+#   f_nested_asc_find
 #   for d in $nested_asc_instances; do echo "$d"; done
 #
-u_nested_asc_find() {
-  local p_roots="${1:-$HOME/Documents}"
+f_nested_asc_find() {
+  local a_roots="${1:-$HOME/Documents}"
   local root
   local cand
   local abs
@@ -46,7 +46,7 @@ u_nested_asc_find() {
 
   nested_asc_instances=''
 
-  for root in $p_roots; do
+  for root in $a_roots; do
     [[ -d "$root" ]] || continue
     # Depth 1.
     for cand in "$root"/*/asc/bootstrap.sh; do
@@ -81,11 +81,11 @@ u_nested_asc_find() {
 # @param 1 String : absolute instance path.
 # @param 2 String : space-separated absolute paths (peer set).
 #
-u_nested_asc_short_id() {
-  local p_abs="$1"
-  local p_peers="$2"
-  local suffix="${p_abs##*/}"
-  local parent="${p_abs%/*}"
+f_nested_asc_short_id() {
+  local a_abs="$1"
+  local a_peers="$2"
+  local suffix="${a_abs##*/}"
+  local parent="${a_abs%/*}"
   local peer
   local count
 
@@ -93,7 +93,7 @@ u_nested_asc_short_id() {
 
   while [[ -n "$parent" && "$parent" != '/' ]]; do
     count=0
-    for peer in $p_peers; do
+    for peer in $a_peers; do
       case "$peer" in
         */"$suffix"|"$suffix")
           count=$((count + 1))
@@ -126,13 +126,13 @@ u_nested_asc_short_id() {
 # @param 1 String : ref (short id, qualified id, or path).
 #
 # @example
-#   u_nested_asc_resolve 'my-project'
+#   f_nested_asc_resolve 'my-project'
 #   echo "$nested_asc_resolved"
 #
-#   u_nested_asc_resolve 'client/my-project'
+#   f_nested_asc_resolve 'client/my-project'
 #
-u_nested_asc_resolve() {
-  local p_ref="$1"
+f_nested_asc_resolve() {
+  local a_ref="$1"
   local abs
   local matches=''
   local m
@@ -141,28 +141,28 @@ u_nested_asc_resolve() {
 
   nested_asc_resolved=''
 
-  if [[ -z "$p_ref" ]]; then
-    echo "Error in u_nested_asc_resolve() - $BASH_SOURCE line $LINENO: empty ref." >&2
+  if [[ -z "$a_ref" ]]; then
+    echo "Error in f_nested_asc_resolve() - $BASH_SOURCE line $LINENO: empty ref." >&2
     return 1
   fi
 
   # Absolute / relative path to an existing ASC instance.
-  if [[ -d "$p_ref" && -f "$p_ref/asc/bootstrap.sh" ]]; then
-    nested_asc_resolved="$(cd "$p_ref" && pwd)"
+  if [[ -d "$a_ref" && -f "$a_ref/asc/bootstrap.sh" ]]; then
+    nested_asc_resolved="$(cd "$a_ref" && pwd)"
     return 0
   fi
 
-  u_nested_asc_find
+  f_nested_asc_find
 
   if [[ -z "$nested_asc_instances" ]]; then
-    echo "Error in u_nested_asc_resolve() - $BASH_SOURCE line $LINENO: no nested ASC instances found under $HOME/Documents." >&2
+    echo "Error in f_nested_asc_resolve() - $BASH_SOURCE line $LINENO: no nested ASC instances found under $HOME/Documents." >&2
     return 2
   fi
 
   # Match by path suffix (basename or ancestor-qualified).
   for abs in $nested_asc_instances; do
     case "$abs" in
-      */"$p_ref"|"$p_ref")
+      */"$a_ref"|"$a_ref")
         matches+=" $abs"
         ;;
     esac
@@ -171,19 +171,19 @@ u_nested_asc_resolve() {
 
   case "$matches" in
     '')
-      echo "Error in u_nested_asc_resolve() - $BASH_SOURCE line $LINENO: no nested ASC instance matches '$p_ref'." >&2
+      echo "Error in f_nested_asc_resolve() - $BASH_SOURCE line $LINENO: no nested ASC instance matches '$a_ref'." >&2
       echo "Known short ids :" >&2
       for abs in $nested_asc_instances; do
-        u_nested_asc_short_id "$abs" "$nested_asc_instances"
+        f_nested_asc_short_id "$abs" "$nested_asc_instances"
         echo "  $nested_asc_short_id  →  $abs" >&2
       done
       return 3
       ;;
     *' '*)
-      echo "Error in u_nested_asc_resolve() - $BASH_SOURCE line $LINENO: ambiguous ref '$p_ref'." >&2
+      echo "Error in f_nested_asc_resolve() - $BASH_SOURCE line $LINENO: ambiguous ref '$a_ref'." >&2
       echo "Qualify with a parent folder (shortest unique id) :" >&2
       for m in $matches; do
-        u_nested_asc_short_id "$m" "$nested_asc_instances"
+        f_nested_asc_short_id "$m" "$nested_asc_instances"
         echo "  $nested_asc_short_id  →  $m" >&2
       done
       return 4

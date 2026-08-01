@@ -5,7 +5,7 @@
 #
 # @requires running the tests with the same user that will use ASC.
 #
-# @see u_test_batch_exec() in asc/test/test.inc.sh
+# @see f_test_batch_exec() in asc/test/test.inc.sh
 #
 # @example
 #   make test-core
@@ -13,4 +13,4 @@
 #   asc/test/core.sh
 #
 
-u_test_batch_exec '{{ path }}/test/core' || exit $?
+f_test_batch_exec '{{ path }}/test/core' || exit $?

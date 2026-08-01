@@ -19,7 +19,7 @@
 . asc/bootstrap.sh
 
 remote_id="$1"
-u_remote_check_id "$remote_id"
+f_remote_check_id "$remote_id"
 shift
 
 if [[ -z "$1" ]]; then
@@ -31,10 +31,10 @@ if [[ -z "$1" ]]; then
 fi
 
 domain=''
-u_remote_definition_get_key "$remote_id" 'domain'
+f_remote_definition_get_key "$remote_id" 'domain'
 
 if [[ -n "$domain" ]]; then
-  u_remote_exec_wrapper "$remote_id" drush --uri="$domain" $@
+  f_remote_exec_wrapper "$remote_id" drush --uri="$domain" $@
 else
-  u_remote_exec_wrapper "$remote_id" drush $@
+  f_remote_exec_wrapper "$remote_id" drush $@
 fi

@@ -3,8 +3,8 @@
 ##
 # Upload DB dump on remote.
 #
-# @see data/asc/remote-instances/${p_remote_id}.sh
-# @see u_remote_instances_setup() in asc/extensions/remote/remote.inc.sh
+# @see data/asc/remote-instances/${a_remote_id}.sh
+# @see f_remote_instances_setup() in asc/extensions/remote/remote.inc.sh
 #
 # @param 1 String : destination remote host ID.
 # @param 2 [optional] String : where the DB dump to upload comes from. It can
@@ -48,7 +48,7 @@ remote_subfolder="$2"
 db_id="$3"
 local_file="$4"
 
-u_remote_check_id "$remote_id"
+f_remote_check_id "$remote_id"
 
 if [[ -z "$remote_subfolder" ]]; then
   remote_subfolder='manually-uploaded'
@@ -62,7 +62,7 @@ local_dir=''
 # Note that "$remote_subfolder" == "$remote_id" means : upload dumps created on
 # that same remote instance (hence, the remote subfolder name will be 'local').
 instance_ids=()
-u_remote_get_instances
+f_remote_get_instances
 
 for instance_id in "${instance_ids[@]}"; do
   case "$remote_subfolder" in "$instance_id")
@@ -82,7 +82,7 @@ declare -A dumps_dict
 # When we only read the 'base_dir' from definitions, we get exactly 1 key per
 # DB ID (and if we don't specify a DB ID, we get the base dirs of all DB defined
 # on that remote by default).
-u_remote_db_read_definition "$remote_id" "$db_id" 'base_dir'
+f_remote_db_read_definition "$remote_id" "$db_id" 'base_dir'
 
 for key in "${!dumps_dict[@]}"; do
   db_id="${key%.base_dir}"
@@ -108,7 +108,7 @@ for key in "${!dumps_dict[@]}"; do
   # When no local_file is provided, get most recent dump file in local dir
   # corresponding to the DB ID.
   if [[ -z "$local_file" ]]; then
-    local_file="$(u_fs_get_most_recent $local_dir '*.gz')"
+    local_file="$(f_fs_get_most_recent $local_dir '*.gz')"
   fi
 
   # Debug.
@@ -123,14 +123,14 @@ for key in "${!dumps_dict[@]}"; do
   fi
 
   # Feedback.
-  u_fs_relative_path "$local_file"
+  f_fs_relative_path "$local_file"
   echo "  will upload '$relative_path' to remote dir '$remote_dir' ..."
 
   # Make sure remote dir exists.
-  u_remote_exec_wrapper "$remote_id" \
+  f_remote_exec_wrapper "$remote_id" \
     "mkdir -p $remote_dir"
 
-  u_remote_upload "$remote_id" \
+  f_remote_upload "$remote_id" \
     "$local_file" \
     "$remote_dir/" \
     --ignore-existing

@@ -13,4 +13,4 @@
 
 . asc/bootstrap.sh
 
-u_remote_instances_setup
+f_remote_instances_setup

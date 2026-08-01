@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ##
-# Bootstrap phase: initialize ASC primitives (cache or u_asc_extend).
+# Bootstrap phase: initialize ASC primitives (cache or f_asc_extend).
 #
 # Sourced only from asc/bootstrap.sh (inside ASC_BS_FLAG).
 #
@@ -16,7 +16,7 @@ if [[ -f data/asc/cache/asc.sh ]]; then
 else
   export asc_primitives_cache_str=''
   ASC_INC=''
-  u_asc_extend
+  f_asc_extend
   mkdir -p data/asc/cache
   cat > data/asc/cache/asc.sh <<CACHE
 #!/usr/bin/env bash

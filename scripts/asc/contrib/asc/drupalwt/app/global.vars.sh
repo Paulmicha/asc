@@ -6,7 +6,7 @@
 # This file is used during "instance init" to generate the global environment
 # variables specific to current project instance.
 #
-# @see u_instance_init() in asc/instance/instance.inc.sh
+# @see f_instance_init() in asc/instance/instance.inc.sh
 # @see asc/utilities/global.sh
 # @see asc/bootstrap.sh
 #
@@ -22,7 +22,7 @@ global DRUPAL_TMP_DIR "[default]=$PROJECT_DOCROOT/data/tmp"
 global DRUPAL_PRIVATE_DIR "[default]=$PROJECT_DOCROOT/data/private"
 global DRUPAL_CONFIG_SYNC_DIR "[default]=$APP_DOCROOT/config/sync"
 
-global DRUPAL_HASH_SALT "[default]=$(u_str_random 74)"
+global DRUPAL_HASH_SALT "[default]=$(f_str_random 74)"
 
 global DWT_COMPOSER_INSTALL "[ifnot-DRUPAL_VERSION]=7 [default]='yes' [help]='Determines if composer is used to manage dependencies, i.e. if the command “composer install” must be run during app install by default.'"
 

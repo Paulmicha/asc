@@ -11,4 +11,4 @@
 
 . asc/bootstrap.sh
 
-u_hook_most_specific -s 'agent' -a 'status' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
+hook_ms -s 'agent' -a 'status' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'

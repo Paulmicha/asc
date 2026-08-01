@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ##
-# Implements u_hook_most_specific -s 'agent' -a 'pull' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
+# Implements hook_ms -s 'agent' -a 'pull' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
 #
 # Pull one or more models from the Ollama registry.
 #
@@ -21,9 +21,9 @@ if ! command -v ollama >/dev/null 2>&1; then
   exit 1
 fi
 
-p_models="${p_models:-${agent_MODEL:-${agent_OLLAMA_MODEL:-}}}"
+a_models="${a_models:-${agent_MODEL:-${agent_OLLAMA_MODEL:-}}}"
 
-if [[ -z "$p_models" ]]; then
+if [[ -z "$a_models" ]]; then
   echo >&2
   echo "Error in $BASH_SOURCE line $LINENO - no model specified." >&2
   echo "Usage: make agent-pull MODEL [MODEL…]  (or export agent_MODEL)" >&2
@@ -32,9 +32,9 @@ if [[ -z "$p_models" ]]; then
   exit 2
 fi
 
-for p_model in $p_models; do
-  echo "Pulling model '$p_model' ..."
-  ollama pull "$p_model" || exit $?
+for a_model in $a_models; do
+  echo "Pulling model '$a_model' ..."
+  ollama pull "$a_model" || exit $?
 done
 
 echo "Over."

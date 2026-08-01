@@ -6,7 +6,7 @@
 # This file is sourced during core ASC bootstrap.
 # @see asc/bootstrap.sh
 #
-# Convention : functions names are all prefixed by "u" (for "utility").
+# Convention : functions names are all prefixed by "f".
 #
 
 ##
@@ -17,9 +17,9 @@
 #
 # TODO [wip] @example
 #
-u_test_lookup_paths_assertion() {
-  local p_msg="$1"
-  local p_flag=$2
+f_test_lookup_paths_assertion() {
+  local a_msg="$1"
+  local a_flag=$2
   local fail_reason
 
   case $flag in
@@ -28,7 +28,7 @@ u_test_lookup_paths_assertion() {
     *) fail_reason='unexpected error' ;;
   esac
 
-  assertTrue "$p_msg (error $flag : $fail_reason)" "[ $flag -eq 0 ]"
+  assertTrue "$a_msg (error $flag : $fail_reason)" "[ $flag -eq 0 ]"
 }
 
 ##
@@ -45,7 +45,7 @@ u_test_lookup_paths_assertion() {
 #   $hook_dry_run_matches + $expected_list vars in calling scope).
 # TODO [wip] @example
 #
-u_test_compare_expected_lookup_paths() {
+f_test_compare_expected_lookup_paths() {
   local i
   local j
   local is_found
@@ -86,7 +86,18 @@ u_test_compare_expected_lookup_paths() {
 ##
 # True when result archiving is enabled.
 #
-u_test_results_enabled() {
+
+##
+# Root directory for archived test results.
+#
+# Defaults to data/test-results. Override via ASC_TEST_RESULTS_ROOT (used by
+# self-tests to isolate writes under a temp dir).
+#
+f_test_results_root() {
+  printf '%s' "${ASC_TEST_RESULTS_ROOT:-data/test-results}"
+}
+
+f_test_results_enabled() {
   [[ "${ASC_TEST_RESULTS:-1}" != '0' ]]
 }
 
@@ -96,23 +107,23 @@ u_test_results_enabled() {
 # @param $1 batch directory
 # @param $2 [optional] partial : 1 = merge tree / append full-output (default 0)
 #
-u_test_results_batch_begin() {
-  local p_dir="$1"
+f_test_results_batch_begin() {
+  local a_dir="$1"
   local partial="${2:-0}"
 
-  if ! u_test_results_enabled; then
+  if ! f_test_results_enabled; then
     test_results_active=0
     return 0
   fi
 
-  test_results_slug="${p_dir##*/}"
+  test_results_slug="${a_dir##*/}"
   test_results_active=1
   test_results_partial="$partial"
   test_results_tree_new=()
 
-  mkdir -p data/test-results/frozen
+  mkdir -p "$(f_test_results_root)/frozen"
 
-  test_results_full_output_path="data/test-results/frozen/${test_results_slug}.full-output.txt"
+  test_results_full_output_path="$(f_test_results_root)/frozen/${test_results_slug}.full-output.txt"
 
   if [[ "$partial" -eq 1 ]]; then
     {
@@ -125,12 +136,12 @@ u_test_results_batch_begin() {
 
   if [[ "$partial" -eq 1 ]]; then
     local _summary_yml _summary_txt
-    _summary_yml="data/test-results/test-${test_results_slug}.yml"
-    _summary_txt="data/test-results/frozen/${test_results_slug}.txt"
+    _summary_yml="$(f_test_results_root)/test-${test_results_slug}.yml"
+    _summary_txt="$(f_test_results_root)/frozen/${test_results_slug}.txt"
     if [[ -f "$_summary_yml" ]]; then
-      u_test_results_tree_load "$_summary_yml"
+      f_test_results_tree_load "$_summary_yml"
     elif [[ -f "$_summary_txt" ]]; then
-      u_test_results_tree_load "$_summary_txt"
+      f_test_results_tree_load "$_summary_txt"
     else
       test_results_tree_loaded=()
     fi
@@ -146,7 +157,7 @@ u_test_results_batch_begin() {
 #
 # @param $1 summary file path
 #
-u_test_results_tree_load() {
+f_test_results_tree_load() {
   local file="$1"
   local line key status current_suite case_name
 
@@ -191,7 +202,7 @@ u_test_results_tree_load() {
 # @param $2 case name (test_*)
 # @param $3 status PASS|FAIL|SKIP
 #
-u_test_results_tree_put() {
+f_test_results_tree_put() {
   local suite="$1"
   local case_name="$2"
   local status="$3"
@@ -217,23 +228,23 @@ u_test_results_tree_put() {
 # @param $1 suite stem
 # @param $2 captured stdout file
 #
-u_test_results_parse_shunit_suite() {
+f_test_results_parse_shunit_suite() {
   local suite="$1"
   local capture="$2"
   local test_dir case_name block status line
   local in_case=0
   local current_case=''
 
-  if ! u_test_results_enabled || [[ "${test_results_active:-0}" -ne 1 ]]; then
+  if ! f_test_results_enabled || [[ "${test_results_active:-0}" -ne 1 ]]; then
     return 0
   fi
 
-  test_dir=data/test-results/frozen
+  test_dir="$(f_test_results_root)/frozen"
 
   while IFS= read -r line || [[ -n "$line" ]]; do
     if [[ "$line" =~ ^test_[a-zA-Z0-9_]+$ ]]; then
       if [[ -n "$current_case" ]]; then
-        u_test_results_flush_case "$suite" "$current_case" "$block"
+        f_test_results_flush_case "$suite" "$current_case" "$block"
       fi
 
       current_case="$line"
@@ -257,7 +268,7 @@ u_test_results_parse_shunit_suite() {
           status='SKIP'
         fi
 
-        u_test_results_flush_case "$suite" "$current_case" "$block" "$status"
+        f_test_results_flush_case "$suite" "$current_case" "$block" "$status"
 
         current_case=''
         block=''
@@ -273,23 +284,23 @@ u_test_results_parse_shunit_suite() {
       status='FAIL'
     fi
 
-    u_test_results_flush_case "$suite" "$current_case" "$block" "$status"
+    f_test_results_flush_case "$suite" "$current_case" "$block" "$status"
   fi
 }
 
 ##
 # Write one case output file and update tree.
 #
-u_test_results_flush_case() {
+f_test_results_flush_case() {
   local suite="$1"
   local case_name="$2"
   local block="$3"
   local status="${4:-PASS}"
   local out_file
 
-  out_file="data/test-results/frozen/${test_results_slug}.${suite}.${case_name}.txt"
+  out_file="$(f_test_results_root)/frozen/${test_results_slug}.${suite}.${case_name}.txt"
   printf '%s' "$block" >"$out_file"
-  u_test_results_tree_put "$suite" "$case_name" "$status"
+  f_test_results_tree_put "$suite" "$case_name" "$status"
 }
 
 ##
@@ -297,16 +308,16 @@ u_test_results_flush_case() {
 #
 # @param $1 batch exit code
 #
-u_test_results_batch_end() {
+f_test_results_batch_end() {
   local batch_exit="${1:-0}"
   local summary tree_file merged line key seen current_suite suite case_name status
   local -a all_lines=()
 
-  if ! u_test_results_enabled || [[ "${test_results_active:-0}" -ne 1 ]]; then
+  if ! f_test_results_enabled || [[ "${test_results_active:-0}" -ne 1 ]]; then
     return 0
   fi
 
-  tree_file="data/test-results/test-${test_results_slug}.yml"
+  tree_file="$(f_test_results_root)/test-${test_results_slug}.yml"
 
   for line in "${test_results_tree_loaded[@]}"; do
     key="${line%% *}"
@@ -349,7 +360,7 @@ u_test_results_batch_end() {
     done < <(printf '%s\n' "${all_lines[@]}" | sort)
   } >"$tree_file"
 
-  rm -f "data/test-results/frozen/${test_results_slug}.txt"
+  rm -f "$(f_test_results_root)/frozen/${test_results_slug}.txt"
 
   test_results_active=0
   return 0
@@ -364,17 +375,17 @@ u_test_results_batch_end() {
 # @param $2 suite stem
 # @param $3 case name (test_*)
 #
-u_test_results_case_status() {
+f_test_results_case_status() {
   local slug="$1"
   local suite="$2"
   local case_name="$3"
   local key="${suite}.${case_name}"
   local tree_file line entry_key status current_suite case_stem in_suite=0
 
-  tree_file="data/test-results/test-${slug}.yml"
+  tree_file="$(f_test_results_root)/test-${slug}.yml"
 
   if [[ ! -f "$tree_file" ]]; then
-    tree_file="data/test-results/frozen/${slug}.txt"
+    tree_file="$(f_test_results_root)/frozen/${slug}.txt"
   fi
 
   if [[ ! -f "$tree_file" ]]; then
@@ -435,19 +446,19 @@ u_test_results_case_status() {
 # @param $1 kind headless|matrix|lighthouse
 # @param $2 env id
 #
-u_test_results_write_browser_tree() {
+f_test_results_write_browser_tree() {
   local kind="$1"
-  local p_env="$2"
+  local a_env="$2"
   local root dest summary
 
-  root="$(data/test-results)/browser/${kind}/${p_env}"
-  summary="$(data/test-results)/browser/${kind}/${p_env}.txt"
+  root="$(f_test_results_root)/browser/${kind}/${a_env}"
+  summary="$(f_test_results_root)/browser/${kind}/${a_env}.txt"
 
   mkdir -p "$(dirname "$summary")"
 
   {
     echo "# kind: ${kind}"
-    echo "# env: ${p_env}"
+    echo "# env: ${a_env}"
     echo "# updated: $(date -Iseconds)"
     echo
     if [[ -d "$root" ]]; then
@@ -462,7 +473,7 @@ u_test_results_write_browser_tree() {
 # @param $1 batch action script (e.g. scripts/asc/extend/test/browser.sh)
 # @param $2 [optional] output variable name (default: batch_dir)
 #
-u_test_batch_dir_from_script() {
+f_test_batch_dir_from_script() {
   local batch_script="$1"
   local out_var="${2:-batch_dir}"
   local dir base result
@@ -481,7 +492,7 @@ u_test_batch_dir_from_script() {
 #
 # @param $1 case stem (e.g. search_results)
 #
-u_test_case_stem_to_suffix() {
+f_test_case_stem_to_suffix() {
   local stem="$1"
   echo "${stem//_/-}"
 }
@@ -492,12 +503,12 @@ u_test_case_stem_to_suffix() {
 # @param $1 batch make task (e.g. test-browser)
 # @param $2 case stem (e.g. impersonation)
 #
-u_test_case_make_target() {
+f_test_case_make_target() {
   local batch_task="$1"
   local case_stem="$2"
   local suffix
 
-  suffix="$(u_test_case_stem_to_suffix "$case_stem")"
+  suffix="$(f_test_case_stem_to_suffix "$case_stem")"
   echo "${batch_task}-${suffix}"
 }
 
@@ -506,7 +517,7 @@ u_test_case_make_target() {
 #
 # @param $1 batch directory
 #
-u_test_case_runner_path() {
+f_test_case_runner_path() {
   local batch_dir="$1"
   echo "${batch_dir}.case.sh"
 }
@@ -516,7 +527,7 @@ u_test_case_runner_path() {
 #
 # @param $1 manifest path
 #
-u_test_read_manifest_cases() {
+f_test_read_manifest_cases() {
   local manifest="$1"
   local stems=''
   local line
@@ -539,16 +550,16 @@ u_test_read_manifest_cases() {
 #
 # @param $1 batch action script path
 #
-u_test_discover_batch_cases() {
+f_test_discover_batch_cases() {
   local batch_script="$1"
   local batch_dir=''
   local manifest=''
-  local p_env=''
+  local a_env=''
   local stems=''
   local stem=''
   local found=0
 
-  batch_dir="$(u_test_batch_dir_from_script "$batch_script")"
+  batch_dir="$(f_test_batch_dir_from_script "$batch_script")"
 
   if [[ ! -d "$batch_dir" ]]; then
     return 1
@@ -556,7 +567,7 @@ u_test_discover_batch_cases() {
 
   manifest="${batch_dir}/.test-cases"
   if [[ -f "$manifest" ]]; then
-    stems="$(u_test_read_manifest_cases "$manifest")"
+    stems="$(f_test_read_manifest_cases "$manifest")"
     if [[ -n "$stems" ]]; then
       test_case_mode='manifest'
       test_case_batch_dir="$batch_dir"
@@ -565,13 +576,13 @@ u_test_discover_batch_cases() {
     fi
   fi
 
-  for p_env in $ASC_TEST_CASE_ENVS; do
-    if [[ -d "${batch_dir}/${p_env}" ]]; then
-      u_fs_file_list "${batch_dir}/${p_env}" '*.test.sh'
+  for a_env in $ASC_TEST_CASE_ENVS; do
+    if [[ -d "${batch_dir}/${a_env}" ]]; then
+      f_fs_file_list "${batch_dir}/${a_env}" '*.test.sh'
       for stem in $file_list; do
         stem="${stem%.test.sh}"
         [[ "$stem" == 'orchestrated' ]] && continue
-        if ! u_str_contains_word "$stem" "$stems"; then
+        if ! f_str_contains_word "$stem" "$stems"; then
           stems+="$stem "
         fi
       done
@@ -586,7 +597,7 @@ u_test_discover_batch_cases() {
     return 0
   fi
 
-  u_fs_file_list "$batch_dir" '*.test.sh'
+  f_fs_file_list "$batch_dir" '*.test.sh'
   for stem in $file_list; do
     stem="${stem%.test.sh}"
     [[ "$stem" == 'orchestrated' ]] && continue
@@ -608,13 +619,13 @@ u_test_discover_batch_cases() {
 #
 # @param $1 path to *.test.sh
 #
-u_test_file_exec() {
+f_test_file_exec() {
   local test_file="$1"
   local test_dir test_name exit_code
 
   if [[ ! -f "$test_file" ]]; then
     echo >&2
-    echo "Error in u_test_file_exec() - $BASH_SOURCE line $LINENO: missing test file '$test_file'." >&2
+    echo "Error in f_test_file_exec() - $BASH_SOURCE line $LINENO: missing test file '$test_file'." >&2
     echo "-> Aborting." >&2
     echo >&2
     return 1
@@ -622,7 +633,7 @@ u_test_file_exec() {
 
   if [[ "$test_file" != *.test.sh ]]; then
     echo >&2
-    echo "Error in u_test_file_exec() - $BASH_SOURCE line $LINENO: '$test_file' is not a *.test.sh file." >&2
+    echo "Error in f_test_file_exec() - $BASH_SOURCE line $LINENO: '$test_file' is not a *.test.sh file." >&2
     echo "-> Aborting." >&2
     echo >&2
     return 1
@@ -633,7 +644,7 @@ u_test_file_exec() {
 
   echo "# Executing ${test_file} ..."
 
-  if u_test_results_enabled && [[ "${test_results_active:-0}" -eq 1 ]]; then
+  if f_test_results_enabled && [[ "${test_results_active:-0}" -eq 1 ]]; then
     local tmp suite_stem
     tmp="$(mktemp)"
     suite_stem="${test_name%.test.sh}"
@@ -641,7 +652,7 @@ u_test_file_exec() {
     "$test_file" 2>&1 | tee "$tmp" | tee -a "${test_results_full_output_path}"
     exit_code=${PIPESTATUS[0]}
 
-    u_test_results_parse_shunit_suite "$suite_stem" "$tmp"
+    f_test_results_parse_shunit_suite "$suite_stem" "$tmp"
     rm -f "$tmp"
   else
     "$test_file"
@@ -666,7 +677,7 @@ u_test_file_exec() {
 ##
 # Load generated test-case registry cache (if present).
 #
-u_test_case_cache_load() {
+f_test_case_cache_load() {
   if [[ "${test_case_registry_loaded:-0}" -eq 1 ]]; then
     return 0
   fi
@@ -694,11 +705,11 @@ u_test_case_cache_load() {
 # @param $1 case make target (e.g. test-browser-impersonation)
 # @param $2 [optional] output variable for index
 #
-u_test_case_registry_index() {
+f_test_case_registry_index() {
   local target="$1"
   local i=''
 
-  u_test_case_cache_load || return 1
+  f_test_case_cache_load || return 1
 
   for i in "${!test_case_registry_targets[@]}"; do
     if [[ "${test_case_registry_targets[i]}" == "$target" ]]; then
@@ -717,14 +728,14 @@ u_test_case_registry_index() {
 # @param $2 case stem
 # @param $3 [optional] env id (env_subdir batches)
 #
-u_test_run_case() {
+f_test_run_case() {
   local batch_task="$1"
   local case_stem="$2"
-  local p_env="${3:-local}"
+  local a_env="${3:-local}"
   local i='' mode='' batch_dir='' batch_script='' runner='' test_file=''
   local exit_code=0
 
-  u_test_case_cache_load || true
+  f_test_case_cache_load || true
 
   for i in "${!test_case_registry_targets[@]}"; do
     if [[ "${test_case_registry_batch_tasks[i]}" == "$batch_task" \
@@ -740,7 +751,7 @@ u_test_run_case() {
     local make_entries=() real_scripts=()
     local j=''
 
-    u_make_list_entry_points
+    f_make_list_entry_points
     for j in "${!make_entries[@]}"; do
       if [[ "${make_entries[j]}" == "$batch_task" ]]; then
         batch_script="${real_scripts[j]}"
@@ -750,74 +761,74 @@ u_test_run_case() {
 
     if [[ -z "$batch_script" ]]; then
       echo >&2
-      echo "Error in u_test_run_case() - unknown batch task '$batch_task'." >&2
+      echo "Error in f_test_run_case() - unknown batch task '$batch_task'." >&2
       echo "-> Run make reinit to regenerate test-case targets." >&2
       echo >&2
       return 1
     fi
 
-    u_test_discover_batch_cases "$batch_script" || return 1
+    f_test_discover_batch_cases "$batch_script" || return 1
     mode="$test_case_mode"
     batch_dir="$test_case_batch_dir"
 
-    if ! u_str_contains_word "$case_stem" "$test_case_stems"; then
+    if ! f_str_contains_word "$case_stem" "$test_case_stems"; then
       echo >&2
-      echo "Error in u_test_run_case() - unknown case '$case_stem' for batch '$batch_task'." >&2
+      echo "Error in f_test_run_case() - unknown case '$case_stem' for batch '$batch_task'." >&2
       echo >&2
       return 1
     fi
   fi
 
-  runner="$(u_test_case_runner_path "$batch_dir")"
+  runner="$(f_test_case_runner_path "$batch_dir")"
 
-  if u_test_results_enabled; then
-    u_test_results_batch_begin "$batch_dir" 1
+  if f_test_results_enabled; then
+    f_test_results_batch_begin "$batch_dir" 1
   fi
 
   case "$mode" in
     manifest)
       if [[ -x "$runner" || -f "$runner" ]]; then
-        bash "$runner" "$p_env" "$case_stem"
+        bash "$runner" "$a_env" "$case_stem"
         exit_code=$?
-        if u_test_results_enabled && [[ "${test_results_active:-0}" -eq 1 ]]; then
-          u_test_results_batch_end "$exit_code"
+        if f_test_results_enabled && [[ "${test_results_active:-0}" -eq 1 ]]; then
+          f_test_results_batch_end "$exit_code"
         fi
         return "$exit_code"
       fi
       echo >&2
-      echo "Error in u_test_run_case() - manifest batch requires case runner: ${runner}" >&2
+      echo "Error in f_test_run_case() - manifest batch requires case runner: ${runner}" >&2
       echo >&2
       return 1
       ;;
     env_subdir)
       if [[ -f "$runner" ]]; then
-        bash "$runner" "$p_env" "$case_stem"
+        bash "$runner" "$a_env" "$case_stem"
         exit_code=$?
-        if u_test_results_enabled && [[ "${test_results_active:-0}" -eq 1 ]]; then
-          u_test_results_batch_end "$exit_code"
+        if f_test_results_enabled && [[ "${test_results_active:-0}" -eq 1 ]]; then
+          f_test_results_batch_end "$exit_code"
         fi
         return "$exit_code"
       fi
-      test_file="${batch_dir}/${p_env}/${case_stem}.test.sh"
-      u_test_file_exec "$test_file"
+      test_file="${batch_dir}/${a_env}/${case_stem}.test.sh"
+      f_test_file_exec "$test_file"
       exit_code=$?
-      if u_test_results_enabled && [[ "${test_results_active:-0}" -eq 1 ]]; then
-        u_test_results_batch_end "$exit_code"
+      if f_test_results_enabled && [[ "${test_results_active:-0}" -eq 1 ]]; then
+        f_test_results_batch_end "$exit_code"
       fi
       return "$exit_code"
       ;;
     flat)
       test_file="${batch_dir}/${case_stem}.test.sh"
-      u_test_file_exec "$test_file"
+      f_test_file_exec "$test_file"
       exit_code=$?
-      if u_test_results_enabled && [[ "${test_results_active:-0}" -eq 1 ]]; then
-        u_test_results_batch_end "$exit_code"
+      if f_test_results_enabled && [[ "${test_results_active:-0}" -eq 1 ]]; then
+        f_test_results_batch_end "$exit_code"
       fi
       return "$exit_code"
       ;;
     *)
       echo >&2
-      echo "Error in u_test_run_case() - unknown mode '$mode'." >&2
+      echo "Error in f_test_run_case() - unknown mode '$mode'." >&2
       echo >&2
       return 1
       ;;
@@ -830,14 +841,14 @@ u_test_run_case() {
 # @param $1 case make target (e.g. test-browser-impersonation)
 # @param $2 [optional] env id
 #
-u_test_run_case_by_target() {
+f_test_run_case_by_target() {
   local target="$1"
-  local p_env="${2:-local}"
+  local a_env="${2:-local}"
   local i=''
 
-  if ! u_test_case_cache_load; then
+  if ! f_test_case_cache_load; then
     echo >&2
-    echo "Error in u_test_run_case_by_target() - missing ${ASC_TEST_CASE_CACHE}." >&2
+    echo "Error in f_test_run_case_by_target() - missing ${ASC_TEST_CASE_CACHE}." >&2
     echo "-> Run make reinit to regenerate test-case targets." >&2
     echo >&2
     return 1
@@ -845,16 +856,16 @@ u_test_run_case_by_target() {
 
   for i in "${!test_case_registry_targets[@]}"; do
     if [[ "${test_case_registry_targets[i]}" == "$target" ]]; then
-      u_test_run_case \
+      f_test_run_case \
         "${test_case_registry_batch_tasks[i]}" \
         "${test_case_registry_stems[i]}" \
-        "$p_env"
+        "$a_env"
       return $?
     fi
   done
 
   echo >&2
-  echo "Error in u_test_run_case_by_target() - unknown test-case target '$target'." >&2
+  echo "Error in f_test_run_case_by_target() - unknown test-case target '$target'." >&2
   echo "-> Run make reinit to regenerate ${ASC_TEST_CASE_CACHE}" >&2
   echo >&2
   return 1
@@ -869,33 +880,33 @@ u_test_run_case_by_target() {
 # @param 1 String : path to folder containing test cases.
 #
 # @example
-#   u_test_batch_exec asc/extensions/mysql/test/mysql
+#   f_test_batch_exec asc/extensions/mysql/test/mysql
 #
-u_test_batch_exec() {
-  local p_dir="$1"
+f_test_batch_exec() {
+  local a_dir="$1"
   local batch_exit=0
 
-  if [[ ! -d "$p_dir" ]]; then
+  if [[ ! -d "$a_dir" ]]; then
     echo >&2
-    echo "Error in u_test_batch_exec() - $BASH_SOURCE line $LINENO: the '$p_dir' folder is missing or inaccessible." >&2
+    echo "Error in f_test_batch_exec() - $BASH_SOURCE line $LINENO: the '$a_dir' folder is missing or inaccessible." >&2
     echo "-> Aborting." >&2
     echo >&2
     exit 1
   fi
 
-  u_test_results_batch_begin "$p_dir" 0
+  f_test_results_batch_begin "$a_dir" 0
 
-  u_fs_file_list "$p_dir" '*.test.sh'
+  f_fs_file_list "$a_dir" '*.test.sh'
 
   for test_script in $file_list; do
-    u_test_file_exec "$p_dir/$test_script" || batch_exit=$?
+    f_test_file_exec "$a_dir/$test_script" || batch_exit=$?
 
     if [[ "$batch_exit" -ne 0 ]]; then
       break
     fi
   done
 
-  u_test_results_batch_end "$batch_exit"
+  f_test_results_batch_end "$batch_exit"
 
   return "$batch_exit"
 }
@@ -907,18 +918,18 @@ u_test_batch_exec() {
 # @return Int : 0 if OK, or 1 if program was not found or not executable.
 #
 # @example
-#   u_test_program_is_executable 'git'
+#   f_test_program_is_executable 'git'
 #
-u_test_program_is_executable() {
-  local p_program="$1"
+f_test_program_is_executable() {
+  local a_program="$1"
   local check=0
 
-  if [[ "$(type -t $p_program)" == 'alias' ]]; then
+  if [[ "$(type -t $a_program)" == 'alias' ]]; then
     # TODO [fail] there seems to be no reliable way to test if an alias can run
     # successfully. Meanwhile, we assume that if an alias is found, it will be
     # executable.
     check=0
-  elif ! [ -x "$(command -v $p_program)" ]; then
+  elif ! [ -x "$(command -v $a_program)" ]; then
     check=1
   fi
 
@@ -928,7 +939,7 @@ u_test_program_is_executable() {
 ##
 # Helper: true when word is in space-separated list.
 #
-u_str_contains_word() {
+f_str_contains_word() {
   local word="$1"
   local list="$2"
   case " $list " in

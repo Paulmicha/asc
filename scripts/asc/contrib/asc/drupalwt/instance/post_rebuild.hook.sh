@@ -9,4 +9,4 @@
 # @see asc/extensions/drupalwt/drupalwt.inc.sh
 #
 
-u_dwt_write_settings
+f_dwt_write_settings

@@ -6,7 +6,7 @@
 # This file is used during "instance init" to generate the global environment
 # variables specific to current project instance.
 #
-# @see u_instance_init() in asc/instance/instance.inc.sh
+# @see f_instance_init() in asc/instance/instance.inc.sh
 # @see asc/utilities/global.sh
 # @see asc/bootstrap.sh
 #
@@ -30,5 +30,5 @@ global DWT_USE_CRONTAB "[default]=false [help]='When true, during app install, a
 global DWT_CRON_FREQ "[default]='0 * * * *'"
 
 # [optional] Shorter generated make tasks names.
-# @see u_make_task_name() in asc/instance/instance.inc.sh
+# @see f_make_task_name() in asc/instance/instance.inc.sh
 global ASC_SYNONYMS "[append]='drupalwt/dwt'"

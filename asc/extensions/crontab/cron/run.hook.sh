@@ -7,7 +7,7 @@
 # @see asc/extensions/crontab/cron/run.sh
 #
 
-u_cron_run_default() {
+f_cron_run_default() {
   local cmd
   local lock_mode="${ASC_CRON_LOCK:-skip}"
   local entry="${ASC_CRON_ENTRY:-}"
@@ -16,9 +16,9 @@ u_cron_run_default() {
 
   # Thread-monitor style extras (optional).
   case "${ASC_CRON_MONITOR_MARK_STALE:-}" in true|TRUE|1)
-    if [[ -f "$yml" ]] && u_thread_yml_load "$entry"; then
+    if [[ -f "$yml" ]] && f_thread_yml_load "$entry"; then
       if [[ "$thread_status" == 'running' ]] && ! kill -0 "$thread_pid" 2>/dev/null; then
-        u_thread_yml_mark_stale
+        f_thread_yml_mark_stale
         echo "Marked stale: $entry (PID $thread_pid)"
       fi
     fi
@@ -35,11 +35,11 @@ u_cron_run_default() {
       return 0
       ;;
     esac
-    u_hook_most_specific 'dry-run' -s 'thread' -a 'monitor' \
+    hook_ms 'dry-run' -s 'thread' -a 'monitor' \
       -v 'STACK_VERSION PROVISION_USING HOST_TYPE HOST_OS'
-    if [[ -n "${hook_most_specific_dry_run_match:-}" && -f "$hook_most_specific_dry_run_match" ]]; then
+    if [[ -n "${most_specific_match:-}" && -f "$most_specific_match" ]]; then
       # shellcheck disable=SC1090
-      . "$hook_most_specific_dry_run_match"
+      . "$most_specific_match"
     else
       echo >&2 "Error: no thread/monitor hook found."
       return 1
@@ -50,7 +50,7 @@ u_cron_run_default() {
 
   # Pile-up: skip if thread still running.
   case "$lock_mode" in skip)
-    if [[ -n "$entry" && -f "$yml" ]] && u_thread_yml_load "$entry"; then
+    if [[ -n "$entry" && -f "$yml" ]] && f_thread_yml_load "$entry"; then
       if [[ "$thread_status" == 'running' ]] && kill -0 "$thread_pid" 2>/dev/null; then
         echo "Cron skip: '$entry' already running (PID $thread_pid)."
         return 0
@@ -74,4 +74,4 @@ u_cron_run_default() {
   eval "$cmd"
 }
 
-u_cron_run_default
+f_cron_run_default

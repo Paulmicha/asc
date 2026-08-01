@@ -14,7 +14,7 @@
 #
 # TODO check if we can safely remove these hardcoded globals' values to persist.
 # In principle yes, as it gets re-initialized using the env.yml files.
-# @see u_instance_init() in asc/instance/instance.inc.sh
+# @see f_instance_init() in asc/instance/instance.inc.sh
 #
 # @see asc/instance/reinit.sh
 # @see asc/instance/rebuild.sh

@@ -18,7 +18,7 @@
 # This hook will be called once during bootstrap, then once more during db_set()
 # where a local variable may target the correct service.
 # -> Use the read-only global value if the service name was not overridden in
-# u_db_set().
+# f_db_set().
 # @see asc/extensions/db/db.inc.sh
 # @see asc/extensions/mysql/asc/global.compose.vars.sh
 if [[ -z "$dc_db_service_name" ]]; then

@@ -20,7 +20,7 @@ this tree). Project override files take precedence when present.
 | `$subject/$subject.opt-inc.sh` | Lazy — phase 90 when any action in that subject dir sources bootstrap | Helpers only used by that subject’s actions |
 | `$subject/$action.opt-inc.sh` | Lazy — phase 90 for that action only **or** seeded into `hook.${key}.sh` when a colocated `*.hook.sh` matches | Helpers for one action / foreign-subject hook implementers |
 
-Phase 90 keys off the bootstrap **caller** path. For **foreign-subject hooks** (e.g. `software` implementing `host/provision`), place helpers next to the hook as `provision.opt-inc.sh` / `host.opt-inc.sh` — `hook()` prepends those `.` lines into the same cache file before the hook bodies (1a). See `changelog/2026/07/16-asc-include-splitting-hook-mapped-deps.md`, `u_hook_opt_inc_append_candidates` in `asc/utilities/hook.sh`, and `asc/bootstrap/90-caller-opt-inc.bootstrap-inc.sh`.
+Phase 90 keys off the bootstrap **caller** path. For **foreign-subject hooks** (e.g. `software` implementing `host/provision`), place helpers next to the hook as `provision.opt-inc.sh` / `host.opt-inc.sh` — `hook()` prepends those `.` lines into the same cache file before the hook bodies (1a). See `changelog/2026/07/16-asc-include-splitting-hook-mapped-deps.md`, `f_hook_opt_inc_append_candidates` in `asc/utilities/hook.sh`, and `asc/bootstrap/90-caller-opt-inc.bootstrap-inc.sh`.
 
 Extension-root `$ext/$ext.inc.sh` cannot become caller opt-inc by rename alone; relocate into a subject/action `*.opt-inc.sh` (and rely on hook-cache seeding when used from foreign hooks).
 
@@ -43,7 +43,7 @@ Same pattern for `memory` (`storage-*`, `store-*`).
 | Extension | Role |
 |-----------|------|
 | `cognition` | `observe-*` / `recognize-*` stubs |
-| `transcription` | Abstract `make transcribe` + `transcribe-all`; subject-free `u_hook_most_specific -a 'transcribe' …`; generic defaults `transcribe.hook.sh`, `ogg.hook.sh`, `wav.hook.sh`, `transcribe.py` (tested on debian-13 only for now) |
+| `transcription` | Abstract `make transcribe` + `transcribe-all`; subject-free `hook_ms -a 'transcribe' …`; generic defaults `transcribe.hook.sh`, `ogg.hook.sh`, `wav.hook.sh`, `transcribe.py` (tested on debian-13 only for now) |
 
 Both are listed in **core** `.asc_extensions_ignore`. This home’s override omit them → they register after reinit. Path: `asc/extensions/transcription/transcribe/`. Make shortcut: `transcribe-transcribe` → `transcribe` via `ASC_SYNONYMS`. No CoT / principle / plan agent stubs in core (see `changelog/2026/07/16-asc-core-strip-agent-extensions.md`).
 

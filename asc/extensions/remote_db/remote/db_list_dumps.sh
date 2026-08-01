@@ -42,7 +42,7 @@ if [[ -z "$remote_id" ]]; then
   remote_id='prod'
 fi
 
-u_remote_check_id "$remote_id"
+f_remote_check_id "$remote_id"
 
 if [[ -z "$subfolder" ]]; then
   subfolder='local'
@@ -53,7 +53,7 @@ declare -A dumps_dict
 # When we only read the 'base_dir' from definitions, we get exactly 1 key per
 # DB ID (and if we don't specify a DB ID, we get the base dirs of all DB defined
 # on that remote by default).
-u_remote_db_read_definition "$remote_id" "$db_id" 'base_dir'
+f_remote_db_read_definition "$remote_id" "$db_id" 'base_dir'
 
 for key in "${!dumps_dict[@]}"; do
   db_id="${key%.base_dir}"
@@ -61,7 +61,7 @@ for key in "${!dumps_dict[@]}"; do
   echo "Listing $remote_id dumps ($key) :"
   echo
 
-  u_remote_exec_wrapper "$remote_id" \
+  f_remote_exec_wrapper "$remote_id" \
     "find ${dumps_dict[$key]}/$subfolder/$db_id -maxdepth 1 -type f -name '*.gz' -exec ls -1t '{}' +"
 
   echo

@@ -4,10 +4,10 @@
 # Implements hook -s 'log' -a 'storage'
 #
 # The following variables are available from calling scope here :
-# @see asc/log/wrap.sh
+# @see asc/log/log.wrap.sh
 #
 # - $log_file
-# - $p_script
+# - $a_script
 #
 
 if [[ ! -d data/logs ]]; then
@@ -27,8 +27,8 @@ if [[ ! -f "$log_file_sidecar" ]]; then
 fi
 
 datestamp="$(date +"%Y-%m-%dT%H:%M:%S.%3N")"
-human_user="$(u_print_current_user)"
-echo "$datestamp : $human_user (euid=$(id -u)) : $p_script $*" >> "$log_file_sidecar"
+human_user="$(f_print_current_user)"
+echo "$datestamp : $human_user (euid=$(id -u)) : $a_script $*" >> "$log_file_sidecar"
 
 # Write wrapped call outputs (2>&1) to the $log_file.
 log_file="data/logs/${log_file}.txt"
@@ -38,8 +38,8 @@ export ASC_WRAP_NONINTERACTIVE=1
 export GIT_TERMINAL_PROMPT=0
 
 # Noninteractive: close stdin so prompts fail fast instead of hanging.
-nohup "$p_script" "$@" </dev/null > "$log_file" 2>&1 &
-p_pid=$!
+nohup "$a_script" "$@" </dev/null > "$log_file" 2>&1 &
+a_pid=$!
 
 # Prefer human-owned artifacts when sudoing (S1).
 if [[ -n "${SUDO_USER:-}" ]]; then
@@ -47,7 +47,7 @@ if [[ -n "${SUDO_USER:-}" ]]; then
   chown "$SUDO_USER:" data/logs 2>/dev/null || true
 fi
 
-echo "Log started (PID $p_pid)."
-echo "  script    : $p_script $*"
+echo "Log started (PID $a_pid)."
+echo "  script    : $a_script $*"
 echo "  output    : $log_file"
 echo "  sidecar   : $log_file_sidecar"

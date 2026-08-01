@@ -18,4 +18,4 @@
 #
 
 . asc/bootstrap.sh
-u_instance_registry_set "$@"
+f_instance_registry_set "$@"
