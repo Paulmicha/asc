@@ -17,19 +17,19 @@ if ! command -v ollama >/dev/null 2>&1; then
   exit 1
 fi
 
-a_running=()
+a_running_arr=()
 while IFS= read -r a_name; do
   [[ -n "$a_name" ]] || continue
-  a_running+=("$a_name")
+  a_running_arr+=("$a_name")
 done < <(ollama ps 2>/dev/null | awk 'NR > 1 && $1 != "" { print $1 }')
 
-if [[ ${#a_running[@]} -eq 0 ]]; then
+if [[ ${#a_running_arr[@]} -eq 0 ]]; then
   echo "No running Ollama models."
   echo "Over."
   exit 0
 fi
 
-for a_model in "${a_running[@]}"; do
+for a_model in "${a_running_arr[@]}"; do
   echo "Stopping model '$a_model' ..."
   ollama stop "$a_model" || exit $?
 done

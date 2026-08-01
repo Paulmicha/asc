@@ -117,11 +117,11 @@ f_autoload_print_lookup_paths() {
 # @see f_hook_build_project_root_dir_lookup()
 #
 # @example
-#   # Add entries in the 'lookup_paths' array as in hooks' lookups,
+#   # Add entries in the 'lookup_paths_arr' array as in hooks' lookups,
 #   # e.g. : pre_bootstrap.compose.hook.sh
 #   for x_val in $prefixes; do
 #     for v_val in $str_subsequences; do
-#       f_autoload_add_lookup_level "${x_val}_${a}." "$suffix" "$v_val" lookup_paths
+#       f_autoload_add_lookup_level "${x_val}_${a}." "$suffix" "$v_val" lookup_paths_arr
 #     done
 #   done
 #

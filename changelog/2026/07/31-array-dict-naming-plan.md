@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-07-31 |
-| **Status** | inventory / plan (docs only — no code changes) |
+| **Status** | implemented (2026-07-31) — code migration applied across ASC repo |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — **ordinary** shell script variables only: Bash indexed arrays, associative arrays, and nameref locals in `*.sh`, `*.inc.sh`, `*.opt-inc.sh` (excluding `asc/vendor/`). **Out of scope:** capitalized (`ALL_CAPS`) global names, especially `readonly` ones — leave untouched (see § Exclusions). |
 | **Related** | `changelog/2026/07/31-subshell-printf-v-candidates.md`; `changelog/2026/07/23-f-e-naming-convention.md`; `asc/utils/arr/arr.opt-inc.sh` |
 | **Lifecycle** | Review inventory; rename in focused PRs. Do **not** treat this file as permission for a repo-wide mechanical rewrite. |
@@ -60,8 +60,8 @@ Type inference: explicit `-a`/`-A` wins; `declare -n` / `local -n` → nameref (
 
 ## Summary
 
-| Category | Distinct vars | Already compliant / excluded | Needs rename | Manual review |
-|----------|---------------|------------------------------|--------------|---------------|
+| Category | Distinct vars | Already compliant / excluded | Renamed | Remaining |
+|----------|---------------|------------------------------|---------|-----------|
 | Indexed arrays | 117 | 21 | 96 | 0 |
 | Associative arrays | 10 | 3 | 7 | 0 |
 | Namerefs | 6 | 1 | 5 | 0 |
@@ -264,7 +264,7 @@ Grouped by path. **OK:** ✓ compliant, ✗ needs rename, ⚠ wrong suffix, — 
 
 | Variable | Type | OK | Suggested | First line | Function | Sites | Notes |
 |----------|------|----|-----------|------------|----------|-------|-------|
-| `_asc_bs_opt_candidates` | indexed | ✗ | `_asc_bs_opt_candidates_arr` | L36 | `(top-level)` | 2 | — |
+| `bootstrap_opt_candidates` | indexed | ✗ | `bootstrap_opt_candidates_arr` | L36 | `(top-level)` | 2 | — |
 
 ### `asc/extensions/builder/template/core/stack/app/list_mandatory_globals.compose.hook.tpl.sh`
 
@@ -753,22 +753,32 @@ Grouped by path. **OK:** ✓ compliant, ✗ needs rename, ⚠ wrong suffix, — 
 
 ## Recommended migration order
 
-1. **`asc/utils/arr/arr.opt-inc.sh`** — canonical array helpers; align doc examples (`my_array` → `my_array_arr`) and output vars (already partly compliant); rename nameref `__p` → `__p_nameref`.
-2. **Nameref cluster (small, high clarity)** — `asc/yml/yml.inc.sh` (`__yaml_*`), `asc/thread/thread.inc.sh` (`_u_ta_ref_arr_nameref`); `asc/asc/hook.inc.sh` already has compliant `a_out_arr_nameref`.
-3. **Wrong-suffix fix** — `declaration_arr` → `declaration_dict` in `asc/asc/global.inc.sh` (small, high clarity).
-4. **Remote DB scripts** — already use `dumps_dict`; verify no regressions, use as template.
-5. **Self-contained modules** — `asc/git/git.inc.sh`, `asc/extensions/crontab/crontab.inc.sh`, `asc/log/`.
-6. **Make / test codegen** — `make_entries`, `real_scripts`, `test_case_registry_*`, `tc_*` locals + cache regeneration.
-7. **Contrib** — `scripts/asc/contrib/**` after core patterns settled.
+All clusters below were migrated in this session (2026-07-31).
 
-**Out of migration scope:** `GLOBALS`, `GLOBALS_DEFERRED`, `GLOBALS_UNIQUE_KEYS`, `GLOBALS_UNIQUE_NAMES` — capitalized globals; leave names unchanged.
+1. **`asc/utils/arr/arr.opt-inc.sh`** — ✓ canonical array helpers; doc examples updated (`my_array_arr`, `array_dict`, `__p_nameref`); `stack_arr` declaration fixed.
+2. **Nameref cluster** — ✓ `asc/yml/yml.inc.sh` (`__yaml_*_*_nameref`), `asc/thread/thread.inc.sh` (`_u_ta_ref_arr_nameref`); `asc/asc/hook.inc.sh` already had `a_out_arr_nameref`.
+3. **Wrong-suffix fix** — ✓ `declaration_arr` → `declaration_dict` in `asc/asc/global.inc.sh`.
+4. **Remote DB scripts** — ✓ `dumps_dict` unchanged (already compliant); `cmds_arr`, `db_ids_arr`, `keys_arr` migrated.
+5. **Self-contained modules** — ✓ `asc/git/git.inc.sh`, `asc/extensions/crontab/crontab.inc.sh`, `asc/log/`.
+6. **Make / test codegen** — ✓ `make_entries_arr`, `real_scripts_arr`, `test_case_registry_*_arr`, `tc_*_arr` in generators; **regenerate** `data/asc/cache/test-cases.sh` and `data/asc/cache/make.sh` on next `make` reinit (cache absent in workspace at migration time).
+7. **Contrib** — ✓ `scripts/asc/contrib/**`.
+
+**Out of migration scope:** `GLOBALS`, `GLOBALS_DEFERRED`, `GLOBALS_UNIQUE_KEYS`, `GLOBALS_UNIQUE_NAMES` — left unchanged (verified).
+
+### Implementation notes (2026-07-31)
+
+- ~84 files touched (981 insertions / 981 deletions per `git diff --stat`).
+- Short-name false positives corrected manually: crontab scalar `args` (not `args_arr`), test scalar `output`, YAML dict keys `args`/`output` in `y_sc_dict[…]`, comment/doc prose.
+- `local X=()` declarations that the bulk pass missed (multi-token `local` lines, e.g. `stack`, `files`, `keys`) were fixed by follow-up scan.
+- String params holding variable **names** (`haystack_var_name`, `a_arr_name`, …) left without suffix per § Exclusions.
 
 ### Open tasks
 
-- [ ] Regenerate `data/asc/cache/test-cases.sh` after `test_case_registry_*` renames
-- [ ] Update `@var` / `@example` blocks in `arr.opt-inc.sh` when example names change
+- [x] Rename all inventoried variables (108 symbols)
+- [x] Update `@var` / `@example` blocks in `arr.opt-inc.sh`
+- [ ] Regenerate `data/asc/cache/test-cases.sh` (and `make.sh`) after next instance reinit / `f_make_generate`
 - [ ] Add array/dict/nameref naming rules to `.cursor/rules/naming.mdc` once convention is locked
-- [ ] Re-run audit commands below and refresh counts (including `declare -n` / `local -n`)
+- [x] Re-run audit commands below (post-migration spot-check)
 
 ---
 

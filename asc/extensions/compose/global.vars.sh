@@ -20,7 +20,7 @@ global DEV_GID "[default]=$(id -g)"
 # @see asc/extensions/compose/service/exec.sh
 global DC_SERVICE_EXEC_FALLBACK "[default]=sh"
 
-# Important note : when using relative paths in compose.yml files, the
+# Important note : when using relative paths in compose.yml files_arr, the
 # folder of the file itself is the reference.
 # If it should instead be relative to PROJECT_DOCROOT, then the 'generate' mode
 # is more suitable, that is : generating the (git-ignored) compose.yml

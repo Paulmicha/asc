@@ -44,39 +44,39 @@ fi
 # Expected format : user@host.com:path/to/project.git
 git_origin="$(git config --get remote.origin.url)"
 
-hosts=()
+hosts_arr=()
 regex="\@([^\:]+)\:"
-hosts_with_user=()
+hosts_with_user_arr=()
 regex_with_user="^([^\:]+)\:"
 
 if [[ "$git_origin" =~ $regex ]]; then
-  hosts+=("${BASH_REMATCH[1]}")
+  hosts_arr+=("${BASH_REMATCH[1]}")
 fi
 if [[ "$git_origin" =~ $regex_with_user ]]; then
-  hosts_with_user+=("${BASH_REMATCH[1]}")
+  hosts_with_user_arr+=("${BASH_REMATCH[1]}")
 fi
 if [[ -n "$APP_GIT_ORIGIN" ]]; then
   if [[ "$APP_GIT_ORIGIN" =~ $regex ]]; then
-    f_array_add_once "${BASH_REMATCH[1]}" hosts
+    f_array_add_once "${BASH_REMATCH[1]}" hosts_arr
   fi
   if [[ "$APP_GIT_ORIGIN" =~ $regex_with_user ]]; then
-    f_array_add_once "${BASH_REMATCH[1]}" hosts_with_user
+    f_array_add_once "${BASH_REMATCH[1]}" hosts_arr_with_user_arr
   fi
 fi
 
 # This part of the command needs to be dynamically generated.
 dyn_cmd_known_hosts=''
 
-if [[ -n "${hosts[@]}" ]] && [[ -n "${hosts_with_user[@]}" ]]; then
-  for (( i = 0; i < ${#hosts[@]}; i++ )); do
+if [[ -n "${hosts_arr[@]}" ]] && [[ -n "${hosts_with_user_arr[@]}" ]]; then
+  for (( i = 0; i < ${#hosts_arr[@]}; i++ )); do
     dyn_cmd_known_hosts+="
 
-  ssh -T ${hosts_with_user[i]} &> /dev/null
+  ssh -T ${hosts_with_user_arr[i]} &> /dev/null
   if [[ \$? -ne 0 ]]; then
-    ssh-keyscan -H ${hosts[i]} >> ~/.ssh/known_hosts
-    echo 'Added ${hosts[i]} to known hosts.'
+    ssh-keyscan -H ${hosts_arr[i]} >> ~/.ssh/known_hosts
+    echo 'Added ${hosts_arr[i]} to known hosts.'
   else
-    echo 'Ok - ${hosts[i]} appears to authorize connection.'
+    echo 'Ok - ${hosts_arr[i]} appears to authorize connection.'
   fi
 
 "

@@ -201,7 +201,7 @@ hook() {
   local variants=""
   local prefixes=""
 
-  local base_paths=("asc")
+  local base_paths_arr=("asc")
   local extension
   local uppercase
   local ext_path
@@ -225,7 +225,7 @@ hook() {
       # Override base path for lookups.
       ext_path=''
       f_asc_extension_path "$extension"
-      base_paths=("$ext_path/$extension")
+      base_paths_arr=("$ext_path/$extension")
     done
 
   # By default, any extension can append its own "primitives".
@@ -244,7 +244,7 @@ hook() {
       # Every extension defines an additional base path for lookups.
       ext_path=''
       f_asc_extension_path "$extension"
-      base_paths+=("$ext_path/$extension")
+      base_paths_arr+=("$ext_path/$extension")
     done
   fi
 
@@ -307,8 +307,8 @@ hook() {
   # if [ $b_debug -eq 1 ]; then
   #   echo
   #   echo "debug hook call :"
-  #   echo "  base_paths :"
-  #   f_array_print 'base_paths'
+  #   echo "  base_paths_arr :"
+  #   f_array_print 'base_paths_arr'
   #   echo "  subjects = '$subjects'"
   #   echo "  actions = '$actions'"
   #   echo "  extensions = '$extensions'"
@@ -317,7 +317,7 @@ hook() {
   # fi
 
   # Build lookup paths.
-  local lookup_paths=()
+  local lookup_paths_arr=()
   local lookup_subject
 
   for lookup_subject in $subjects; do
@@ -354,7 +354,7 @@ hook() {
     if [ $b_root_lookup -eq 1 ]; then
       debug_msg+=" -r"
     fi
-    f_autoload_print_lookup_paths lookup_paths "$debug_msg"
+    f_autoload_print_lookup_paths lookup_paths_arr "$debug_msg"
   fi
 
   # Source each file include (with optional override mecanism).
@@ -364,10 +364,10 @@ hook() {
   local inc
   local src
   local oi
-  local matched_hooks=()
-  local opt_incs=()
+  local matched_hooks_arr=()
+  local opt_incs_arr=()
 
-  for inc in "${lookup_paths[@]}"; do
+  for inc in "${lookup_paths_arr[@]}"; do
     if [ -f "$inc" ]; then
       # Note : for tests, the "dry run" option prevents "override" alterations.
       # @see asc/test/asc/hook.test.sh
@@ -380,21 +380,21 @@ hook() {
 
       # Derive opt-incs from the lookup path (extension/project location), not
       # from an override path under scripts/overrides.
-      f_hook_opt_inc_append_candidates "$inc" opt_incs
+      f_hook_opt_inc_append_candidates "$inc" opt_incs_arr
 
       src="$(f_hook_resolve_source_path "$inc")"
-      matched_hooks+=("$src")
+      matched_hooks_arr+=("$src")
     fi
   done
 
   if [ $b_dry_run -eq 1 ]; then
     hook_cache_contents+="hook_dry_run_matches=\"$hook_dry_run_matches\""
   else
-    if [[ ${#opt_incs[@]} -gt 0 ]]; then
+    if [[ ${#opt_incs_arr[@]} -gt 0 ]]; then
       hook_cache_contents+="# --- opt-inc (seeded) ---
 "
 
-      for oi in "${opt_incs[@]}"; do
+      for oi in "${opt_incs_arr[@]}"; do
         src="$(f_hook_resolve_source_path "$oi")"
         hook_cache_contents+=". $src
 "
@@ -405,11 +405,11 @@ hook() {
       done
     fi
 
-    if [[ ${#matched_hooks[@]} -gt 0 ]]; then
+    if [[ ${#matched_hooks_arr[@]} -gt 0 ]]; then
       hook_cache_contents+="# --- hooks ---
 "
 
-      for src in "${matched_hooks[@]}"; do
+      for src in "${matched_hooks_arr[@]}"; do
         hook_cache_contents+=". $src
 "
 
@@ -420,11 +420,11 @@ hook() {
     fi
   fi
 
-  if [[ $b_debug -eq 1 && ${#opt_incs[@]} -gt 0 ]]; then
+  if [[ $b_debug -eq 1 && ${#opt_incs_arr[@]} -gt 0 ]]; then
     echo
     echo "Seeded opt-inc paths :"
 
-    for oi in "${opt_incs[@]}"; do
+    for oi in "${opt_incs_arr[@]}"; do
       echo "  - $oi"
     done
   fi
@@ -454,8 +454,8 @@ CACHE
 # here for potential future re-evaluation).
 #
 # @requires the following vars in calling scope :
-# - $base_paths
-# - $lookup_paths
+# - $base_paths_arr
+# - $lookup_paths_arr
 # - $filters
 # - $actions
 #
@@ -498,7 +498,7 @@ f_hook_build_lookup_by_subject() {
     suffix="$a_suffix_override"
   fi
 
-  for bp in "${base_paths[@]}"; do
+  for bp in "${base_paths_arr[@]}"; do
 
     # Avoid lookups for namespaces not having the subject we're looking for.
     if ! f_asc_namespace_has_subject "$bp" "$o_subject" ; then
@@ -512,7 +512,7 @@ f_hook_build_lookup_by_subject() {
 
         # First, add "pure" actions suggestions - unless excluded (see prefixes).
         if [[ -z "$o_prefixes_filter" ]]; then
-          lookup_paths+=("$bp/${a_path}.${suffix}")
+          lookup_paths_arr+=("$bp/${a_path}.${suffix}")
         fi
 
         f_str_split1 'a_parts_arr' "$a_path" '/'
@@ -520,7 +520,7 @@ f_hook_build_lookup_by_subject() {
 
         # Then add "prefixed" actions suggestions.
         for x_val in $prefixes; do
-          lookup_paths+=("$bp/$o_subject/${x_val}_${a}.${suffix}")
+          lookup_paths_arr+=("$bp/$o_subject/${x_val}_${a}.${suffix}")
         done
 
         # Finally, add the variants suggestions.
@@ -537,7 +537,7 @@ f_hook_build_lookup_by_subject() {
         f_str_subsequences "$v_values" '.'
         if [[ -z "$o_prefixes_filter" ]]; then
           for v_val in $str_subsequences; do
-            f_autoload_add_lookup_level "$bp/$o_subject/${a}." "$suffix" "$v_val" lookup_paths
+            f_autoload_add_lookup_level "$bp/$o_subject/${a}." "$suffix" "$v_val" lookup_paths_arr
           done
         fi
 
@@ -545,7 +545,7 @@ f_hook_build_lookup_by_subject() {
         # pre_bootstrap.compose.hook.sh
         for x_val in $prefixes; do
           for v_val in $str_subsequences; do
-            f_autoload_add_lookup_level "$bp/$o_subject/${x_val}_${a}." "$suffix" "$v_val" lookup_paths
+            f_autoload_add_lookup_level "$bp/$o_subject/${x_val}_${a}." "$suffix" "$v_val" lookup_paths_arr
           done
         done
       esac
@@ -557,7 +557,7 @@ f_hook_build_lookup_by_subject() {
 # Adds hook lookup paths in project root dir.
 #
 # @requires the following vars in calling scope :
-# - $lookup_paths
+# - $lookup_paths_arr
 # - $filters
 # - $actions
 #
@@ -601,12 +601,12 @@ f_hook_build_project_root_dir_lookup() {
 
   # First, add "pure" actions suggestions - unless excluded (see prefixes).
   if [[ -z "$o_prefixes_filter" ]]; then
-    lookup_paths+=("${a}.${suffix}")
+    lookup_paths_arr+=("${a}.${suffix}")
   fi
 
   # Then add "prefixed" actions suggestions.
   for x_val in $prefixes; do
-    lookup_paths+=("${x_val}_${a}.${suffix}")
+    lookup_paths_arr+=("${x_val}_${a}.${suffix}")
   done
 
   # Finally, add the variants suggestions.
@@ -623,7 +623,7 @@ f_hook_build_project_root_dir_lookup() {
   f_str_subsequences "$v_values" '.'
   if [[ -z "$o_prefixes_filter" ]]; then
     for v_val in $str_subsequences; do
-      f_autoload_add_lookup_level "${a}." "$suffix" "$v_val" lookup_paths
+      f_autoload_add_lookup_level "${a}." "$suffix" "$v_val" lookup_paths_arr
     done
   fi
 
@@ -631,7 +631,7 @@ f_hook_build_project_root_dir_lookup() {
   # pre_bootstrap.compose.hook.sh
   for x_val in $prefixes; do
     for v_val in $str_subsequences; do
-      f_autoload_add_lookup_level "${x_val}_${a}." "$suffix" "$v_val" lookup_paths
+      f_autoload_add_lookup_level "${x_val}_${a}." "$suffix" "$v_val" lookup_paths_arr
     done
   done
 }
@@ -899,13 +899,13 @@ f_hook_resolve_source_path() {
 #
 f_hook_source_opt_incs_for_path() {
   local a_hook_path="$1"
-  local opt_incs=()
+  local opt_incs_arr=()
   local oi
   local src
 
-  f_hook_opt_inc_append_candidates "$a_hook_path" opt_incs
+  f_hook_opt_inc_append_candidates "$a_hook_path" opt_incs_arr
 
-  for oi in "${opt_incs[@]}"; do
+  for oi in "${opt_incs_arr[@]}"; do
     src="$(f_hook_resolve_source_path "$oi")"
     . "$src"
   done

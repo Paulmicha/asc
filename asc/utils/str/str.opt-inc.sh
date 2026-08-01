@@ -323,7 +323,7 @@ f_str_sanitize() {
 ##
 # Gets all unique unordered combinations of given string values.
 #
-# See https://codereview.stackexchange.com/questions/7001/generating-all-combinations-of-an-array
+# See https://codereview.stackexchange.com/questions/7001/generating-all-combinations-of-an-array_dict
 # + https://stackoverflow.com/a/23653825
 #
 # NB : for performance reasons (to avoid using a subshell), this function

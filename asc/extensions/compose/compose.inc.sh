@@ -26,12 +26,12 @@
 # $ make hook-debug ms s:stack a:compose c:yml v:DC_YML_VARIANTS
 # $ make hook-debug ms s:stack a:compose.override c:yml v:DC_YML_VARIANTS
 #
-# By default, Compose reads two files, compose.yml and an optional
+# By default, Compose reads two files_arr, compose.yml and an optional
 # compose.override.yml file. By convention, compose.yml
 # contains your base configuration. The override file, as its name implies,
 # can contain configuration overrides for existing services or entirely new
 # services.
-# If a service is defined in both files, Compose merges the configurations
+# If a service is defined in both files_arr, Compose merges the configurations
 # using the following rules :
 # - If a configuration option is defined in both the original service and the
 #   local service, the local value replaces or extends the original value.

@@ -15,7 +15,7 @@
 
 case "$DWT_MULTISITE" in 'true')
   f_dwt_sites
-  for site_id in "${dwt_sites_ids[@]}"; do
+  for site_id in "${dwt_sites_ids_arr[@]}"; do
     f_str_sanitize_var_name "$site_id" 'site_id'
 
     # The 'default' site should be done already (see WRITEABLE_DIRS and
@@ -25,9 +25,9 @@ case "$DWT_MULTISITE" in 'true')
       continue
     esac
 
-    dwt_sites_writeable_paths=()
+    dwt_sites_writeable_paths_arr=()
     f_dwt_get_sites_writeable_paths "$site_id"
-    for writeable_dir in "${dwt_sites_writeable_paths[@]}"; do
+    for writeable_dir in "${dwt_sites_writeable_paths_arr[@]}"; do
       # HACK : docker-compose projects may have subdirs where this returns many
       # errors we don't care about, so we prevent errors from polluting output.
       # (See docker-compose ownership issues).

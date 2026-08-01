@@ -66,21 +66,21 @@ f_software_parse_args() {
 ##
 # Paths to YAML manifests (default + optional local overlay).
 #
-# @var software_manifest_files
+# @var software_manifest_files_arr
 #
 f_software_manifest_paths() {
-  software_manifest_files=()
+  software_manifest_files_arr=()
 
   if [[ -f scripts/asc/extend/software/apps.manifest.yml ]]; then
-    software_manifest_files+=('scripts/asc/extend/software/apps.manifest.yml')
+    software_manifest_files_arr+=('scripts/asc/extend/software/apps.manifest.yml')
   fi
 
   if [[ -f asc/extensions/software/apps.manifest.yml ]]; then
-    software_manifest_files+=('asc/extensions/software/apps.manifest.yml')
+    software_manifest_files_arr+=('asc/extensions/software/apps.manifest.yml')
   fi
 
   if [[ -f data/asc/software/apps.manifest.local.yml ]]; then
-    software_manifest_files+=('data/asc/software/apps.manifest.local.yml')
+    software_manifest_files_arr+=('data/asc/software/apps.manifest.local.yml')
   fi
 }
 
@@ -91,37 +91,37 @@ f_software_load_manifests() {
   local f
   local parsed
 
-  unset sw_apt sw_pipx \
-    sw_tarball__id sw_tarball__version sw_tarball__url \
-    sw_tarball__install_dir sw_tarball__binary \
-    sw_appimage__id sw_appimage__url sw_appimage__sha256 sw_appimage__path \
-    sw_ensure__id sw_ensure__command sw_ensure__method \
-    sw_units__id sw_units__kind sw_units__template sw_units__enable \
+  unset sw_apt_arr sw_pipx_arr \
+    sw_tarball__id_arr sw_tarball__version_arr sw_tarball__url_arr \
+    sw_tarball__install_dir_arr sw_tarball__binary_arr \
+    sw_appimage__id_arr sw_appimage__url_arr sw_appimage__sha256_arr sw_appimage__path_arr \
+    sw_ensure__id_arr sw_ensure__command_arr sw_ensure__method_arr \
+    sw_units__id_arr sw_units__kind sw_units__template_arr sw_units__enable_arr \
     sw_units__requires 2>/dev/null || true
 
-  sw_apt=()
-  sw_pipx=()
-  sw_tarball__id=()
-  sw_tarball__version=()
-  sw_tarball__url=()
-  sw_tarball__install_dir=()
-  sw_tarball__binary=()
-  sw_appimage__id=()
-  sw_appimage__url=()
-  sw_appimage__sha256=()
-  sw_appimage__path=()
-  sw_ensure__id=()
-  sw_ensure__command=()
-  sw_ensure__method=()
-  sw_units__id=()
+  sw_apt_arr=()
+  sw_pipx_arr=()
+  sw_tarball__id_arr=()
+  sw_tarball__version_arr=()
+  sw_tarball__url_arr=()
+  sw_tarball__install_dir_arr=()
+  sw_tarball__binary_arr=()
+  sw_appimage__id_arr=()
+  sw_appimage__url_arr=()
+  sw_appimage__sha256_arr=()
+  sw_appimage__path_arr=()
+  sw_ensure__id_arr=()
+  sw_ensure__command_arr=()
+  sw_ensure__method_arr=()
+  sw_units__id_arr=()
   sw_units__kind=()
-  sw_units__template=()
-  sw_units__enable=()
+  sw_units__template_arr=()
+  sw_units__enable_arr=()
   sw_units__requires=()
 
   f_software_manifest_paths
 
-  if [[ ${#software_manifest_files[@]} -eq 0 ]]; then
+  if [[ ${#software_manifest_files_arr[@]} -eq 0 ]]; then
     echo >&2
     echo "Error: no software manifests found." >&2
     echo "Expected scripts/asc/extend/software/apps.manifest.yml" >&2
@@ -130,7 +130,7 @@ f_software_load_manifests() {
     return 1
   fi
 
-  for f in "${software_manifest_files[@]}"; do
+  for f in "${software_manifest_files_arr[@]}"; do
     parsed="$(f_yaml_parse "$f" 'sw_')"
     eval "$parsed"
   done
@@ -175,15 +175,15 @@ f_software_managed_add() {
 }
 
 ##
-# Load managed ids into software_managed_ids array.
+# Load managed ids into software_managed_ids_arr array.
 #
-# @var software_managed_ids
+# @var software_managed_ids_arr
 #
 f_software_managed_load() {
   local path
   local line
 
-  software_managed_ids=()
+  software_managed_ids_arr=()
   path="$(f_software_managed_path)"
 
   if [[ ! -f "$path" ]]; then
@@ -192,12 +192,12 @@ f_software_managed_load() {
 
   while IFS= read -r line || [[ -n "$line" ]]; do
     [[ -z "$line" || "$line" == \#* ]] && continue
-    software_managed_ids+=("$line")
+    software_managed_ids_arr+=("$line")
   done < "$path"
 }
 
 ##
-# Rewrite managed.list from software_managed_ids.
+# Rewrite managed.list from software_managed_ids_arr.
 #
 f_software_managed_save() {
   local path
@@ -208,7 +208,7 @@ f_software_managed_save() {
 
   : > "$path"
 
-  for id in "${software_managed_ids[@]}"; do
+  for id in "${software_managed_ids_arr[@]}"; do
     echo "$id" >> "$path"
   done
 }
@@ -218,62 +218,62 @@ f_software_managed_save() {
 #
 f_software_managed_remove() {
   local a_id="$1"
-  local kept=()
+  local kept_arr=()
   local id
 
   f_software_managed_load
 
-  for id in "${software_managed_ids[@]}"; do
+  for id in "${software_managed_ids_arr[@]}"; do
     if [[ "$id" != "$a_id" ]]; then
-      kept+=("$id")
+      kept_arr+=("$id")
     fi
   done
 
-  software_managed_ids=("${kept[@]}")
+  software_managed_ids_arr=("${kept_arr[@]}")
   f_software_managed_save
 }
 
 ##
 # Desired-state ids currently declared in loaded manifests.
 #
-# @var software_desired_ids
+# @var software_desired_ids_arr
 #
 f_software_desired_ids() {
   local i
   local pkg
   local name
 
-  software_desired_ids=()
+  software_desired_ids_arr=()
 
-  for pkg in "${sw_apt[@]}"; do
+  for pkg in "${sw_apt_arr[@]}"; do
     pkg="$(f_software_scalar "$pkg")"
-    [[ -n "$pkg" ]] && software_desired_ids+=("apt:$pkg")
+    [[ -n "$pkg" ]] && software_desired_ids_arr+=("apt:$pkg")
   done
 
-  for pkg in "${sw_pipx[@]}"; do
+  for pkg in "${sw_pipx_arr[@]}"; do
     pkg="$(f_software_scalar "$pkg")"
     name="${pkg%%==*}"
-    [[ -n "$name" ]] && software_desired_ids+=("pipx:$name")
+    [[ -n "$name" ]] && software_desired_ids_arr+=("pipx:$name")
   done
 
-  for ((i = 0; i < ${#sw_tarball__id[@]}; i++)); do
-    name="$(f_software_scalar "${sw_tarball__id[$i]}")"
-    [[ -n "$name" ]] && software_desired_ids+=("tarball:$name")
+  for ((i = 0; i < ${#sw_tarball__id_arr[@]}; i++)); do
+    name="$(f_software_scalar "${sw_tarball__id_arr[$i]}")"
+    [[ -n "$name" ]] && software_desired_ids_arr+=("tarball:$name")
   done
 
-  for ((i = 0; i < ${#sw_appimage__id[@]}; i++)); do
-    name="$(f_software_scalar "${sw_appimage__id[$i]}")"
-    [[ -n "$name" ]] && software_desired_ids+=("appimage:$name")
+  for ((i = 0; i < ${#sw_appimage__id_arr[@]}; i++)); do
+    name="$(f_software_scalar "${sw_appimage__id_arr[$i]}")"
+    [[ -n "$name" ]] && software_desired_ids_arr+=("appimage:$name")
   done
 
-  for ((i = 0; i < ${#sw_ensure__id[@]}; i++)); do
-    name="$(f_software_scalar "${sw_ensure__id[$i]}")"
-    [[ -n "$name" ]] && software_desired_ids+=("ensure:$name")
+  for ((i = 0; i < ${#sw_ensure__id_arr[@]}; i++)); do
+    name="$(f_software_scalar "${sw_ensure__id_arr[$i]}")"
+    [[ -n "$name" ]] && software_desired_ids_arr+=("ensure:$name")
   done
 
-  for ((i = 0; i < ${#sw_units__id[@]}; i++)); do
-    name="$(f_software_scalar "${sw_units__id[$i]}")"
-    [[ -n "$name" ]] && software_desired_ids+=("unit:$name")
+  for ((i = 0; i < ${#sw_units__id_arr[@]}; i++)); do
+    name="$(f_software_scalar "${sw_units__id_arr[$i]}")"
+    [[ -n "$name" ]] && software_desired_ids_arr+=("unit:$name")
   done
 }
 
@@ -284,7 +284,7 @@ f_software_is_desired() {
   local a_id="$1"
   local id
 
-  for id in "${software_desired_ids[@]}"; do
+  for id in "${software_desired_ids_arr[@]}"; do
     if [[ "$id" == "$a_id" ]]; then
       return 0
     fi
@@ -434,11 +434,11 @@ f_software_unit_status() {
 }
 
 ##
-# Diff result arrays (parallel: software_diff_ids / software_diff_status).
+# Diff result arrays (parallel: software_diff_ids_arr / software_diff_status_arr).
 #
-# @var software_diff_ids
-# @var software_diff_status
-# @var software_diff_extra
+# @var software_diff_ids_arr
+# @var software_diff_status_arr
+# @var software_diff_extra_arr
 #
 f_software_build_diff() {
   local i
@@ -455,71 +455,71 @@ f_software_build_diff() {
   local cmd
   local id
 
-  software_diff_ids=()
-  software_diff_status=()
-  software_diff_extra=()
+  software_diff_ids_arr=()
+  software_diff_status_arr=()
+  software_diff_extra_arr=()
 
   f_software_desired_ids
   f_software_managed_load
 
-  for pkg in "${sw_apt[@]}"; do
+  for pkg in "${sw_apt_arr[@]}"; do
     pkg="$(f_software_scalar "$pkg")"
     [[ -z "$pkg" ]] && continue
     st="$(f_software_apt_status "$pkg")"
-    software_diff_ids+=("apt:$pkg")
-    software_diff_status+=("$st")
+    software_diff_ids_arr+=("apt:$pkg")
+    software_diff_status_arr+=("$st")
   done
 
-  for pkg in "${sw_pipx[@]}"; do
+  for pkg in "${sw_pipx_arr[@]}"; do
     pkg="$(f_software_scalar "$pkg")"
     [[ -z "$pkg" ]] && continue
     name="${pkg%%==*}"
     st="$(f_software_pipx_status "$pkg")"
-    software_diff_ids+=("pipx:$name")
-    software_diff_status+=("$st")
+    software_diff_ids_arr+=("pipx:$name")
+    software_diff_status_arr+=("$st")
   done
 
-  for ((i = 0; i < ${#sw_tarball__id[@]}; i++)); do
-    name="$(f_software_scalar "${sw_tarball__id[$i]}")"
-    ver="$(f_software_scalar "${sw_tarball__version[$i]}")"
-    dir="$(f_software_expand_path "${sw_tarball__install_dir[$i]}")"
-    bin="$(f_software_scalar "${sw_tarball__binary[$i]}")"
+  for ((i = 0; i < ${#sw_tarball__id_arr[@]}; i++)); do
+    name="$(f_software_scalar "${sw_tarball__id_arr[$i]}")"
+    ver="$(f_software_scalar "${sw_tarball__version_arr[$i]}")"
+    dir="$(f_software_expand_path "${sw_tarball__install_dir_arr[$i]}")"
+    bin="$(f_software_scalar "${sw_tarball__binary_arr[$i]}")"
     [[ -z "$name" ]] && continue
     st="$(f_software_tarball_status "$dir" "$ver" "$bin")"
-    software_diff_ids+=("tarball:$name")
-    software_diff_status+=("$st")
+    software_diff_ids_arr+=("tarball:$name")
+    software_diff_status_arr+=("$st")
   done
 
-  for ((i = 0; i < ${#sw_appimage__id[@]}; i++)); do
-    name="$(f_software_scalar "${sw_appimage__id[$i]}")"
-    path="$(f_software_expand_path "${sw_appimage__path[$i]}")"
-    sha="$(f_software_scalar "${sw_appimage__sha256[$i]:-}")"
+  for ((i = 0; i < ${#sw_appimage__id_arr[@]}; i++)); do
+    name="$(f_software_scalar "${sw_appimage__id_arr[$i]}")"
+    path="$(f_software_expand_path "${sw_appimage__path_arr[$i]}")"
+    sha="$(f_software_scalar "${sw_appimage__sha256_arr[$i]:-}")"
     [[ -z "$name" ]] && continue
     st="$(f_software_appimage_status "$path" "$sha")"
-    software_diff_ids+=("appimage:$name")
-    software_diff_status+=("$st")
+    software_diff_ids_arr+=("appimage:$name")
+    software_diff_status_arr+=("$st")
   done
 
-  for ((i = 0; i < ${#sw_ensure__id[@]}; i++)); do
-    name="$(f_software_scalar "${sw_ensure__id[$i]}")"
-    cmd="$(f_software_scalar "${sw_ensure__command[$i]}")"
+  for ((i = 0; i < ${#sw_ensure__id_arr[@]}; i++)); do
+    name="$(f_software_scalar "${sw_ensure__id_arr[$i]}")"
+    cmd="$(f_software_scalar "${sw_ensure__command_arr[$i]}")"
     [[ -z "$name" ]] && continue
     st="$(f_software_ensure_status "$cmd")"
-    software_diff_ids+=("ensure:$name")
-    software_diff_status+=("$st")
+    software_diff_ids_arr+=("ensure:$name")
+    software_diff_status_arr+=("$st")
   done
 
-  for ((i = 0; i < ${#sw_units__id[@]}; i++)); do
-    name="$(f_software_scalar "${sw_units__id[$i]}")"
+  for ((i = 0; i < ${#sw_units__id_arr[@]}; i++)); do
+    name="$(f_software_scalar "${sw_units__id_arr[$i]}")"
     [[ -z "$name" ]] && continue
     st="$(f_software_unit_status "$name")"
-    software_diff_ids+=("unit:$name")
-    software_diff_status+=("$st")
+    software_diff_ids_arr+=("unit:$name")
+    software_diff_status_arr+=("$st")
   done
 
-  for id in "${software_managed_ids[@]}"; do
+  for id in "${software_managed_ids_arr[@]}"; do
     if ! f_software_is_desired "$id"; then
-      software_diff_extra+=("$id")
+      software_diff_extra_arr+=("$id")
     fi
   done
 }
@@ -539,9 +539,9 @@ f_software_print_diff() {
   echo "Software status (desired vs actual)"
   echo "------------------------------------"
 
-  for ((i = 0; i < ${#software_diff_ids[@]}; i++)); do
-    id="${software_diff_ids[$i]}"
-    st="${software_diff_status[$i]}"
+  for ((i = 0; i < ${#software_diff_ids_arr[@]}; i++)); do
+    id="${software_diff_ids_arr[$i]}"
+    st="${software_diff_status_arr[$i]}"
     printf '  %-28s %s\n' "$id" "$st"
 
     case "$st" in
@@ -551,17 +551,17 @@ f_software_print_diff() {
     esac
   done
 
-  if [[ ${#software_diff_extra[@]} -gt 0 ]]; then
+  if [[ ${#software_diff_extra_arr[@]} -gt 0 ]]; then
     echo
     echo "Extras (managed, not in manifest) — uninstall only with --prune:"
 
-    for id in "${software_diff_extra[@]}"; do
+    for id in "${software_diff_extra_arr[@]}"; do
       echo "  $id"
     done
   fi
 
   echo
-  echo "Summary: ok=$n_ok missing=$n_missing outdated=$n_outdated extras=${#software_diff_extra[@]}"
+  echo "Summary: ok=$n_ok missing=$n_missing outdated=$n_outdated extras=${#software_diff_extra_arr[@]}"
   echo
 }
 
@@ -781,9 +781,9 @@ f_software_apply_installs() {
   local j
   local rc=0
 
-  for ((i = 0; i < ${#software_diff_ids[@]}; i++)); do
-    id="${software_diff_ids[$i]}"
-    st="${software_diff_status[$i]}"
+  for ((i = 0; i < ${#software_diff_ids_arr[@]}; i++)); do
+    id="${software_diff_ids_arr[$i]}"
+    st="${software_diff_status_arr[$i]}"
 
     case "$st" in
       missing|outdated) ;;
@@ -804,7 +804,7 @@ f_software_apply_installs() {
         ;;
       pipx)
         pkg=''
-        for pkg in "${sw_pipx[@]}"; do
+        for pkg in "${sw_pipx_arr[@]}"; do
           pkg="$(f_software_scalar "$pkg")"
           if [[ "${pkg%%==*}" == "$name" ]]; then
             break
@@ -822,8 +822,8 @@ f_software_apply_installs() {
         ;;
       tarball)
         idx=-1
-        for ((j = 0; j < ${#sw_tarball__id[@]}; j++)); do
-          if [[ "$(f_software_scalar "${sw_tarball__id[$j]}")" == "$name" ]]; then
+        for ((j = 0; j < ${#sw_tarball__id_arr[@]}; j++)); do
+          if [[ "$(f_software_scalar "${sw_tarball__id_arr[$j]}")" == "$name" ]]; then
             idx=$j
             break
           fi
@@ -832,10 +832,10 @@ f_software_apply_installs() {
           rc=1
           continue
         fi
-        ver="$(f_software_scalar "${sw_tarball__version[$idx]}")"
-        url="$(f_software_scalar "${sw_tarball__url[$idx]}")"
-        dir="$(f_software_expand_path "${sw_tarball__install_dir[$idx]}")"
-        bin="$(f_software_scalar "${sw_tarball__binary[$idx]}")"
+        ver="$(f_software_scalar "${sw_tarball__version_arr[$idx]}")"
+        url="$(f_software_scalar "${sw_tarball__url_arr[$idx]}")"
+        dir="$(f_software_expand_path "${sw_tarball__install_dir_arr[$idx]}")"
+        bin="$(f_software_scalar "${sw_tarball__binary_arr[$idx]}")"
         if ! f_software_tarball_install "$name" "$ver" "$url" "$dir" "$bin"; then
           rc=1
           continue
@@ -843,8 +843,8 @@ f_software_apply_installs() {
         ;;
       appimage)
         idx=-1
-        for ((j = 0; j < ${#sw_appimage__id[@]}; j++)); do
-          if [[ "$(f_software_scalar "${sw_appimage__id[$j]}")" == "$name" ]]; then
+        for ((j = 0; j < ${#sw_appimage__id_arr[@]}; j++)); do
+          if [[ "$(f_software_scalar "${sw_appimage__id_arr[$j]}")" == "$name" ]]; then
             idx=$j
             break
           fi
@@ -853,9 +853,9 @@ f_software_apply_installs() {
           rc=1
           continue
         fi
-        url="$(f_software_scalar "${sw_appimage__url[$idx]:-}")"
-        sha="$(f_software_scalar "${sw_appimage__sha256[$idx]:-}")"
-        path="$(f_software_expand_path "${sw_appimage__path[$idx]}")"
+        url="$(f_software_scalar "${sw_appimage__url_arr[$idx]:-}")"
+        sha="$(f_software_scalar "${sw_appimage__sha256_arr[$idx]:-}")"
+        path="$(f_software_expand_path "${sw_appimage__path_arr[$idx]}")"
         if ! f_software_appimage_install "$name" "$url" "$sha" "$path"; then
           rc=1
           continue
@@ -863,8 +863,8 @@ f_software_apply_installs() {
         ;;
       ensure)
         idx=-1
-        for ((j = 0; j < ${#sw_ensure__id[@]}; j++)); do
-          if [[ "$(f_software_scalar "${sw_ensure__id[$j]}")" == "$name" ]]; then
+        for ((j = 0; j < ${#sw_ensure__id_arr[@]}; j++)); do
+          if [[ "$(f_software_scalar "${sw_ensure__id_arr[$j]}")" == "$name" ]]; then
             idx=$j
             break
           fi
@@ -873,8 +873,8 @@ f_software_apply_installs() {
           rc=1
           continue
         fi
-        cmd="$(f_software_scalar "${sw_ensure__command[$idx]}")"
-        method="$(f_software_scalar "${sw_ensure__method[$idx]}")"
+        cmd="$(f_software_scalar "${sw_ensure__command_arr[$idx]}")"
+        method="$(f_software_scalar "${sw_ensure__method_arr[$idx]}")"
         if ! f_software_ensure_install "$name" "$cmd" "$method"; then
           rc=1
           continue
@@ -882,8 +882,8 @@ f_software_apply_installs() {
         ;;
       unit)
         idx=-1
-        for ((j = 0; j < ${#sw_units__id[@]}; j++)); do
-          if [[ "$(f_software_scalar "${sw_units__id[$j]}")" == "$name" ]]; then
+        for ((j = 0; j < ${#sw_units__id_arr[@]}; j++)); do
+          if [[ "$(f_software_scalar "${sw_units__id_arr[$j]}")" == "$name" ]]; then
             idx=$j
             break
           fi
@@ -892,8 +892,8 @@ f_software_apply_installs() {
           rc=1
           continue
         fi
-        tpl="$(f_software_scalar "${sw_units__template[$idx]}")"
-        en="$(f_software_scalar "${sw_units__enable[$idx]:-false}")"
+        tpl="$(f_software_scalar "${sw_units__template_arr[$idx]}")"
+        en="$(f_software_scalar "${sw_units__enable_arr[$idx]:-false}")"
         if ! f_software_unit_install "$name" "$tpl" "$en"; then
           rc=1
           continue
@@ -910,9 +910,9 @@ f_software_apply_installs() {
   done
 
   # Adopt already-satisfied desired items so prune can track them later.
-  for ((i = 0; i < ${#software_diff_ids[@]}; i++)); do
-    if [[ "${software_diff_status[$i]}" == 'ok' ]]; then
-      f_software_managed_add "${software_diff_ids[$i]}"
+  for ((i = 0; i < ${#software_diff_ids_arr[@]}; i++)); do
+    if [[ "${software_diff_status_arr[$i]}" == 'ok' ]]; then
+      f_software_managed_add "${software_diff_ids_arr[$i]}"
     fi
   done
 
@@ -932,14 +932,14 @@ f_software_apply_prune() {
   local bin
 
   if [[ "${SOFTWARE_PRUNE:-}" != '1' ]]; then
-    if [[ ${#software_diff_extra[@]} -gt 0 ]]; then
+    if [[ ${#software_diff_extra_arr[@]} -gt 0 ]]; then
       echo "Extras left in place (set SOFTWARE_PRUNE=1 or pass --prune to uninstall)."
     fi
 
     return 0
   fi
 
-  for id in "${software_diff_extra[@]}"; do
+  for id in "${software_diff_extra_arr[@]}"; do
     kind="${id%%:*}"
     name="${id#*:}"
     echo "Prune $id"

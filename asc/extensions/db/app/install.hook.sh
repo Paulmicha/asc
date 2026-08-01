@@ -20,10 +20,10 @@
 #
 
 case "$ASC_DB_INITIAL_IMPORT" in true)
-  db_ids=()
+  db_ids_arr=()
   f_db_get_ids
 
-  for db_id in "${db_ids[@]}"; do
+  for db_id in "${db_ids_arr[@]}"; do
     echo "Importing initial DB dump for $db_id DB ..."
 
     f_db_setup "$db_id"

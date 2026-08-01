@@ -8,6 +8,10 @@
 # @see README.md
 #
 
+# Python bytecode (local helpers / tooling).
+__pycache__/
+*.py[cod]
+
 # ASC_APPS defaults :
 /site
 

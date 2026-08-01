@@ -331,12 +331,12 @@ f_db_unset() {
 # NB : for performance reasons (to avoid using a subshell), this function
 # writes its result to a variable subject to collision in calling scope.
 #
-# @var db_ids
+# @var db_ids_arr
 #
 # @example
-#   db_ids=()
+#   db_ids_arr=()
 #   f_db_get_ids
-#   echo "${db_ids[@]}"
+#   echo "${db_ids_arr[@]}"
 #
 f_db_get_ids() {
   local db_id
@@ -346,11 +346,11 @@ f_db_get_ids() {
   # Defaults to ASC_APPS.
   if [[ -n "$ASC_DB_IDS" ]]; then
     for db_id in $ASC_DB_IDS; do
-      f_array_add_once "$db_id" db_ids
+      f_array_add_once "$db_id" db_ids_arr
     done
   elif [[ -n "$ASC_APPS" ]]; then
     for asc_app in $ASC_APPS; do
-      f_array_add_once "$asc_app" db_ids
+      f_array_add_once "$asc_app" db_ids_arr
     done
   fi
 
@@ -361,7 +361,7 @@ f_db_get_ids() {
 
   if [[ -n "$multi_db_ids" ]]; then
     for db_id in $multi_db_ids; do
-      f_array_add_once "$db_id" db_ids
+      f_array_add_once "$db_id" db_ids_arr
     done
   fi
 }
@@ -386,12 +386,12 @@ f_db_get_ids() {
 #
 f_db_set_all() {
   local db_id
-  local db_ids=()
+  local db_ids_arr=()
 
   f_db_get_ids
 
-  if [[ -n "${db_ids[@]}" ]]; then
-    for db_id in "${db_ids[@]}"; do
+  if [[ -n "${db_ids_arr[@]}" ]]; then
+    for db_id in "${db_ids_arr[@]}"; do
       # Default DB will be loaded last, see below.
       case "$db_id" in 'default')
         continue
@@ -547,12 +547,12 @@ f_db_flag() {
 #
 f_db_flag_all() {
   local db_id
-  local db_ids=()
+  local db_ids_arr=()
 
   f_db_get_ids
 
-  if [[ -n "${db_ids[@]}" ]]; then
-    for db_id in "${db_ids[@]}"; do
+  if [[ -n "${db_ids_arr[@]}" ]]; then
+    for db_id in "${db_ids_arr[@]}"; do
       f_db_flag "$db_id" "$1"
     done
   fi
@@ -589,12 +589,12 @@ f_db_unflag() {
 #
 f_db_unflag_all() {
   local db_id
-  local db_ids=()
+  local db_ids_arr=()
 
   f_db_get_ids
 
-  if [[ -n "${db_ids[@]}" ]]; then
-    for db_id in "${db_ids[@]}"; do
+  if [[ -n "${db_ids_arr[@]}" ]]; then
+    for db_id in "${db_ids_arr[@]}"; do
       f_db_unflag "$db_id" "$1"
     done
   fi
@@ -1406,27 +1406,27 @@ f_db_restore_any() {
   # file found.
   local initial_dump_file=''
   local lookup_subdir
-  local lookup_subdirs=()
+  local lookup_subdirs_arr=()
 
   # If the "remote" ASC extension is enabled, look for dumps previously
   # downloaded. We can check if extension is enabled by verifying that the
   # function f_remote_get_instances() is defined.
   # @see asc/extensions/remote/remote.inc.sh
   local instance_id
-  local instance_ids=()
+  local instance_ids_arr=()
 
   if type f_remote_get_instances >/dev/null 2>&1 ; then
     f_remote_get_instances
   fi
 
-  if [[ -n "${instance_ids[@]}" ]]; then
-    for instance_id in "${instance_ids[@]}"; do
-      lookup_subdirs+=("$instance_id")
+  if [[ -n "${instance_ids_arr[@]}" ]]; then
+    for instance_id in "${instance_ids_arr[@]}"; do
+      lookup_subdirs_arr+=("$instance_id")
     done
   fi
 
   # Also look into local dumps.
-  lookup_subdirs+=('local')
+  lookup_subdirs_arr+=('local')
 
   # The 'prod' remote (if it exists) dumps take priority.
   if [[ -d "$ASC_DB_DUMPS_DIR/prod/$DB_ID" ]]; then
@@ -1434,7 +1434,7 @@ f_db_restore_any() {
   fi
 
   if [[ ! -f "$initial_dump_file" ]]; then
-    for lookup_subdir in "${lookup_subdirs[@]}"; do
+    for lookup_subdir in "${lookup_subdirs_arr[@]}"; do
       if [[ ! -d "$ASC_DB_DUMPS_DIR/$lookup_subdir/$DB_ID" ]]; then
         continue
       fi
@@ -1449,8 +1449,8 @@ f_db_restore_any() {
 
   # If there is no local DB dump found, and if the "remote_db" extension exists,
   # attempt to fetch latest remote dump file for given DB ID.
-  if [[ ! -f "$initial_dump_file" ]] && [[ -n "${instance_ids[@]}" ]]; then
-    for instance_id in "${instance_ids[@]}"; do
+  if [[ ! -f "$initial_dump_file" ]] && [[ -n "${instance_ids_arr[@]}" ]]; then
+    for instance_id in "${instance_ids_arr[@]}"; do
 
       # TODO [evol] do not attempt to download dump from remotes that do not
       # host given DB_ID.

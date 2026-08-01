@@ -33,10 +33,10 @@ if [[ $ASC_BS_FLAG -ne 1 ]]; then
 fi
 
 # Always: lazy-load optional includes for the bootstrap caller (subject + action).
-_asc_bs_caller=''
+bootstrap_caller=''
 if [[ ${#BASH_SOURCE[@]} -gt 1 && -n "${BASH_SOURCE[1]}" ]]; then
   # BASH_SOURCE[0] is this file (bootstrap.sh); [1] is the real caller.
-  _asc_bs_caller="${BASH_SOURCE[1]}"
+  bootstrap_caller="${BASH_SOURCE[1]}"
 fi
 . asc/bootstrap/90-caller-opt-inc.bootstrap-inc.sh
-unset _asc_bs_caller
+unset bootstrap_caller

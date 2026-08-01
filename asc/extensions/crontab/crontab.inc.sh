@@ -51,7 +51,7 @@ f_cron_preset_is_valid() {
 # Compiles a preset into crontab schedule expression(s).
 #
 # Outputs in calling scope :
-#   cron_schedules — bash array of 5-field expressions (one or more)
+#   cron_schedules_arr — bash array of 5-field expressions (one or more)
 #   cron_subminute — empty or seconds interval hint for run hook
 #
 # @param 1 String : preset token
@@ -71,7 +71,7 @@ f_cron_preset_compile() {
   local phase
   local span
 
-  cron_schedules=()
+  cron_schedules_arr=()
   cron_subminute=''
 
   if [[ "$p" =~ ^every-([0-9]+)([mhd])$ ]]; then
@@ -81,27 +81,27 @@ f_cron_preset_compile() {
     case "$unit" in
       m)
         if [[ $a_idx -eq 0 ]]; then
-          cron_schedules+=("*/${n} * * * *")
+          cron_schedules_arr+=("*/${n} * * * *")
         else
           # Stagger same-cadence peers within the every-N window when possible.
           phase=$((a_idx % n))
-          cron_schedules+=("${phase}-59/${n} * * * *")
+          cron_schedules_arr+=("${phase}-59/${n} * * * *")
         fi
         ;;
       h)
         if [[ $a_idx -eq 0 ]]; then
-          cron_schedules+=("0 */${n} * * *")
+          cron_schedules_arr+=("0 */${n} * * *")
         else
           phase=$((a_idx % 60))
-          cron_schedules+=("${phase} */${n} * * *")
+          cron_schedules_arr+=("${phase} */${n} * * *")
         fi
         ;;
       d)
         if [[ $a_idx -eq 0 ]]; then
-          cron_schedules+=("0 0 */${n} * *")
+          cron_schedules_arr+=("0 0 */${n} * *")
         else
           phase=$((a_idx % 24))
-          cron_schedules+=("0 ${phase} */${n} * *")
+          cron_schedules_arr+=("0 ${phase} */${n} * *")
         fi
         ;;
     esac
@@ -114,7 +114,7 @@ f_cron_preset_compile() {
     # Strip leading zeros for cron hour (keep numeric).
     hh=$((10#$hh))
     mm=$((10#$mm))
-    cron_schedules+=("${mm} ${hh} * * *")
+    cron_schedules_arr+=("${mm} ${hh} * * *")
     return 0
   fi
 
@@ -128,7 +128,7 @@ f_cron_preset_compile() {
           cron_subminute=1
         fi
         # Host ticks every minute; run hook handles second slots.
-        cron_schedules+=("* * * * *")
+        cron_schedules_arr+=("* * * * *")
         ;;
       h)
         span=$((60 / n))
@@ -141,7 +141,7 @@ f_cron_preset_compile() {
           if [[ $slot -ge 60 ]]; then
             slot=$((slot % 60))
           fi
-          cron_schedules+=("${slot} * * * *")
+          cron_schedules_arr+=("${slot} * * * *")
         done
         ;;
       d)
@@ -155,7 +155,7 @@ f_cron_preset_compile() {
           if [[ $slot -ge 24 ]]; then
             slot=$((slot % 24))
           fi
-          cron_schedules+=("0 ${slot} * * *")
+          cron_schedules_arr+=("0 ${slot} * * *")
         done
         ;;
     esac
@@ -281,10 +281,10 @@ f_cron_settings_setup() {
   local base
   local subject
   local entry
-  local files=()
+  local files_arr=()
   local peer_idx
-  declare -A peer_count=()
-  declare -A peer_seen=()
+  declare -A peer_count_dict=()
+  declare -A peer_seen_dict=()
 
   f_cron_load_base_templates || return 1
   f_cron_purge_generated
@@ -295,19 +295,19 @@ f_cron_settings_setup() {
       */base_settings.crontab.yml) continue;;
     esac
     if [[ -f "$f" ]]; then
-      files+=("$f")
+      files_arr+=("$f")
     fi
   done
   shopt -u nullglob globstar
 
   # First pass: count peers per preset class for spacing.
-  for f in "${files[@]}"; do
+  for f in "${files_arr[@]}"; do
     base="$(basename "$f" .crontab.yml)"
     if ! f_cron_parse_filename "$base"; then
       echo >&2 "Error: invalid crontab filename (bad preset): $f"
       return 1
     fi
-    peer_count["$cron_preset"]=$(( ${peer_count[$cron_preset]:-0} + 1 ))
+    peer_count_dict["$cron_preset"]=$(( ${peer_count_dict[$cron_preset]:-0} + 1 ))
   done
 
   cat > data/asc/cron.sh <<'EOF'
@@ -323,7 +323,7 @@ f_cron_settings_setup() {
 ASC_CRON_ENTRIES=''
 EOF
 
-  for f in "${files[@]}"; do
+  for f in "${files_arr[@]}"; do
     base="$(basename "$f" .crontab.yml)"
     subject="$(basename "$(dirname "$f")")"
     # scripts/asc/extend/<subject>/… — subject is directory name.
@@ -337,8 +337,8 @@ EOF
     # Sanitize like make tasks (underscores → already hyphenated subjects).
     entry="${entry//_/-}"
 
-    peer_idx=${peer_seen[$cron_preset]:-0}
-    peer_seen[$cron_preset]=$((peer_idx + 1))
+    peer_idx=${peer_seen_dict[$cron_preset]:-0}
+    peer_seen_dict[$cron_preset]=$((peer_idx + 1))
 
     unset croncj_includes croncj_enabled croncj_args croncj_lock croncj_wrap \
       croncj_user croncj_retry_max croncj_retry_delay croncj_make croncj_run \
@@ -366,7 +366,7 @@ EOF
 
     local schedule_joined=''
     local s
-    for s in "${cron_schedules[@]}"; do
+    for s in "${cron_schedules_arr[@]}"; do
       schedule_joined+="${s};"
     done
     schedule_joined="${schedule_joined%;}"
@@ -421,7 +421,7 @@ EOF
     echo "ASC_CRON_ENTRIES+=\"${entry} \"" >> data/asc/cron.sh
   done
 
-  echo "Crontab definitions written under data/asc/cron/ (${#files[@]} entries)."
+  echo "Crontab definitions written under data/asc/cron/ (${#files_arr[@]} entries)."
 }
 
 ##
@@ -527,7 +527,7 @@ f_cron_crontab_write_block() {
 f_cron_entry_crontab_lines() {
   local sched
   local IFS=';'
-  local lines=()
+  local lines_arr=()
 
   if [[ "${ASC_CRON_ENABLED}" != 'true' ]]; then
     return 0
@@ -535,10 +535,10 @@ f_cron_entry_crontab_lines() {
 
   for sched in ${ASC_CRON_SCHEDULE}; do
     [[ -z "$sched" ]] && continue
-    lines+=("${sched} cd $(f_cron_project_marker) && make cron-run e:${ASC_CRON_ENTRY}")
+    lines_arr+=("${sched} cd $(f_cron_project_marker) && make cron-run e:${ASC_CRON_ENTRY}")
   done
 
-  printf '%s\n' "${lines[@]}"
+  printf '%s\n' "${lines_arr[@]}"
 }
 
 ##

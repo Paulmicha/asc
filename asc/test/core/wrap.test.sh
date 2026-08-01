@@ -51,7 +51,7 @@ test_thread_wrap_starts_debug() {
   assertFalse 'legacy pid file must not exist' \
     "[[ -f 'data/threads/${a_test_entry}.pid' ]]"
 
-  unset thread_tree
+  unset thread_tree_arr
   f_thread_yml_load "$a_test_entry"
 
   assertTrue 'owner must be set' "[[ -n '$thread_owner' ]]"

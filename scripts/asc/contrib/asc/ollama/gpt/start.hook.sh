@@ -6,7 +6,7 @@
 # Ensure `ollama` is in PATH and ollama.service / API are up. Model pull is
 # separate (`make agent-pull`). Override with start.<variants>.hook.sh if needed.
 #
-# On hybrid Intel+NVIDIA hosts, CUDA GPU access is via the system service (see
+# On hybrid Intel+NVIDIA hosts_arr, CUDA GPU access is via the system service (see
 # changelog GPU doc). PRIME render-offload fallback after suspend:
 #   __NV_PRIME_RENDER_OFFLOAD=1
 #   __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0

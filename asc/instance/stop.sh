@@ -11,7 +11,7 @@
 # The 'stop' action triggers a 'pre'-prefixed hook before triggering the
 # normal (unprefixed) hook. Same after ('post'-prefixed hook).
 #
-# To list all the possible paths that can be used among which existing files
+# To list all the possible paths that can be used among which existing files_arr
 # will be sourced when the hook is triggered, run (in this order) :
 # $ make hook-debug s:instance p:pre a:stop v:STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE
 # $ make hook-debug s:instance a:stop v:STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE

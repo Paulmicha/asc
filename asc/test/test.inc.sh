@@ -119,7 +119,7 @@ f_test_results_batch_begin() {
   test_results_slug="${a_dir##*/}"
   test_results_active=1
   test_results_partial="$partial"
-  test_results_tree_new=()
+  test_results_tree_new_arr=()
 
   mkdir -p "$(f_test_results_root)/frozen"
 
@@ -143,10 +143,10 @@ f_test_results_batch_begin() {
     elif [[ -f "$_summary_txt" ]]; then
       f_test_results_tree_load "$_summary_txt"
     else
-      test_results_tree_loaded=()
+      test_results_tree_loaded_arr=()
     fi
   else
-    test_results_tree_loaded=()
+    test_results_tree_loaded_arr=()
   fi
 
   return 0
@@ -161,7 +161,7 @@ f_test_results_tree_load() {
   local file="$1"
   local line key status current_suite case_name
 
-  test_results_tree_loaded=()
+  test_results_tree_loaded_arr=()
   current_suite=''
 
   while IFS= read -r line || [[ -n "$line" ]]; do
@@ -185,13 +185,13 @@ f_test_results_tree_load() {
       else
         key="$case_name"
       fi
-      test_results_tree_loaded+=("${key} ${status}")
+      test_results_tree_loaded_arr+=("${key} ${status}")
       continue
     fi
 
     key="${line%% *}"
     status="${line#* }"
-    test_results_tree_loaded+=("${key} ${status}")
+    test_results_tree_loaded_arr+=("${key} ${status}")
   done <"$file"
 }
 
@@ -210,16 +210,16 @@ f_test_results_tree_put() {
   local line="${key} ${status}"
   local i existing_key
 
-  for i in "${!test_results_tree_new[@]}"; do
-    existing_key="${test_results_tree_new[i]%% *}"
+  for i in "${!test_results_tree_new_arr[@]}"; do
+    existing_key="${test_results_tree_new_arr[i]%% *}"
 
     if [[ "$existing_key" == "$key" ]]; then
-      test_results_tree_new[i]="$line"
+      test_results_tree_new_arr[i]="$line"
       return 0
     fi
   done
 
-  test_results_tree_new+=("$line")
+  test_results_tree_new_arr+=("$line")
 }
 
 ##
@@ -311,7 +311,7 @@ f_test_results_flush_case() {
 f_test_results_batch_end() {
   local batch_exit="${1:-0}"
   local summary tree_file merged line key seen current_suite suite case_name status
-  local -a all_lines=()
+  local -a all_lines_arr=()
 
   if ! f_test_results_enabled || [[ "${test_results_active:-0}" -ne 1 ]]; then
     return 0
@@ -319,24 +319,24 @@ f_test_results_batch_end() {
 
   tree_file="$(f_test_results_root)/test-${test_results_slug}.yml"
 
-  for line in "${test_results_tree_loaded[@]}"; do
+  for line in "${test_results_tree_loaded_arr[@]}"; do
     key="${line%% *}"
     seen="$seen $key "
-    all_lines+=("$line")
+    all_lines_arr+=("$line")
   done
 
-  for line in "${test_results_tree_new[@]}"; do
+  for line in "${test_results_tree_new_arr[@]}"; do
     key="${line%% *}"
     if [[ "$seen" == *" $key "* ]]; then
       local i existing_key
-      for i in "${!all_lines[@]}"; do
-        existing_key="${all_lines[i]%% *}"
+      for i in "${!all_lines_arr[@]}"; do
+        existing_key="${all_lines_arr[i]%% *}"
         if [[ "$existing_key" == "$key" ]]; then
-          all_lines[i]="$line"
+          all_lines_arr[i]="$line"
         fi
       done
     else
-      all_lines+=("$line")
+      all_lines_arr+=("$line")
       seen="$seen$key "
     fi
   done
@@ -357,7 +357,7 @@ f_test_results_batch_end() {
         current_suite="$suite"
       fi
       echo "  ${case_name}: ${status}"
-    done < <(printf '%s\n' "${all_lines[@]}" | sort)
+    done < <(printf '%s\n' "${all_lines_arr[@]}" | sort)
   } >"$tree_file"
 
   rm -f "$(f_test_results_root)/frozen/${test_results_slug}.txt"
@@ -682,12 +682,12 @@ f_test_case_cache_load() {
     return 0
   fi
 
-  test_case_registry_targets=()
-  test_case_registry_batch_tasks=()
-  test_case_registry_stems=()
-  test_case_registry_modes=()
-  test_case_registry_batch_dirs=()
-  test_case_registry_batch_scripts=()
+  test_case_registry_targets_arr=()
+  test_case_registry_batch_tasks_arr=()
+  test_case_registry_stems_arr=()
+  test_case_registry_modes_arr=()
+  test_case_registry_batch_dirs_arr=()
+  test_case_registry_batch_scripts_arr=()
 
   if [[ ! -f "$ASC_TEST_CASE_CACHE" ]]; then
     return 1
@@ -711,8 +711,8 @@ f_test_case_registry_index() {
 
   f_test_case_cache_load || return 1
 
-  for i in "${!test_case_registry_targets[@]}"; do
-    if [[ "${test_case_registry_targets[i]}" == "$target" ]]; then
+  for i in "${!test_case_registry_targets_arr[@]}"; do
+    if [[ "${test_case_registry_targets_arr[i]}" == "$target" ]]; then
       echo "$i"
       return 0
     fi
@@ -737,24 +737,24 @@ f_test_run_case() {
 
   f_test_case_cache_load || true
 
-  for i in "${!test_case_registry_targets[@]}"; do
-    if [[ "${test_case_registry_batch_tasks[i]}" == "$batch_task" \
-      && "${test_case_registry_stems[i]}" == "$case_stem" ]]; then
-      mode="${test_case_registry_modes[i]}"
-      batch_dir="${test_case_registry_batch_dirs[i]}"
-      batch_script="${test_case_registry_batch_scripts[i]}"
+  for i in "${!test_case_registry_targets_arr[@]}"; do
+    if [[ "${test_case_registry_batch_tasks_arr[i]}" == "$batch_task" \
+      && "${test_case_registry_stems_arr[i]}" == "$case_stem" ]]; then
+      mode="${test_case_registry_modes_arr[i]}"
+      batch_dir="${test_case_registry_batch_dirs_arr[i]}"
+      batch_script="${test_case_registry_batch_scripts_arr[i]}"
       break
     fi
   done
 
   if [[ -z "$mode" ]]; then
-    local make_entries=() real_scripts=()
+    local make_entries_arr=() real_scripts_arr=()
     local j=''
 
     f_make_list_entry_points
-    for j in "${!make_entries[@]}"; do
-      if [[ "${make_entries[j]}" == "$batch_task" ]]; then
-        batch_script="${real_scripts[j]}"
+    for j in "${!make_entries_arr[@]}"; do
+      if [[ "${make_entries_arr[j]}" == "$batch_task" ]]; then
+        batch_script="${real_scripts_arr[j]}"
         break
       fi
     done
@@ -854,11 +854,11 @@ f_test_run_case_by_target() {
     return 1
   fi
 
-  for i in "${!test_case_registry_targets[@]}"; do
-    if [[ "${test_case_registry_targets[i]}" == "$target" ]]; then
+  for i in "${!test_case_registry_targets_arr[@]}"; do
+    if [[ "${test_case_registry_targets_arr[i]}" == "$target" ]]; then
       f_test_run_case \
-        "${test_case_registry_batch_tasks[i]}" \
-        "${test_case_registry_stems[i]}" \
+        "${test_case_registry_batch_tasks_arr[i]}" \
+        "${test_case_registry_stems_arr[i]}" \
         "$a_env"
       return $?
     fi

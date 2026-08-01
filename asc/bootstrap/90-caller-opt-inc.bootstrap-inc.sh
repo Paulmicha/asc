@@ -9,7 +9,7 @@
 #
 # Eager includes remain $subject/$subject.inc.sh via ASC_INC (phase 60).
 #
-# Expects _asc_bs_caller to be set by asc/bootstrap.sh (path of the script
+# Expects bootstrap_caller to be set by asc/bootstrap.sh (path of the script
 # that sourced bootstrap). Empty / unset ⇒ no-op (interactive bootstrap).
 #
 # Sourced only from asc/bootstrap.sh (always, outside ASC_BS_FLAG).
@@ -17,26 +17,26 @@
 # @see asc/bootstrap.sh
 #
 
-if [[ -z "${_asc_bs_caller:-}" ]]; then
+if [[ -z "${bootstrap_caller:-}" ]]; then
   return 0 2>/dev/null || true
 else
-  _asc_bs_caller_dir="${_asc_bs_caller%/*}"
-  _asc_bs_subject="${_asc_bs_caller_dir##*/}"
-  _asc_bs_action="${_asc_bs_caller##*/}"
-  _asc_bs_action="${_asc_bs_action%.sh}"
+  bootstrap_caller_dir="${bootstrap_caller%/*}"
+  bootstrap_subject="${bootstrap_caller_dir##*/}"
+  bootstrap_action="${bootstrap_caller##*/}"
+  bootstrap_action="${bootstrap_action%.sh}"
 
-  _asc_bs_subject_opt="${_asc_bs_caller_dir}/${_asc_bs_subject}.opt-inc.sh"
-  _asc_bs_action_opt="${_asc_bs_caller_dir}/${_asc_bs_action}.opt-inc.sh"
+  bootstrap_subject_opt="${bootstrap_caller_dir}/${bootstrap_subject}.opt-inc.sh"
+  bootstrap_action_opt="${bootstrap_caller_dir}/${bootstrap_action}.opt-inc.sh"
 
   # Source named opt-incs (override-aware). Same loop shape as phase 60 /
   # today's ASC_INC body — operand 'continue' is valid only inside this for.
   # Deduplicate when subject + action resolve to the same path.
-  _asc_bs_opt_candidates=("$_asc_bs_subject_opt")
-  if [[ "$_asc_bs_action_opt" != "$_asc_bs_subject_opt" ]]; then
-    _asc_bs_opt_candidates+=("$_asc_bs_action_opt")
+  bootstrap_opt_candidates_arr=("$bootstrap_subject_opt")
+  if [[ "$bootstrap_action_opt" != "$bootstrap_subject_opt" ]]; then
+    bootstrap_opt_candidates_arr+=("$bootstrap_action_opt")
   fi
 
-  for file in "${_asc_bs_opt_candidates[@]}"; do
+  for file in "${bootstrap_opt_candidates_arr[@]}"; do
     [[ -f "$file" ]] || continue
     f_autoload_override "$file" 'continue'
     if [[ -n "${inc_override_evaled_code:-}" ]]; then
@@ -47,6 +47,6 @@ else
     fi
   done
 
-  unset _asc_bs_caller_dir _asc_bs_subject _asc_bs_action \
-    _asc_bs_subject_opt _asc_bs_action_opt _asc_bs_opt_candidates file
+  unset bootstrap_caller_dir bootstrap_subject bootstrap_action \
+    bootstrap_subject_opt bootstrap_action_opt bootstrap_opt_candidates_arr file
 fi

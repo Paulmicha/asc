@@ -7,16 +7,16 @@
 # @see {{ TEMPLATE }}
 #
 # Uses the following var in calling scope :
-# @var mandatory_globals
+# @var mandatory_globals_arr
 #
 # This file is dynamically included when the "hook" is triggered.
 # @see asc/bootstrap.sh
 #
-# To list all the possible paths that can be used among which existing files
+# To list all the possible paths that can be used among which existing files_arr
 # will be sourced when the hook is triggered, run :
 # $ make hook-debug s:{{ COMPONENT }} a:list_mandatory_globals v:STACK_VERSION PROVISION_USING INSTANCE_TYPE
 #
 
 # Ex. generated global var name with COMPONENT='site' and SERVICE='git' :
 # SITE_GIT_ORIGIN=git@my-git-origin.org:my-git-account/asc.git
-mandatory_globals+=('{{ COMPONENT }}_{{ SERVICE }}_ORIGIN')
+mandatory_globals_arr+=('{{ COMPONENT }}_{{ SERVICE }}_ORIGIN')

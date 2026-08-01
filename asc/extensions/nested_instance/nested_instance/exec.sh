@@ -111,7 +111,7 @@ f_nested_asc_expand_entry() {
   fi
 
   shift
-  nested_asc_cmd=(make "$entry" "$@")
+  nested_asc_cmd_arr=(make "$entry" "$@")
 }
 
 if [[ -z "$1" ]]; then
@@ -166,13 +166,13 @@ if [[ $_nested_raw -eq 0 ]]; then
   esac
 fi
 
-nested_asc_cmd=()
+nested_asc_cmd_arr=()
 if [[ $_nested_raw -eq 1 ]]; then
-  nested_asc_cmd=("$@")
+  nested_asc_cmd_arr=("$@")
 else
   f_nested_asc_expand_entry "$@" || exit $?
 fi
-set -- "${nested_asc_cmd[@]}"
+set -- "${nested_asc_cmd_arr[@]}"
 
 f_nested_asc_exec "$nested_asc_resolved" "$@"
 exit $?

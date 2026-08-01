@@ -16,11 +16,11 @@
 # @param 2 Array haystack.
 #
 # @example
-#   declare -a my_array=("test1" "test2" "test3");
-#   if f_in_array 'test1' my_array; then
-#     echo "Ok, 'test1' found in my_array"
+#   declare -a my_array_arr=("test1" "test2" "test3");
+#   if f_in_array 'test1' my_array_arr; then
+#     echo "Ok, 'test1' found in my_array_arr"
 #   else
-#     echo "'test1' NOT found in my_array"
+#     echo "'test1' NOT found in my_array_arr"
 #   fi
 #
 f_in_array() {
@@ -44,12 +44,12 @@ f_in_array() {
 # @param 2 String the Array variable name (haystack).
 #
 # @example
-#   declare -a my_array=("test1" "test2" "test3");
-#   f_array_add_once "test1" my_array
-#   f_array_add_once "test4" my_array
-#   f_array_add_once "test2" my_array
+#   declare -a my_array_arr=("test1" "test2" "test3");
+#   f_array_add_once "test1" my_array_arr
+#   f_array_add_once "test4" my_array_arr
+#   f_array_add_once "test2" my_array_arr
 #   # To debug result :
-#   declare -p my_array
+#   declare -p my_array_arr
 #
 f_array_add_once() {
   local needle="${1}"
@@ -71,8 +71,8 @@ f_array_add_once() {
 # See https://stackoverflow.com/a/30576368
 #
 # @example
-#   array=(a c b f 3 5)
-#   f_array_qsort "${array[@]}"
+#   my_array_arr=(a c b f 3 5)
+#   f_array_qsort "${my_array_arr[@]}"
 #   # Check result :
 #   declare -p sorted_arr
 #   # -> output :
@@ -80,32 +80,32 @@ f_array_add_once() {
 #
 f_array_qsort() {
   (($#==0)) && return 0
-  local stack=( 0 $(($#-1)) ) beg end i pivot smaller larger
+  local stack_arr=( 0 $(($#-1)) ) beg end i pivot smaller_arr larger_arr
   sorted_arr=("$@")
 
-  while ((${#stack[@]})); do
-    beg=${stack[0]}
-    end=${stack[1]}
-    stack=( "${stack[@]:2}" )
-    smaller=() larger=()
+  while ((${#stack_arr[@]})); do
+    beg=${stack_arr[0]}
+    end=${stack_arr[1]}
+    stack=( "${stack_arr[@]:2}" )
+    smaller_arr=() larger_arr=()
     pivot=${sorted_arr[beg]}
 
     for ((i=beg+1;i<=end;++i)); do
       if [[ "${sorted_arr[i]}" < "$pivot" ]]; then
-        smaller+=( "${sorted_arr[i]}" )
+        smaller_arr+=( "${sorted_arr[i]}" )
       else
-        larger+=( "${sorted_arr[i]}" )
+        larger_arr+=( "${sorted_arr[i]}" )
       fi
     done
 
-    sorted_arr=( "${sorted_arr[@]:0:beg}" "${smaller[@]}" "$pivot" "${larger[@]}" "${sorted_arr[@]:end+1}" )
+    sorted_arr=( "${sorted_arr[@]:0:beg}" "${smaller_arr[@]}" "$pivot" "${larger_arr[@]}" "${sorted_arr[@]:end+1}" )
 
-    if ((${#smaller[@]}>=2)); then
-      stack+=( "$beg" "$((beg+${#smaller[@]}-1))" )
+    if ((${#smaller_arr[@]}>=2)); then
+      stack_arr+=( "$beg" "$((beg+${#smaller_arr[@]}-1))" )
     fi
 
-    if ((${#larger[@]}>=2)); then
-      stack+=( "$((end-${#larger[@]}+1))" "$end" )
+    if ((${#larger_arr[@]}>=2)); then
+      stack_arr+=( "$((end-${#larger_arr[@]}+1))" "$end" )
     fi
   done
 }
@@ -114,17 +114,17 @@ f_array_qsort() {
 # Sorts an array by its keys (not is values).
 #
 # This function writes its result to a variable subject to collision in calling
-# scope, and requires that the input array be already defined as 'array'.
+# scope, and requires that the input array be already defined as 'array_dict'.
 #
-# @var array
+# @var array_dict
 # @var sorted_arr
 #
 # @example
-#   array=()
-#   array[12]='a'
-#   array[7]='b'
-#   array[32]='c'
-#   array[6785]='d'
+#   declare -A array_dict=()
+#   array_dict[12]='a'
+#   array_dict[7]='b'
+#   array_dict[32]='c'
+#   array_dict[6785]='d'
 #   f_array_ksort
 #   # Check result :
 #   declare -p sorted_arr
@@ -132,13 +132,13 @@ f_array_qsort() {
 #   #   declare -a sorted_arr=([7]="b" [12]="a" [32]="c" [6785]="d")
 #
 f_array_ksort() {
-  local array_keys="${!array[@]}"
+  local array_keys_arr="${!array_dict[@]}"
   local k
-  f_array_qsort "${array_keys[@]}"
-  array_keys="${sorted_arr[@]}"
+  f_array_qsort "${array_keys_arr[@]}"
+  array_keys_arr="${sorted_arr[@]}"
   sorted_arr=()
-  for k in $array_keys; do
-    sorted_arr["$k"]="${array[$k]}"
+  for k in $array_keys_arr; do
+    sorted_arr["$k"]="${array_dict[$k]}"
   done
 }
 
@@ -153,8 +153,8 @@ f_array_ksort() {
 # See https://unix.stackexchange.com/a/412872
 #
 # @example
-#   array=(a c b f 3 5)
-#   f_array_reverse "${array[@]}"
+#   my_array_arr=(a c b f 3 5)
+#   f_array_reverse "${my_array_arr[@]}"
 #   # Check result :
 #   declare -p reversed_arr
 #   # -> output :
@@ -184,23 +184,23 @@ f_array_reverse() {
 # See https://unix.stackexchange.com/a/366655
 #
 # @example (associative array)
-#   declare -A a=([a]=123 [b]="foo bar" [c]="(blah)")
-#   f_array_print a
+#   declare -A a_dict=([a]=123 [b]="foo bar" [c]="(blah)")
+#   f_array_print a_dict
 #   # -> outputs :
 #   #   a=123
 #   #   b=foo bar
 #   #   c=(blah)
 #
-# @example (normal array)
-#   b=(abba acdc)
-#   f_array_print b
+# @example (indexed array)
+#   b_arr=(abba acdc)
+#   f_array_print b_arr
 #   # -> outputs :
 #   #   0=abba
 #   #   1=acdc
 #
 f_array_print() {
-  declare -n __p="$1"
-  for k in "${!__p[@]}"; do
-    printf "%s=%s\n" "$k" "${__p[$k]}"
+  declare -n __p_nameref="$1"
+  for k in "${!__p_nameref[@]}"; do
+    printf "%s=%s\n" "$k" "${__p_nameref[$k]}"
   done
 }

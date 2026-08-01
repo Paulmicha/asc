@@ -11,7 +11,7 @@
 # functionality. In order for this script to have any effect, it is necessary
 # to use an extension that does.
 #
-# To list all the possible paths that can be used among which existing files
+# To list all the possible paths that can be used among which existing files_arr
 # will be sourced when the hook is triggered, run (in this order) :
 # $ make hook-debug s:{{ COMPONENT }} a:index v:STACK_VERSION PROVISION_USING INSTANCE_TYPE
 #

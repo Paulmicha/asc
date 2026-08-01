@@ -8,7 +8,7 @@
 
 case "$DWT_MULTISITE" in true)
   f_dwt_sites '*' 'ids_only'
-  for site_id in "${dwt_sites_ids[@]}"; do
+  for site_id in "${dwt_sites_ids_arr[@]}"; do
     multi_db_ids+=" $site_id"
   done
 esac

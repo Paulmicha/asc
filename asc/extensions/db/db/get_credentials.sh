@@ -37,10 +37,10 @@
 
 . asc/bootstrap.sh
 
-db_ids=()
+db_ids_arr=()
 
 if [[ -n "$1" ]]; then
-  db_ids+=("$1")
+  db_ids_arr+=("$1")
 else
   f_db_get_ids
 fi
@@ -48,7 +48,7 @@ fi
 f_db_vars_list
 echo
 
-for db_id in "${db_ids[@]}"; do
+for db_id in "${db_ids_arr[@]}"; do
   f_db_set $db_id
 
   for v in $db_vars_list; do

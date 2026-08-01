@@ -15,33 +15,33 @@
 # For performance reasons (to avoid using a subshell), this function writes its
 # result to local variables subject to collision in calling scope :
 #
-# @var asc_globals_var_names
-# @var asc_globals_values
+# @var asc_globals_var_names_arr
+# @var asc_globals_values_arr
 #
 # @example
 #   # Print all var names :
 #   f_global_list
-#   for var_name in "${asc_globals_var_names[@]}"; do
+#   for var_name in "${asc_globals_var_names_arr[@]}"; do
 #     echo "$var_name"
 #   done
 #
 #   # Print all values :
 #   f_global_list
-#   for value in "${asc_globals_values[@]}"; do
+#   for value in "${asc_globals_values_arr[@]}"; do
 #     echo "$value"
 #   done
 #
 #   # Print both :
 #   f_global_list
-#   for i in "${!asc_globals_var_names[@]}"; do
-#     var_name="${asc_globals_var_names[$i]}"
-#     value="${asc_globals_values[$i]}"
+#   for i in "${!asc_globals_var_names_arr[@]}"; do
+#     var_name="${asc_globals_var_names_arr[$i]}"
+#     value="${asc_globals_values_arr[$i]}"
 #     echo "$var_name = '$value'"
 #   done
 #
 f_global_list() {
-  asc_globals_values=()
-  asc_globals_var_names=()
+  asc_globals_values_arr=()
+  asc_globals_var_names_arr=()
 
   # During instance init, the $GLOBALS associative array already exists.
   # Otherwise, we re-aggregate globals to get all supported variable names (in
@@ -61,8 +61,8 @@ f_global_list() {
   local global_var_name
 
   for global_var_name in "${GLOBALS_UNIQUE_NAMES[@]}"; do
-    asc_globals_var_names+=("$global_var_name")
-    asc_globals_values+=("${!global_var_name}")
+    asc_globals_var_names_arr+=("$global_var_name")
+    asc_globals_values_arr+=("${!global_var_name}")
   done
 }
 
@@ -574,7 +574,7 @@ f_global_assign_value() {
 #
 # @see f_global_assign_value()
 #
-# For better readability in env includes files, we exceptionally name that
+# For better readability in env includes files_arr, we exceptionally name that
 # function without following the usual convention.
 #
 # @examples (write)
@@ -654,19 +654,19 @@ global() {
     # Key/value store system.
     else
       local key
-      local declaration_arr
+      local declaration_dict
 
       # Transform input string to associative array.
-      eval "declare -A declaration_arr=( $a_values )"
+      eval "declare -A declaration_dict=( $a_values )"
 
-      for key in "${!declaration_arr[@]}"; do
+      for key in "${!declaration_dict[@]}"; do
         f_array_add_once "$key" GLOBALS_UNIQUE_KEYS
 
         case "$key" in
 
           # Controls the order of assignment. Higher values defer later.
           index)
-            index="${declaration_arr[$key]}"
+            index="${declaration_dict[$key]}"
           ;;
 
           # Handles conditional declarations. Prevents declaring the variable
@@ -686,18 +686,18 @@ global() {
             # Needed for deferred assignments.
             # @see f_global_assign_value()
             GLOBALS["$a_var_name|depending_var"]="$depending_var"
-            GLOBALS["$a_var_name|depending_match"]="${declaration_arr[$key]}"
-            GLOBALS["$a_var_name|value_if_true"]="${declaration_arr[true]}"
-            GLOBALS["$a_var_name|value_if_false"]="${declaration_arr[false]}"
+            GLOBALS["$a_var_name|depending_match"]="${declaration_dict[$key]}"
+            GLOBALS["$a_var_name|value_if_true"]="${declaration_dict[true]}"
+            GLOBALS["$a_var_name|value_if_false"]="${declaration_dict[false]}"
 
             case "$key" in
               ifnot-*)
                 GLOBALS["$a_var_name|condition"]='ifnot'
 
                 # Debug.
-                # echo "$a_var_name ifnot : $depending_value == ${declaration_arr[$key]} ?"
+                # echo "$a_var_name ifnot : $depending_value == ${declaration_dict[$key]} ?"
 
-                if [[ "$depending_value" == "${declaration_arr[$key]}" ]]; then
+                if [[ "$depending_value" == "${declaration_dict[$key]}" ]]; then
                   # Debug.
                   # echo "  -> yes (abort)"
                   # echo "  default = ${GLOBALS[$a_var_name|default]}"
@@ -713,9 +713,9 @@ global() {
                 GLOBALS["$a_var_name|condition"]='if'
 
                 # Debug.
-                # echo "$a_var_name if : $depending_value != ${declaration_arr[$key]} ?"
+                # echo "$a_var_name if : $depending_value != ${declaration_dict[$key]} ?"
 
-                if [[ "$depending_value" != "${declaration_arr[$key]}" ]]; then
+                if [[ "$depending_value" != "${declaration_dict[$key]}" ]]; then
                   # Debug.
                   # echo "  -> yes (abort)"
                   # echo "  default = ${GLOBALS[$a_var_name|default]}"
@@ -737,14 +737,14 @@ global() {
             # Defaults to 'values'.
             local append_to='values'
 
-            if [[ -n "${declaration_arr[to]}" ]]; then
-              append_to="${declaration_arr[to]}"
+            if [[ -n "${declaration_dict[to]}" ]]; then
+              append_to="${declaration_dict[to]}"
             fi
 
             if [[ -n "${GLOBALS[$a_var_name|values]}" ]]; then
-              GLOBALS["${a_var_name}|$append_to"]+=" ${declaration_arr[$key]}"
+              GLOBALS["${a_var_name}|$append_to"]+=" ${declaration_dict[$key]}"
             else
-              GLOBALS["${a_var_name}|$append_to"]="${declaration_arr[$key]}"
+              GLOBALS["${a_var_name}|$append_to"]="${declaration_dict[$key]}"
             fi
           ;;
 
@@ -752,15 +752,15 @@ global() {
           # (all values that were used in 'to').
           to)
             if [[ -n "${GLOBALS[$a_var_name|tos]}" ]]; then
-              GLOBALS["${a_var_name}|tos"]+=" ${declaration_arr[$key]}"
+              GLOBALS["${a_var_name}|tos"]+=" ${declaration_dict[$key]}"
             else
-              GLOBALS["${a_var_name}|tos"]="${declaration_arr[$key]}"
+              GLOBALS["${a_var_name}|tos"]="${declaration_dict[$key]}"
             fi
           ;;
 
           # Default.
           *)
-            GLOBALS["${a_var_name}|${key}"]="${declaration_arr[$key]}"
+            GLOBALS["${a_var_name}|${key}"]="${declaration_dict[$key]}"
           ;;
         esac
       done

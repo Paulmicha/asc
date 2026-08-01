@@ -18,7 +18,7 @@ case "$DWT_MULTISITE" in
   # Multi-site support.
   true)
     f_dwt_sites
-    for site_id in "${dwt_sites_ids[@]}"; do
+    for site_id in "${dwt_sites_ids_arr[@]}"; do
       f_str_sanitize_var_name "$site_id" 'site_id'
       var="dwt_sites_${site_id}_dir"
       site_dir="${!var}"

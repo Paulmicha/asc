@@ -13,11 +13,11 @@
 
 . asc/bootstrap.sh
 
-db_ids=()
+db_ids_arr=()
 f_db_get_ids
 
 echo "Here are all the database IDs defined in this project instance :"
 
-for db_id in "${db_ids[@]}"; do
+for db_id in "${db_ids_arr[@]}"; do
   echo " - $db_id"
 done

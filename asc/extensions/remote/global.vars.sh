@@ -19,7 +19,7 @@
 
 # This allows to have more control over the files to sync, without being tied to
 # any specific implementation dealing with a particular app (e.g. Drupal,
-# see the 'drupalwt' extension, i.e. sites/default/files).
+# see the 'drupalwt' extension, i.e. sites/default/files_arr).
 # This is about remote interactions, which may not map well with the other
 # "configurations".
 

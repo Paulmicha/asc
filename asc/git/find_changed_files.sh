@@ -24,6 +24,6 @@
 
 f_git_find_changed_files $@
 
-for f in "${git_changed_files[@]}"; do
+for f in "${git_changed_files_arr[@]}"; do
   echo "$f"
 done

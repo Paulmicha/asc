@@ -45,12 +45,12 @@ declare -A dumps_dict
 f_remote_db_prepare_downloads "$remote_id" "$db_id" "$remote_file"
 
 db_id=''
-db_ids=()
-cmds=()
+db_ids_arr=()
+cmds_arr=()
 
 f_db_get_ids
 
-for db_id in "${db_ids[@]}"; do
+for db_id in "${db_ids_arr[@]}"; do
   if [[ -z "${dumps_dict["${db_id}.remote_dump_file_path"]}" ]] \
     || [[ -z "${dumps_dict["${db_id}.local_dump_dir"]}" ]]
   then

@@ -102,17 +102,17 @@ f_yaml_parse() {
 # @see f_yaml_parse()
 #
 # Outputs result in a variable subject to collision in calling scope :
-# @var yaml_keys
+# @var yaml_keys_arr
 #
 # @param 1 String : YAML file path.
 #
 # @example
 #   # Level 0 (root) keys :
 #   f_yaml_get_root_keys 'path/to/file.yml'
-#   echo "Level 0 keys = ${yaml_keys[@]}"
-#   echo "Number of level 0 keys = ${#yaml_keys[@]}"
+#   echo "Level 0 keys = ${yaml_keys_arr[@]}"
+#   echo "Number of level 0 keys = ${#yaml_keys_arr[@]}"
 #   # Iteration :
-#   for key in "${yaml_keys[@]}"; do
+#   for key in "${yaml_keys_arr[@]}"; do
 #     echo "$key"
 #   done
 #
@@ -123,7 +123,7 @@ f_yaml_get_root_keys() {
   local parsed_var_leaf
   local parsed_var_split
 
-  yaml_keys=()
+  yaml_keys_arr=()
 
   while IFS= read -r parsed_line _; do
     case "$parsed_line" in
@@ -132,7 +132,7 @@ f_yaml_get_root_keys() {
       [![:space:]'#']*:)
         parsed_var="${parsed_line//':'/}"
         if [[ -n "$parsed_var" ]]; then
-          f_array_add_once "$parsed_var" yaml_keys
+          f_array_add_once "$parsed_var" yaml_keys_arr
         fi
         ;;
       *)
@@ -145,13 +145,13 @@ f_yaml_get_root_keys() {
 ##
 # Gets "keys" from given parsed YAML string filtered by prefix.
 #
-# Warning : for rrot (level 0) keys, use f_yaml_get_root_keys().
+# Warning : for rrot (level 0) keys_arr, use f_yaml_get_root_keys().
 #
 # For now, only works with "non-list" entries.
 # @see f_yaml_parse()
 #
 # Outputs result in a variable subject to collision in calling scope :
-# @var yaml_keys
+# @var yaml_keys_arr
 #
 # @param 1 String : parsed YAML string.
 # @param 2 [optional] String : a prefix. Allows to get "deeper" keys if needed.
@@ -161,10 +161,10 @@ f_yaml_get_root_keys() {
 #   # Level 1 keys of 'site' from the f_yaml_parse() example file contents :
 #   parsed_yaml_str="$(f_yaml_parse path/to/file.yml 'conf_')"
 #   f_yaml_get_keys "$parsed_yaml_str" 'conf_site_'
-#   echo "Level 1 'site' keys = ${yaml_keys[@]}"
-#   echo "Number of level 1 'site' keys = ${#yaml_keys[@]}"
+#   echo "Level 1 'site' keys = ${yaml_keys_arr[@]}"
+#   echo "Number of level 1 'site' keys = ${#yaml_keys_arr[@]}"
 #   # Iteration :
-#   for key in "${yaml_keys[@]}"; do
+#   for key in "${yaml_keys_arr[@]}"; do
 #     echo "$key"
 #   done
 #
@@ -176,7 +176,7 @@ f_yaml_get_keys() {
   local parsed_var_leaf
   local parsed_var_split
 
-  yaml_keys=()
+  yaml_keys_arr=()
 
   while IFS= read -r parsed_line _; do
     parsed_var_leaf="=${parsed_line##*=}"
@@ -193,7 +193,7 @@ f_yaml_get_keys() {
       esac
     fi
     parsed_var_split="$(echo "$parsed_var" | cut -d '_' -f 1)"
-    f_array_add_once "$parsed_var_split" yaml_keys
+    f_array_add_once "$parsed_var_split" yaml_keys_arr
   done <<< "$a_yaml_str"
 }
 
@@ -241,10 +241,10 @@ f_yaml_escape_double() {
 # @param … [optional] Pairs : list_key list_array_name (simple lists).
 #
 # @example
-#   declare -A y_sc=([entry]="foo" [status]="running")
+#   declare -A y_sc_dict=([entry]="foo" [status]="running")
 #   y_keys=(entry status)
 #   y_tree=("123:bash" "1:systemd")
-#   f_yaml_write 'data/threads/foo.yml' y_sc y_keys tree y_tree
+#   f_yaml_write 'data/threads/foo.yml' y_sc_dict y_keys tree y_tree
 #
 f_yaml_write() {
   local a_yml_file="$1"
@@ -260,8 +260,8 @@ f_yaml_write() {
 
   shift 3
 
-  declare -n __yaml_scalars="$a_scalars_name"
-  declare -n __yaml_keys="$a_keys_name"
+  declare -n __yaml_scalars_dict_nameref="$a_scalars_name"
+  declare -n __yaml_keys_arr_nameref="$a_keys_name"
 
   yaml_dir="${a_yml_file%/*}"
 
@@ -269,8 +269,8 @@ f_yaml_write() {
     mkdir -p "$yaml_dir"
   fi
 
-  for k in "${__yaml_keys[@]}"; do
-    f_yaml_escape_double "${__yaml_scalars[$k]}" 'yaml_escaped'
+  for k in "${__yaml_keys_arr_nameref[@]}"; do
+    f_yaml_escape_double "${__yaml_scalars_dict_nameref[$k]}" 'yaml_escaped'
     yaml_buf+="${k}: \"${yaml_escaped}\""$'\n'
   done
 
@@ -278,10 +278,10 @@ f_yaml_write() {
     list_key="$1"
     list_arr_name="$2"
     shift 2
-    declare -n __yaml_list="$list_arr_name"
+    declare -n __yaml_list_arr_nameref="$list_arr_name"
     yaml_buf+="${list_key}:"$'\n'
 
-    for item in "${__yaml_list[@]}"; do
+    for item in "${__yaml_list_arr_nameref[@]}"; do
       f_yaml_escape_double "$item" 'yaml_escaped'
       yaml_buf+="  - \"${yaml_escaped}\""$'\n'
     done

@@ -27,7 +27,7 @@
 
 echo "Clearing DB $DB_NAME from $DB_HOST ..."
 
-# This generates a query that drops all tables, then executes it.
+# This generates a query that drops all tables_arr, then executes it.
 # Update 2024/08/16 - Workaround errors like :
 # ERROR 1451 (23000) at line 7: Cannot delete or update a parent row: a foreign
 # key constraint fails

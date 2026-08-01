@@ -20,13 +20,13 @@
 #   f_make_check_args arg1 arg2
 #
 f_make_check_args() {
-  local make_entries=()
-  local real_scripts=()
+  local make_entries_arr=()
+  local real_scripts_arr=()
 
   f_make_list_hardcoded
   f_make_list_entry_points
 
-  if [[ -z "${make_entries[@]}" ]]; then
+  if [[ -z "${make_entries_arr[@]}" ]]; then
     echo >&2
     echo "Error in f_make_check_args() - $BASH_SOURCE line $LINENO: make entry points not found." >&2
     echo "It seems local instance hasn't been initialized yet." >&2
@@ -39,7 +39,7 @@ f_make_check_args() {
   local make_entry_point=''
 
   while [[ $# -gt 0 ]]; do
-    for make_entry_point in "${make_entries[@]}"; do
+    for make_entry_point in "${make_entries_arr[@]}"; do
       case "$1" in "$make_entry_point")
         echo >&2
         echo "The value '$1' is reserved as a Make entry point." >&2
@@ -104,18 +104,18 @@ f_make_task_name() {
 # This function writes its result to variables subject to collision in calling
 # scope :
 #
-# @var make_entries
-# @var real_scripts
+# @var make_entries_arr
+# @var real_scripts_arr
 #
 # @example
-#   make_entries=()
-#   real_scripts=()
+#   make_entries_arr=()
+#   real_scripts_arr=()
 #
 #   f_make_list_entry_points
 #
-#   for i in "${!real_scripts[@]}"; do
-#     task="${make_entries[i]}"
-#     script="${real_scripts[i]}"
+#   for i in "${!real_scripts_arr[@]}"; do
+#     task="${make_entries_arr[i]}"
+#     script="${real_scripts_arr[i]}"
 #
 #     echo "Make entry point $i :"
 #     echo "  task = $task"
@@ -132,7 +132,7 @@ f_make_list_entry_points() {
   # From our "entry point" scripts' path, we need to provide a unique task
   # name -> we use subject-action pairs while preventing potential collisions
   # in case different extensions implement the same subject-action pair.
-  # Important note : the arrays 'make_entries' and 'real_scripts' must have the
+  # Important note : the arrays 'make_entries_arr' and 'real_scripts_arr' must have the
   # exact same order and size.
   local task
   local sa_pair
@@ -157,8 +157,8 @@ f_make_list_entry_points() {
       task="${task#*instance-}"
     esac
 
-    make_entries+=("$task")
-    real_scripts+=("asc/$sa_pair.sh")
+    make_entries_arr+=("$task")
+    real_scripts_arr+=("asc/$sa_pair.sh")
   done
 
   # We need the custom 'extend' scripts folder to have priority for avoiding
@@ -189,17 +189,17 @@ f_make_list_entry_points() {
           task="${task#*instance-}"
         esac
 
-        if f_in_array "$task" 'make_entries'; then
+        if f_in_array "$task" 'make_entries_arr'; then
           task="${extension}-$task"
           f_make_task_name "$task"
         fi
 
-        make_entries+=("$task")
+        make_entries_arr+=("$task")
         ext_path=''
         f_asc_extension_path "$extension"
         # TODO [minor] Figure out why this can produce duplicate entries.
-        # real_scripts+=("$ext_path/$extension/$sa_pair.sh")
-        f_array_add_once "$ext_path/$extension/$sa_pair.sh" real_scripts
+        # real_scripts_arr+=("$ext_path/$extension/$sa_pair.sh")
+        f_array_add_once "$ext_path/$extension/$sa_pair.sh" real_scripts_arr
       done
     fi
   done
@@ -219,13 +219,13 @@ f_make_generate() {
   local make_entry_point
   local real_script
 
-  local make_entries=()
-  local real_scripts=()
+  local make_entries_arr=()
+  local real_scripts_arr=()
 
   # All except the hardcoded ones.
   f_make_list_entry_points
 
-  if [[ -z "$real_scripts" ]]; then
+  if [[ -z "$real_scripts_arr" ]]; then
     echo "Notice in f_make_generate() - $BASH_SOURCE line $LINENO: no Make entry points have been found."
     return
   fi
@@ -248,9 +248,9 @@ f_make_generate() {
 
 EOF
 
-  for i in "${!make_entries[@]}"; do
-    make_entry_point="${make_entries[i]}"
-    real_script="${real_scripts[i]}"
+  for i in "${!make_entries_arr[@]}"; do
+    make_entry_point="${make_entries_arr[i]}"
+    real_script="${real_scripts_arr[i]}"
 
     echo ".PHONY: $make_entry_point
 $make_entry_point:
@@ -289,28 +289,28 @@ $make_entry_point:
 # @see f_make_generate() in asc/make/make.inc.sh
 #
 
-make_entries=()
-real_scripts=()
+make_entries_arr=()
+real_scripts_arr=()
 
 SHELL_SCRIPT_HEAD
 
-  for i in "${!make_entries[@]}"; do
-    make_entry_point="${make_entries[i]}"
-    real_script="${real_scripts[i]}"
+  for i in "${!make_entries_arr[@]}"; do
+    make_entry_point="${make_entries_arr[i]}"
+    real_script="${real_scripts_arr[i]}"
 
-    make_entries_code_gen+="make_entries+=('$make_entry_point')
+    make_entries_code_gen+="make_entries_arr+=('$make_entry_point')
 "
-    real_scripts_code_gen+="real_scripts+=('$real_script')
+    real_scripts_code_gen+="real_scripts_arr+=('$real_script')
 "
   done
 
   if [[ -f data/asc/cache/test-cases.sh ]]; then
     # shellcheck disable=SC1090
     . data/asc/cache/test-cases.sh
-    for make_entry_point in "${test_case_registry_targets[@]}"; do
-      make_entries_code_gen+="make_entries+=('$make_entry_point')
+    for make_entry_point in "${test_case_registry_targets_arr[@]}"; do
+      make_entries_code_gen+="make_entries_arr+=('$make_entry_point')
 "
-      real_scripts_code_gen+="real_scripts+=('asc/test/case.run.sh')
+      real_scripts_code_gen+="real_scripts_arr+=('asc/test/case.run.sh')
 "
     done
   fi
@@ -334,31 +334,31 @@ SHELL_SCRIPT_HEAD
 # This function writes its result to variables subject to collision in calling
 # scope :
 #
-# @var make_entries
-# @var real_scripts
+# @var make_entries_arr
+# @var real_scripts_arr
 #
 # @example
-#   make_entries=()
-#   real_scripts=()
+#   make_entries_arr=()
+#   real_scripts_arr=()
 #   f_make_list_hardcoded
 #
 f_make_list_hardcoded() {
-  make_entries+=('init')
-  real_scripts+=('asc/instance/init.make.sh')
-  make_entries+=('init-debug')
-  real_scripts+=('asc/instance/init.make.sh -d -r')
-  # make_entries+=('reinit')
-  # real_scripts+=('asc/instance/reinit.sh')
-  make_entries+=('setup')
-  real_scripts+=('asc/instance/setup.sh')
-  make_entries+=('hook')
-  real_scripts+=('asc/instance/hook.make.sh')
-  make_entries+=('hook-debug')
-  real_scripts+=('asc/instance/hook.make.sh -d -t')
-  make_entries+=('globals-lp')
-  real_scripts+=('asc/env/global_lookup_paths.make.sh')
-  make_entries+=('debug')
-  real_scripts+=('asc/make/echo.make.sh')
+  make_entries_arr+=('init')
+  real_scripts_arr+=('asc/instance/init.make.sh')
+  make_entries_arr+=('init-debug')
+  real_scripts_arr+=('asc/instance/init.make.sh -d -r')
+  # make_entries_arr+=('reinit')
+  # real_scripts_arr+=('asc/instance/reinit.sh')
+  make_entries_arr+=('setup')
+  real_scripts_arr+=('asc/instance/setup.sh')
+  make_entries_arr+=('hook')
+  real_scripts_arr+=('asc/instance/hook.make.sh')
+  make_entries_arr+=('hook-debug')
+  real_scripts_arr+=('asc/instance/hook.make.sh -d -t')
+  make_entries_arr+=('globals-lp')
+  real_scripts_arr+=('asc/env/global_lookup_paths.make.sh')
+  make_entries_arr+=('debug')
+  real_scripts_arr+=('asc/make/echo.make.sh')
 }
 
 ##
@@ -396,7 +396,7 @@ f_make_unescape() {
 ##
 # Append per-case make targets and write test-case registry cache.
 #
-# Uses make_entries and real_scripts arrays from calling scope (f_make_generate).
+# Uses make_entries_arr and real_scripts_arr arrays from calling scope (f_make_generate).
 #
 f_make_generate_test_cases() {
   local batch_task=''
@@ -407,12 +407,12 @@ f_make_generate_test_cases() {
   local cache_dir
   local i=''
 
-  local -a tc_targets=()
-  local -a tc_batch_tasks=()
-  local -a tc_stems=()
-  local -a tc_modes=()
-  local -a tc_batch_dirs=()
-  local -a tc_batch_scripts=()
+  local -a tc_targets_arr=()
+  local -a tc_batch_tasks_arr=()
+  local -a tc_stems_arr=()
+  local -a tc_modes_arr=()
+  local -a tc_batch_dirs_arr=()
+  local -a tc_batch_scripts_arr=()
 
   if [[ -z "$cache_file" ]]; then
     cache_file='data/asc/cache/test-cases.sh'
@@ -421,9 +421,9 @@ f_make_generate_test_cases() {
   cache_dir="${cache_file%/*}"
   mkdir -p "$cache_dir"
 
-  for i in "${!make_entries[@]}"; do
-    batch_task="${make_entries[i]}"
-    batch_script="${real_scripts[i]}"
+  for i in "${!make_entries_arr[@]}"; do
+    batch_task="${make_entries_arr[i]}"
+    batch_script="${real_scripts_arr[i]}"
 
     test_case_mode=''
     test_case_batch_dir=''
@@ -434,16 +434,16 @@ f_make_generate_test_cases() {
     for case_stem in $test_case_stems; do
       case_target="$(f_test_case_make_target "$batch_task" "$case_stem")"
 
-      if f_in_array "$case_target" 'tc_targets'; then
+      if f_in_array "$case_target" 'tc_targets_arr'; then
         continue
       fi
 
-      tc_targets+=("$case_target")
-      tc_batch_tasks+=("$batch_task")
-      tc_stems+=("$case_stem")
-      tc_modes+=("$test_case_mode")
-      tc_batch_dirs+=("$test_case_batch_dir")
-      tc_batch_scripts+=("$batch_script")
+      tc_targets_arr+=("$case_target")
+      tc_batch_tasks_arr+=("$batch_task")
+      tc_stems_arr+=("$case_stem")
+      tc_modes_arr+=("$test_case_mode")
+      tc_batch_dirs_arr+=("$test_case_batch_dir")
+      tc_batch_scripts_arr+=("$batch_script")
 
       echo ".PHONY: $case_target
 $case_target:
@@ -452,7 +452,7 @@ $case_target:
     done
   done
 
-  if [[ ${#tc_targets[@]} -eq 0 ]]; then
+  if [[ ${#tc_targets_arr[@]} -eq 0 ]]; then
     rm -f "$cache_file"
     return 0
   fi
@@ -468,23 +468,23 @@ $case_target:
 # @see f_make_generate_test_cases() in asc/make/make.inc.sh
 #
 
-test_case_registry_targets=()
-test_case_registry_batch_tasks=()
-test_case_registry_stems=()
-test_case_registry_modes=()
-test_case_registry_batch_dirs=()
-test_case_registry_batch_scripts=()
+test_case_registry_targets_arr=()
+test_case_registry_batch_tasks_arr=()
+test_case_registry_stems_arr=()
+test_case_registry_modes_arr=()
+test_case_registry_batch_dirs_arr=()
+test_case_registry_batch_scripts_arr=()
 
 EOF
 
   {
-    for i in "${!tc_targets[@]}"; do
-      echo "test_case_registry_targets+=('${tc_targets[i]}')"
-      echo "test_case_registry_batch_tasks+=('${tc_batch_tasks[i]}')"
-      echo "test_case_registry_stems+=('${tc_stems[i]}')"
-      echo "test_case_registry_modes+=('${tc_modes[i]}')"
-      echo "test_case_registry_batch_dirs+=('${tc_batch_dirs[i]}')"
-      echo "test_case_registry_batch_scripts+=('${tc_batch_scripts[i]}')"
+    for i in "${!tc_targets_arr[@]}"; do
+      echo "test_case_registry_targets_arr+=('${tc_targets_arr[i]}')"
+      echo "test_case_registry_batch_tasks_arr+=('${tc_batch_tasks_arr[i]}')"
+      echo "test_case_registry_stems_arr+=('${tc_stems_arr[i]}')"
+      echo "test_case_registry_modes_arr+=('${tc_modes_arr[i]}')"
+      echo "test_case_registry_batch_dirs_arr+=('${tc_batch_dirs_arr[i]}')"
+      echo "test_case_registry_batch_scripts_arr+=('${tc_batch_scripts_arr[i]}')"
       echo ''
     done
   } >> "$cache_file"

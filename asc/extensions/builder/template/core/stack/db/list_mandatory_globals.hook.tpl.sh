@@ -7,12 +7,12 @@
 # @see {{ TEMPLATE }}
 #
 # Uses the following var in calling scope :
-# @var mandatory_globals
+# @var mandatory_globals_arr
 #
 # This file is dynamically included when the "hook" is triggered.
 # @see asc/bootstrap.sh
 #
-# To list all the possible paths that can be used among which existing files
+# To list all the possible paths that can be used among which existing files_arr
 # will be sourced when the hook is triggered, run :
 # $ make hook-debug s:{{ COMPONENT }} a:list_mandatory_globals v:STACK_VERSION PROVISION_USING INSTANCE_TYPE
 #
@@ -20,5 +20,5 @@
 # Ex. generated global var name with COMPONENT='site' and SERVICE='mysql' :
 # SITE_MYSQL_DB_ID=site (default value)
 # SITE_MYSQL_DB_DRIVER=mysql (default value)
-mandatory_globals+=('{{ COMPONENT }}_{{ SERVICE }}_DB_ID:{{ COMPONENT }}')
-mandatory_globals+=('{{ COMPONENT }}_{{ SERVICE }}_DB_DRIVER:mysql')
+mandatory_globals_arr+=('{{ COMPONENT }}_{{ SERVICE }}_DB_ID:{{ COMPONENT }}')
+mandatory_globals_arr+=('{{ COMPONENT }}_{{ SERVICE }}_DB_DRIVER:mysql')

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ##
-# Remove host crontab lines for one entry (YAML def kept).
+# Remove host crontab lines for one entry (YAML def kept_arr).
 #
 # @example
 #   make cron-stop e:insta-save

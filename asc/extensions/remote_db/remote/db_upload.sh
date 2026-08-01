@@ -61,10 +61,10 @@ local_dir=''
 # Fallback value for remote_subfolder : it can be a remote instance ID.
 # Note that "$remote_subfolder" == "$remote_id" means : upload dumps created on
 # that same remote instance (hence, the remote subfolder name will be 'local').
-instance_ids=()
+instance_ids_arr=()
 f_remote_get_instances
 
-for instance_id in "${instance_ids[@]}"; do
+for instance_id in "${instance_ids_arr[@]}"; do
   case "$remote_subfolder" in "$instance_id")
     local_subfolder="$instance_id"
     remote_subfolder="$instance_id"

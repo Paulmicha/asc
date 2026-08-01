@@ -7,14 +7,14 @@
 # @see {{ TEMPLATE }}
 #
 # Uses the following var in calling scope :
-# @var Array $mandatory_globals[<env var>]
+# @var Array $mandatory_globals_arr[<env var>]
 #
 # This file is dynamically included when the "hook" is triggered.
 # @see asc/bootstrap.sh
 #
-# To list all the possible paths that can be used among which existing files
+# To list all the possible paths that can be used among which existing files_arr
 # will be sourced when the hook is triggered, run :
 # $ make hook-debug s:{{ COMPONENT }} a:list_mandatory_globals v:STACK_VERSION PROVISION_USING INSTANCE_TYPE
 #
 
-mandatory_globals+=('{{ COMPONENT }}_DOCROOT')
+mandatory_globals_arr+=('{{ COMPONENT }}_DOCROOT')

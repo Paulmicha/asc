@@ -118,7 +118,7 @@ f_fs_merge_dirs() {
   fi
 
   case "$a_overwriting" in
-    # When overwriting existing files, we can use the 'tar' program to create an
+    # When overwriting existing files_arr, we can use the 'tar' program to create an
     # exact copy of the source tree with the owner and permissions intact, and
     # if the target folder exists, only files that are already existing will be
     # overwritten.
@@ -136,7 +136,7 @@ f_fs_merge_dirs() {
       fi
       ;;
 
-    # When not overwriting existing files, we need to proceed file by file.
+    # When not overwriting existing files_arr, we need to proceed file by file.
     *)
       local file_list=''
       local f=''

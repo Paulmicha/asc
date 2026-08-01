@@ -39,19 +39,19 @@ fi
 # Only deal with single-database exports. See if it's desirable to deal with the
 # all-db-at-once scenario here too, eventually.
 # See https://github.com/wodby/mariadb/blob/master/10/bin/backup
-skip_data=()
+skip_data_arr=()
 if [[ -n "$DB_TABLES_SKIP_DATA" ]] && [[ "$DB_NAME" != '*' ]]; then
-  IFS=',' read -ra ADDR <<< "$DB_TABLES_SKIP_DATA"
-  for table in "${ADDR[@]}"; do
+  IFS=',' read -ra ADDR_arr <<< "$DB_TABLES_SKIP_DATA"
+  for table in "${ADDR_arr[@]}"; do
     if echo "${table}" | grep -q '*'; then
       table="${table//'*'/'%'}"
       out=$(mysql --silent --user="$DB_USER" --password="$DB_PASS" --host="$DB_HOST" --port="$DB_PORT" -e "SHOW TABLES LIKE '${table}'" "${DB_NAME}")
       tables=(${out//$'\n'/ })
-      for t in "${tables[@]}"; do
-        skip_data+=("--ignore-table=${DB_NAME}.${t}")
+      for t in "${tables_arr[@]}"; do
+        skip_data_arr+=("--ignore-table=${DB_NAME}.${t}")
       done
     else
-      skip_data+=("--ignore-table=${DB_NAME}.${table}")
+      skip_data_arr+=("--ignore-table=${DB_NAME}.${table}")
     fi
   done
 fi
@@ -59,8 +59,8 @@ fi
 f_fs_relative_path "$db_dump_file"
 echo "Creating $DB_ID DB $DB_DRIVER dump '$relative_path' ..."
 
-# In order to support excluding data for specific tables, export the structure
-# alone first, then the data (optionally excluding said tables).
+# In order to support excluding data for specific tables_arr, export the structure
+# alone first, then the data (optionally excluding said tables_arr).
 # See https://github.com/wodby/mariadb/blob/master/10/bin/backup
 
 mysqldump_last_arg="$DB_NAME"
@@ -89,7 +89,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # Debug
-# echo "mysqldump --user='$DB_USER' --password='***' --host='$DB_HOST' --port='$DB_PORT' --single-transaction --no-create-info --allow-keywords ${skip_data[@]} $mysqldump_last_arg >> '$db_dump_file'"
+# echo "mysqldump --user='$DB_USER' --password='***' --host='$DB_HOST' --port='$DB_PORT' --single-transaction --no-create-info --allow-keywords ${skip_data_arr[@]} $mysqldump_last_arg >> '$db_dump_file'"
 
 # 2. Data.
 mysqldump \
@@ -97,7 +97,7 @@ mysqldump \
   --password="$DB_PASS" \
   --host="$DB_HOST" \
   --port="$DB_PORT" \
-  --single-transaction --no-create-info --allow-keywords "${skip_data[@]}" \
+  --single-transaction --no-create-info --allow-keywords "${skip_data_arr[@]}" \
   $mysqldump_last_arg >> "$db_dump_file"
 
 if [[ $? -ne 0 ]]; then

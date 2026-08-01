@@ -73,12 +73,12 @@ f_git_log() {
 
   f_git_find_commits "$@"
 
-  for ((i = 0 ; i < ${#git_commits_hashes[@]} ; i++)); do
-    h="${git_commits_hashes[$i]}"
-    t="${git_commits_titles[$i]}"
-    e="${git_commits_emails[$i]}"
-    d="${git_commits_dates[$i]}"
-    s="${git_commits_timestamps[$i]}"
+  for ((i = 0 ; i < ${#git_commits_hashes_arr[@]} ; i++)); do
+    h="${git_commits_hashes_arr[$i]}"
+    t="${git_commits_titles_arr[$i]}"
+    e="${git_commits_emails_arr[$i]}"
+    d="${git_commits_dates_arr[$i]}"
+    s="${git_commits_timestamps_arr[$i]}"
     eval "$a_evaled_code"
   done
 }
@@ -88,7 +88,7 @@ f_git_log() {
 #
 # This function writes its result to a variable subject to collision in calling
 # scope :
-# @var git_changed_files
+# @var git_changed_files_arr
 #
 # @param 1 String : The (grep) search pattern.
 # @param 2 [optional] String : A branch name to restrict the search.
@@ -98,13 +98,13 @@ f_git_log() {
 #   # Search log messages in all branches and get all files changed in all
 #   # matching commits :
 #   f_git_find_changed_files 'JRA-224'
-#   for f in "${git_changed_files[@]}"; do
+#   for f in "${git_changed_files_arr[@]}"; do
 #     echo "$f"
 #   done
 #
 #   # Same, by only search in a specific branch only :
 #   f_git_find_changed_files 'JRA-224' 'my-branch-name'
-#   for f in "${git_changed_files[@]}"; do
+#   for f in "${git_changed_files_arr[@]}"; do
 #     echo "$f"
 #   done
 #
@@ -130,12 +130,12 @@ f_git_find_changed_files() {
 # This function writes its results to variables subject to collision in calling
 # scope :
 #
-# @var git_commits_hashes
-# @var git_commits_titles
-# @var git_commits_emails
-# @var git_commits_dates
-# @var git_commits_timestamps
-# @var git_changed_files
+# @var git_commits_hashes_arr
+# @var git_commits_titles_arr
+# @var git_commits_emails_arr
+# @var git_commits_dates_arr
+# @var git_commits_timestamps_arr
+# @var git_changed_files_arr
 #
 # They can be preset in calling scope. This allows to call this function several
 # times and append values to the same arrays.
@@ -150,15 +150,15 @@ f_git_find_changed_files() {
 #   # matching commits :
 #   f_git_find_commits -m 'JRA-123[^0-9]' -f '<have-changed>' -v # <- Vars are set on 1st call.
 #   f_git_find_commits -m 'JRA-124[^0-9]' -f '<have-changed>'    # <- Vars are NOT reset on 2nd call.
-#   for f in "${git_changed_files[@]}"; do
+#   for f in "${git_changed_files_arr[@]}"; do
 #     echo "$f"
 #   done
 #
 #   # Other iteration example :
-#   for ((i = 0 ; i < ${#git_commits_hashes[@]} ; i++)); do
-#     d="${git_commits_dates[$i]}"
-#     t="${git_commits_titles[$i]}"
-#     h="${git_commits_hashes[$i]}"
+#   for ((i = 0 ; i < ${#git_commits_hashes_arr[@]} ; i++)); do
+#     d="${git_commits_dates_arr[$i]}"
+#     t="${git_commits_titles_arr[$i]}"
+#     h="${git_commits_hashes_arr[$i]}"
 #     echo "Commit $i : $d / $t ($h) ..."
 #   done
 #
@@ -248,7 +248,7 @@ f_git_find_commits() {
           ;;
 
         # Filter by files.
-        -f | --files )
+        -f | --files_arr )
           shift
           file_filter="$1"
           ;;
@@ -261,12 +261,12 @@ f_git_find_commits() {
         # Flag : (re)set the arrays variables. Prevents appending values in
         # multiple calls to this function in the same scope.
         -v | --varsreset )
-          git_commits_hashes=()
-          git_commits_titles=()
-          git_commits_emails=()
-          git_commits_dates=()
-          git_commits_timestamps=()
-          git_changed_files=()
+          git_commits_hashes_arr=()
+          git_commits_titles_arr=()
+          git_commits_emails_arr=()
+          git_commits_dates_arr=()
+          git_commits_timestamps_arr=()
+          git_changed_files_arr=()
           ;;
 
         # Forward all remaining args starting with '--' to the git-log command.
@@ -350,7 +350,7 @@ f_git_find_commits() {
       case "$file_filter" in
 
         # Filter out commits that have NOT made changes to any source file.
-        # Populate the git_changed_files array in the process.
+        # Populate the git_changed_files_arr array in the process.
         '<have-changed>')
           if [[ -z "$commit_changed_files" ]]; then
             # Debug.
@@ -359,14 +359,14 @@ f_git_find_commits() {
           fi
           iteration_can_carry_on='true'
           for f in $commit_changed_files; do
-            f_array_add_once "$f" git_changed_files
+            f_array_add_once "$f" git_changed_files_arr
           done
           ;;
 
         # Only get commits where files changed match given pattern.
         # The pattern cannot contain "|" inside.
         # See https://unix.stackexchange.com/a/234415
-        # Populate the git_changed_files array in the process.
+        # Populate the git_changed_files_arr array in the process.
         *)
           any_file_matches='false'
           iteration_can_carry_on='false'
@@ -380,7 +380,7 @@ f_git_find_commits() {
           case "$any_file_matches" in 'true')
             iteration_can_carry_on='true'
             for f in $commit_changed_files; do
-              f_array_add_once "$f" git_changed_files
+              f_array_add_once "$f" git_changed_files_arr
             done
           esac
           ;;
@@ -393,11 +393,11 @@ f_git_find_commits() {
       continue
     esac
 
-    git_commits_hashes+=("$commit_hash")
-    git_commits_titles+=("$commit_title")
-    git_commits_emails+=("$commit_email")
-    git_commits_dates+=("$commit_date")
-    git_commits_timestamps+=("$commit_timestamp")
+    git_commits_hashes_arr+=("$commit_hash")
+    git_commits_titles_arr+=("$commit_title")
+    git_commits_emails_arr+=("$commit_email")
+    git_commits_dates_arr+=("$commit_date")
+    git_commits_timestamps_arr+=("$commit_timestamp")
 
   # Quick reference for git log's --pretty option tokens :
   # - %s : subject
@@ -416,16 +416,16 @@ f_git_find_commits() {
 
   # Finally, invert all arrays order if requested.
   case "$invert_order" in 'true')
-    f_array_reverse "${git_commits_hashes[@]}"
-    git_commits_hashes=("${reversed_arr[@]}")
-    f_array_reverse "${git_commits_titles[@]}"
-    git_commits_titles=("${reversed_arr[@]}")
-    f_array_reverse "${git_commits_emails[@]}"
-    git_commits_emails=("${reversed_arr[@]}")
-    f_array_reverse "${git_commits_dates[@]}"
-    git_commits_dates=("${reversed_arr[@]}")
-    f_array_reverse "${git_commits_timestamps[@]}"
-    git_commits_timestamps=("${reversed_arr[@]}")
+    f_array_reverse "${git_commits_hashes_arr[@]}"
+    git_commits_hashes_arr=("${reversed_arr[@]}")
+    f_array_reverse "${git_commits_titles_arr[@]}"
+    git_commits_titles_arr=("${reversed_arr[@]}")
+    f_array_reverse "${git_commits_emails_arr[@]}"
+    git_commits_emails_arr=("${reversed_arr[@]}")
+    f_array_reverse "${git_commits_dates_arr[@]}"
+    git_commits_dates_arr=("${reversed_arr[@]}")
+    f_array_reverse "${git_commits_timestamps_arr[@]}"
+    git_commits_timestamps_arr=("${reversed_arr[@]}")
   esac
 }
 
@@ -442,12 +442,12 @@ f_git_find_commits() {
 #   f_git_mfind_commits "$search_terms" --nfs -b 'master' -i
 #
 #   # Looping example :
-#   for ((i = 0 ; i < ${#git_commits_hashes[@]} ; i++)); do
-#     h="${git_commits_hashes[$i]}"
-#     t="${git_commits_titles[$i]}"
-#     e="${git_commits_emails[$i]}"
-#     d="${git_commits_dates[$i]}"
-#     s="${git_commits_timestamps[$i]}"
+#   for ((i = 0 ; i < ${#git_commits_hashes_arr[@]} ; i++)); do
+#     h="${git_commits_hashes_arr[$i]}"
+#     t="${git_commits_titles_arr[$i]}"
+#     e="${git_commits_emails_arr[$i]}"
+#     d="${git_commits_dates_arr[$i]}"
+#     s="${git_commits_timestamps_arr[$i]}"
 #     echo "$i : $d ($s) / $t ($h)"
 #   done
 #
@@ -482,12 +482,12 @@ f_git_mfind_commits() {
     shift
   done
 
-  git_commits_hashes=()
-  git_commits_titles=()
-  git_commits_emails=()
-  git_commits_dates=()
-  git_commits_timestamps=()
-  git_changed_files=()
+  git_commits_hashes_arr=()
+  git_commits_titles_arr=()
+  git_commits_emails_arr=()
+  git_commits_dates_arr=()
+  git_commits_timestamps_arr=()
+  git_changed_files_arr=()
 
   for search_term in $a_search_terms; do
     f_git_find_commits "$search_op" "$search_term" $forwarded_args
@@ -501,35 +501,35 @@ f_git_mfind_commits() {
   local e
   local d
   local s
-  local commits_to_sort
+  local commits_to_sort_dict
 
-  declare -A commits_to_sort
+  declare -A commits_to_sort_dict
 
-  for ((i = 0 ; i < ${#git_commits_hashes[@]} ; i++)); do
-    h="${git_commits_hashes[$i]}"
-    t="${git_commits_titles[$i]}"
-    e="${git_commits_emails[$i]}"
-    d="${git_commits_dates[$i]}"
-    s="${git_commits_timestamps[$i]}"
+  for ((i = 0 ; i < ${#git_commits_hashes_arr[@]} ; i++)); do
+    h="${git_commits_hashes_arr[$i]}"
+    t="${git_commits_titles_arr[$i]}"
+    e="${git_commits_emails_arr[$i]}"
+    d="${git_commits_dates_arr[$i]}"
+    s="${git_commits_timestamps_arr[$i]}"
 
     # Results are keyed by timestamps, but if 2 commits happen in the same
     # second, a conflict may happen -> append the first 8 characters from hash.
     k="$s.${h:0:8}"
 
-    commits_to_sort["$k|h"]="$h"
-    commits_to_sort["$k|t"]="$t"
-    commits_to_sort["$k|e"]="$e"
-    commits_to_sort["$k|d"]="$d"
-    commits_to_sort["$k|s"]="$s"
+    commits_to_sort_dict["$k|h"]="$h"
+    commits_to_sort_dict["$k|t"]="$t"
+    commits_to_sort_dict["$k|e"]="$e"
+    commits_to_sort_dict["$k|d"]="$d"
+    commits_to_sort_dict["$k|s"]="$s"
   done
 
-  f_array_qsort "${!commits_to_sort[@]}"
+  f_array_qsort "${!commits_to_sort_dict[@]}"
 
-  git_commits_hashes=()
-  git_commits_titles=()
-  git_commits_emails=()
-  git_commits_dates=()
-  git_commits_timestamps=()
+  git_commits_hashes_arr=()
+  git_commits_titles_arr=()
+  git_commits_emails_arr=()
+  git_commits_dates_arr=()
+  git_commits_timestamps_arr=()
 
   local k_split_arr
 
@@ -537,26 +537,26 @@ f_git_mfind_commits() {
     f_str_split1 'k_split_arr' "$k" '|'
 
     case "${k_split_arr[1]}" in
-      h) git_commits_hashes+=("${commits_to_sort[$k]}") ;;
-      t) git_commits_titles+=("${commits_to_sort[$k]}") ;;
-      e) git_commits_emails+=("${commits_to_sort[$k]}") ;;
-      d) git_commits_dates+=("${commits_to_sort[$k]}") ;;
-      s) git_commits_timestamps+=("${commits_to_sort[$k]}") ;;
+      h) git_commits_hashes_arr+=("${commits_to_sort_dict[$k]}") ;;
+      t) git_commits_titles_arr+=("${commits_to_sort_dict[$k]}") ;;
+      e) git_commits_emails_arr+=("${commits_to_sort_dict[$k]}") ;;
+      d) git_commits_dates_arr+=("${commits_to_sort_dict[$k]}") ;;
+      s) git_commits_timestamps_arr+=("${commits_to_sort_dict[$k]}") ;;
     esac
   done
 
   # Sorting in descending order requires to invert current result at this stage.
   case "$sort" in 'DESC')
-    f_array_reverse "${git_commits_hashes[@]}"
-    git_commits_hashes=("${reversed_arr[@]}")
-    f_array_reverse "${git_commits_titles[@]}"
-    git_commits_titles=("${reversed_arr[@]}")
-    f_array_reverse "${git_commits_emails[@]}"
-    git_commits_emails=("${reversed_arr[@]}")
-    f_array_reverse "${git_commits_dates[@]}"
-    git_commits_dates=("${reversed_arr[@]}")
-    f_array_reverse "${git_commits_timestamps[@]}"
-    git_commits_timestamps=("${reversed_arr[@]}")
+    f_array_reverse "${git_commits_hashes_arr[@]}"
+    git_commits_hashes_arr=("${reversed_arr[@]}")
+    f_array_reverse "${git_commits_titles_arr[@]}"
+    git_commits_titles_arr=("${reversed_arr[@]}")
+    f_array_reverse "${git_commits_emails_arr[@]}"
+    git_commits_emails_arr=("${reversed_arr[@]}")
+    f_array_reverse "${git_commits_dates_arr[@]}"
+    git_commits_dates_arr=("${reversed_arr[@]}")
+    f_array_reverse "${git_commits_timestamps_arr[@]}"
+    git_commits_timestamps_arr=("${reversed_arr[@]}")
   esac
 }
 
@@ -636,34 +636,34 @@ f_git_write_hooks() {
   # Whitelist allowed values for git hooks.
   local git_hook=''
   local git_hook_script_path=''
-  local git_hooks_whitelist=()
-  git_hooks_whitelist+=('applypatch-msg')
-  git_hooks_whitelist+=('pre-applypatch')
-  git_hooks_whitelist+=('post-applypatch')
-  git_hooks_whitelist+=('pre-commit')
-  git_hooks_whitelist+=('prepare-commit-msg')
-  git_hooks_whitelist+=('commit-msg')
-  git_hooks_whitelist+=('post-commit')
-  git_hooks_whitelist+=('pre-rebase')
-  git_hooks_whitelist+=('post-checkout')
-  git_hooks_whitelist+=('post-merge')
-  git_hooks_whitelist+=('pre-push')
-  git_hooks_whitelist+=('pre-receive')
-  git_hooks_whitelist+=('update')
-  git_hooks_whitelist+=('post-update')
-  git_hooks_whitelist+=('post-receive')
-  git_hooks_whitelist+=('post-update')
-  git_hooks_whitelist+=('push-to-checkout')
-  git_hooks_whitelist+=('pre-auto-gc')
-  git_hooks_whitelist+=('post-rewrite')
-  git_hooks_whitelist+=('rebase')
-  git_hooks_whitelist+=('sendemail-validate')
-  git_hooks_whitelist+=('fsmonitor-watchman')
+  local git_hooks_whitelist_arr=()
+  git_hooks_whitelist_arr+=('applypatch-msg')
+  git_hooks_whitelist_arr+=('pre-applypatch')
+  git_hooks_whitelist_arr+=('post-applypatch')
+  git_hooks_whitelist_arr+=('pre-commit')
+  git_hooks_whitelist_arr+=('prepare-commit-msg')
+  git_hooks_whitelist_arr+=('commit-msg')
+  git_hooks_whitelist_arr+=('post-commit')
+  git_hooks_whitelist_arr+=('pre-rebase')
+  git_hooks_whitelist_arr+=('post-checkout')
+  git_hooks_whitelist_arr+=('post-merge')
+  git_hooks_whitelist_arr+=('pre-push')
+  git_hooks_whitelist_arr+=('pre-receive')
+  git_hooks_whitelist_arr+=('update')
+  git_hooks_whitelist_arr+=('post-update')
+  git_hooks_whitelist_arr+=('post-receive')
+  git_hooks_whitelist_arr+=('post-update')
+  git_hooks_whitelist_arr+=('push-to-checkout')
+  git_hooks_whitelist_arr+=('pre-auto-gc')
+  git_hooks_whitelist_arr+=('post-rewrite')
+  git_hooks_whitelist_arr+=('rebase')
+  git_hooks_whitelist_arr+=('sendemail-validate')
+  git_hooks_whitelist_arr+=('fsmonitor-watchman')
 
   for git_hook in $a_git_hooks; do
 
     # Whitelist allowed values for git hooks.
-    if f_in_array "$git_hook" 'git_hooks_whitelist'; then
+    if f_in_array "$git_hook" 'git_hooks_whitelist_arr'; then
       git_hook_script_path="$a_git_hook_dir/$git_hook"
 
       relative_path=''

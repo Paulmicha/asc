@@ -54,7 +54,7 @@ f_traefik_generate_acme_conf() {
 
   # Replace read-only global vars (supports any global) placeholders.
   f_global_list
-  for var_name in "${asc_globals_var_names[@]}"; do
+  for var_name in "${asc_globals_var_names_arr[@]}"; do
     if grep -Fq "${token_prefix}${var_name}${token_suffix}" "$traefik_conf"; then
       var_val="${!var_name}"
       sed -e "s,${token_prefix}${var_name}${token_suffix},${var_val},g" -i "$traefik_conf"

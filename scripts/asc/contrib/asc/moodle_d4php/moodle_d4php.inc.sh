@@ -89,7 +89,7 @@ f_moodle_write_settings() {
 
   # Start with read-only global vars (supports any global).
   f_global_list
-  for var_name in "${asc_globals_var_names[@]}"; do
+  for var_name in "${asc_globals_var_names_arr[@]}"; do
     if grep -Fq "${token_prefix}${var_name}${token_suffix}" "$MOODLE_CONFIG_FILE"; then
       var_val="${!var_name}"
 
@@ -112,7 +112,7 @@ f_moodle_write_settings() {
 
   # Now, deal with DB-related variables (not necessarily globals). Any prefixed
   # or unprefixed DB_* var, including other site's, are supported everywhere.
-  local unique_db_ids=()
+  local unique_db_ids_arr=()
 
   # First, reset unprefixed DB_* vars to default.
   f_db_set
@@ -127,10 +127,10 @@ f_moodle_write_settings() {
   # Multi-DB (manually set using the ASC_DB_IDS global) support.
   local db_id=''
   for db_id in $ASC_DB_IDS; do
-    if f_in_array "$db_id" unique_db_ids; then
+    if f_in_array "$db_id" unique_db_ids_arr; then
       continue
     fi
-    unique_db_ids+=("$db_id")
+    unique_db_ids_arr+=("$db_id")
     f_str_uppercase "$db_id" 'db_id'
     for v in $db_vars_list; do
       db_vars+="${db_id}_DB_${v} "

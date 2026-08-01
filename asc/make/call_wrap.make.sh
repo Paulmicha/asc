@@ -70,8 +70,8 @@ invoked_make_target="$1"
 make_entry_point="$1"
 shift
 
-make_entries=()
-real_scripts=()
+make_entries_arr=()
+real_scripts_arr=()
 
 # Use the complete generated list of entries if it exists.
 if [[ -f data/asc/cache/make.sh ]]; then
@@ -108,9 +108,9 @@ while [ $# -gt 0 ]; do
 
   # First, make sure the rest of the args won't accidentally trigger another
   # entry point.
-  for i in "${!make_entries[@]}"; do
-    make_entry_point="${make_entries[i]}"
-    real_script="${real_scripts[i]}"
+  for i in "${!make_entries_arr[@]}"; do
+    make_entry_point="${make_entries_arr[i]}"
+    real_script="${real_scripts_arr[i]}"
 
     case "$arg" in "$make_entry_point")
       echo >&2

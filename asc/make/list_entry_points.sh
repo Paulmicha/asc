@@ -14,21 +14,21 @@
 
 . asc/bootstrap.sh
 
-make_entries=()
-real_scripts=()
-output=()
+make_entries_arr=()
+real_scripts_arr=()
+output_arr=()
 
 f_make_list_entry_points
 
-for index in "${!real_scripts[@]}"; do
-  task="${make_entries[index]}"
-  script="${real_scripts[index]}"
+for index in "${!real_scripts_arr[@]}"; do
+  task="${make_entries_arr[index]}"
+  script="${real_scripts_arr[index]}"
 
-  output+=("$task
+  output_arr+=("$task
   → $script")
 done
 
-f_array_qsort "${output[@]}"
+f_array_qsort "${output_arr[@]}"
 
 for line in "${sorted_arr[@]}"; do
   echo "$line"

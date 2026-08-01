@@ -254,8 +254,8 @@ f_remote_exec_wrapper() {
 #       file: '{{ %Y-%m-%d.%H-%M-%S }}_site_{{ domain }}'
 #   files:
 #     public:
-#       remote: {{ docroot }}/path/to/public-files
-#       local: '{{ APP_DOCROOT }}/path/to/public-files
+#       remote: {{ docroot }}/path/to/public-files_arr
+#       local: '{{ APP_DOCROOT }}/path/to/public-files_arr
 #
 # ```
 # - {{ domain }} will be replaced by 'foobar.com'.
@@ -319,12 +319,12 @@ f_remote_definition_tokens_replace() {
   local var=''
   local val=''
   local KEY=''
-  local keys=()
+  local keys_arr=()
   local token=''
 
   f_remote_definition_get_keys
 
-  for key in "${keys[@]}"; do
+  for key in "${keys_arr[@]}"; do
     var="remote_instance_$key"
     f_str_uppercase "$key" 'KEY'
     f_str_uppercase "$var" 'var'
@@ -352,7 +352,7 @@ f_remote_definition_tokens_replace() {
   # Same for any global var.
   f_global_list
 
-  for var in "${asc_globals_var_names[@]}"; do
+  for var in "${asc_globals_var_names_arr[@]}"; do
     val="${!var}"
     token="{{ $var }}"
 
@@ -444,7 +444,7 @@ f_remote_definition_tokens_replace() {
 #       docroot: /var/www/drupal/root
 #       files:
 #         public:
-#           remote: {{ DOCROOT }}/web/sites/default/files
+#           remote: {{ DOCROOT }}/web/sites/default/files_arr
 #           local: '{{ SERVER_DOCROOT }}/sites/default/files'
 #         private:
 #           remote: {{ DOCROOT }}/private
@@ -583,14 +583,14 @@ EOF
     local var
     local val
     local key
-    local keys=()
+    local keys_arr=()
     local include
 
     f_remote_definition_get_keys
 
     f_yaml_get_root_keys "$most_specific_match"
 
-    for remote_id in "${yaml_keys[@]}"; do
+    for remote_id in "${yaml_keys_arr[@]}"; do
       # "includes" is a reserved keyword.
       case "$remote_id" in 'includes')
         continue
@@ -606,7 +606,7 @@ EOF
 
       setup_dict[id]="$remote_id"
 
-      for key in "${keys[@]}"; do
+      for key in "${keys_arr[@]}"; do
         var="${var_prefix}_${key}"
         val="${!var}"
 
@@ -642,7 +642,7 @@ EOF
           # Debug.
           # echo "  $include :"
 
-          for key in "${keys[@]}"; do
+          for key in "${keys_arr[@]}"; do
             var="ascri_includes_${include}_${key}"
             val="${!var}"
 
@@ -749,27 +749,27 @@ EOF
 # This function appends entries to an array which must be initialized in calling
 # scope already :
 #
-# @var keys
+# @var keys_arr
 #
 # @example
 #   keys=()
 #   f_remote_definition_get_keys
 #
-#   for key in "${keys[@]}"; do
+#   for key in "${keys_arr[@]}"; do
 #     echo "key = $key"
 #   done
 #
 f_remote_definition_get_keys() {
-  keys+=('id')
-  keys+=('host')
-  keys+=('domain')
-  keys+=('docroot')
-  keys+=('prefix')
-  keys+=('ssh_user')
-  keys+=('ssh_port')
-  keys+=('ssh_exec_prefix')
-  keys+=('ssh_connect_cmd')
-  keys+=('dumps_datestamp')
+  keys_arr+=('id')
+  keys_arr+=('host')
+  keys_arr+=('domain')
+  keys_arr+=('docroot')
+  keys_arr+=('prefix')
+  keys_arr+=('ssh_user')
+  keys_arr+=('ssh_port')
+  keys_arr+=('ssh_exec_prefix')
+  keys_arr+=('ssh_connect_cmd')
+  keys_arr+=('dumps_datestamp')
 
   # Remote files are a dynamic list of names (suffixes) used to assign variables
   # to folders to sync to and from (anb between) remote instances. It's meant
@@ -780,8 +780,8 @@ f_remote_definition_get_keys() {
 
     for suffix in $ASC_REMOTE_FILES_SUFFIXES; do
       f_str_sanitize_var_name "$suffix" 'suffix'
-      keys+=("files_${suffix}_remote")
-      keys+=("files_${suffix}_local")
+      keys_arr+=("files_${suffix}_remote")
+      keys_arr+=("files_${suffix}_local")
     done
   fi
 
@@ -790,21 +790,21 @@ f_remote_definition_get_keys() {
   # function is defined.
   if type f_db_get_ids >/dev/null 2>&1 ; then
     local db_id
-    local db_ids=()
+    local db_ids_arr=()
 
     f_db_get_ids
 
-    for db_id in "${db_ids[@]}"; do
-      keys+=("dumps_${db_id}_base_dir")
-      keys+=("dumps_${db_id}_file")
-      keys+=("dumps_${db_id}_latest_symlink")
-      keys+=("dumps_${db_id}_type")
-      keys+=("dumps_${db_id}_cmd")
+    for db_id in "${db_ids_arr[@]}"; do
+      keys_arr+=("dumps_${db_id}_base_dir")
+      keys_arr+=("dumps_${db_id}_file")
+      keys_arr+=("dumps_${db_id}_latest_symlink")
+      keys_arr+=("dumps_${db_id}_type")
+      keys_arr+=("dumps_${db_id}_cmd")
 
       # TODO [evol] does it make sense to keep a trace of the latest datestamp ?
       # As an alternative to symlinks - because the download of the latest dump
       # will currently always result in the same file name locally...
-      # keys+=("dumps_${db_id}_datestamp")
+      # keys_arr+=("dumps_${db_id}_datestamp")
     done
 
     # In order to generate remote commands like mysql dump, in some cases, there
@@ -816,7 +816,7 @@ f_remote_definition_get_keys() {
     local vars_to_map='db_driver db_host db_port db_name db_user db_pass db_admin_user db_admin_pass'
 
     for var in $vars_to_map; do
-      keys+=("dumps_${db_id}_env_map_${var}")
+      keys_arr+=("dumps_${db_id}_env_map_${var}")
     done
   fi
 
@@ -942,12 +942,12 @@ f_remote_purge_instances() {
 # Requires that the following var in calling scope be initialized to an empty
 # array :
 #
-# @var instance_ids
+# @var instance_ids_arr
 #
 # @example
-#   instance_ids=()
+#   instance_ids_arr=()
 #   f_remote_get_instances
-#   for instance_id in "${instance_ids[@]}"; do
+#   for instance_id in "${instance_ids_arr[@]}"; do
 #     echo "instance_id = $instance_id"
 #   done
 #
@@ -966,8 +966,8 @@ f_remote_get_instances() {
 
     for file in $file_list; do
       remote_id="${file%.sh}"
-      instance_ids+=("$remote_id")
-      remote_instance_ids_cache_str+="instance_ids+=('$remote_id')
+      instance_ids_arr+=("$remote_id")
+      remote_instance_ids_cache_str+="instance_ids_arr+=('$remote_id')
 "
     done
 
@@ -1005,12 +1005,12 @@ f_remote_check_id() {
   fi
 
   local instance_id
-  local instance_ids=()
+  local instance_ids_arr=()
   local ko=1
 
   f_remote_get_instances
 
-  for instance_id in "${instance_ids[@]}"; do
+  for instance_id in "${instance_ids_arr[@]}"; do
     case "$a_remote_id" in "$instance_id")
       ko=0
     esac

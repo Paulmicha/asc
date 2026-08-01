@@ -32,7 +32,7 @@ if [[ -z "$ASC_DB_DUMPS_DIR" ]]; then
 fi
 
 subdir=''
-db_ids=()
+db_ids_arr=()
 
 f_db_get_ids
 f_fs_dir_list "$ASC_DB_DUMPS_DIR"
@@ -53,7 +53,7 @@ for subdir in $dir_list; do
     echo "  $subdir :"
   fi
 
-  for db_id in "${db_ids[@]}"; do
+  for db_id in "${db_ids_arr[@]}"; do
     dir="$ASC_DB_DUMPS_DIR/$subdir/$db_id"
 
     f_fs_relative_path "$dir"

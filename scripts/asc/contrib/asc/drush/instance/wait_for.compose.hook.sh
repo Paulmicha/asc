@@ -4,10 +4,10 @@
 # Implements hook -s 'instance' -a 'wait_for' -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'
 #
 
-db_ids=()
+db_ids_arr=()
 f_db_get_ids
 
-for db_id in "${db_ids[@]}"; do
+for db_id in "${db_ids_arr[@]}"; do
   # We need to make sure our database exists (i.e. has been previously
   # created) for the wait to make sense. Using a "registry" entry for now.
   # Update : this prevents to import initial dumps during setup

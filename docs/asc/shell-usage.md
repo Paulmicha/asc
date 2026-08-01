@@ -118,7 +118,7 @@ That is how **nested wraps** stack: the sourced script sees `$1` = next script/e
 
 ```bash
 # bootstrap.sh: BASH_SOURCE[0] = bootstrap; [1] = real caller → phase 90 opt-inc
-_asc_bs_caller="${BASH_SOURCE[1]}"
+bootstrap_caller="${BASH_SOURCE[1]}"
 . asc/bootstrap/90-caller-opt-inc.bootstrap-inc.sh
 ```
 

@@ -13,7 +13,7 @@
 # The 'logged_thread' action triggers a 'pre'-prefixed hook before triggering the
 # normal (unprefixed) hook. Same after ('post'-prefixed hook).
 #
-# To list all the possible paths that can be used among which existing files
+# To list all the possible paths that can be used among which existing files_arr
 # will be sourced when the hook is triggered, run (in this order) :
 # $ make hook-debug s:log p:pre a:logged_thread v:STACK_VERSION HOST_TYPE INSTANCE_TYPE
 # $ make hook-debug s:thread p:pre a:logged_thread v:STACK_VERSION HOST_TYPE INSTANCE_TYPE

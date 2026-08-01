@@ -26,7 +26,7 @@
 # 1. Mandatory ASC "core" globals.
 global PROJECT_DOCROOT "[default]='$PWD' [help]='Absolute path to project instance. All scripts using ASC *must* be run from this dir. No trailing slash.'"
 
-global STACK_VERSION "[default]=v1 [help]='A string that is used for example when we upgrade one or more services (or the whole stack). See asc/extensions/compose/stack/switch.sh'"
+global STACK_VERSION "[default]=v1 [help]='A string that is used for example when we upgrade one or more services (or the whole stack_arr). See asc/extensions/compose/stack/switch.sh'"
 
 global INSTANCE_TYPE "[default]=dev [help]='E.g. dev, stage, prod... It is used as the default variant for hook calls that do not pass any in args.'"
 
@@ -94,8 +94,8 @@ global ASC_APPS "[default]='site' [help]='ASC apps allow for example to provide 
 
 # TODO [refacto] wip: and for mandatory global vars that can have a default
 # value automatically generated, use the ':' as separator. E.g. :
-# mandatory_globals+=('{{ APP }}_{{ SERVICE }}_DB_ID:{{ APP }}')
-# mandatory_globals+=('{{ APP }}_{{ SERVICE }}_DB_DRIVER:mysql')
+# mandatory_globals_arr+=('{{ APP }}_{{ SERVICE }}_DB_ID:{{ APP }}')
+# mandatory_globals_arr+=('{{ APP }}_{{ SERVICE }}_DB_DRIVER:mysql')
 # @see asc/extensions/builder/templates/services/db/list_mandatory_globals.hook.tpl.sh
 
 # TODO [refacto] wip: ASC_DB_IDS : allow multiple databases per component.

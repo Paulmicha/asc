@@ -6,7 +6,7 @@
 # This file is dynamically included when the "hook" is triggered.
 #
 # Debug lookup paths (make sure this file gets picked up) :
-# To list all the possible paths that can be used among which existing files
+# To list all the possible paths that can be used among which existing files_arr
 # will be sourced when the hook is triggered, run (in this order) :
 # $ make hook-debug s:app p:pre a:install v:PROVISION_USING INSTANCE_TYPE
 # $ make hook-debug s:app a:install v:PROVISION_USING INSTANCE_TYPE

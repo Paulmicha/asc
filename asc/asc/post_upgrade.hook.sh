@@ -2,7 +2,7 @@
 
 . asc/instance/reinit.sh
 
-# Skip auto-commit only when paths outside asc/ are unclean. Dirty asc/ files
+# Skip auto-commit only when paths outside asc/ are unclean. Dirty asc/ files_arr
 # are expected after an upgrade and should still be committed.
 non_asc_unclean="$(
   git status --porcelain \

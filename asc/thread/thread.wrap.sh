@@ -31,15 +31,15 @@ if [[ "$a_script" == *'log.wrap.sh' ]]; then
 fi
 
 # Restrict to make entry points, and convert scripts paths to entry points names.
-make_entries=()
-real_scripts=()
+make_entries_arr=()
+real_scripts_arr=()
 is_thread_file_valid=0
 
 f_make_list_entry_points
 
-for index in "${!real_scripts[@]}"; do
-  task="${make_entries[index]}"
-  script="${real_scripts[index]}"
+for index in "${!real_scripts_arr[@]}"; do
+  task="${make_entries_arr[index]}"
+  script="${real_scripts_arr[index]}"
 
   case "$thread_file" in "$script")
     thread_file="${thread_file/$script/$task}"
@@ -161,7 +161,7 @@ f_thread_supervised_run() {
   export ASC_THREAD_PPID="$PPID"
 
   f_thread_proc_tree "$BASHPID"
-  export ASC_THREAD_TREE="$(printf '%s\n' "${thread_tree[@]}")"
+  export ASC_THREAD_TREE="$(printf '%s\n' "${thread_tree_arr[@]}")"
 
   local attempt=1
   local max_try=$((a_retry_max + 1))

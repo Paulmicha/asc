@@ -41,7 +41,7 @@ for entry in "${purge_list_arr[@]}"; do
 
   if [[ -d "$entry" ]]; then
     echo
-    echo "Notice : entire folders are not purged in 'uninit' (only files)."
+    echo "Notice : entire folders are not purged in 'uninit' (only files_arr)."
     echo "  -> skipped dir : $entry"
     echo
 

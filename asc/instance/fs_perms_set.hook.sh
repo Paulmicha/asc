@@ -18,14 +18,14 @@
 #
 
 # Whitelisted root files default permissions.
-default_files=()
-default_files+=('./.env')
-default_files+=('./.gitconfig')
-default_files+=('./.gitignore')
-default_files+=('./env.yml')
-default_files+=('./Makefile')
+default_files_arr=()
+default_files_arr+=('./.env')
+default_files_arr+=('./.gitconfig')
+default_files_arr+=('./.gitignore')
+default_files_arr+=('./env.yml')
+default_files_arr+=('./Makefile')
 
-for f in "${default_files[@]}"; do
+for f in "${default_files_arr[@]}"; do
   if [[ ! -f "$f" ]]; then
     continue
   fi
@@ -81,7 +81,7 @@ fi
 # ASC "actions" - and the ones of its active extensions - need to be executable.
 f_asc_get_actions
 
-for f in "${asc_action_scripts[@]}"; do
+for f in "${asc_action_scripts_arr[@]}"; do
   chmod "$FS_E_FILES" "$f"
   check_chmod=$?
 
@@ -166,7 +166,7 @@ for scope in './asc' './scripts/asc'; do
   done
 done
 
-# Same for '.git' folders and files, except for git hooks which need executable
+# Same for '.git' folders and files_arr, except for git hooks which need executable
 # file permissions.
 if [[ -d './.git' ]]; then
   find './.git' -type f -exec chmod "$FS_NW_FILES" {} +
@@ -198,7 +198,7 @@ if [[ -n "$WRITEABLE_DIRS" ]]; then
 fi
 
 
-# Writeable files, if declared, must have their permissions enforced by default.
+# Writeable files_arr, if declared, must have their permissions enforced by default.
 if [[ -n "$WRITEABLE_FILES" ]]; then
   for f in $WRITEABLE_FILES; do
     if [[ ! -f "$f" ]]; then
@@ -218,7 +218,7 @@ if [[ -n "$WRITEABLE_FILES" ]]; then
   done
 fi
 
-# Executable files, if declared, must have their permissions enforced by default.
+# Executable files_arr, if declared, must have their permissions enforced by default.
 if [[ -n "$EXECUTABLE_FILES" ]]; then
   for f in $EXECUTABLE_FILES; do
     if [[ ! -f "$f" ]]; then
@@ -238,7 +238,7 @@ if [[ -n "$EXECUTABLE_FILES" ]]; then
   done
 fi
 
-# Protected files, if declared, must have their permissions enforced by default.
+# Protected files_arr, if declared, must have their permissions enforced by default.
 if [[ -n "$PROTECTED_FILES" ]]; then
   for f in $PROTECTED_FILES; do
     if [[ ! -f "$f" ]]; then

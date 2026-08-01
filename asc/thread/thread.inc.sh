@@ -16,7 +16,7 @@
 # Captures a compact process ancestry as "pid:comm" strings.
 #
 # Outputs in calling scope :
-# @var thread_tree
+# @var thread_tree_arr
 #
 # @param 1 String : starting PID.
 # @param 2 [optional] Number : max depth (default 8).
@@ -30,7 +30,7 @@ f_thread_proc_tree() {
   local comm
   local stat_line
 
-  thread_tree=()
+  thread_tree_arr=()
 
   while [[ -n "$cur" && "$cur" -gt 0 && $depth -lt $a_max ]]; do
     if [[ ! -r "/proc/$cur/stat" ]]; then
@@ -44,7 +44,7 @@ f_thread_proc_tree() {
     # After ')': state ppid ...
     read -r _ ppid _ <<< "${stat_line##*)}"
 
-    thread_tree+=("${cur}:${comm}")
+    thread_tree_arr+=("${cur}:${comm}")
 
     if [[ -z "$ppid" || "$ppid" == "$cur" ]]; then
       break
@@ -59,7 +59,7 @@ f_thread_proc_tree() {
 # Writes (or overwrites) a thread lifecycle YAML file.
 #
 # Uses calling-scope / exported fields below when present, else empty string.
-# Optional list : thread_tree (array of "pid:comm").
+# Optional list : thread_tree_arr (array of "pid:comm").
 #
 # @param 1 String : make entry point name.
 #
@@ -72,31 +72,31 @@ f_thread_yml_write() {
   local a_entry="$1"
   local a_yml
   local y_keys
-  declare -A y_sc=()
+  declare -A y_sc_dict=()
 
   a_yml="data/threads/${a_entry}.yml"
   mkdir -p data/threads
 
-  y_sc[entry]="${ASC_THREAD_ENTRY:-${thread_entry:-$a_entry}}"
-  y_sc[owner]="${ASC_THREAD_OWNER:-${thread_owner:-$(f_print_current_user)}}"
-  y_sc[uid]="${ASC_THREAD_UID:-${thread_uid:-$(id -u)}}"
-  y_sc[euid]="${ASC_THREAD_EUID:-${thread_euid:-${EUID:-$(id -u)}}}"
-  y_sc[run_as]="${ASC_THREAD_RUN_AS:-${thread_run_as:-$(id -un)}}"
-  y_sc[sudoing]="${ASC_THREAD_SUDOING:-${thread_sudoing:-false}}"
-  y_sc[script]="${ASC_THREAD_SCRIPT:-${thread_script:-}}"
-  y_sc[args]="${ASC_THREAD_ARGS:-${thread_args:-}}"
-  y_sc[pid]="${ASC_THREAD_PID:-${thread_pid:-}}"
-  y_sc[ppid]="${ASC_THREAD_PPID:-${thread_ppid:-}}"
-  y_sc[started_ms]="${ASC_THREAD_STARTED_MS:-${thread_started_ms:-}}"
-  y_sc[status]="${ASC_THREAD_STATUS:-${thread_status:-running}}"
-  y_sc[exit_code]="${ASC_THREAD_EXIT_CODE:-${thread_exit_code:-}}"
-  y_sc[ended_ms]="${ASC_THREAD_ENDED_MS:-${thread_ended_ms:-}}"
-  y_sc[output]="${ASC_THREAD_OUTPUT:-${thread_output:-}}"
-  y_sc[attempt]="${ASC_THREAD_ATTEMPT:-${thread_attempt:-}}"
-  y_sc[max_attempts]="${ASC_THREAD_MAX_ATTEMPTS:-${thread_max_attempts:-}}"
-  y_sc[lock_mode]="${ASC_THREAD_LOCK_MODE:-${thread_lock_mode:-skip}}"
-  y_sc[trigger]="${ASC_THREAD_TRIGGER:-${thread_trigger:-manual}}"
-  y_sc[needs_interactive]="${ASC_THREAD_NEEDS_INTERACTIVE:-${thread_needs_interactive:-false}}"
+  y_sc_dict[entry]="${ASC_THREAD_ENTRY:-${thread_entry:-$a_entry}}"
+  y_sc_dict[owner]="${ASC_THREAD_OWNER:-${thread_owner:-$(f_print_current_user)}}"
+  y_sc_dict[uid]="${ASC_THREAD_UID:-${thread_uid:-$(id -u)}}"
+  y_sc_dict[euid]="${ASC_THREAD_EUID:-${thread_euid:-${EUID:-$(id -u)}}}"
+  y_sc_dict[run_as]="${ASC_THREAD_RUN_AS:-${thread_run_as:-$(id -un)}}"
+  y_sc_dict[sudoing]="${ASC_THREAD_SUDOING:-${thread_sudoing:-false}}"
+  y_sc_dict[script]="${ASC_THREAD_SCRIPT:-${thread_script:-}}"
+  y_sc_dict[args]="${ASC_THREAD_ARGS:-${thread_args:-}}"
+  y_sc_dict[pid]="${ASC_THREAD_PID:-${thread_pid:-}}"
+  y_sc_dict[ppid]="${ASC_THREAD_PPID:-${thread_ppid:-}}"
+  y_sc_dict[started_ms]="${ASC_THREAD_STARTED_MS:-${thread_started_ms:-}}"
+  y_sc_dict[status]="${ASC_THREAD_STATUS:-${thread_status:-running}}"
+  y_sc_dict[exit_code]="${ASC_THREAD_EXIT_CODE:-${thread_exit_code:-}}"
+  y_sc_dict[ended_ms]="${ASC_THREAD_ENDED_MS:-${thread_ended_ms:-}}"
+  y_sc_dict[output]="${ASC_THREAD_OUTPUT:-${thread_output:-}}"
+  y_sc_dict[attempt]="${ASC_THREAD_ATTEMPT:-${thread_attempt:-}}"
+  y_sc_dict[max_attempts]="${ASC_THREAD_MAX_ATTEMPTS:-${thread_max_attempts:-}}"
+  y_sc_dict[lock_mode]="${ASC_THREAD_LOCK_MODE:-${thread_lock_mode:-skip}}"
+  y_sc_dict[trigger]="${ASC_THREAD_TRIGGER:-${thread_trigger:-manual}}"
+  y_sc_dict[needs_interactive]="${ASC_THREAD_NEEDS_INTERACTIVE:-${thread_needs_interactive:-false}}"
 
   y_keys=(
     entry owner uid euid run_as sudoing script args pid ppid started_ms status
@@ -104,14 +104,14 @@ f_thread_yml_write() {
     needs_interactive
   )
 
-  if [[ ${#thread_tree[@]} -eq 0 && -n "${ASC_THREAD_TREE:-}" ]]; then
-    mapfile -t thread_tree <<< "${ASC_THREAD_TREE}"
+  if [[ ${#thread_tree_arr[@]} -eq 0 && -n "${ASC_THREAD_TREE:-}" ]]; then
+    mapfile -t thread_tree_arr <<< "${ASC_THREAD_TREE}"
   fi
 
-  if [[ ${#thread_tree[@]} -gt 0 ]]; then
-    f_yaml_write "$a_yml" y_sc y_keys tree thread_tree
+  if [[ ${#thread_tree_arr[@]} -gt 0 ]]; then
+    f_yaml_write "$a_yml" y_sc_dict y_keys tree thread_tree_arr
   else
-    f_yaml_write "$a_yml" y_sc y_keys
+    f_yaml_write "$a_yml" y_sc_dict y_keys
   fi
 
   # Host sibling index (no-op when ASC_MONITORING / ASC_HOST_THREAD_MONITOR off).
@@ -136,7 +136,7 @@ f_thread_yml_load() {
   fi
 
   # bash-yaml uses += for lists; clear before reload.
-  unset thread_tree
+  unset thread_tree_arr
 
   eval "$(f_yaml_parse "$a_yml" 'thread_')"
   f_thread_yml_strip_quotes
@@ -179,8 +179,8 @@ f_thread_yml_mark_stale() {
   ASC_THREAD_TRIGGER="${thread_trigger:-manual}"
   ASC_THREAD_NEEDS_INTERACTIVE="${thread_needs_interactive:-false}"
 
-  if [[ ${#thread_tree[@]} -gt 0 ]]; then
-    ASC_THREAD_TREE="$(printf '%s\n' "${thread_tree[@]}")"
+  if [[ ${#thread_tree_arr[@]} -gt 0 ]]; then
+    ASC_THREAD_TREE="$(printf '%s\n' "${thread_tree_arr[@]}")"
   fi
 
   f_thread_yml_write "$a_entry"
@@ -203,11 +203,11 @@ f_thread_yml_strip_quotes() {
     fi
   done
 
-  if [[ ${#thread_tree[@]} -gt 0 ]]; then
+  if [[ ${#thread_tree_arr[@]} -gt 0 ]]; then
     local i
-    for i in "${!thread_tree[@]}"; do
-      thread_tree[$i]="${thread_tree[$i]#\"}"
-      thread_tree[$i]="${thread_tree[$i]%\"}"
+    for i in "${!thread_tree_arr[@]}"; do
+      thread_tree_arr[$i]="${thread_tree_arr[$i]#\"}"
+      thread_tree_arr[$i]="${thread_tree_arr[$i]%\"}"
     done
   fi
 }
@@ -235,7 +235,7 @@ f_thread_supervisor_exit() {
   esac
 
   if [[ -n "${ASC_THREAD_TREE:-}" ]]; then
-    mapfile -t thread_tree <<< "${ASC_THREAD_TREE}"
+    mapfile -t thread_tree_arr <<< "${ASC_THREAD_TREE}"
   fi
 
   f_thread_yml_write "${ASC_THREAD_ENTRY}"
@@ -403,7 +403,7 @@ f_thread_host_publish() {
   local slug
   local host_file
   local y_keys
-  declare -A y_sc=()
+  declare -A y_sc_dict=()
 
   if [[ -z "$a_entry" ]]; then
     return 1
@@ -421,16 +421,16 @@ f_thread_host_publish() {
   slug="${slug:0:16}"
   host_file="${thread_host_index_dir}/${slug}.yml"
 
-  y_sc[docroot]="$docroot"
-  y_sc[entry]="${ASC_THREAD_ENTRY:-$a_entry}"
-  y_sc[pid]="${ASC_THREAD_PID:-${thread_pid:-}}"
-  y_sc[status]="${ASC_THREAD_STATUS:-${thread_status:-}}"
-  y_sc[owner]="${ASC_THREAD_OWNER:-${thread_owner:-}}"
-  y_sc[mtime]="$(date +%Y-%m-%dT%H:%M:%S.%3N)"
-  y_sc[trigger]="${ASC_THREAD_TRIGGER:-${thread_trigger:-manual}}"
+  y_sc_dict[docroot]="$docroot"
+  y_sc_dict[entry]="${ASC_THREAD_ENTRY:-$a_entry}"
+  y_sc_dict[pid]="${ASC_THREAD_PID:-${thread_pid:-}}"
+  y_sc_dict[status]="${ASC_THREAD_STATUS:-${thread_status:-}}"
+  y_sc_dict[owner]="${ASC_THREAD_OWNER:-${thread_owner:-}}"
+  y_sc_dict[mtime]="$(date +%Y-%m-%dT%H:%M:%S.%3N)"
+  y_sc_dict[trigger]="${ASC_THREAD_TRIGGER:-${thread_trigger:-manual}}"
   y_keys=(docroot entry pid status owner mtime trigger)
 
-  f_yaml_write "$host_file" y_sc y_keys
+  f_yaml_write "$host_file" y_sc_dict y_keys
 }
 
 ##
@@ -438,25 +438,25 @@ f_thread_host_publish() {
 #
 # Shared calling-scope outputs (parsers) :
 #   thread_join, thread_max_workers
-#   thread_entries[], thread_entry_args[]   (args are printf-%q encoded)
-#   thread_stage_kind[], thread_stage_value[], thread_stage_args[]  (pipe)
+#   thread_entries_arr[], thread_entry_args_arr[]   (args are printf-%q encoded)
+#   thread_stage_kind_arr[], thread_stage_value_arr[], thread_stage_args_arr[]  (pipe)
 #
 
 ##
-# Appends one printf-%q encoded arg to thread_entry_args[idx] (or stage args).
+# Appends one printf-%q encoded arg to thread_entry_args_arr[idx] (or stage args).
 #
 f_thread_args_append() {
   local a_arr_name="$1"
   local a_idx="$2"
   local a_val="$3"
   local enc
-  local -n _u_ta_ref="$a_arr_name"
+  local -n _u_ta_ref_arr_nameref="$a_arr_name"
 
   printf -v enc '%q' "$a_val"
-  if [[ -n "${_u_ta_ref[$a_idx]}" ]]; then
-    _u_ta_ref[$a_idx]+=" $enc"
+  if [[ -n "${_u_ta_ref_arr_nameref[$a_idx]}" ]]; then
+    _u_ta_ref_arr_nameref[$a_idx]+=" $enc"
   else
-    _u_ta_ref[$a_idx]="$enc"
+    _u_ta_ref_arr_nameref[$a_idx]="$enc"
   fi
 }
 
@@ -469,7 +469,7 @@ f_thread_args_append() {
 f_thread_run_make_step() {
   local a_entry="$1"
   local a_encoded="$2"
-  local -a args=()
+  local -a args_arr=()
   local found=0
   local e=''
 
@@ -477,10 +477,10 @@ f_thread_run_make_step() {
   # otherwise make missing goals look successful.
   if [[ -f data/asc/cache/make.sh ]]; then
     # Fresh arrays (cache uses +=).
-    make_entries=()
-    real_scripts=()
+    make_entries_arr=()
+    real_scripts_arr=()
     . data/asc/cache/make.sh
-    for e in "${make_entries[@]}"; do
+    for e in "${make_entries_arr[@]}"; do
       if [[ "$e" == "$a_entry" ]]; then
         found=1
         break
@@ -494,14 +494,14 @@ f_thread_run_make_step() {
 
   if [[ -n "$a_encoded" ]]; then
     # shellcheck disable=SC2086
-    eval "args=($a_encoded)"
+    eval "args_arr=($a_encoded)"
   fi
 
-  make "$a_entry" "${args[@]}"
+  make "$a_entry" "${args_arr[@]}"
 }
 
 ##
-# Parses sequence/batch argv into thread_entries / thread_entry_args + kwargs.
+# Parses sequence/batch argv into thread_entries_arr / thread_entry_args_arr + kwargs.
 #
 # Accepts: e:<entry>, e:<N>:<entry>, a:<arg>, join:&&|;, workers:<N>
 # Bare tokens (no known prefix) are treated as entry names (compat).
@@ -511,8 +511,8 @@ f_thread_run_make_step() {
 f_thread_parse_e_args() {
   thread_join="${ASC_THREAD_JOIN:-&&}"
   thread_max_workers="${ASC_THREAD_MAX_WORKERS:-4}"
-  thread_entries=()
-  thread_entry_args=()
+  thread_entries_arr=()
+  thread_entry_args_arr=()
 
   local arg=''
   local entry=''
@@ -532,7 +532,7 @@ f_thread_parse_e_args() {
           echo >&2 "Error: a: arg before any e: entry ($arg)."
           return 1
         fi
-        f_thread_args_append thread_entry_args "$current" "${arg#a:}"
+        f_thread_args_append thread_entry_args_arr "$current" "${arg#a:}"
         ;;
       e:*)
         rest="${arg#e:}"
@@ -548,20 +548,20 @@ f_thread_parse_e_args() {
           echo >&2 "Error: empty e: entry ($arg)."
           return 1
         fi
-        thread_entries+=("$entry")
-        thread_entry_args+=('')
-        current=$((${#thread_entries[@]} - 1))
+        thread_entries_arr+=("$entry")
+        thread_entry_args_arr+=('')
+        current=$((${#thread_entries_arr[@]} - 1))
         ;;
       *)
         # Bare make entry (compat with older batch/sequence call sites).
-        thread_entries+=("$arg")
-        thread_entry_args+=('')
-        current=$((${#thread_entries[@]} - 1))
+        thread_entries_arr+=("$arg")
+        thread_entry_args_arr+=('')
+        current=$((${#thread_entries_arr[@]} - 1))
         ;;
     esac
   done
 
-  if [[ ${#thread_entries[@]} -eq 0 ]]; then
+  if [[ ${#thread_entries_arr[@]} -eq 0 ]]; then
     echo >&2 "Error: at least one e:<entry> (or bare entry) is required."
     return 1
   fi
@@ -590,16 +590,16 @@ f_thread_parse_e_args() {
 ##
 # Parses pipe argv: shell strings and/or e:/a: make stages.
 #
-# @var thread_stage_kind[]  make|shell
-# @var thread_stage_value[] entry or shell command string
-# @var thread_stage_args[]  encoded make args
+# @var thread_stage_kind_arr[]  make|shell
+# @var thread_stage_value_arr[] entry or shell command string
+# @var thread_stage_args_arr[]  encoded make args
 #
 # @return 1 on parse error.
 #
 f_thread_parse_pipe_stages() {
-  thread_stage_kind=()
-  thread_stage_value=()
-  thread_stage_args=()
+  thread_stage_kind_arr=()
+  thread_stage_value_arr=()
+  thread_stage_args_arr=()
 
   local arg=''
   local entry=''
@@ -613,11 +613,11 @@ f_thread_parse_pipe_stages() {
           echo >&2 "Error: a: before any pipe stage ($arg)."
           return 1
         fi
-        if [[ "${thread_stage_kind[$current]}" != 'make' ]]; then
+        if [[ "${thread_stage_kind_arr[$current]}" != 'make' ]]; then
           echo >&2 "Error: a: only applies to make stages ($arg)."
           return 1
         fi
-        f_thread_args_append thread_stage_args "$current" "${arg#a:}"
+        f_thread_args_append thread_stage_args_arr "$current" "${arg#a:}"
         ;;
       e:*)
         rest="${arg#e:}"
@@ -629,10 +629,10 @@ f_thread_parse_pipe_stages() {
           echo >&2 "Error: empty e: entry ($arg)."
           return 1
         fi
-        thread_stage_kind+=('make')
-        thread_stage_value+=("$entry")
-        thread_stage_args+=('')
-        current=$((${#thread_stage_kind[@]} - 1))
+        thread_stage_kind_arr+=('make')
+        thread_stage_value_arr+=("$entry")
+        thread_stage_args_arr+=('')
+        current=$((${#thread_stage_kind_arr[@]} - 1))
         ;;
       join:*|workers:*)
         echo >&2 "Error: $arg is not valid for pipe (use sequence/batch)."
@@ -640,15 +640,15 @@ f_thread_parse_pipe_stages() {
         ;;
       *)
         # Positional shell stage.
-        thread_stage_kind+=('shell')
-        thread_stage_value+=("$arg")
-        thread_stage_args+=('')
-        current=$((${#thread_stage_kind[@]} - 1))
+        thread_stage_kind_arr+=('shell')
+        thread_stage_value_arr+=("$arg")
+        thread_stage_args_arr+=('')
+        current=$((${#thread_stage_kind_arr[@]} - 1))
         ;;
     esac
   done
 
-  if (( ${#thread_stage_kind[@]} < 2 )); then
+  if (( ${#thread_stage_kind_arr[@]} < 2 )); then
     echo >&2 "Error: pipe requires at least 2 stages."
     return 1
   fi
@@ -657,7 +657,7 @@ f_thread_parse_pipe_stages() {
 }
 
 ##
-# Runs parsed sequence (thread_entries) with join && or ;.
+# Runs parsed sequence (thread_entries_arr) with join && or ;.
 #
 # @return step rc (&& fail-fast) or worst nonzero (;).
 #
@@ -666,8 +666,8 @@ f_thread_run_sequence() {
   local rc=0
   local worst=0
 
-  for i in "${!thread_entries[@]}"; do
-    f_thread_run_make_step "${thread_entries[$i]}" "${thread_entry_args[$i]}"
+  for i in "${!thread_entries_arr[@]}"; do
+    f_thread_run_make_step "${thread_entries_arr[$i]}" "${thread_entry_args_arr[$i]}"
     rc=$?
     if (( rc == 0 )); then
       continue
@@ -688,13 +688,13 @@ f_thread_run_sequence() {
 #
 f_thread_run_batch() {
   local i=0
-  local n=${#thread_entries[@]}
+  local n=${#thread_entries_arr[@]}
   local workers=$thread_max_workers
   local worst=0
   local w
   local pid
   local brc
-  local -a pids=()
+  local -a pids_arr=()
 
   if (( workers < 1 )); then workers=1; fi
   if (( workers > 32 )); then workers=32; fi
@@ -704,13 +704,13 @@ f_thread_run_batch() {
     w=0
     while (( i < n && w < workers )); do
       (
-        f_thread_run_make_step "${thread_entries[$i]}" "${thread_entry_args[$i]}"
+        f_thread_run_make_step "${thread_entries_arr[$i]}" "${thread_entry_args_arr[$i]}"
       ) &
-      pids+=($!)
+      pids_arr+=($!)
       i=$((i + 1))
       w=$((w + 1))
     done
-    for pid in "${pids[@]}"; do
+    for pid in "${pids_arr[@]}"; do
       wait "$pid"
       brc=$?
       if (( brc == 0 )); then
@@ -730,7 +730,7 @@ f_thread_run_batch() {
 #
 f_thread_run_pipe() {
   local i
-  local n=${#thread_stage_kind[@]}
+  local n=${#thread_stage_kind_arr[@]}
   local cmd=''
   local part=''
   local qentry=''
@@ -738,14 +738,14 @@ f_thread_run_pipe() {
   set -o pipefail
 
   for ((i = 0; i < n; i++)); do
-    if [[ "${thread_stage_kind[$i]}" == 'make' ]]; then
-      printf -v qentry '%q' "${thread_stage_value[$i]}"
+    if [[ "${thread_stage_kind_arr[$i]}" == 'make' ]]; then
+      printf -v qentry '%q' "${thread_stage_value_arr[$i]}"
       part="make $qentry"
-      if [[ -n "${thread_stage_args[$i]}" ]]; then
-        part+=" ${thread_stage_args[$i]}"
+      if [[ -n "${thread_stage_args_arr[$i]}" ]]; then
+        part+=" ${thread_stage_args_arr[$i]}"
       fi
     else
-      printf -v qentry '%q' "${thread_stage_value[$i]}"
+      printf -v qentry '%q' "${thread_stage_value_arr[$i]}"
       part="bash -c -- $qentry"
     fi
     if [[ -n "$cmd" ]]; then

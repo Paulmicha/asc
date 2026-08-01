@@ -25,13 +25,13 @@ if [[ -z "$a_entry" ]]; then
 fi
 
 # Resolve make entry → script path.
-make_entries=()
-real_scripts=()
+make_entries_arr=()
+real_scripts_arr=()
 f_make_list_entry_points
 a_script=''
-for index in "${!make_entries[@]}"; do
-  if [[ "${make_entries[index]}" == "$a_entry" ]]; then
-    a_script="${real_scripts[index]}"
+for index in "${!make_entries_arr[@]}"; do
+  if [[ "${make_entries_arr[index]}" == "$a_entry" ]]; then
+    a_script="${real_scripts_arr[index]}"
     break
   fi
 done

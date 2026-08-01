@@ -25,7 +25,7 @@
 #
 # @deprecated - see @update below.
 # If we don't use a dir structure by DB ID, we can't just get the most
-# recent file in there because the same dir could contain mixed dump files
+# recent file in there because the same dir could contain mixed dump files_arr
 # from different DB -> do we keep this structure, or introduce an additional
 # subdir by DB ID ? This impacts both remote and local file structures.
 #
@@ -257,14 +257,14 @@ f_remote_db_prepare_dumps() {
   f_remote_db_read_definition "$a_remote_id" "$a_db_id"
 
   local db_id=''
-  local db_ids=()
+  local db_ids_arr=()
   local cmd=''
-  local cmds=()
+  local cmds_arr=()
   local dump_file=''
 
   f_db_get_ids
 
-  for db_id in "${db_ids[@]}"; do
+  for db_id in "${db_ids_arr[@]}"; do
     if [[ -n "$a_db_id" ]]; then
       case "$db_id" in
         "$a_db_id")
@@ -332,24 +332,24 @@ f_remote_db_prepare_dumps() {
         # Then, if a mapping to different env vars is provided, we will replace
         # them in the generated command string below.
         # Do not use single quotes around those env vars (only double quotes).
-        cmds+=('mysqldump --user="$DB_USER" --password="$DB_PASS" --host="$DB_HOST" --port="$DB_PORT" --single-transaction --no-data --allow-keywords --skip-triggers "$DB_NAME" > '"$dump_file")
+        cmds_arr+=('mysqldump --user="$DB_USER" --password="$DB_PASS" --host="$DB_HOST" --port="$DB_PORT" --single-transaction --no-data --allow-keywords --skip-triggers "$DB_NAME" > '"$dump_file")
 
         # TODO [evol] Support excluding data for specific tables ?
         # @see asc/extensions/mysql/db/backup.mysql.hook.sh
-        cmds+=('mysqldump --user="$DB_USER" --password="$DB_PASS" --host="$DB_HOST" --port="$DB_PORT" --single-transaction --no-create-info --allow-keywords "$DB_NAME" >> '"$dump_file")
+        cmds_arr+=('mysqldump --user="$DB_USER" --password="$DB_PASS" --host="$DB_HOST" --port="$DB_PORT" --single-transaction --no-create-info --allow-keywords "$DB_NAME" >> '"$dump_file")
 
         # Compress the dump.
-        cmds+=("tar czf $dump_file.gz -C ${dumps_dict[${db_id}.dir]} ${dumps_dict[${db_id}.file]}")
+        cmds_arr+=("tar czf $dump_file.gz -C ${dumps_dict[${db_id}.dir]} ${dumps_dict[${db_id}.file]}")
 
         # Remove the uncompressed dump.
-        cmds+=("rm $dump_file")
+        cmds_arr+=("rm $dump_file")
 
         # Build the final command (string initialized with item 0 + start the
         # loop below at item 1 to handle joining commands with '&&' ; makes the
         # remote exec abort on any error at any step).
-        dumps_dict["${db_id}.cmd"]="${cmds[0]}"
+        dumps_dict["${db_id}.cmd"]="${cmds_arr[0]}"
 
-        for cmd in "${cmds[@]:1}"; do
+        for cmd in "${cmds_arr[@]:1}"; do
           dumps_dict["${db_id}.cmd"]+=" && $cmd"
         done
 
@@ -453,11 +453,11 @@ f_remote_db_prepare_downloads() {
   f_remote_db_read_definition "$a_remote_id" "$a_db_id"
 
   local db_id=''
-  local db_ids=()
+  local db_ids_arr=()
 
   f_db_get_ids
 
-  for db_id in "${db_ids[@]}"; do
+  for db_id in "${db_ids_arr[@]}"; do
     if [[ -n "$a_db_id" ]]; then
       case "$db_id" in
         "$a_db_id")
@@ -575,16 +575,16 @@ f_remote_db_read_definition() {
   fi
 
   local db_id=''
-  local db_ids=()
+  local db_ids_arr=()
   local suffix=''
 
   f_db_get_ids
 
   if [[ -z "$a_definition_suffixes" ]]; then
-    keys=()
+    keys_arr=()
     f_remote_definition_get_keys
 
-    for key in "${keys[@]}"; do
+    for key in "${keys_arr[@]}"; do
       case "$key" in 'dumps_'*)
         a_definition_suffixes+="$key "
       esac
@@ -595,7 +595,7 @@ f_remote_db_read_definition() {
     local rewrite_suffixes="$a_definition_suffixes"
     a_definition_suffixes=''
 
-    for db_id in "${db_ids[@]}"; do
+    for db_id in "${db_ids_arr[@]}"; do
       for suffix in $rewrite_suffixes; do
         a_definition_suffixes+="dumps_${db_id}_$suffix "
       done
@@ -611,7 +611,7 @@ f_remote_db_read_definition() {
   local SUFFIX=''
   local dump_file=''
 
-  for db_id in "${db_ids[@]}"; do
+  for db_id in "${db_ids_arr[@]}"; do
     if [[ -n "$a_db_id" ]]; then
       case "$db_id" in
         # Do nothing.

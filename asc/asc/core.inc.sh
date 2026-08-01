@@ -312,7 +312,7 @@ f_asc_primitive_values() {
   # esac
 
   # Look for the dotfile that provides explictly ignored values.
-  local ignored_values=()
+  local ignored_values_arr=()
   local ignored_val
   for dn in $dotfile_names; do
     dotfile="$a_path/.${dn}_${a_primitive}_ignore"
@@ -320,7 +320,7 @@ f_asc_primitive_values() {
       f_fs_get_file_contents "$dotfile" 'dotfile_contents'
       if [[ -n "$dotfile_contents" ]]; then
         for ignored_val in $dotfile_contents; do
-          ignored_values+=("$ignored_val")
+          ignored_values_arr+=("$ignored_val")
         done
       fi
     fi
@@ -364,7 +364,7 @@ f_asc_primitive_values() {
       fi
 
       # Leave out any value explicitly ignored via dotfile.
-      if f_in_array "$v" 'ignored_values'; then
+      if f_in_array "$v" 'ignored_values_arr'; then
         continue
       fi
 
@@ -477,30 +477,30 @@ f_asc_namespace_has_subject() {
 # NB : for performance reasons (to avoid using a subshell), this function
 # writes its result to variables subject to collision in calling scope.
 #
-# @var asc_action_names
-# @var asc_action_scripts
+# @var asc_action_names_arr
+# @var asc_action_scripts_arr
 #
 # @example
 #   f_asc_get_actions
 #   # Check result (names) :
-#   declare -p asc_action_names
+#   declare -p asc_action_names_arr
 #   # -> output (names) :
-#   #   declare -a asc_action_names='([0]="app/compile" [1]="app/git" ...)'
+#   #   declare -a asc_action_names_arr='([0]="app/compile" [1]="app/git" ...)'
 #   # Check result (script files path) :
-#   for f in "${asc_action_scripts[@]}"; do
+#   for f in "${asc_action_scripts_arr[@]}"; do
 #     echo "$f"
 #   done
 #
 # @example (sorted)
 #   f_asc_get_actions
-#   f_array_qsort "${asc_action_names[@]}"
+#   f_array_qsort "${asc_action_names_arr[@]}"
 #   f_array_print sorted_arr
 #
 f_asc_get_actions() {
   local subjects="$ASC_SUBJECTS"
   local actions="$ASC_ACTIONS"
   local extensions="$ASC_EXTENSIONS"
-  local base_paths=("asc")
+  local base_paths_arr=("asc")
 
   local a
   local s
@@ -511,8 +511,8 @@ f_asc_get_actions() {
   local subjects_var
   local actions_var
 
-  asc_action_names=()
-  asc_action_scripts=()
+  asc_action_names_arr=()
+  asc_action_scripts_arr=()
 
   for extension in $extensions; do
     uppercase="$extension"
@@ -524,11 +524,11 @@ f_asc_get_actions() {
     actions+=" ${!actions_var}"
     ext_path=''
     f_asc_extension_path "$extension"
-    base_paths+=("$ext_path/$extension")
+    base_paths_arr+=("$ext_path/$extension")
   done
 
   for s in $subjects; do
-    for bp in "${base_paths[@]}"; do
+    for bp in "${base_paths_arr[@]}"; do
       if ! f_asc_namespace_has_subject "$bp" "$s" ; then
         continue
       fi
@@ -536,9 +536,9 @@ f_asc_get_actions() {
         case "$a" in "$s"*)
           lookup_path="$bp/${a}.sh"
           if [[ -f "$lookup_path" ]]; then
-            if ! f_in_array $lookup_path asc_action_scripts; then
-              asc_action_names+=("$a")
-              asc_action_scripts+=("$lookup_path")
+            if ! f_in_array $lookup_path asc_action_scripts_arr; then
+              asc_action_names_arr+=("$a")
+              asc_action_scripts_arr+=("$lookup_path")
             fi
           fi
         esac
@@ -555,8 +555,8 @@ f_asc_get_actions() {
 # extension. Missing files are skipped so ASC_MAKE_INC stays free of ghosts.
 #
 # @example
-#   lookup_paths="$(f_asc_extensions_get_makefiles)"
-#   echo "$lookup_paths"
+#   lookup_paths_arr="$(f_asc_extensions_get_makefiles)"
+#   echo "$lookup_paths_arr"
 #
 f_asc_extensions_get_makefiles() {
   local mk_includes_lp=''

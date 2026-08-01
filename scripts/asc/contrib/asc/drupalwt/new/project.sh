@@ -87,7 +87,7 @@ if [[ -d "$APP_DOCROOT" ]]; then
       ;;
 
     # Alternatively, temporarily move the existing folder then merge it back
-    # (overwriting the newly created files) afterwards in order to preserve its
+    # (overwriting the newly created files_arr) afterwards in order to preserve its
     # contents.
     'keep')
       merge_overwrite='yes'
@@ -99,7 +99,7 @@ if [[ -d "$APP_DOCROOT" ]]; then
     'discard')
       merge_overwrite='no'
       echo "  -> Make a temporary copy of the '$APP_DOCROOT' dir."
-      echo "  It will be merged back afterwards, and in case of conflict, the files newly created by Composer will be kept intact (*not* preserving previously existing files)."
+      echo "  It will be merged back afterwards, and in case of conflict, the files newly created by Composer will be kept intact (*not* preserving previously existing files_arr)."
       ;;
   esac
 

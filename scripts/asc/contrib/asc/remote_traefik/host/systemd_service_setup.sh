@@ -18,7 +18,7 @@ cp "asc/extensions/remote_traefik/host/systemd_service_conf.tpl.service" "$syste
 
 # Replace read-only global vars (supports any global) placeholders.
 f_global_list
-for var_name in "${asc_globals_var_names[@]}"; do
+for var_name in "${asc_globals_var_names_arr[@]}"; do
   if grep -Fq "{{ ${var_name} }}" "$traefik_conf"; then
     var_val="${!var_name}"
     sed -e "s,{{ ${var_name} }},${var_val},g" -i "$systemd_service_conf"

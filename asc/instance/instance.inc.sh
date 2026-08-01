@@ -53,7 +53,7 @@ f_instance_init() {
   # Absolute path to project docroot.
   local a_ascii_project_docroot=''
 
-  # Stack version allows stack upgrades (e.g. switching compose files).
+  # Stack version allows stack upgrades (e.g. switching compose files_arr).
   local a_ascii_stack_version=''
 
   # Space-separated list of "apps" of components (e.g. 'site api cas').
@@ -447,7 +447,7 @@ f_instance_yaml_config_parse() {
 # paths (non-mutable / declared like any other ASC global) :
 # - PROTECTED_FILES : e.g. path to sensitive settings file(s).
 # - EXECUTABLE_FILES : e.g. custom app-related scripts.
-# - WRITEABLE_DIRS : e.g. path to folders (files, tmp, private) that must be
+# - WRITEABLE_DIRS : e.g. path to folders (files_arr, tmp, private) that must be
 #     writeable by the application.
 # - WRITEABLE_FILES : additional files (outside of WRITEABLE_DIRS) that must be
 #     writeable by the application.

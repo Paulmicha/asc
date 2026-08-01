@@ -63,10 +63,10 @@ fi
 # Note that "$from" == "$remote_id" means : restore dumps created on that same
 # remote instance (hence, the remote subfolder name will be 'local').
 if [[ -n "$from" ]]; then
-  instance_ids=()
+  instance_ids_arr=()
   f_remote_get_instances
 
-  for instance_id in "${instance_ids[@]}"; do
+  for instance_id in "${instance_ids_arr[@]}"; do
     case "$from" in "$instance_id")
       if [[ "$remote_subfolder" != "$remote_id" ]]; then
         remote_subfolder="$instance_id"
@@ -102,18 +102,18 @@ for key in "${!dumps_dict[@]}"; do
 
   # TODO [wip]
   # cmds=()
-  # cmds+=("echo 'Uncompress $dump_file.gz ...'")
-  # cmds+=("gunzip -c $dump_file_path.gz > $dump_file_path")
-  # cmds+=("echo 'Uncompress $dump_file.gz : done.'")
+  # cmds_arr+=("echo 'Uncompress $dump_file.gz ...'")
+  # cmds_arr+=("gunzip -c $dump_file_path.gz > $dump_file_path")
+  # cmds_arr+=("echo 'Uncompress $dump_file.gz : done.'")
 
-  # cmds+=("echo 'Restore $dump_file ...'")
-  # cmds+=("drush --uri='$uri' sql-drop -y")
-  # cmds+=("drush --uri='$uri' sql-cli < $dump_file_path")
-  # cmds+=("echo 'Restore $dump_file : done.'")
+  # cmds_arr+=("echo 'Restore $dump_file ...'")
+  # cmds_arr+=("drush --uri='$uri' sql-drop -y")
+  # cmds_arr+=("drush --uri='$uri' sql-cli < $dump_file_path")
+  # cmds_arr+=("echo 'Restore $dump_file : done.'")
 
-  # cmds+=("echo 'Cleanup uncompressed copy ...'")
-  # cmds+=("rm -f $dump_file_path")
-  # cmds+=("echo 'Cleanup uncompressed copy : done.'")
+  # cmds_arr+=("echo 'Cleanup uncompressed copy ...'")
+  # cmds_arr+=("rm -f $dump_file_path")
+  # cmds_arr+=("echo 'Cleanup uncompressed copy : done.'")
 done
 
 echo "Restoring DB dump(s) on remote instance '$remote_id' : done."

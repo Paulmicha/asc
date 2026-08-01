@@ -18,9 +18,9 @@ if [[ ! -d data/threads ]]; then
 fi
 
 shopt -s nullglob
-yml_files=(data/threads/*.yml)
+yml_files_arr=(data/threads/*.yml)
 
-if [[ ${#yml_files[@]} -eq 0 ]]; then
+if [[ ${#yml_files_arr[@]} -eq 0 ]]; then
   echo "No thread YAML files in data/threads."
 
   exit 0
@@ -31,11 +31,11 @@ printf '%-28s %-8s %-10s %-10s %-24s %-24s %s\n' \
 printf '%-28s %-8s %-10s %-10s %-24s %-24s %s\n' \
   '----' '---' '-----' '------' '-------' '----------' '------'
 
-for a_yml in "${yml_files[@]}"; do
+for a_yml in "${yml_files_arr[@]}"; do
   a_entry="${a_yml##*/}"
   a_entry="${a_entry%.yml}"
 
-  unset thread_tree
+  unset thread_tree_arr
   unset thread_entry thread_owner thread_pid thread_status
   unset thread_started_ms thread_output
 

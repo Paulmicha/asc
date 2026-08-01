@@ -61,9 +61,9 @@ if [[ -n "$a_entry" ]]; then
 fi
 
 shopt -s nullglob
-log_files=(data/logs/*.txt)
+log_files_arr=(data/logs/*.txt)
 
-for a_log_file in "${log_files[@]}"; do
+for a_log_file in "${log_files_arr[@]}"; do
   case "$a_log_file" in
     *.sidecar.txt) continue;;
   esac

@@ -36,7 +36,7 @@ done
 # Multisite support.
 case "$DWT_MULTISITE" in 'true')
   f_dwt_sites
-  for site_id in "${dwt_sites_ids[@]}"; do
+  for site_id in "${dwt_sites_ids_arr[@]}"; do
     f_str_sanitize_var_name "$site_id" 'site_id'
 
     # The 'default' dir should be done already.
@@ -45,9 +45,9 @@ case "$DWT_MULTISITE" in 'true')
       continue
     esac
 
-    dwt_sites_writeable_paths=()
+    dwt_sites_writeable_paths_arr=()
     f_dwt_get_sites_writeable_paths "$site_id"
-    for required_dir in "${dwt_sites_writeable_paths[@]}"; do
+    for required_dir in "${dwt_sites_writeable_paths_arr[@]}"; do
       if [[ ! -d "$required_dir" ]]; then
         echo "Creating missing dir ${required_dir}"
         mkdir -p "$required_dir"

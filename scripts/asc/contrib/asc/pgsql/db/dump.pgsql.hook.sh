@@ -37,12 +37,12 @@ fi
 
 # Support excluding data for specific tables.
 # See https://github.com/wodby/postgres/blob/master/bin/backup
-skip_data=''
+skip_data_arr=''
 if [[ -n "$DB_TABLES_SKIP_DATA" ]]; then
   for table in $DB_TABLES_SKIP_DATA; do
     # TODO [evol] Support wildcards - e.g. "cache*" to exclude all table names
     # beginning with 'cache'.
-    skip_data+="--exclude-table-data=$table "
+    skip_data_arr+="--exclude-table-data=$table "
   done
 fi
 
@@ -67,7 +67,7 @@ esac
 # See https://github.com/wodby/postgres/blob/master/bin/backup
 # + https://github.com/wodby/postgres/blob/master/bin/actions.mk
 nice -n10 ionice -c2 -n7 \
-  pg_dump "$skip_data" \
+  pg_dump "$skip_data_arr" \
     -U"$DB_USER" \
     -h"$DB_HOST" \
     -p"$DB_PORT" \

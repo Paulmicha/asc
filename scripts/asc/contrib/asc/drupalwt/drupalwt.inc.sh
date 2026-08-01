@@ -48,13 +48,13 @@ f_dwt_write_settings() {
       # settings in case those use multiple databases (thus need those vars
       # loaded already).
       # @see f_dwt_write_drupal_settings()
-      for site_id in "${dwt_sites_ids[@]}"; do
+      for site_id in "${dwt_sites_ids_arr[@]}"; do
         f_db_set "$site_id"
       done
 
       # (Re)write Drupal settings files (e.g. sites/*/settings.php) for every site.
       case "$DWT_MANAGE_SETTINGS_FILES" in true)
-        for site_id in "${dwt_sites_ids[@]}"; do
+        for site_id in "${dwt_sites_ids_arr[@]}"; do
           f_dwt_write_drupal_settings "$site_id"
         done
       esac
@@ -92,7 +92,7 @@ f_dwt_write_settings() {
 #   - DWT_USE_SETTINGS_LOCAL_OVERRIDE
 #
 # Uses the following variable in calling scope :
-#   - dwt_sites_ids (if available)
+#   - dwt_sites_ids_arr (if available)
 #
 # To list matches & check which one will be used (the most specific) :
 # $ a_site='my_site_id'
@@ -255,7 +255,7 @@ EOF
 
   # Start with read-only global vars (supports any global).
   f_global_list
-  for var_name in "${asc_globals_var_names[@]}"; do
+  for var_name in "${asc_globals_var_names_arr[@]}"; do
     if grep -Fq "${token_prefix}${var_name}${token_suffix}" "$drupal_settings"; then
       var_val="${!var_name}"
 
@@ -303,7 +303,7 @@ EOF
   # or unprefixed DB_* var, including other site's, are supported everywhere.
   # All prefixed DB_* vars are already available in current scope.
   # @see f_dwt_write_settings()
-  local unique_db_ids=()
+  local unique_db_ids_arr=()
 
   # First, reset unprefixed DB_* vars to current site's.
   f_db_set "$a_site"
@@ -316,9 +316,9 @@ EOF
   done
 
   # Multi-site DB support.
-  if [[ -n "${dwt_sites_ids[@]}" ]]; then
-    for site_id in "${dwt_sites_ids[@]}"; do
-      unique_db_ids+=("$site_id")
+  if [[ -n "${dwt_sites_ids_arr[@]}" ]]; then
+    for site_id in "${dwt_sites_ids_arr[@]}"; do
+      unique_db_ids_arr+=("$site_id")
       f_str_uppercase "$site_id" 'site_id'
       for v in $db_vars_list; do
         db_vars+="${site_id}_DB_${v} "
@@ -329,10 +329,10 @@ EOF
   # Multi-DB (manually set using the ASC_DB_IDS global) support.
   local db_id=''
   for db_id in $ASC_DB_IDS; do
-    if f_in_array "$db_id" unique_db_ids; then
+    if f_in_array "$db_id" unique_db_ids_arr; then
       continue
     fi
-    unique_db_ids+=("$db_id")
+    unique_db_ids_arr+=("$db_id")
     f_str_uppercase "$db_id" 'db_id'
     for v in $db_vars_list; do
       db_vars+="${db_id}_DB_${v} "
@@ -382,14 +382,14 @@ EOF
     # in case of multi-sites setups, we would use :
     #   $settings['file_public_path'] = '{{ SITE_FILES_DIR }}';
     # @see f_dwt_get_sites_writeable_paths()
-    local multisite_writeable_paths_varnames=()
-    multisite_writeable_paths_varnames+=("SITE_FILES_DIR")
-    multisite_writeable_paths_varnames+=("SITE_TMP_DIR")
-    # multisite_writeable_paths_varnames+=("SITE_TRANSLATION_DIR")
-    multisite_writeable_paths_varnames+=("SITE_CONFIG_SYNC_DIR")
-    multisite_writeable_paths_varnames+=("SITE_PRIVATE_DIR")
+    local multisite_writeable_paths_varnames_arr=()
+    multisite_writeable_paths_varnames_arr+=("SITE_FILES_DIR")
+    multisite_writeable_paths_varnames_arr+=("SITE_TMP_DIR")
+    # multisite_writeable_paths_varnames_arr+=("SITE_TRANSLATION_DIR")
+    multisite_writeable_paths_varnames_arr+=("SITE_CONFIG_SYNC_DIR")
+    multisite_writeable_paths_varnames_arr+=("SITE_PRIVATE_DIR")
 
-    dwt_sites_writeable_paths=()
+    dwt_sites_writeable_paths_arr=()
     case "$PROVISION_USING" in
       compose|docker-compose)
         f_dwt_get_sites_writeable_paths "$a_site" 'dc'
@@ -399,9 +399,9 @@ EOF
         ;;
     esac
 
-    for (( i = 0 ; i < ${#multisite_writeable_paths_varnames[@]} ; i++ )); do
-      var_name="${multisite_writeable_paths_varnames[$i]}"
-      var_val="${dwt_sites_writeable_paths[$i]}"
+    for (( i = 0 ; i < ${#multisite_writeable_paths_varnames_arr[@]} ; i++ )); do
+      var_name="${multisite_writeable_paths_varnames_arr[$i]}"
+      var_val="${dwt_sites_writeable_paths_arr[$i]}"
 
       case "$var_name" in SITE_FILES_DIR|SITE_CONFIG_SYNC_DIR)
         case "$PROVISION_USING" in
@@ -457,7 +457,7 @@ EOF
 #
 # This function writes its results to variables subject to collision in calling
 # scope :
-# @var dwt_sites_ids
+# @var dwt_sites_ids_arr
 # @var dwt_sites_<SITE_ID>_domain
 # @var dwt_sites_<SITE_ID>_dir
 # @var dwt_sites_<SITE_ID>_install_profile
@@ -487,7 +487,7 @@ EOF
 #   # Get all sites config :
 #   f_dwt_sites_yml_keys
 #   f_dwt_sites
-#   for site_id in "${dwt_sites_ids[@]}"; do
+#   for site_id in "${dwt_sites_ids_arr[@]}"; do
 #     for key in $dwt_sites_yml_keys; do
 #       var="dwt_sites_${site_id}_${key}"
 #       val="${!var}"
@@ -506,8 +506,8 @@ EOF
 #
 #   # Get sites IDs only :
 #   f_dwt_sites '*' 'ids_only'
-#   echo "There are ${#dwt_sites_ids[@]} sites defined in this local instance."
-#   for site_id in "${dwt_sites_ids[@]}"; do
+#   echo "There are ${#dwt_sites_ids_arr[@]} sites defined in this local instance."
+#   for site_id in "${dwt_sites_ids_arr[@]}"; do
 #     echo "$site_id"
 #   done
 #
@@ -571,7 +571,7 @@ f_dwt_sites() {
   # Fetch only sites IDs (return early).
   case "$a_want" in 'ids_only')
     f_yaml_get_root_keys "$most_specific_match"
-    dwt_sites_ids=("${yaml_keys[@]}")
+    dwt_sites_ids_arr=("${yaml_keys_arr[@]}")
     return
   esac
 
@@ -581,7 +581,7 @@ f_dwt_sites() {
     '*')
       eval "$sites_parsed_yaml_str"
       f_yaml_get_root_keys "$most_specific_match"
-      dwt_sites_ids=("${yaml_keys[@]}")
+      dwt_sites_ids_arr=("${yaml_keys_arr[@]}")
       ;;
 
     # Deal with just one site (no point in getting site id in this case).
@@ -607,16 +607,16 @@ f_dwt_sites() {
 #
 # This function writes its result to the following variable which MUST be preset
 # in calling scope :
-# @var dwt_site_data
+# @var dwt_site_data_dict
 #
 # It will also attempt to use pre-existing dwt_sites_* variables if the site
 # data was already loaded in current shell scope (i.e. avoids unnecessarily
-# reloading sites.*.yml config files).
+# reloading sites.*.yml config files_arr).
 #
 # @example
-#   declare -A dwt_site_data
+#   declare -A dwt_site_data_dict
 #   f_dwt_site_data 'my_site_id'
-#   echo "site dir = ${dwt_site_data[dir]}"
+#   echo "site dir = ${dwt_site_data_dict[dir]}"
 #
 f_dwt_site_data() {
   local a_site="$1"
@@ -628,7 +628,7 @@ f_dwt_site_data() {
   local var_isset
   local data_keys
 
-  dwt_site_data=()
+  dwt_site_data_dict=()
   f_dwt_sites_yml_keys
   data_keys="$dwt_sites_yml_keys"
 
@@ -657,7 +657,7 @@ f_dwt_site_data() {
     f_str_sanitize_var_name "$var" 'var'
     eval "var_isset=\"\${$var+set}\"" # <- Variables may be set to empty strings.
     if [[ -n "$var_isset" ]]; then
-      dwt_site_data[$key]="${!var}"
+      dwt_site_data_dict[$key]="${!var}"
     else
 
       # Special case for 'domain' : when it's not found in YAML settings, we
@@ -677,18 +677,18 @@ f_dwt_site_data() {
           eval "var_isset=\"\${$var+set}\""
           if [[ -n "$var_isset" ]]; then
             # In case of multiple matching variants, take the most specific.
-            if [[ -n "${dwt_site_data[domain]}" ]]; then
+            if [[ -n "${dwt_site_data_dict[domain]}" ]]; then
               f_str_split1 'domain_specificity' "$sub_key" '_'
-              f_str_split1 'conflicting_domain_specificity' "${dwt_site_data[_domain_sub_key]}" '_'
-              # echo "  conflict : [${dwt_site_data[_domain_sub_key]}] ${dwt_site_data[domain]} <- [$sub_key] ${!var}"
+              f_str_split1 'conflicting_domain_specificity' "${dwt_site_data_dict[_domain_sub_key]}" '_'
+              # echo "  conflict : [${dwt_site_data_dict[_domain_sub_key]}] ${dwt_site_data_dict[domain]} <- [$sub_key] ${!var}"
               if [[ ${#domain_specificity[@]} -gt ${#conflicting_domain_specificity[@]} ]]; then
-                dwt_site_data[domain]="${!var}"
-                dwt_site_data[_domain_sub_key]="$sub_key"
+                dwt_site_data_dict[domain]="${!var}"
+                dwt_site_data_dict[_domain_sub_key]="$sub_key"
                 # echo "    1set _domain_sub_key to $sub_key (${!var})"
               fi
             else
-              dwt_site_data[domain]="${!var}"
-              dwt_site_data[_domain_sub_key]="$sub_key"
+              dwt_site_data_dict[domain]="${!var}"
+              dwt_site_data_dict[_domain_sub_key]="$sub_key"
               # echo "    2set _domain_sub_key to $sub_key (${!var})"
             fi
           fi
@@ -702,7 +702,7 @@ f_dwt_site_data() {
 # (Re)writes the multi-site config file (i.e. sites/sites.php).
 #
 # @requires the variables from f_dwt_sites() in calling scope :
-# @var dwt_sites_ids
+# @var dwt_sites_ids_arr
 # @var dwt_sites_<SITE_ID>_*
 #
 # @param 1 [optional] String : base file to use. Gets copied before being
@@ -765,7 +765,7 @@ f_dwt_write_multisite_settings() {
   local site_dir
   local site_domain
 
-  for site_id in "${dwt_sites_ids[@]}"; do
+  for site_id in "${dwt_sites_ids_arr[@]}"; do
     # Sites' dir :
     var="dwt_sites_${site_id}_dir"
     f_str_sanitize_var_name "$var" 'var'
@@ -797,7 +797,7 @@ f_dwt_write_multisite_settings() {
 #
 # This function writes its result to the following variable which MUST be preset
 # in calling scope :
-# @var dwt_sites_writeable_paths
+# @var dwt_sites_writeable_paths_arr
 #
 # Allows to get per-site values for the following globals :
 # - DRUPAL_FILES_DIR
@@ -810,24 +810,24 @@ f_dwt_write_multisite_settings() {
 # @example
 #   # For local sites :
 #   f_dwt_sites
-#   for site_id in "${dwt_sites_ids[@]}"; do
+#   for site_id in "${dwt_sites_ids_arr[@]}"; do
 #     f_str_sanitize_var_name "$site_id" 'site_id'
-#     dwt_sites_writeable_paths=()
+#     dwt_sites_writeable_paths_arr=()
 #     f_dwt_get_sites_writeable_paths "$site_id"
 #     echo "Writeable_path for site '$site_id' :"
-#     for writeable_path in "${dwt_sites_writeable_paths[@]}"; do
+#     for writeable_path in "${dwt_sites_writeable_paths_arr[@]}"; do
 #       echo "  $writeable_path"
 #     done
 #   done
 #
 #   # For local sites, using the docker-compose version of the paths :
 #   f_dwt_sites
-#   for site_id in "${dwt_sites_ids[@]}"; do
+#   for site_id in "${dwt_sites_ids_arr[@]}"; do
 #     f_str_sanitize_var_name "$site_id" 'site_id'
-#     dwt_sites_writeable_paths=()
+#     dwt_sites_writeable_paths_arr=()
 #     f_dwt_get_sites_writeable_paths "$site_id" 'dc'
 #     echo "Writeable_path for site '$site_id' :"
-#     for writeable_path in "${dwt_sites_writeable_paths[@]}"; do
+#     for writeable_path in "${dwt_sites_writeable_paths_arr[@]}"; do
 #       echo "  $writeable_path"
 #     done
 #   done
@@ -835,12 +835,12 @@ f_dwt_write_multisite_settings() {
 #   # For remote sites - here, on the 'prod' remote instance :
 #   dwt_remote_id='prod'
 #   f_dwt_sites
-#   for site_id in "${dwt_sites_ids[@]}"; do
+#   for site_id in "${dwt_sites_ids_arr[@]}"; do
 #     f_str_sanitize_var_name "$site_id" 'site_id'
-#     dwt_sites_writeable_paths=()
+#     dwt_sites_writeable_paths_arr=()
 #     f_dwt_get_sites_writeable_paths "$site_id"
 #     echo "Writeable_path for site '$site_id' :"
-#     for writeable_path in "${dwt_sites_writeable_paths[@]}"; do
+#     for writeable_path in "${dwt_sites_writeable_paths_arr[@]}"; do
 #       echo "  $writeable_path"
 #     done
 #   done
@@ -878,9 +878,9 @@ f_dwt_get_sites_writeable_paths() {
           # echo "    -> result : path_val = $path_val"
         esac
       fi
-      dwt_sites_writeable_paths+=("$path_val")
+      dwt_sites_writeable_paths_arr+=("$path_val")
     else
-      # In the absence of specific paths defined in sites' YAML files, fallback
+      # In the absence of specific paths defined in sites' YAML files_arr, fallback
       # to replace all 'sites/default' bits from the defaults.
       v="dwt_sites_${a_site}_dir"
       site_dir="${!v}"
@@ -903,7 +903,7 @@ f_dwt_get_sites_writeable_paths() {
       if [[ -n "$path_val" ]]; then
         # Drupal multi-site paths in the 'sites' dir all get the same treatment.
         # TODO exclude paths not matching 'sites/default/'.
-        dwt_sites_writeable_paths+=(${path_val/'sites/default/'/"sites/$site_dir/"})
+        dwt_sites_writeable_paths_arr+=(${path_val/'sites/default/'/"sites/$site_dir/"})
       fi
     fi
   done
