@@ -10,27 +10,26 @@
 #
 
 ##
-# Whitelisted N values for every-* / Nx-per-* presets.
-#
-f_cron_preset_ns='1 2 3 4 5 10 15 20 30 40 45 50'
-
-##
 # Returns 0 if $1 is a whitelisted schedule preset token.
 #
 f_cron_preset_is_valid() {
-  local p="$1"
+  local a_preset="$1"
+
   local n
   local unit
   local hh
   local mm
 
-  if [[ "$p" =~ ^every-([0-9]+)([mhd])$ ]]; then
+  # Whitelisted N values for every-* / Nx-per-* presets.
+  local cron_preset_ns='1 2 3 4 5 10 15 20 30 45'
+
+  if [[ "$a_preset" =~ ^every-([0-9]+)([mhd])$ ]]; then
     n="${BASH_REMATCH[1]}"
-    case " $u_cron_preset_ns " in *" $n "*) return 0;; esac
+    case " $cron_preset_ns " in *" $n "*) return 0;; esac
     return 1
   fi
 
-  if [[ "$p" =~ ^at-([0-9]{2})h(00|15|30|45)$ ]]; then
+  if [[ "$a_preset" =~ ^at-([0-9]{2})h(00|15|30|45)$ ]]; then
     hh="${BASH_REMATCH[1]}"
     if [[ "$hh" -ge 0 && "$hh" -le 23 ]]; then
       return 0
@@ -38,9 +37,9 @@ f_cron_preset_is_valid() {
     return 1
   fi
 
-  if [[ "$p" =~ ^([0-9]+)x-per-([mhd])$ ]]; then
+  if [[ "$a_preset" =~ ^([0-9]+)x-per-([mhd])$ ]]; then
     n="${BASH_REMATCH[1]}"
-    case " $u_cron_preset_ns " in *" $n "*) return 0;; esac
+    case " $cron_preset_ns " in *" $n "*) return 0;; esac
     return 1
   fi
 
@@ -59,7 +58,7 @@ f_cron_preset_is_valid() {
 # @param 3 [optional] Number : index among peers sharing cadence (for spacing)
 #
 f_cron_preset_compile() {
-  local p="$1"
+  local a_preset_token="$1"
   local a_entry="${2:-}"
   local a_idx="${3:-0}"
   local n
@@ -74,7 +73,7 @@ f_cron_preset_compile() {
   cron_schedules_arr=()
   cron_subminute=''
 
-  if [[ "$p" =~ ^every-([0-9]+)([mhd])$ ]]; then
+  if [[ "$a_preset_token" =~ ^every-([0-9]+)([mhd])$ ]]; then
     n="${BASH_REMATCH[1]}"
     unit="${BASH_REMATCH[2]}"
     phase=$((a_idx % n))
@@ -108,7 +107,7 @@ f_cron_preset_compile() {
     return 0
   fi
 
-  if [[ "$p" =~ ^at-([0-9]{2})h(00|15|30|45)$ ]]; then
+  if [[ "$a_preset_token" =~ ^at-([0-9]{2})h(00|15|30|45)$ ]]; then
     hh="${BASH_REMATCH[1]}"
     mm="${BASH_REMATCH[2]}"
     # Strip leading zeros for cron hour (keep numeric).
@@ -118,7 +117,7 @@ f_cron_preset_compile() {
     return 0
   fi
 
-  if [[ "$p" =~ ^([0-9]+)x-per-([mhd])$ ]]; then
+  if [[ "$a_preset_token" =~ ^([0-9]+)x-per-([mhd])$ ]]; then
     n="${BASH_REMATCH[1]}"
     unit="${BASH_REMATCH[2]}"
     case "$unit" in
@@ -174,12 +173,14 @@ f_cron_preset_compile() {
 f_cron_scalar() {
   local a_value="$1"
   local a_output_var_name="${2:-cron_scalar}"
+
   a_value="${a_value#\"}"
   a_value="${a_value%\"}"
   a_value="${a_value#\'}"
   a_value="${a_value%\'}"
   a_value="${a_value%"${a_value##*[![:space:]]}"}"
   a_value="${a_value#"${a_value%%[![:space:]]*}"}"
+
   printf -v "$a_output_var_name" '%s' "$a_value"
 }
 
@@ -354,6 +355,7 @@ EOF
 
     local enabled wrap lock user retry_max retry_delay args make_task run_id
     local monitor_mark_stale monitor_reclaim_lock monitor_outer_retry
+
     f_cron_scalar "${croncj_enabled:-$cron_def_enabled}" 'enabled'
     f_cron_scalar "${croncj_wrap:-$cron_def_wrap}" 'wrap'
     f_cron_scalar "${croncj_lock:-$cron_def_lock}" 'lock'
@@ -403,6 +405,7 @@ EOF
     esac
 
     local out="data/asc/cron/${entry}.sh"
+
     cat > "$out" <<EOF
 #!/usr/bin/env bash
 # Generated from ${f} — do not edit.
@@ -451,15 +454,16 @@ f_cron_entry_load() {
 # Human duration (10s / 2m) → seconds.
 #
 f_cron_delay_seconds() {
-  local d="$1"
-  if [[ "$d" =~ ^([0-9]+)s$ ]]; then
+  local a_duration="$1"
+
+  if [[ "$a_duration" =~ ^([0-9]+)s$ ]]; then
     echo "${BASH_REMATCH[1]}"
-  elif [[ "$d" =~ ^([0-9]+)m$ ]]; then
+  elif [[ "$a_duration" =~ ^([0-9]+)m$ ]]; then
     echo $((BASH_REMATCH[1] * 60))
-  elif [[ "$d" =~ ^([0-9]+)h$ ]]; then
+  elif [[ "$a_duration" =~ ^([0-9]+)h$ ]]; then
     echo $((BASH_REMATCH[1] * 3600))
-  elif [[ "$d" =~ ^[0-9]+$ ]]; then
-    echo "$d"
+  elif [[ "$a_duration" =~ ^[0-9]+$ ]]; then
+    echo "$a_duration"
   else
     echo 10
   fi
@@ -508,6 +512,7 @@ f_cron_crontab_write_block() {
 
   f_cron_require_crontab || return 1
   f_cron_project_marker 'marker'
+
   begin="# ASC-CRON-BEGIN ${marker}"
   end="# ASC-CRON-END ${marker}"
   tmp="$(mktemp)"
@@ -521,6 +526,7 @@ f_cron_crontab_write_block() {
 
   {
     printf '%s\n' "$filtered"
+
     if [[ -n "$body" ]]; then
       printf '%s\n' "$begin"
       printf '%s\n' "$body"
@@ -546,6 +552,7 @@ f_cron_entry_crontab_lines() {
   fi
 
   f_cron_project_marker 'marker'
+
   for sched in ${ASC_CRON_SCHEDULE}; do
     [[ -z "$sched" ]] && continue
     lines_arr+=("${sched} cd ${marker} && make cron-run e:${ASC_CRON_ENTRY}")
