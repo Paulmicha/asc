@@ -107,9 +107,7 @@ Humans experience anxiety.
 
 Agents experience instability.
 
----
-
-## **4\. Prompt engineering is really challenge regulation**
+### Prompt engineering is really challenge regulation
 
 This may be one of the most useful reinterpretations.
 
