@@ -12,6 +12,123 @@ Like the Go (game) but with entry points, env vars, scripts (wrappers, nesters, 
 
 If you name things right, projects practically write themselves (by humans and agents alike).
 
+## Theoretical Ramblings
+
+Currently along the lines of reinterpreting Mihaly Csikszentmihalyi's Flow for agents.
+
+Details :
+
+- [Reverse Prompting VS Cognitive Load Ratio \(Reinterpreting Mihaly Csikszentmihalyi's Flow for Agents\)](data/ideas/2026/08/Reverse%20Prompting%20VS%20Cognitive%20Load%20Ratio%20\(Reinterpreting%20Mihaly%20Csikszentmihalyi's%20Flow%20for%20Agents\).md)
+- [AI Agents Leverage Points (Places to Intervene in a System) Applicability](data/ideas/2026/08/AI%20Agents%20Leverage%20Points%20(Places%20to%20Intervene%20in%20a%20System)%20Applicability.md)
+- [Reasoning without Probabilistic Inference (symbolic and neural layers)](data/ideas/2026/08/Reasoning%20without%20Probabilistic%20Inference%20(symbolic%20and%20neural%20layers).md)
+- [Four Layers - Ontology (what exists), Semantics (what does it mean), Dynamics (how does it evolve), Execution (change)](data/ideas/2026/08/Four%20Layers%20-%20Ontology%20(what%20exists),%20Semantics%20(what%20does%20it%20mean),%20Dynamics%20(how%20does%20it%20evolve),%20Execution%20(change).md)
+- [Agents of Redirection (Donella Meadows, Alexandre Monnin, Pierre Lévy)](data/ideas/2026/08/Agents%20of%20Redirection%20(Donella%20Meadows,%20Alexandre%20Monnin,%20Pierre%20Lévy).md)
+
+### Grosso modo
+
+For humans:
+
+> challenge ≈ skill
+
+For an agent:
+
+> task complexity ≈ effective cognitive capacity
+
+The important point is that *effective* capacity is not simply model size.
+
+It depends on things such as:
+
+* available context  
+* retrieval quality  
+* tool availability  
+* memory organization  
+* planning depth  
+* decomposition strategy  
+* uncertainty estimation  
+* time/token budget
+
+A 7B model with excellent retrieval may outperform a 70B model with poor context.
+
+So "skill" is actually an emergent property of the entire cognitive architecture.
+
+### An agent is under-challenged when it has excessive unused capacity relative to the problem
+
+Symptoms include:
+
+* overthinking  
+* hallucinated complexity  
+* unnecessary abstractions  
+* verbosity  
+* recursive planning  
+* inventing distinctions that do not exist
+
+You can observe this in many LLMs.
+
+Ask:
+
+> "Rename this file."
+
+The model writes five paragraphs explaining naming conventions.
+
+The task provided almost no cognitive load.
+
+The excess capacity gets filled with plausible but unnecessary generation.
+
+Humans get bored.
+
+LLMs ramble.
+
+### The opposite regime is far more interesting
+
+The effective complexity exceeds the available cognitive resources.
+
+Examples:
+
+* context window saturated  
+* contradictory instructions  
+* missing ontology  
+* too many objectives  
+* hidden assumptions  
+* missing world model  
+* excessive branching factor
+
+The symptoms become familiar.
+
+The model begins to:
+
+* forget constraints  
+* contradict itself  
+* latch onto superficial cues  
+* ignore part of the prompt  
+* randomly prioritize objectives  
+* oscillate between incompatible interpretations
+
+Humans experience anxiety.
+
+Agents experience instability.
+
+---
+
+## **4\. Prompt engineering is really challenge regulation**
+
+This may be one of the most useful reinterpretations.
+
+Good prompting is often described as "being clear."
+
+I think a better formulation is:
+
+> A good prompt keeps the agent inside its optimal cognitive operating region.
+
+That means regulating:
+
+* complexity  
+* ambiguity  
+* branching factor  
+* uncertainty  
+* objective count
+
+instead of merely reducing token count.
+
 ## Current status
 
 *Massive rewrite* ☢️ to shrink it to bare essentials, rethink things through.
