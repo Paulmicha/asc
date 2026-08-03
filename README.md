@@ -22,6 +22,7 @@ Details :
 - [AI Agents Leverage Points (Places to Intervene in a System) Applicability](data/ideas/2026/08/AI%20Agents%20Leverage%20Points%20(Places%20to%20Intervene%20in%20a%20System)%20Applicability.md)
 - [Reasoning without Probabilistic Inference (symbolic and neural layers)](data/ideas/2026/08/Reasoning%20without%20Probabilistic%20Inference%20(symbolic%20and%20neural%20layers).md)
 - [Four Layers - Ontology (what exists), Semantics (what does it mean), Dynamics (how does it evolve), Execution (change)](data/ideas/2026/08/Four%20Layers%20-%20Ontology%20(what%20exists),%20Semantics%20(what%20does%20it%20mean),%20Dynamics%20(how%20does%20it%20evolve),%20Execution%20(change).md)
+- [Cognitive Institutions - a possible Meta-Framework (Comparing Implementations)](data/ideas/2026/08/Cognitive%20Institutions%20-%20a%20possible%20Meta-Framework%20(Comparing%20Implementations).md)
 - [Agents of Redirection (Donella Meadows, Alexandre Monnin, Pierre Lévy)](data/ideas/2026/08/Agents%20of%20Redirection%20(Donella%20Meadows,%20Alexandre%20Monnin,%20Pierre%20Lévy).md)
 
 ### Grosso modo
