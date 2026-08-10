@@ -11,7 +11,7 @@ Table of contents :
 
 Builder is the opt-in extension for **templates / blueprints / prototypes** — scaffolding helpers for humans and (later) agents. It replaced the retired **`preset`** workflow.
 
-Working motto from notes: **Builder · Extender** — generate scaffolds, then extend them under `scripts/asc/extend/` (not a second competing codegen path). Composition ability: **`combine.able`** (see [entities.md](entities.md)).
+Working motto from notes: **Builder · Extender** — generate scaffolds, then extend them under `scripts/asc/extend/` (not a second competing codegen path). Composition ability: **`combine.able`** (see [entities.md](entities.md)). Scale and filesystem notes when many leaves are generated: [performance-optimization.md](performance-optimization.md).
 
 A **blueprint** can be any of: DSL fragment, string template, file template, or dir template (see § templates).
 
