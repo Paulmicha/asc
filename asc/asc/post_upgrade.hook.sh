@@ -28,6 +28,7 @@ else
   echo "Only asc/ files are unclean -> auto-commit ..."
 
   git add asc
+  git add scripts/asc/contrib/asc
   git commit -m "chore: update ASC core from upstream repo"
   git push
 
