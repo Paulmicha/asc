@@ -26,6 +26,7 @@ Details :
 - [Cognitive Institutions - a possible Meta-Framework (Comparing Implementations)](data/ideas/2026/08/Cognitive%20Institutions%20-%20a%20possible%20Meta-Framework%20(Comparing%20Implementations).md)
 - [Jean-Louis Le Moigne - La Modélisation des systèmes complexes](data/ideas/2026/08/Jean-Louis%20Le%20Moigne%20-%20La%20Modélisation%20des%20systèmes%20complexes.md)
 - [Agents of Redirection (Donella Meadows, Alexandre Monnin, Pierre Lévy)](data/ideas/2026/08/Agents%20of%20Redirection%20(Donella%20Meadows,%20Alexandre%20Monnin,%20Pierre%20Lévy).md)
+- [Arthur Lefèvre - Désirs, Conflits & Communication : une approche ludo-narrative du jeu de rôle](data/ideas/2026/08/Arthur%20Lefèvre%20-%20Désirs,%20Conflits%20&%20Communication.md)
 
 ### Grosso modo
 
