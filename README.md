@@ -12,6 +12,10 @@ Like the Go (game) but with entry points, env vars, scripts (wrappers, nesters, 
 
 If you name things right, projects practically write themselves (by humans and agents alike).
 
+Here is what I am currently building with it (when I have some free time) :
+
+["_Projet Complexe_" 2026 Revival - ASC + Tauri SolidJS Second Brain](data/ideas/2026/08/Projet%20Complexe%202026%20Revival%20-%20ASC%20+%20Tauri%20SolidJS%20Second%20Brain.md)
+
 ## Theoretical Ramblings
 
 Currently along the lines of reinterpreting Mihaly Csikszentmihalyi's Flow for agents.
