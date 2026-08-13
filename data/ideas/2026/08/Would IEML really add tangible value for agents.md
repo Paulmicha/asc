@@ -42,8 +42,6 @@ Without any explicit IEML.
 
 This eliminates much of the original motivation.
 
----
-
 ## But LLM semantics are implicit
 
 The important difference is not "semantic vs syntactic."
@@ -72,8 +70,6 @@ Everything exists inside billions of parameters.
 
 IEML attempts to externalize that representation.
 
----
-
 ## Think of compilers
 
 Programming languages provide a useful analogy.
@@ -90,14 +86,15 @@ Nobody wants to.
 
 But many compiler optimizations operate on it.
 
-```text
 Likewise,
+
+```text
 Natural language
-↓
-LLM
-↓
+  ↓
+ LLM
+  ↓
 Internal semantic representation
-↓
+  ↓
 Answer
 ```
 
@@ -106,8 +103,6 @@ already exists.
 IEML proposes making something analogous to an AST persistent and inspectable.
 
 That is a fundamentally different purpose.
-
----
 
 ## Where I think IEML is unnecessary
 
@@ -126,8 +121,6 @@ Examples include:
 An LLM already performs these remarkably well.
 
 Introducing IEML would mostly add complexity.
-
----
 
 ## Where I think it becomes valuable
 
@@ -155,8 +148,6 @@ or
 
 Those are questions about explicit conceptual evolution.
 
----
-
 ## Meadows provides a useful criterion
 
 This connects nicely to Meadows' leverage points.
@@ -177,8 +168,6 @@ Instead of changing how reasoning occurs, it changes the architecture of the kno
 
 That is a deeper leverage point.
 
----
-
 ## Monnin strengthens the case
 
 Monnin repeatedly argues that digital objects have persistent identities.
@@ -192,8 +181,6 @@ There is no persistent semantic object.
 If your goal is merely answering questions, this is acceptable.
 
 If your goal is building an evolving epistemic infrastructure, it becomes limiting.
-
----
 
 ## I would not implement IEML literally
 
@@ -223,8 +210,6 @@ The LLM remains the cognitive engine.
 
 The symbolic layer becomes the durable memory.
 
----
-
 ## A hybrid architecture seems more promising
 
 The architecture I find most compelling now is:
@@ -242,15 +227,13 @@ Natural language
                 ▼
       Persistent semantic graph
                 │
-      Provenance
-      Versioning
-      Evidence
-      Confidence
+            Provenance
+            Versioning
+            Evidence
+            Confidence
 ```
 
 Notice that the symbolic representation is *derived* from the neural one, not a replacement for it.
-
----
 
 ## One aspect of IEML that may become increasingly important
 
@@ -289,8 +272,6 @@ It works, but it is contextual, ambiguous, and difficult to combine with other p
 
 This is roughly how LLMs operate. They are extraordinarily good at navigating this implicit space.
 
----
-
 ### GPS provides coordinates
 
 Instead, you can say:
@@ -304,8 +285,6 @@ The coordinate system does not replace human descriptions.
 It anchors them.
 
 IEML aims to do something analogous for concepts.
-
----
 
 ### The compass analogy
 
@@ -332,8 +311,6 @@ The question then becomes:
 * Does it contradict antifragility?
 
 A semantic coordinate system gives those concepts persistent positions relative to one another.
-
----
 
 ### LLMs already have an internal compass
 
@@ -368,8 +345,6 @@ The difference is that this map is:
 
 You cannot inspect it directly.
 
----
-
 ### IEML externalizes the map
 
 Rather than relying on a model's internal geometry, IEML tries to build an explicit one.
@@ -394,8 +369,6 @@ Multiple agents—even using different LLMs—could orient themselves using the 
 
 That is analogous to different GPS manufacturers all using the same latitude and longitude.
 
----
-
 ### This also explains Monnin's connection
 
 Monnin asks:
@@ -411,8 +384,6 @@ Meadows asks:
 > How does it move through that space over time?
 
 Those are complementary questions.
-
----
 
 ### One extension I think is missing
 

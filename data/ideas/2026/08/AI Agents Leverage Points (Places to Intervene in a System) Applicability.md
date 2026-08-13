@@ -19,8 +19,6 @@ Given our previous discussions around **Pi**, **Agno**, **Hermes-Agent**, local 
 | 2 | Paradigm | Underlying worldview. | Philosophy of intelligence. | Agent as chatbot vs operating system vs autonomous collaborator | ★★★★★+ |
 | 1 | Ability to transcend paradigms | Recognise every paradigm is limited. | Meta-learning about architectures themselves. | Agent evaluates whether its own assumptions remain valid and replaces them | ★★★★★★ |
 
----
-
 ## Applying this to an AI agent architecture
 
 ### 12. Parameters
@@ -48,8 +46,6 @@ may improve creativity while reducing determinism.
 
 Useful, but rarely transformational.
 
----
-
 ### 11. Buffers
 
 Buffers smooth variation.
@@ -73,8 +69,6 @@ Long-term Memory
 ```
 
 instead of simply truncating conversations.
-
----
 
 ### 10. Stocks and Flows
 
@@ -114,8 +108,6 @@ The information flow changed.
 
 This generally produces much larger improvements than parameter tuning.
 
----
-
 ### 9. Delays
 
 Most current agents update memory immediately.
@@ -146,8 +138,6 @@ Now memories become curated instead of accumulated.
 
 This is remarkably similar to human sleep.
 
----
-
 ### 8. Balancing Feedback
 
 Most open-source agents lack sufficient negative feedback.
@@ -177,8 +167,6 @@ Examples
 Hermes already contains elements of this philosophy.
 
 Pi could adopt similar evaluator loops.
-
----
 
 ### 7. Reinforcing Feedback
 
@@ -211,8 +199,6 @@ Agent becomes better
 ```
 
 This positive loop is what makes human organisations improve.
-
----
 
 ### 6. Information Flow
 
@@ -250,8 +236,6 @@ This reduces cost while improving accuracy.
 
 This is precisely where multi-agent systems become significantly more effective.
 
----
-
 ### 5. Rules
 
 Rules define behaviour.
@@ -287,8 +271,6 @@ This improves
 
 Agno and Hermes both incorporate explicit capability and tool abstractions that align with this idea.
 
----
-
 ### 4. Self-Organisation
 
 This is where systems begin changing themselves.
@@ -321,8 +303,6 @@ Generate reusable workflow
 
 The framework becomes progressively richer.
 
----
-
 ### 3. Goals
 
 Many agent frameworks optimise for answering questions.
@@ -344,8 +324,6 @@ Now the agent naturally chooses to
 
 Changing the goal changes every downstream design decision, often more than changing the implementation itself.
 
----
-
 ### 2. Paradigms
 
 This is the deepest shift most architectures can make.
@@ -361,8 +339,6 @@ Examples include:
 | Cognitive architecture | Distinct memory systems, planning, learning, metacognition, executive control. |
 
 Pi, Agno, and Hermes largely differ at this level. Pi leans toward a modular cognitive architecture, Agno emphasizes composable agent workflows and tooling, and Hermes-Agent explores richer long-lived cognition and memory.
-
----
 
 ### 1. Transcending Paradigms
 

@@ -25,8 +25,6 @@ Superpowers describes itself as an *agentic skills framework and software develo
 
 Guardrails is almost orthogonal. It wraps LLM calls with input/output validators. Those validators check things like schema correctness, hallucination detection, PII, profanity, structured JSON, policy compliance, and can reject, repair or retry outputs before they reach the application. ([GitHub](https://github.com/guardrails-ai/guardrails?utm_source=chatgpt.com))
 
----
-
 ## In systems terms
 
 Since we've recently discussed Donella Meadows, Pierre Lévy, Alexandre Monnin and agent architectures, I think a useful decomposition is:
@@ -77,8 +75,6 @@ One improves cognition.
 
 The other constrains behavior.
 
----
-
 ## They are complementary
 
 An ideal coding agent would use both.
@@ -99,8 +95,9 @@ An ideal coding agent would use both.
       Git
      Docker
     Internet
-Superpowers says
 ```
+
+Superpowers says
 
 > "Here's how to think."
 
@@ -109,8 +106,6 @@ Guardrails says
 > "These outputs are unacceptable."
 
 Those are different responsibilities.
-
----
 
 ## Towards a formal comparison framework
 
@@ -121,8 +116,6 @@ People compare LangGraph vs CrewAI vs Agno vs Pi vs Hermes vs Guardrails vs Supe
 They don't.
 
 I would instead classify every project along approximately 15 dimensions.
-
----
 
 ### 1. Purpose
 
@@ -141,33 +134,21 @@ Examples
 * simulation
 * learning
 
----
-
 ### 2. Architectural layer
 
 For example
 
-User
-
-Interface
-
-Conversation
-
-Planning
-
-Reasoning
-
-Execution
-
-Tool abstraction
-
-Runtime
-
-Infrastructure
+- User
+- Interface
+- Conversation
+- Planning
+- Reasoning
+- Execution
+- Tool abstraction
+- Runtime
+- Infrastructure
 
 Many projects operate at different layers.
-
----
 
 ### 3. Cognitive function
 
@@ -189,8 +170,6 @@ Examples
 
 This was already emerging in our discussions about Pi and Hermes.
 
----
-
 ### 4. Degree of autonomy
 
 Questions like
@@ -204,8 +183,6 @@ Can it
 * self-decompose?
 * recover from failure?
 
----
-
 ### 5. Time horizon
 
 Can it operate over
@@ -218,33 +195,21 @@ Can it operate over
 
 Superpowers explicitly optimizes for long engineering sessions.
 
----
-
 ### 6. Memory model
 
 Examples
 
-None
-
-Conversation
-
-Semantic
-
-Vector
-
-Knowledge graph
-
-Filesystem
-
-Long-term
-
-Procedural
-
-Reflective
+* None
+* Conversation
+* Semantic
+* Vector
+* Knowledge graph
+* Filesystem
+* Long-term
+* Procedural
+* Reflective
 
 One of the strongest differentiators between Pi, Hermes, Agno, etc.
-
----
 
 ### 7. World model
 
@@ -258,8 +223,6 @@ Does the framework maintain an explicit representation of
 * constraints
 
 or does it simply rely on the LLM context?
-
----
 
 ### 8. Control mechanism
 
@@ -277,13 +240,13 @@ Examples
 * planners
 * schedulers
 
-- Superpowers:
-- mostly prompts + skills.
+Superpowers:
 
-- Guardrails:
-- validators.
+- mostly prompts + skills
 
----
+Guardrails:
+
+- validators
 
 ### 9. Feedback loops
 
@@ -300,8 +263,6 @@ Does the system have
 * repair
 * adaptation
 * learning
-
----
 
 ### 10. Leverage point (Meadows)
 
@@ -327,35 +288,22 @@ Superpowers modifies **decision processes** and partially the **goal formation**
 
 That makes Meadows surprisingly applicable here.
 
----
-
 ### 11. Representation formalism
 
 Inspired by Pierre Lévy and IEML.
 
 What structures does the framework manipulate?
 
-Natural language
-
-JSON
-
-AST
-
-Graphs
-
-Plans
-
-Skills
-
-Knowledge graphs
-
-Ontologies
-
-Typed actions
-
-Events
-
----
+* Natural language
+* JSON
+* AST
+* Graphs
+* Plans
+* Skills
+* Knowledge graphs
+* Ontologies
+* Typed actions
+* Events
 
 ### 12. Human-agent interaction model
 
@@ -374,29 +322,18 @@ Superpowers is strongly collaborative.
 
 Guardrails is mostly invisible.
 
----
-
 ### 13. Extensibility
 
 How are new capabilities added?
 
-Plugins
-
-Skills
-
-Validators
-
-Tools
-
-Policies
-
-MCP
-
-Python
-
-DSL
-
----
+* Plugins
+* Skills
+* Validators
+* Tools
+* Policies
+* MCP
+* Python
+* DSL
 
 ### 14. Verification philosophy
 
@@ -414,23 +351,14 @@ Superpowers emphasizes TDD and code review.
 
 Guardrails emphasizes validation.
 
----
-
 ### 15. Adaptivity
 
-Static?
-
-Dynamic?
-
-Self-modifying?
-
-Learns?
-
-Reflects?
-
-Updates memory?
-
----
+* Static?
+* Dynamic?
+* Self-modifying?
+* Learns?
+* Reflects?
+* Updates memory?
 
 ## Applying this framework
 
@@ -450,8 +378,6 @@ This becomes much more interesting when comparing the projects we've discussed o
 | FAISS | Vector memory backend |
 
 Notice that these are mostly *composable modules*, not competitors.
-
----
 
 ## A possible meta-framework
 

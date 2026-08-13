@@ -41,8 +41,6 @@ IEML attempts to occupy the missing middle ground:
 
 > machine-computable semantics that remain compositional and human-understandable.
 
----
-
 ## Meadows: IEML becomes the semantic substrate
 
 Donella Meadows spends much of *Thinking in Systems* discussing things like
@@ -79,8 +77,6 @@ They become computable structures.
 
 The agent can reason over them without depending entirely on probabilistic inference.
 
----
-
 ## Agent memory
 
 This is where I think IEML becomes genuinely valuable.
@@ -97,18 +93,14 @@ with
 
 User
 
-Interest
-
+Interest :
 Systems Thinking
 
-Author
-
+Author :
 Donella Meadows
 
-Topic
-
+Topic :
 Leverage Points
-
 Relationship
 
 High Confidence
@@ -134,8 +126,6 @@ IEML would provide a canonical semantic representation that survives
 
 instead of merely storing labels.
 
----
-
 ## Multi-agent communication
 
 Hermes, Agno and Pi all have agents exchanging messages.
@@ -150,27 +140,21 @@ Currently they exchange things like
 
 Imagine instead they exchange semantic objects.
 
-Goal
-
+Goal :
 Research
 
-Subject
-
+Subject :
 Systems Thinking
 
-Desired Output
-
+Desired Output :
 Scientific Literature
 
-Priority
-
+Priority :
 High
 
 Now another agent can transform, refine, classify or compare goals without re-parsing English.
 
 This resembles an Abstract Syntax Tree (AST) for meaning rather than for source code.
-
----
 
 ## Meadows' leverage points become executable
 
@@ -208,8 +192,6 @@ or
 
 Those become semantic queries rather than prompt-engineering exercises.
 
----
-
 ## Long-term organizational memory
 
 This is perhaps the strongest application.
@@ -234,15 +216,11 @@ IEML suggests another layer.
          ↓
 Semantic primitives
          ↓
-Canonical concepts
+ Canonical concepts
          ↓
-```
-
 Knowledge graph
-
-```text
-↓
-Embeddings
+         ↓
+     Embeddings
 ```
 
 Notice embeddings become only the retrieval layer.
@@ -250,8 +228,6 @@ Notice embeddings become only the retrieval layer.
 Meaning exists independently.
 
 This is a much more stable architecture.
-
----
 
 ## Agent reflection
 
@@ -275,8 +251,6 @@ The semantic space itself becomes inspectable.
 
 That aligns remarkably well with Lévy's notion of increasing the reflexivity of collective intelligence.
 
----
-
 ## A possible architecture
 
 Interestingly, I would not use IEML the way Lévy originally envisioned.
@@ -294,15 +268,11 @@ Instead I would place it beneath the LLM.
           ↓
 Semantic Layer (IEML)
           ↓
-```
-
-Knowledge Graph
-
-```text
-     ↓
-Vector Index
-     ↓
- Documents
+   Knowledge Graph
+          ↓
+    Vector Index
+          ↓
+      Documents
 ```
 
 Each layer compensates for the weaknesses of the others.
@@ -312,8 +282,6 @@ Each layer compensates for the weaknesses of the others.
 * Graphs provide relationships.
 * Embeddings provide approximate retrieval.
 * Documents preserve original evidence.
-
----
 
 ## One extension Lévy did not have
 
@@ -333,8 +301,6 @@ Instead:
 The symbolic layer becomes largely invisible.
 
 That removes what was arguably IEML's biggest practical obstacle: manual adoption.
-
----
 
 ## Relation to your earlier architecture
 

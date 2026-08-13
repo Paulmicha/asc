@@ -13,8 +13,6 @@ The interesting thing is that the four authors we've discussed are operating at 
 | Dynamic systems | Donella Meadows | How do complex systems evolve? |
 | Execution | Agent frameworks (Pi, Hermes, Agno, etc.) | How does computation act autonomously? |
 
----
-
 ## Monnin formalizes relationships rather than concepts
 
 Lévy tries to formalize semantics.
@@ -40,8 +38,6 @@ Instead of asking
 he asks
 
 > What kind of entity is this?
-
----
 
 ## This becomes extremely relevant for agent memory
 
@@ -78,8 +74,6 @@ Derived hypotheses
 Each level becomes its own object.
 
 That is much closer to the Web itself.
-
----
 
 ## His notion of identity is particularly valuable
 
@@ -121,8 +115,6 @@ It survives
 
 This distinction is extremely important for long-lived agent memory.
 
----
-
 ## I think Monnin naturally suggests CRDT-like thinking
 
 This is not something he explicitly develops, but it follows naturally.
@@ -156,8 +148,6 @@ That resembles
 
 much more than today's RAG pipelines.
 
----
-
 ## Meadows supplies dynamics
 
 Monnin is mostly static.
@@ -184,8 +174,6 @@ is a feedback system.
 
 Now semantic objects become dynamic systems.
 
----
-
 ## Lévy supplies computable semantics
 
 Monnin says
@@ -201,8 +189,6 @@ That is almost exactly what IEML attempts.
 Monnin provides ontology.
 
 Lévy provides semantic algebra.
-
----
 
 ## LLMs change Monnin's assumptions
 
@@ -228,46 +214,35 @@ Those outputs are themselves Web objects.
 
 The graph becomes recursive.
 
----
-
 ## A useful formalism
 
 If I were designing the architecture today, I would separate four layers.
 
 ```text
 Ontology
----------
 What exists?
-
 (Web Objects)
-↓
+
+    ↓
+
 Semantics
-----------
-```
-
 What does it mean?
-
-```text
 (IEML / semantic graph)
-↓
+
+    ↓
+
 Dynamics
----------
-```
-
 How does it evolve?
-
-```text
 (System dynamics)
-↓
+
+    ↓
+
 Execution
-----------
 Who changes it?
 (Agents)
 ```
 
 That decomposition is remarkably clean.
-
----
 
 ## One addition I would make
 
@@ -318,8 +293,6 @@ Now every semantic relation has
 * evidence
 
 The knowledge graph becomes a living history rather than a static ontology.
-
----
 
 ## What I think is emerging
 

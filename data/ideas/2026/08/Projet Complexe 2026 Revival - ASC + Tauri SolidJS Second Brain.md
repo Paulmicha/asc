@@ -33,9 +33,9 @@ That gives you a very clean separation:
 │                            ASC                               │
 │                     CONTROL PLANE                            │
 │                                                              │
-│  filesystem · processes · workers · cron · projects         │
-│  hosts · SSH · Docker · packages · Python · services        │
-│  logs · provisioning · OS-specific hooks                    │
+│  filesystem · processes · workers · cron · projects          │
+│  hosts · SSH · Docker · packages · Python · services         │
+│  logs · provisioning · OS-specific hooks                     │
 └───────────────────────────────┬──────────────────────────────┘
                                 │
               ┌─────────────────┼─────────────────┐
@@ -101,13 +101,13 @@ The interesting abstraction is therefore:
                     "I want X"
                          │
                          ▼
-                       ASC
+                        ASC
                          │
              ┌───────────┼───────────┐
              │           │           │
            local       remote      virtual
              │           │           │
-           Linux         SSH        Docker
+           Linux        SSH        Docker
              │           │           │
           hook A       hook B      hook C
 ```
@@ -144,7 +144,7 @@ The Tauri application can effectively become:
 
 ```text
 ┌─────────────────────────────────────────┐
-│              Tauri application           │
+│              Tauri application          │
 │                                         │
 │  SolidJS                                │
 │  ├── views                              │
@@ -154,7 +154,7 @@ The Tauri application can effectively become:
 │  ├── project explorer                   │
 │  └── system visualization               │
 │                                         │
-│  Tauri                                   │
+│  Tauri                                  │
 │  └── ASC transport                      │
 └──────────────────────┬──────────────────┘
                        │
@@ -233,8 +233,8 @@ And because you already use ASC from the terminal, the UI and CLI become **two i
        /   \
       /     \
    CLI       GUI
-   │          │
-terminal      Tauri
+    │         │
+ terminal   Tauri
 ```
 
 This is considerably better than making the Tauri application the canonical interface.
@@ -303,19 +303,12 @@ For example:
 
 ```text
 ASC
- │
  └── index-document
-        │
         ├── detect type
-        │
         ├── PDF → pdftotext
-        │
         ├── complex PDF → Docling
-        │
         ├── EPUB → ebook tooling
-        │
         ├── image → OCR
-        │
         └── source → parser
 ```
 
@@ -419,8 +412,8 @@ The UI only sees the abstract capability.
                    │
         ┌──────────┼──────────┐
         ▼          ▼          ▼
-       ASC       extractor   agent
-       hook       backend    backend
+       ASC     extractor    agent
+       hook     backend    backend
 ```
 
 That is much more powerful than merely making Tauri cross-platform.
@@ -454,7 +447,6 @@ For example:
 
 ```text
 Machine
-│
 ├── identity
 ├── OS
 ├── CPU
@@ -499,7 +491,7 @@ For example:
          │        │        │
        laptop    NAS      server
          │        │        │
-      Debian    DSM      Ubuntu
+      Debian     DSM     Ubuntu
          │        │        │
       ┌──┴──┐     │      ┌─┴──┐
      CPU   GPU   disks   VM  containers
@@ -516,7 +508,6 @@ And then:
 
 ```text
 Project
-   │
    ├── lives on → machine
    ├── uses → service
    ├── reads → document
@@ -615,11 +606,11 @@ Your description suggests something more interesting:
 
 ```text
 ┌────────────────────────────────────────────────────────────┐
-│ project-complexe                                      [ ] │
+│ project-complexe                                      [ ]  │
 ├────────────┬───────────────────────────────────────────────┤
 │            │                                               │
 │ Knowledge  │                                               │
-│ Projects   │       contextual visualization               │
+│ Projects   │       contextual visualization                │
 │ Machines   │                                               │
 │ Agents     │       text / graph / diagram                  │
 │ Sources    │                                               │
@@ -647,7 +638,6 @@ I would represent an agent's activity as an event stream:
 
 ```text
 Agent
- │
  ├── intent
  ├── plan
  ├── tool call
@@ -704,11 +694,8 @@ I'd eventually want:
 
 ```text
 ASC
- │
  ├── command API
- │
  └── event stream
-       │
        ├── project.changed
        ├── machine.changed
        ├── worker.started
@@ -755,17 +742,17 @@ This machine has:
 
 This is my development laptop.
 
-- It hosts:
+It hosts:
 - ASC
 - project-complexe
 - Drupal project
 
-- It is related to:
+It is related to:
 - AI research
 - local LLM experiments
 
 The GTX 1050 constrains:
-local model selection
+- local model selection
 
 That separation is extremely powerful.
 
@@ -776,22 +763,22 @@ That separation is extremely powerful.
                            │
                            ▼
               ┌─────────────────────────┐
-              │     SECOND BRAIN         │
-              │                           │
-              │ Tauri                     │
-              │   └── SolidJS             │
-              │        └── Kobalte        │
-              │                           │
-              │      custom CSS           │
-              └────────────┬──────────────┘
+              │     SECOND BRAIN        │
+              │                         │
+              │ Tauri                   │
+              │   └── SolidJS           │
+              │        └── Kobalte      │
+              │                         │
+              │      custom CSS         │
+              └────────────┬────────────┘
                            │
                      ASC protocol
                            │
                            ▼
-              ┌─────────────────────────┐
-              │          ASC             │
+              ┌───────────────────────────┐
+              │          ASC              │
               │                           │
-              │  execution/control plane │
+              │  execution/control plane  │
               │                           │
               ├───────────────────────────┤
               │ filesystem                │
@@ -866,17 +853,17 @@ Your project's differentiator isn't going to be its component library.
 It will be:
 
 ```text
-ASC
-  +
-knowledge model
-  +
-indexing
-  +
-graph
-  +
+       ASC
+        +
+  knowledge model
+        +
+     indexing
+        +
+      graph
+        +
 agent orchestration
-  +
-visualization
+        +
+  visualization
 ```
 
 The frontend should therefore be almost boring technologically.
@@ -943,17 +930,17 @@ I agree with your second option, with one refinement:
 **I would keep three conceptual layers, but only two application repositories:**
 
 ```text
-                   ┌──────────────────────────────┐
-                    │       projet-complexe         │
-                    │                              │
-                    │  Second brain + agent UI     │
-                    │                              │
-                    │  TASKS       KNOWLEDGE       │
-                    │    │             │            │
-                    │    └──────┬──────┘            │
-                    │           │                   │
-                    │     semantic model            │
-                    └───────────┬───────────────────┘
+                    ┌───────────────────────────┐
+                    │       projet-complexe     │
+                    │                           │
+                    │  Second brain + agent UI  │
+                    │                           │
+                    │  TASKS       KNOWLEDGE    │
+                    │    │             │        │
+                    │    └──────┬──────┘        │
+                    │           │               │
+                    │     semantic model        │
+                    └───────────┬───────────────┘
                                 │
                          ASC dev stack
                                 │
@@ -968,9 +955,9 @@ I agree with your second option, with one refinement:
                                 │
                     ┌───────────▼───────────┐
                     │      physical world   │
-                    │ laptops / NAS / disks  │
-                    │ servers / containers   │
-                    └────────────────────────┘
+                    │ laptops / NAS / disks │
+                    │ servers / containers  │
+                    └───────────────────────┘
 ```
 
 The important point is that **`projet-complexe` should not become a generic system-management application merely because ASC can expose all that information**.
@@ -989,67 +976,43 @@ The two projects have different reasons for existing.
 
 > How do I operate my computational environment?
 
-machine
-
-filesystem
-
-process
-
-worker
-
-service
-
-container
-
-remote host
-
-package
-
-cron
-
-project
-
-backup
-
-provisioning
-
-logs
+* machine
+* filesystem
+* process
+* worker
+* service
+* container
+* remote host
+* package
+* cron
+* project
+* backup
+* provisioning
+* logs
 
 ### `projet-complexe` answers:
 
 > How do I understand, organize, manipulate and act upon what exists in that environment?
 
-task
-
-project
-
-idea
-
-document
-
-source
-
-concept
-
-research
-
-relationship
-
-agent
-
-plan
-
-publication
-
-knowledge
+* task
+* project
+* idea
+* document
+* source
+* concept
+* research
+* relationship
+* agent
+* plan
+* publication
+* knowledge
 
 These are related, but they are **not the same domain**.
 
 Trying to put them into one repository would create a dangerous gravitational pull:
 
-"Since the second brain needs X..."
-
 ```text
+"Since the second brain needs X..."
                 ↓
     put X in projet-complexe
                 ↓
@@ -1094,9 +1057,7 @@ Its job would be to instantiate a particular **environment around ASC**:
 
 ```text
 ASC
- │
  └── my-environment
-       │
        ├── indexing
        ├── Solr
        ├── ArangoDB
@@ -1191,9 +1152,7 @@ It should **not** ask:
 ASC:
 
     run the Solr Docker container
-
     execute Docling
-
     query Solr directly
 
 The latter is environment implementation.
@@ -1212,7 +1171,6 @@ projet-complexe
         │
         ▼
    asc-stack
-        │
         ├── Docling
         ├── Tika
         ├── OCR
@@ -1229,10 +1187,10 @@ The old application's conceptual split can become something much richer:
 
 ```text
 ┌──────────────────────────────────────────────────────────────┐
-│                       PROJET COMPLEXE                         │
+│                       PROJET COMPLEXE                        │
 ├─────────────────────────────┬────────────────────────────────┤
 │                             │                                │
-│          TASKS              │          KNOWLEDGE              │
+│          TASKS              │          KNOWLEDGE             │
 │                             │                                │
 │  What needs to happen?      │  What do I know?               │
 │                             │                                │
@@ -1242,7 +1200,7 @@ The old application's conceptual split can become something much richer:
 │  ├── agents                 │  ├── documents                 │
 │  ├── scheduled work         │  ├── relationships             │
 │  └── execution              │  ├── research                  │
-│                             │  └── publications               │
+│                             │  └── publications              │
 │                             │                                │
 └─────────────────────────────┴────────────────────────────────┘
 ```
@@ -1333,18 +1291,18 @@ They become the **bridge between task and knowledge**.
                         ▼
                       AGENT
                         │
-                     PLAN
+                      PLAN
                         │
                         ▼
-                       TASK
+                      TASK
                         │
                         ▼
-                      ASC
+                       ASC
                         │
-                   execution
+                    execution
                         │
                         ▼
-                     RESULT
+                      RESULT
                         │
                         ▼
                     KNOWLEDGE
@@ -1364,29 +1322,21 @@ I would expect something like:
 
 ```text
 asc-stack/
-│
 ├── compose/
 │   ├── solr/
 │   ├── arangodb/
-│   ├── ...
-│
+│   └── ...
 ├── services/
 │   ├── indexing/
 │   ├── extraction/
 │   ├── embeddings/
 │   └── ...
-│
 ├── workers/
-│
 ├── models/
-│
 ├── asc/
 │   └── hooks / configuration
-│
 ├── scripts/
-│
 ├── Makefile
-│
 └── README.md
 ```
 
@@ -1410,25 +1360,22 @@ You want to **visualize ASC**.
 
 For example, today:
 
-make backup
-
-make index
-
-make restart-service
-
-make project-status
+* make backup
+* make index
+* make restart-service
+* make project-status
 
 Tomorrow:
 
 ```text
-┌──────────────────────────────────────┐
-│ PROJECT                              │
-│                                      │
-│ indexing     ● running               │
-│ backup       ● scheduled             │
-│ services     7/7                     │
-│ agents       2 active                │
-└──────────────────────────────────────┘
+┌──────────────────────────┐
+│ PROJECT                  │
+│                          │
+│ indexing     ● running   │
+│ backup       ● scheduled │
+│ services     7/7         │
+│ agents       2 active    │
+└──────────────────────────┘
 ```
 
 But both ultimately invoke the same ASC capabilities.
@@ -1456,15 +1403,11 @@ And the really interesting functionality emerges from their intersection:
 
 ```text
 Machine
-   │
    ├── hosts → Project
-   │             │
    │             ├── produces → Document
    │             │                 │
    │             │                 └── relates → Concept
-   │             │
    │             └── assigned → Agent
-   │
    └── constrained by → Hardware
 ```
 
@@ -1474,37 +1417,24 @@ That is the "second brain" part.
 
 For example, avoid frontend concepts like:
 
-SolrService
-
-ArangoService
-
-DockerService
-
-LinuxService
-
-PythonService
+* SolrService
+* ArangoService
+* DockerService
+* LinuxService
+* PythonService
 
 Prefer:
 
-Search
-
-Indexer
-
-Graph
-
-Machine
-
-Project
-
-Worker
-
-Agent
-
-Storage
-
-Task
-
-Source
+* Search
+* Indexer
+* Graph
+* Machine
+* Project
+* Worker
+* Agent
+* Storage
+* Task
+* Source
 
 And then let ASC provide those capabilities.
 
@@ -1550,19 +1480,13 @@ asc-protocol
 
 containing things such as:
 
-commands
-
-events
-
-capabilities
-
-schemas
-
-identifiers
-
-error formats
-
-authentication
+* commands
+* events
+* capabilities
+* schemas
+* identifiers
+* error formats
+* authentication
 
 Then:
 
@@ -1620,7 +1544,6 @@ Notice what this prevents:
 
 ```text
 projet-complexe
-      │
       ├── Docker
       ├── Linux
       ├── Solr
@@ -1643,7 +1566,6 @@ projet-complexe
         │
         ▼
     asc-stack
-        │
         ├── Solr
         ├── ArangoDB
         ├── Docling
@@ -1782,7 +1704,7 @@ The architecture starts looking like this:
              │                         │
         DECLARATIVE SIDE          IMPERATIVE SIDE
              │                         │
-          *.yml                    *.sh
+           *.yml                      *.sh
              │                         │
      entities / contracts       entry points / hooks
      fields / links             wrap / nest / execute
@@ -1814,17 +1736,17 @@ Not two.
 
 ```text
 ┌──────────────────────────────────────────┐
-│             DECLARATION                   │
-│                                           │
-│ *.entity.yml                              │
-│ *.able.yml                                │
-│ fields / inheritance / contracts / links  │
+│             DECLARATION                  │
+│                                          │
+│ *.entity.yml                             │
+│ *.able.yml                               │
+│ fields / inheritance / contracts / links │
 └────────────────────┬─────────────────────┘
                      │
                      ▼
 ┌──────────────────────────────────────────┐
-│             INTERPRETATION                │
-│                                           │
+│             INTERPRETATION               │
+│                                          │
 │ ASC DSL                                  │
 │ parser / resolver / argument mapping     │
 │ include / inheritance / nesting / wrap   │
@@ -1832,8 +1754,8 @@ Not two.
                      │
                      ▼
 ┌──────────────────────────────────────────┐
-│              EXECUTION                    │
-│                                           │
+│              EXECUTION                   │
+│                                          │
 │ *.sh / hooks / external programs         │
 │ Python / binaries / Docker / etc.        │
 └──────────────────────────────────────────┘
@@ -1903,7 +1825,6 @@ For example:
 
 ```text
 software.entity.yml
-        │
         ├── process.able.yml
         ├── sidecar.able.yml - i.e. file(s), dir(s) ?
         ├── wrap.able.yml - i.e. Docker ?
@@ -1922,24 +1843,21 @@ That avoids having to reproduce the entire complexity of OO inheritance.
 
 Imagine:
 
-## software.entity.yml
+### software.entity.yml
 
+```text
 include:
   - entity.entity
 
-```text
 field:
   status:
     type: enum
     values:
-```
-
       - installed
       - unhealthy
       - outdated
       - unavailable
 
-```text
   executable:
     type: path
 
@@ -1955,13 +1873,15 @@ field:
 
 Then:
 
-## tesseract.entity.yml
+### tesseract.entity.yml
 
+```text
 include:
   - software.entity
 
-- entity:
-- type: tesseract
+entity:
+  type: tesseract
+```
 
 Now Tesseract automatically participates in the `software` vocabulary.
 
@@ -1975,12 +1895,12 @@ That means ASC can eventually reason:
 
 ```text
 tesseract
-    is software
-    has executable
-    has files
-    has directories
-    depends on ...
-    provides recognize/text
+  is software
+  has executable
+  has files
+  has directories
+  depends on ...
+  provides recognize/text
 ```
 
 without knowing anything specifically about Tesseract.
@@ -1995,10 +1915,10 @@ Your current root entity already anticipates a capability/contract vocabulary, i
 
 I would think of these as two different axes:
 
-- ENTITY
+ENTITY
 - "What is this?"
 
-- ABILITY / CONTRACT
+ABILITY / CONTRACT
 - "What can this participate in?"
 
 For example:
@@ -2021,7 +1941,6 @@ Then:
 
 ```text
 tesseract.entity.yml
-       │
        ├── include software.entity
        └── include ocr.able
 ```
@@ -2030,7 +1949,6 @@ And another implementation:
 
 ```text
 easyocr.entity.yml
-       │
        ├── include software.entity
        └── include ocr.able
 ```
@@ -2059,6 +1977,9 @@ ENTITY
 ├── document
 ├── agent
 └── person
+```
+
+```text
 ABILITY
 ├── executable
 ├── searchable
@@ -2090,11 +2011,8 @@ Your current abstract script essentially does:
 
 ```text
 recognize/text
-     │
      ├── pre-hook
-     │
      ├── main hook
-     │
      └── post-hook
 ```
 
@@ -2163,8 +2081,7 @@ The shell is still the bottom layer.
 So:
 
 ```text
-ASC DSL
-    │
+ ASC DSL
     ├── resolve command
     ├── resolve entity
     ├── resolve hook
@@ -2205,9 +2122,7 @@ Conceptually:
 
 ```text
 ASC
- │
  └── external process
-       │
        ├── stdin
        ├── stdout
        ├── stderr
@@ -2219,9 +2134,9 @@ Compose ASC operations inside another ASC execution context.
 
 ```text
 nest(
-    recognize(file),
-    index(result),
-    relate(result)
+  recognize(file),
+  index(result),
+  relate(result)
 )
 ```
 
@@ -2241,9 +2156,9 @@ Rather than creating a complicated execution language, you could eventually have
 
 ```text
 batch(
-    a(),
-    b(),
-    c()
+  a(),
+  b(),
+  c()
 )
 ```
 
@@ -2251,9 +2166,9 @@ versus:
 
 ```text
 sequence(
-    a(),
-    b(),
-    c()
+  a(),
+  b(),
+  c()
 )
 ```
 
@@ -2261,22 +2176,31 @@ and perhaps:
 
 ```text
 pipe(
-    a(),
-    b(),
-    c()
+  a(),
+  b(),
+  c()
 )
 ```
 
 That gives you three fundamentally different semantics:
 
-```text
 sequence
+
+```text
 A → B → C
+```
+
 parallel
-A ─┬─
+
+```text
+A ─┬
 B ─┼─→ results
 C ─┘
+```
+
 pipe
+
+```text
 A → B → C
 ```
 
@@ -2291,10 +2215,11 @@ This is perhaps the biggest consequence of what you're describing.
 An agent could eventually be represented as an ASC entity:
 
 include:
-  - entity.entity
-  - software.able
-  - executable.able
-  - observable.able
+
+- entity.entity
+- software.able
+- executable.able
+- observable.able
 
 with capabilities such as:
 
@@ -2309,7 +2234,6 @@ And then the second brain could display an agent's execution using the same unde
 
 ```text
 Agent
-  │
   ├── invokes → search
   ├── invokes → recognize-text
   ├── invokes → read-file
@@ -2345,11 +2269,9 @@ The UI receives structured results/events.
 
 ```text
 Tauri
-  │
   │ ASC expression
   ▼
 ASC
-  │
   ├── parse
   ├── resolve
   ├── authorize
@@ -2372,6 +2294,7 @@ Tauri
   ├── runOCR()
   └── ...
 ```
+
 ## 12. The filename-safe argument naming problem is real
 
 I would be conservative here.
@@ -2393,7 +2316,9 @@ I'd strongly consider adopting a restricted identifier grammar early.
 
 Something along the lines of:
 
+```text
 [A-Za-z0-9][A-Za-z0-9._-]*
+```
 
 with a separate convention for hierarchy:
 
@@ -2441,15 +2366,17 @@ This is probably the biggest unresolved part of the design.
 
 You have:
 
+```text
 test-in(foo,[bar,baz])
+```
 
 but eventually you need to distinguish:
 
-foo
+`foo`
 
 from:
 
-[bar,baz]
+`[bar,baz]`
 
 and determine whether that means:
 
@@ -2478,23 +2405,23 @@ Something conceptually like:
 
 Then:
 
-recognize-text(file)
+`recognize-text(file)`
 
 can resolve:
 
-file → path
+`file → path`
 
 while:
 
-software/status(tesseract)
+`software/status(tesseract)`
 
 resolves:
 
-tesseract → entity
+`tesseract → entity`
 
 and:
 
-test-in(foo,[bar,baz])
+`test-in(foo,[bar,baz])`
 
 could resolve:
 
@@ -2554,19 +2481,19 @@ You could have:
 ```text
                     YAML
                      │
-                 │ declares
+                     │ declares
                      ▼
 entities / contracts / fields / capabilities
                      │
-              │ interpreted by
+                     │ interpreted by
                      ▼
                   ASC DSL
                      │
-                 │ resolves
+                     │ resolves
                      ▼
        operations / hooks / arguments
                      │
-                 │ executes
+                     │ executes
                      ▼
          shell / programs / workers
 ```
@@ -2593,13 +2520,12 @@ Imagine the UI receives an entity description:
 - capabilities:
   - executable
   - recognize-text
-
 - fields:
-- status
-- executable
-- files
-- dirs
-- dependencies
+  - status
+  - executable
+  - files
+  - dirs
+  - dependencies
 
 It can automatically produce a visual representation:
 
@@ -2657,7 +2583,6 @@ For example:
 
 ```text
 projet-complexe
-       │
        ├── idea.entity.yml
        ├── research.entity.yml
        ├── source.entity.yml
@@ -2955,12 +2880,11 @@ So I would now describe ASC as:
 ```text
 ASC =
     filesystem grammar
-```
-
   + declarative grammar
   + executable grammar
   + composition grammar
   + resolution rules
+```
 
 rather than:
 
@@ -3027,23 +2951,23 @@ I would now say:
 
 For example:
 
-test-in(a1,[slug(a-1,-),slug(a-1,_)])
+`test-in(a1,[slug(a-1,-),slug(a-1,_)])`
 
 doesn't necessarily represent an abstract function invocation in the programming-language sense.
 
 It represents something closer to:
 
 ```text
- DSL expression
+   DSL expression
         │
         ▼
- ASC resolution
+  ASC resolution
         │
         ▼
 fixed entry point
         │
         ▼
-     script
+      script
         │
         ▼
       hook
@@ -3174,11 +3098,13 @@ include(A, B)
 
 means roughly:
 
-- resolve B
-- +
-- merge B's declaration
-- +
-- resolve conflicts according to ASC rules
+```text
+resolve B
+    +
+merge B's declaration
+    +
+resolve conflicts according to ASC rules
+```
 
 rather than:
 
@@ -3211,7 +3137,6 @@ ASC
 ├── primitive
 ├── core
 ├── contrib
-│
 └── extension point
       │
       ▼
@@ -3361,7 +3286,7 @@ That is a much stronger foundation for your second brain than a conventional dat
 I previously suggested something like:
 
 ```text
-ASC
+  ASC
    │
    └── Knowledge layer
 ```
@@ -3389,20 +3314,20 @@ For example:
 
 ```text
 projet-complexe/
-    extensions/
-        knowledge/
-            source/
-            concept/
-            research/
-            note/
-        task/
-            task/
-            project/
-            change/
-        agent/
-            agent/
-            plan/
-            run/
+  extensions/
+    knowledge/
+      source/
+      concept/
+      research/
+      note/
+    task/
+      task/
+      project/
+      change/
+    agent/
+      agent/
+      plan/
+      run/
 ```
 
 That is cleaner.
@@ -3463,27 +3388,27 @@ Consider:
 ```text
   KNOWLEDGE
       │
-  │ informs
+      │ informs
       ▼
     CHANGE
       │
-  │ produces
+      │ produces
       ▼
      TASK
       │
-│ executed by
+      │ executed by
       ▼
     AGENT
       │
-  │ invokes
+      │ invokes
       ▼
      ASC
       │
-  │ modifies
+      │ modifies
       ▼
 FILES / SYSTEM
       │
- │ generates
+      │ generates
       ▼
   KNOWLEDGE
 ```
@@ -3527,13 +3452,15 @@ ArangoDB/Solr/etc. can eventually be indexing/projection infrastructure.
 
 But ASC's primary representation can remain:
 
-- filesystem
-- +
-- YAML
-- +
-- sidecars
-- +
-- relations
+```text
+filesystem
+   +
+  YAML
+   +
+sidecars
+   +
+relations
+```
 
 The database becomes an **index/projection**, not the canonical representation.
 
@@ -3559,6 +3486,7 @@ everything
     ↑
    ASC
 ```
+
 ## 14. This also clarifies where Docling belongs
 
 I previously put Docling in the "knowledge layer".
@@ -3614,17 +3542,11 @@ So I'd now conceptualize:
 
 ```text
 ASC
-│
 ├── Runtime
-│
 ├── Declarative model
-│
 ├── DSL
-│
 ├── Hooks
-│
 └── Builder
-      │
       ├── blueprints
       ├── templates
       ├── code entities
@@ -3846,7 +3768,7 @@ The more type-rich semantics can emerge later through entity/field resolution.
 
 For example:
 
-test-in(a1,[slug(a-1,-),slug(a-1,_)])
+`test-in(a1,[slug(a-1,-),slug(a-1,_)])`
 
 can compile conceptually to:
 
@@ -3894,11 +3816,11 @@ frozen entry point
 
 and you are considering paths such as:
 
-entity-field-val(type,a-1).dsl.hook
+`entity-field-val(type,a-1).dsl.hook`
 
 or:
 
-entity-field-val(type,a-1).dsl.hook.yml
+`entity-field-val(type,a-1).dsl.hook.yml`
 
 So the filesystem isn't merely a cache.
 
@@ -3922,7 +3844,7 @@ frozen DSL entry point
 
 with a filename such as:
 
-entity-field-val(type,a-1).dsl.hook
+`entity-field-val(type,a-1).dsl.hook`
 
 The latter becomes something like a compiled/cached addressable artifact.
 
@@ -3991,7 +3913,6 @@ Your canonical structure could remain:
 
 ```text
 filesystem
-    │
     ├── entities
     ├── sidecars
     ├── YAML
@@ -4183,53 +4104,53 @@ Don't inject redundant type descriptions into embeddings if the structural metad
 With all this taken into account, I'd now draw your ecosystem like this:
 
 ```text
-                        ┌──────────────────────────┐
-                         │      projet-complexe      │
-                         │                          │
-                         │  Tauri + SolidJS +       │
-                         │  Kobalte + custom CSS    │
-                         │                          │
-                         │  TASK       KNOWLEDGE    │
-                         │    \           /         │
-                         │      AGENTS              │
-                         │         │                │
-                         │      visualisation       │
-                         └──────────┬───────────────┘
-                                    │
-                              ASC DSL / entities
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────┐
-│                           ASC                               │
-│                                                             │
-│ filesystem grammar                                         │
-│ YAML grammar                                                │
-│ entity / able / field / prop / include                      │
-│ DSL                                                         │
-│ entry-point resolution                                      │
-│ hooks                                                       │
-│ sidecars                                                    │
-│ nesting                                                     │
-│ builder                                                     │
-│ threads                                                     │
-│ changes                                                     │
-│ cache / freeze                                              │
-└────────────────────────────┬────────────────────────────────┘
-                             │
-                       concrete environment
-                             │
-                             ▼
-                         asc-stack
-                             │
-          ┌──────────────────┼──────────────────┐
-          ▼                  ▼                  ▼
-       machines           services            tools
-          │                  │                  │
-       Debian             Docker             Docling
-       Windows?           Solr               Tika
-       NAS                ArangoDB           OCR
-       servers            Ollama             agents
-       disks              Nextcloud           ...
+              ┌──────────────────────────┐
+              │      projet-complexe     │
+              │                          │
+              │  Tauri + SolidJS +       │
+              │  Kobalte + custom CSS    │
+              │                          │
+              │  TASK       KNOWLEDGE    │
+              │    \           /         │
+              │      AGENTS              │
+              │         │                │
+              │      visualisation       │
+              └──────────┬───────────────┘
+                         │
+                 ASC DSL / entities
+                         │
+                         ▼
+┌────────────────────────────────────────────────────────┐
+│                       ASC                              │
+│                                                        │
+│ filesystem grammar                                     │
+│ YAML grammar                                           │
+│ entity / able / field / prop / include                 │
+│ DSL                                                    │
+│ entry-point resolution                                 │
+│ hooks                                                  │
+│ sidecars                                               │
+│ nesting                                                │
+│ builder                                                │
+│ threads                                                │
+│ changes                                                │
+│ cache / freeze                                         │
+└────────────────────────┬───────────────────────────────┘
+                         │
+                   concrete environment
+                         │
+                         ▼
+                     asc-stack
+                         │
+      ┌──────────────────┼──────────────────┐
+      ▼                  ▼                  ▼
+   machines           services            tools
+      │                  │                  │
+   Debian             Docker             Docling
+   Windows?           Solr               Tika
+   NAS                ArangoDB           OCR
+   servers            Ollama             agents
+   disks              Nextcloud           ...
 ```
 
 This is substantially different from the architecture I proposed previously.
@@ -4315,7 +4236,7 @@ Instead, the first useful Tauri prototype should probably be almost embarrassing
 │ ASC explorer                                 │
 ├──────────────────────────────────────────────┤
 │                                              │
-│ filesystem / entity tree                    │
+│ filesystem / entity tree                     │
 │                                              │
 │   machine                                    │
 │    └── project                               │
@@ -4341,31 +4262,20 @@ My previous answer had the right **repository separation**, but the wrong center
 
 I was thinking:
 
-- ASC
-- = execution/control plane
-
-- asc-stack
-- = infrastructure
-
-- projet-complexe
-- = semantic application
+- ASC = execution/control plane
+- asc-stack = infrastructure
+- projet-complexe = semantic application
 
 After reading your notes, I think the better model is:
 
-- ASC
-- = computational language + filesystem-oriented runtime
-
-- asc-stack
-- = one concrete environment expressed through ASC
-
-- projet-complexe
-- = graphical/semantic projection of that environment,
-- adding its own task/knowledge/agent vocabulary
+- ASC = computational language + filesystem-oriented runtime
+- asc-stack = one concrete environment expressed through ASC
+- projet-complexe = graphical/semantic projection of that environment, adding its own task/knowledge/agent vocabulary
 
 And the most important conceptual loop is:
 
 ```text
-            DECLARE
+             DECLARE
                 │
                 ▼
              YAML/entity

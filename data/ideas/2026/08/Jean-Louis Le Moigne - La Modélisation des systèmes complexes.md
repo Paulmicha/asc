@@ -57,8 +57,6 @@ Taken together, they suggest that an advanced AI agent should not be viewed prim
 
 The following Mermaid diagrams are not present in Le Moigne's book as-is. They are faithful reconstructions of the book's conceptual architecture, designed to make its central ideas easier to understand.
 
----
-
 ## 1. The Constructivist View of Modeling
 
 The single most important idea in the book.
@@ -91,8 +89,6 @@ The essential message:
 
 This recursive loop appears throughout the book.
 
----
-
 ## 2. The Modeling Cycle
 
 Le Moigne insists that modeling is iterative.
@@ -124,8 +120,6 @@ Le Moigne proposes
 > observation → model → action → revision → observation...
 
 Knowledge never reaches a final stable state.
-
----
 
 ## 3. Analysis versus Systemic Thinking
 
@@ -160,8 +154,6 @@ Systemic thinking asks
 
 > How do they organize themselves?
 
----
-
 ## 4. A Complex System
 
 ```mermaid
@@ -188,8 +180,6 @@ Every component influences several others.
 
 Complexity comes from interaction, not from the number of parts.
 
----
-
 ## 5. Hierarchical Organization
 
 Inspired by Herbert Simon.
@@ -213,8 +203,6 @@ S3 --> S32
 Each subsystem is itself another system.
 
 This recursive decomposition continues indefinitely.
-
----
 
 ## 6. Function Rather Than Substance
 
@@ -240,8 +228,6 @@ The internal implementation may change completely while the function remains ide
 
 This idea strongly anticipates modern software engineering.
 
----
-
 ## 7. Decision Inside the System
 
 Unlike many engineering models, Le Moigne embeds decision-making inside the system.
@@ -265,8 +251,6 @@ Act
 Decision is not external management.
 
 Decision is part of the system itself.
-
----
 
 ## 8. Information Flow
 
@@ -292,8 +276,6 @@ are first-class components.
 
 This reflects cybernetics while remaining compatible with constructivism.
 
----
-
 ## 9. Multiple Levels of Description
 
 One phenomenon can be modeled at several scales simultaneously.
@@ -312,8 +294,6 @@ L4 --> L5[Task]
 Understanding requires constantly moving upward and downward between abstraction levels.
 
 No single level is "the correct one."
-
----
 
 ## 10. Organization Produces Emergence
 
@@ -338,8 +318,6 @@ Emergence comes **from organization**, not from the parts themselves.
 Changing relationships often changes behavior more than changing components.
 
 This anticipates many of Donella Meadows' leverage points.
-
----
 
 ## 11. The Recursive Nature of Knowledge
 
@@ -366,8 +344,6 @@ Reflection --> Knowledge
 Knowledge continuously regenerates itself.
 
 Learning is therefore recursive rather than accumulative.
-
----
 
 ## 12. The General Architecture of Le Moigne's Theory
 
@@ -403,8 +379,6 @@ Everything revolves around a continuous cycle:
 
 There is no final model.
 
----
-
 ## 13. Relationship with Other Systems Thinkers
 
 This places Le Moigne in the broader intellectual landscape.
@@ -429,8 +403,6 @@ LM --> DecisionSupport["Decision Support"]
 ```
 
 ![][image13]
-
----
 
 ## 14. Connection to Modern AI Agents
 

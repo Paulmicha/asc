@@ -30,8 +30,6 @@ Several recurring ideas already appear:
 
 Those themes resonate strongly with later work.
 
----
-
 ### 2. Around 2017–2021: from ontology to ecology
 
 His attention gradually shifts.
@@ -61,8 +59,6 @@ Digital technology becomes just one component of a much larger socio-technical m
 
 This is already very close to Donella Meadows' systemic perspective.
 
----
-
 ### 3. Redirection
 
 Probably the biggest conceptual innovation since the thesis is **redirection**.
@@ -90,8 +86,6 @@ one asks
 
 That is a Meadows-style intervention at the level of system goals rather than parameters.
 
----
-
 ### 4. The importance of attachments
 
 The preprint he describes as "very important for my conception de la redirection" appears to deepen one of the key questions that has emerged over the last several years: why are socio-technical systems so difficult to redirect?
@@ -118,8 +112,6 @@ People become attached to:
 Technology survives because entire forms of life have crystallized around it.
 
 That makes redirection resemble anthropology or political ecology more than engineering. This emphasis is reflected in recent work around ecological redirection, where the practical task is to identify attachments before deciding what can be transformed or renounced. ([arXiv](https://arxiv.org/abs/2507.19078?utm_source=chatgpt.com))
-
----
 
 ### 5. "Zombie technologies"
 
@@ -164,8 +156,6 @@ When Monnin calls these "zombie technologies", he is not saying they are obsolet
 
 He is saying they continue operating despite becoming incompatible with the temporal constraints of the Earth system. They remain socially alive while ecologically "dead." ([AOC media - Analyse Opinion Critique](https://aoc.media/opinion/2026/07/01/la-magie-noire-des-technologies-zombies/?utm_source=chatgpt.com))
 
----
-
 ### 6. Why this is a continuation of the thesis
 
 There is a deep continuity.
@@ -198,8 +188,6 @@ The underlying philosophical gesture is almost identical:
 
 make visible what successful infrastructures render invisible.
 
----
-
 ### 7. Connections with Donella Meadows
 
 The overlap with Meadows is surprisingly strong.
@@ -224,8 +212,6 @@ Monnin adds:
 * political ecology
 
 His work could almost be read as a phenomenology of leverage points.
-
----
 
 ### 8. Connections with AI agents
 
@@ -252,8 +238,6 @@ This is a substantially different research agenda from current agent engineering
 Instead of maximizing capability,
 
 it asks how to preserve the possibility of future redirection.
-
----
 
 ### 9. A possible synthesis with IEML
 

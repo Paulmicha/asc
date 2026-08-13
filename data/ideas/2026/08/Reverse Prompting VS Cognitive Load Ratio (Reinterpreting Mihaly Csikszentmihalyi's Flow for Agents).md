@@ -13,8 +13,6 @@ In fact, your recent threads suggest four complementary perspectives:
 
 Viewed together, they begin to describe an architecture rather than separate theories.
 
----
-
 ## 1. Flow becomes "epistemic flow"
 
 For humans:
@@ -41,8 +39,6 @@ It depends on things such as:
 A 7B model with excellent retrieval may outperform a 70B model with poor context.
 
 So "skill" is actually an emergent property of the entire cognitive architecture.
-
----
 
 ## 2. What is "too easy" for an agent?
 
@@ -72,8 +68,6 @@ The excess capacity gets filled with plausible but unnecessary generation.
 Humans get bored.
 
 LLMs ramble.
-
----
 
 ## 3. What is "too difficult"?
 
@@ -106,8 +100,6 @@ Humans experience anxiety.
 
 Agents experience instability.
 
----
-
 ## 4. Prompt engineering is really challenge regulation
 
 This may be one of the most useful reinterpretations.
@@ -127,8 +119,6 @@ That means regulating:
 * objective count
 
 instead of merely reducing token count.
-
----
 
 ## 5. Complexity is not prompt length
 
@@ -151,8 +141,6 @@ The second prompt is short.
 Its search space is enormous.
 
 So challenge should be measured by **solution-space entropy**, not token count.
-
----
 
 ## 6. ASC begins to make sense
 
@@ -184,8 +172,6 @@ before inference begins.
 
 That is remarkably similar to moving the task back into the flow channel.
 
----
-
 ## 7. Meadows would call this leverage
 
 Donella Meadows repeatedly emphasizes that changing information flows often has greater leverage than increasing resources.
@@ -205,8 +191,6 @@ Instead of increasing intelligence,
 it improves the information entering cognition.
 
 That is a higher leverage point.
-
----
 
 ## 8. Lévy would call this semantic topology
 
@@ -230,8 +214,6 @@ instead of
 
 * thousands of disconnected GPS coordinates.
 
----
-
 ## 9. Monnin would probably call this redirection
 
 Monnin often criticizes technological systems that optimize locally while producing systemic pathologies.
@@ -244,8 +226,6 @@ ASC appears less interested in writing better prompts than in redesigning the co
 
 That is a redirection of the system rather than an optimization within it.
 
----
-
 ## 10. A possible formalization
 
 I think there is an opportunity to define an explicit quantity analogous to Csikszentmihalyi's challenge-skill balance.
@@ -254,9 +234,11 @@ For an agent, define:
 
 > **Cognitive Load Ratio (CLR)**
 
+```
 [
 CLR = \frac{\text{Problem Complexity}}{\text{Effective Cognitive Capacity}}
 ]
+```
 
 ![][image1]
 
