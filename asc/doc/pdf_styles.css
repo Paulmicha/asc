@@ -1,0 +1,523 @@
+/*
+ * ASC docs PDF style — applied by asc/doc/md2pdf_asc.py
+ *
+ * Self-contained print port of Pico CSS classless orange light theme
+ * (https://picocss.com v2.1.1 / pico.classless.orange.css, MIT).
+ *
+ * Scope: HTML tags emitted by md2pdf Markdown→HTML for ASC docs
+ * (p, h1–h4, a, ul/ol/li, table/thead/tbody/tr/th/td, code/pre,
+ * strong/em, blockquote, hr, br, img, …). Forms/nav/modals omitted.
+ *
+ * Sizes: ASC print scale (body 8pt Spectral). Colors: Pico orange
+ * light scheme. Print tweak: inline/pre code use body text color (Pico’s
+ * muted --pico-code-color is too weak at 7–8pt in dense tables).
+ */
+
+@page {
+  size: A4;
+  margin: .75cm .75cm;
+}
+
+:root {
+  --pico-spacing: .5rem;
+  --pico-line-height: 1.45;
+  --pico-font-weight: 400;
+
+  --asc-font-size: 8pt;
+  --asc-font-size-code: 6pt;
+  --asc-font-size-small: .875em;
+
+  --asc-font-size-h1: 13pt;
+  --asc-font-size-h2: 11pt;
+  --asc-font-size-h3: 9.5pt;
+  --asc-font-size-h4: 8.5pt;
+
+  --pico-border-radius: .25rem;
+  --pico-border-width: .0625rem;
+
+  --pico-text-decoration: underline;
+
+  --pico-font-family-emoji: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --pico-font-family-sans: "Source Sans 3", "Source Sans Pro", system-ui, sans-serif, var(--pico-font-family-emoji);
+  --pico-font-family-serif: "Spectral", Georgia, "Times New Roman", serif, var(--pico-font-family-emoji);
+  --pico-font-family-monospace: "Source Code Pro", ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace, var(--pico-font-family-emoji);
+
+  --pico-font-family: var(--pico-font-family-serif);
+  --pico-font-family-headings: var(--pico-font-family-sans);
+
+  /* —— Pico orange light (from pico.classless.orange.css) —— */
+  --pico-background-color: #fff;
+  --pico-color: #373c44;
+  --pico-muted-color: #646b79;
+  --pico-muted-border-color: rgb(231, 234, 239.5);
+  --pico-primary: #bd3c13;
+  --pico-primary-background: #d24317;
+  --pico-primary-underline: rgba(189, 60, 19, 0.5);
+  --pico-primary-hover: #942d0d;
+  --pico-primary-hover-underline: var(--pico-primary-hover);
+  --pico-primary-inverse: #fff;
+  --pico-h1-color: #2d3138;
+  --pico-h2-color: #373c44;
+  --pico-h3-color: #424751;
+  --pico-h4-color: #4d535e;
+  --pico-h5-color: #5c6370;
+  --pico-h6-color: #646b79;
+  --pico-mark-background-color: rgb(252.5, 230.5, 191.5);
+  --pico-mark-color: #0f1114;
+  --pico-ins-color: rgb(28.5, 105.5, 84);
+  --pico-del-color: rgb(136, 56.5, 53);
+  --pico-blockquote-border-color: var(--pico-muted-border-color);
+  --pico-blockquote-footer-color: var(--pico-muted-color);
+  --pico-table-border-color: var(--pico-muted-border-color);
+  --pico-table-row-stripped-background-color: rgba(111, 120, 135, 0.075);
+  --pico-code-background-color: rgb(243, 244.5, 246.75);
+  /* Print: body ink, not Pico muted #646b79 */
+  --pico-code-color: var(--pico-color);
+  --pico-code-kbd-background-color: var(--pico-color);
+  --pico-code-kbd-color: var(--pico-background-color);
+}
+
+/* —— Document (Pico content-box + type root) —— */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background-color: var(--pico-background-color);
+  color: var(--pico-color);
+  font-family: var(--pico-font-family);
+  font-size: var(--asc-font-size);
+  font-weight: var(--pico-font-weight);
+  line-height: var(--pico-line-height);
+  text-underline-offset: .1rem;
+  overflow-wrap: break-word;
+  -moz-tab-size: 4;
+  tab-size: 4;
+
+  /*
+    Chromium → PDF: optimizeLegibility enables GPOS kern + liga.
+    At 8pt, those adjustments quantize unevenly (mono looks fine — no kern).
+  */
+  text-rendering: geometricPrecision;
+  font-kerning: none;
+  font-variant-ligatures: none;
+}
+
+body {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--pico-background-color);
+  color: var(--pico-color);
+  font-family: var(--pico-font-family);
+  font-size: var(--asc-font-size);
+  font-weight: var(--pico-font-weight);
+  line-height: var(--pico-line-height);
+}
+
+/* —— Inline emphasis —— */
+
+b,
+strong {
+  font-weight: bolder;
+}
+
+i,
+em {
+  font-style: italic;
+}
+
+small {
+  font-size: var(--asc-font-size-small);
+}
+
+sub,
+sup {
+  position: relative;
+  font-size: .75em;
+  line-height: 0;
+  vertical-align: baseline;
+}
+
+sub {
+  bottom: -0.25em;
+}
+
+sup {
+  top: -0.5em;
+}
+
+/* —— Block rhythm (Pico) —— */
+
+address,
+blockquote,
+dl,
+figure,
+ol,
+p,
+pre,
+table,
+ul {
+  margin-top: 0;
+  margin-bottom: var(--pico-spacing);
+  color: var(--pico-color);
+  font-style: normal;
+  font-weight: var(--pico-font-weight);
+}
+
+p {
+  margin-bottom: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-top: 0;
+  margin-bottom: var(--pico-spacing);
+  color: var(--pico-color);
+  font-family: var(--pico-font-family-headings);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+/* Pico: spacing-top before headings that follow blocks */
+:where(article, address, blockquote, dl, figure, ol, p, pre, table, ul)
+  ~ :is(h1, h2, h3, h4, h5, h6) {
+  margin-top: 16px;
+}
+
+h1 {
+  font-size: var(--asc-font-size-h1);
+  color: var(--pico-h1-color);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+h2 {
+  font-size: var(--asc-font-size-h2);
+  color: var(--pico-h2-color);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+h3 {
+  font-size: var(--asc-font-size-h3);
+  color: var(--pico-h3-color);
+  letter-spacing: .01em;
+}
+
+h4 {
+  font-size: var(--asc-font-size-h4);
+  color: var(--pico-h4-color);
+}
+
+h5 {
+  font-size: var(--asc-font-size-h4);
+  color: var(--pico-h5-color);
+}
+
+h6 {
+  font-size: var(--asc-font-size-h4);
+  color: var(--pico-h6-color);
+}
+
+:where(ol, ul) li {
+  margin-bottom: calc(var(--pico-spacing) * 0.25);
+}
+
+:where(dl, ol, ul) :where(dl, ol, ul) {
+  margin: 0;
+  margin-top: calc(var(--pico-spacing) * 0.25);
+}
+
+dt {
+  font-weight: 700;
+}
+
+dd {
+  margin-bottom: var(--pico-spacing);
+  margin-left: 1.25em;
+}
+
+mark {
+  padding: .125rem 0.25rem;
+  background-color: var(--pico-mark-background-color);
+  color: var(--pico-mark-color);
+  vertical-align: baseline;
+}
+
+blockquote {
+  display: block;
+  margin: var(--pico-spacing) 0;
+  padding: var(--pico-spacing);
+  padding-left: 10px;
+  border-right: none;
+  border-left: .25rem solid var(--pico-blockquote-border-color);
+  color: var(--pico-muted-color);
+  font-style: italic;
+}
+
+blockquote footer {
+  margin-top: calc(var(--pico-spacing) * 0.5);
+  color: var(--pico-blockquote-footer-color);
+  font-style: normal;
+}
+
+ins {
+  color: var(--pico-ins-color);
+  text-decoration: none;
+}
+
+del {
+  color: var(--pico-del-color);
+}
+
+abbr[title] {
+  border-bottom: 1px dotted;
+  text-decoration: none;
+}
+
+/* —— Links (Pico primary) —— */
+
+a {
+  background-color: transparent;
+  color: var(--pico-primary);
+  text-decoration: var(--pico-text-decoration);
+  text-decoration-color: var(--pico-primary-underline);
+  text-underline-offset: .125em;
+}
+
+/* —— Tables —— */
+
+table {
+  margin-top: calc(var(--pico-spacing) * 3);
+  margin-right: auto;
+  margin-left: auto;
+  margin-bottom: calc(var(--pico-spacing) * 3);
+  width: auto;
+  border-collapse: collapse;
+  border-spacing: 0;
+  text-indent: 0;
+}
+
+thead th,
+thead td,
+tfoot th,
+tfoot td {
+  border: 0;
+  font-weight: 600;
+}
+
+th {
+  background-color: #EEE;
+}
+
+th,
+td {
+  border: 0;
+  padding: calc(var(--pico-spacing) * .8) var(--pico-spacing);
+  text-align: left;
+  vertical-align: top;
+  color: var(--pico-color);
+  font-family: var(--pico-font-family);
+  font-weight: var(--pico-font-weight);
+}
+
+tr + tr td {
+  border-top: var(--pico-border-width) solid var(--pico-table-border-color);
+}
+
+tfoot th,
+tfoot td {
+  border-top: var(--pico-border-width) solid var(--pico-table-border-color);
+  border-bottom: 0;
+}
+
+/* Nested code in cells keeps sans for surrounding text; mono on code itself */
+td code,
+th code {
+  font-size: var(--asc-font-size-code);
+}
+
+/* —— Embedded —— */
+
+img {
+  max-width: 100%;
+  height: auto;
+  border-style: none;
+  vertical-align: middle;
+}
+
+figure {
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+figure figcaption {
+  padding: calc(var(--pico-spacing) * 0.5) 0;
+  color: var(--pico-muted-color);
+}
+
+/* —— Code (Pico structure + print ink) —— */
+
+pre,
+code,
+kbd,
+samp {
+  /* border: var(--pico-border-width) solid var(--pico-muted-border-color); */
+  border-radius: var(--pico-border-radius);
+
+  padding-top: .25em;
+  padding-right: .15em;
+  padding-bottom: .005em;
+  padding-left: .15em;
+
+  line-height: var(--pico-line-height);
+
+  font-size: var(--asc-font-size-code);
+  font-weight: var(--pico-font-weight);
+  font-family: var(--pico-font-family-monospace);
+
+  color: var(--pico-code-color);
+  background: var(--pico-code-background-color);
+}
+
+code,
+kbd,
+samp {
+  display: inline-block;
+  vertical-align: baseline;
+  background-color: #fff4dd;
+}
+
+pre {
+  display: block;
+  border: var(--pico-border-width) solid var(--pico-muted-border-color);
+  margin: 0 var(--pico-spacing);
+  padding: var(--pico-spacing);
+  overflow-x: auto;
+  -ms-overflow-style: scrollbar;
+}
+
+pre code,
+pre samp {
+  display: inline-block;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  line-height: var(--pico-line-height);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* codehilite (md2pdf fenced blocks) */
+pre.codehilite,
+.codehilite {
+  margin-top: calc(var(--pico-spacing) * 2);
+  margin-bottom: calc(var(--pico-spacing) * 2);
+  background: var(--pico-code-background-color);
+}
+
+kbd {
+  background-color: var(--pico-code-kbd-background-color);
+  color: var(--pico-code-kbd-color);
+  border-color: transparent;
+  vertical-align: baseline;
+}
+
+h1 code,
+h1 samp,
+h2 code,
+h2 samp,
+h3 code,
+h3 samp {
+  text-transform: none;
+  font-size: inherit;
+}
+
+/* —— Misc —— */
+
+hr {
+  height: 0;
+  margin: var(--pico-spacing) 0;
+  border: 0;
+  border-top: 1px solid var(--pico-muted-border-color);
+  color: inherit;
+}
+
+.emoji {
+  font-family: var(--pico-font-family-sans-serif);
+}
+
+/* Mermaid: live SVG in the print page (see md2pdf_asc.py), not PNG */
+.mermaid-wrap {
+  margin: var(--pico-spacing) 0;
+  page-break-inside: avoid;
+  text-align: center;
+}
+
+pre.mermaid {
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: none;
+  background: transparent;
+  color: var(--pico-color);
+  font-family: var(--pico-font-family-sans-serif);
+  font-size: var(--asc-font-size);
+  line-height: var(--pico-line-height);
+  white-space: pre-wrap;
+}
+
+pre.mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Sequence diagrams set actor <text> to 16px unless overridden */
+.mermaid text,
+.mermaid tspan,
+.mermaid .nodeLabel,
+.mermaid .edgeLabel,
+.mermaid .labelText,
+.mermaid .messageText,
+.mermaid .noteText,
+.mermaid foreignObject,
+.mermaid foreignObject div,
+.mermaid foreignObject span {
+  font-size: var(--asc-font-size) !important;
+  font-family: var(--pico-font-family-sans-serif) !important;
+}
+
+.mermaid .nodeLabel p {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.mermaid foreignObject div {
+  line-height: 1.25 !important;
+}
+
+.page-break {
+  page-break-after: always;
+}
+
+@media print {
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
