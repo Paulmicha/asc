@@ -1,4 +1,4 @@
-# Arthur Lefèvre \- Désirs, Conflits & Communication
+# Arthur Lefèvre - Désirs, Conflits & Communication
 
 ## une approche ludo-narrative du jeu de rôle
 
@@ -6,38 +6,40 @@
 
 Arthur Lefèvre’s 2020 thesis, ***Désirs, Conflits & Communication : une approche ludo-narrative du jeu de rôle***, is much more interesting for AI-agent theory than its subject matter initially suggests. Its central contribution is not really a theory of role-playing games; it is a theory of **autonomous action emerging from an asymmetric dialogue between an agent and an environment that is itself capable of responding, remembering, constraining, and changing**. That makes it a potentially powerful conceptual bridge between role-playing, complex systems, interactive narrative, and agent autonomy.
 
-![][image1]  
-Fig. 16 : Le jeu de rôle, vue d'ensemble (p. 262\)
+![][image1]
+Fig. 16 : Le jeu de rôle, vue d'ensemble (p. 262)
 
 The thesis starts from a deliberately non-trivial conception of tabletop RPGs. A role-playing game is not fundamentally a story being told by one person to others. It is a **communication loop** between two functional voices: the players, who decide, and the game master (*meneur*), who describes and resolves. The basic loop is therefore:
 
-       WORLD / CONTEXT  
-             │  
-             ▼  
-       \[ DESCRIPTION \]  
-             │  
-             ▼  
-          PLAYER  
-             │  
-        intention \+  
-          means  
-             │  
-             ▼  
-        \[ DECISION \]  
-             │  
-             ▼  
-          GM / WORLD  
-             │  
-          resolution  
-             │  
-             ▼  
-       \[ CONSEQUENCE \]  
-             │  
+```text
+       WORLD / CONTEXT
+             │
+             ▼
+       [ DESCRIPTION ]
+             │
+             ▼
+          PLAYER
+             │
+        intention +
+          means
+             │
+             ▼
+        [ DECISION ]
+             │
+             ▼
+          GM / WORLD
+             │
+          resolution
+             │
+             ▼
+       [ CONSEQUENCE ]
+             │
              └──────────► new description
+```
 
 The important point is that **none of the three stages has meaning independently**. Description creates the decision space; decision expresses an intention using available means; resolution transforms the context and thereby determines what can be described next. The result is not a predetermined narrative but a continually modified state of the shared world.
 
-## 1\. The decisive concept: autonomy comes from the loop, not from isolated decision-making
+## 1. The decisive concept: autonomy comes from the loop, not from isolated decision-making
 
 This is where the thesis becomes highly relevant to AI agents. Lefèvre explicitly distinguishes the **player's intention** from the **character's means**. The intention comes from the player's desire; the means belong to the character's situation within the fictional world. The player therefore does not select an action from a closed API of possibilities. They formulate an intention, and the world determines what means exist and what consequences follow.
 
@@ -45,39 +47,43 @@ This is almost the inverse of the dominant tool-calling model of agents:
 
 Typical tool-oriented agent
 
-goal  
-  ↓  
-choose tool  
-  ↓  
-tool(parameters)  
-  ↓  
-result  
-  ↓  
-LLM
+```text
+      goal
+       ↓
+  choose tool
+       ↓
+tool(parameters)
+       ↓
+     result
+       ↓
+      LLM
+```
 
 Lefèvre suggests something closer to:
 
-agent desire  
-     ↓  
-interpret current situation  
-     ↓  
-form intention  
-     ↓  
-propose action using situated means  
-     ↓  
-environment resolves action  
-     ↓  
-observe transformed environment  
-     ↓  
-reinterpret situation  
-     ↓  
-new intention
+```text
+           agent desire
+                 ↓
+    interpret current situation
+                 ↓
+          form intention
+                 ↓
+propose action using situated means
+                 ↓
+    environment resolves action
+                 ↓
+  observe transformed environment
+                 ↓
+       reinterpret situation
+                 ↓
+           new intention
+```
 
-The distinction matters enormously. **Autonomy is not simply the capacity to choose among available actions. It is the capacity to formulate intentions against an incompletely known, resistant world whose response modifies the subsequent action space.** That is a much richer definition of agent autonomy than "LLM \+ tools."
+The distinction matters enormously. **Autonomy is not simply the capacity to choose among available actions. It is the capacity to formulate intentions against an incompletely known, resistant world whose response modifies the subsequent action space.** That is a much richer definition of agent autonomy than "LLM + tools."
 
 **Confidence: 0.95** — this interpretation follows directly from the thesis's description/decision/resolution model, although the application to AI is my extrapolation rather than Lefèvre's own subject.
 
-## 2\. The world is not a database; it is an interlocutor
+## 2. The world is not a database; it is an interlocutor
 
 One of the strongest ideas in the thesis appears in the treatment of the *meneur*. Lefèvre describes the game master as an **institution**: a structure produced by the collective of players which subsequently acquires a relative autonomous power over them. More importantly, the world prepared by the game master is not merely a collection of possibilities. It is conceived as **"un monde à affecter"** — a world that the players can affect.
 
@@ -85,26 +91,30 @@ This provides a very useful reinterpretation of agent environments.
 
 A conventional agent architecture tends to represent its environment as:
 
-STATE  
- ├── objects  
- ├── resources  
- ├── available tools  
+```text
+STATE
+ ├── objects
+ ├── resources
+ ├── available tools
  └── constraints
+```
 
 Lefèvre's conception is closer to:
 
-             WORLD  
-        ┌───────┼────────┐  
-        │       │        │  
-     objects  actors   rules  
-        │       │        │  
-        └── relationships ┘  
-                 │  
-          latent possibilities  
-                 │  
-             tensions  
-                 │  
+```text
+             WORLD
+        ┌───────┼────────┐
+        │       │        │
+     objects  actors   rules
+        │       │        │
+        └── relationships ┘
+                 │
+          latent possibilities
+                 │
+             tensions
+                 │
           consequences
+```
 
 An environment becomes interesting for autonomy when it contains **things that want things**. In the thesis, NPCs and factions are therefore not merely data structures. Their desires collide with those of the players, and those collisions generate scenes. The complexity of the world consequently depends less on how many objects it contains than on **how many interacting desires and relations it contains**.
 
@@ -114,7 +124,7 @@ That is an important architectural distinction for AI agents:
 
 **Confidence: 0.93.**
 
-## 3\. The environment should be generative rather than completely specified
+## 3. The environment should be generative rather than completely specified
 
 Perhaps the most interesting passage for agent architecture concerns incomplete information. Lefèvre argues that the game world's information cannot and should not be completely enumerated. The framework establishes a generative structure from which details can be produced when they become relevant. The game master may even create parts of the environment in response to the unfolding campaign.
 
@@ -122,27 +132,31 @@ This has a direct correspondence with **open-ended agent environments**.
 
 A naive architecture attempts to maintain:
 
-complete world model  
-        ↓  
-perfect planning  
-        ↓  
-action
+```text
+complete world model
+         ↓
+  perfect planning
+         ↓
+       action
+```
 
 The Lefèvre model implies:
 
-partial world model  
-       ↓  
-current situation  
-       ↓  
-desire / intention  
-       ↓  
-action  
-       ↓  
-new information  
-       ↓  
-world-model revision  
-       ↓  
-new possibilities
+```text
+partial world model
+         ↓
+ current situation
+         ↓
+ desire / intention
+         ↓
+       action
+         ↓
+  new information
+         ↓
+world-model revision
+         ↓
+ new possibilities
+```
 
 The unknown is therefore not simply a deficiency in the agent's knowledge. **It is structurally productive.**
 
@@ -150,7 +164,7 @@ This is especially important because much current agent design treats uncertaint
 
 **Confidence: 0.94.**
 
-## 4\. The "present" is an operational concept for agents
+## 4. The "present" is an operational concept for agents
 
 Another unusually powerful idea is Lefèvre's treatment of time. Every decision happens in a **shared present**. The past supplies the conditions of the current decision; the future remains genuinely uncertain because it depends on the decision and its resolution. Each loop therefore transforms the context for the next loop. The apparent cyclicity of the loop produces a non-cyclic historical process because the world is permanently altered by each iteration.
 
@@ -162,28 +176,33 @@ because "observe" is not passive observation of an immutable world.
 
 Instead:
 
-      PAST  
-        │  
-        ▼  
-  current state  
-        │  
-        ▼  
- interpretation  
-        │  
-        ▼  
-   intention  
-        │  
-        ▼  
-     action  
-        │  
-        ▼  
- environmental  
- transformation  
-        │  
-        ▼  
- NEW PRESENT  
-        │  
+```text
+     PAST
+      │
+      ▼
+current state
+      │
+      ▼
+interpretation
+      │
+      ▼
+  intention
+      │
+      ▼
+    action
+      │
+      ▼
+```
+
+ environmental
+```text
+ transformation
+        │
+        ▼
+ NEW PRESENT
+        │
         └──────► interpretation
+```
 
 The key is the **irreversibility of contextual transformation**. A good agent should not simply repeat a planning cycle against the same state representation. Each action should change the semantic conditions under which future actions become intelligible.
 
@@ -191,34 +210,36 @@ This resonates strongly with your earlier interest in **Donella Meadows, complex
 
 **Confidence: 0.92.**
 
-## 5\. Desire → quest → scene → campaign gives a hierarchy of agency
+## 5. Desire → quest → scene → campaign gives a hierarchy of agency
 
 Lefèvre does not stop at the atomic loop. He builds a hierarchy:
 
-DESIRE  
-  │  
-  ▼  
-QUEST  
-  │  
-  ▼  
-SCENES / CONFLICTS  
-  │  
-  ▼  
-DECISIONS  
-  │  
-  ▼  
-RESOLUTIONS  
-  │  
-  ▼  
-CONSEQUENCES  
-  │  
-  └──────────────┐  
-                 ▼  
-             CAMPAIGN  
-                 │  
-                 ▼  
-        transformed character  
-        \+ transformed world
+```text
+DESIRE
+  │
+  ▼
+QUEST
+  │
+  ▼
+SCENES / CONFLICTS
+  │
+  ▼
+DECISIONS
+  │
+  ▼
+RESOLUTIONS
+  │
+  ▼
+CONSEQUENCES
+  │
+  └──────────────┐
+                 ▼
+             CAMPAIGN
+                 │
+                 ▼
+        transformed character
+        + transformed world
+```
 
 A desire is not yet an action. It becomes a **quest**, which organizes a sequence of possible scenes. Each scene confronts different desires. Resolution progressively reduces the space of possible futures until one becomes actual. Lefèvre describes this explicitly as a movement from **virtuality toward actuality**: success and failure initially constitute a space of possible scenarios, and each resolved scene progressively contracts that space.
 
@@ -230,25 +251,27 @@ user request → task → completion
 
 one could have:
 
-values / persistent drives  
-        ↓  
-long-term objectives  
-        ↓  
-current quests  
-        ↓  
-situational intentions  
-        ↓  
-actions  
-        ↓  
-observations  
-        ↓  
-revised quests
+```text
+values / persistent drives
+            ↓
+   long-term objectives
+            ↓
+      current quests
+            ↓
+  situational intentions
+            ↓
+         actions
+            ↓
+       observations
+            ↓
+      revised quests
+```
 
 The agent's autonomy would then reside partly in its ability to **transform intentions into intermediate quests**, rather than waiting for a human to specify every subtask.
 
 **Confidence: 0.96.**
 
-## **6\. The most important reinterpretation: autonomy is relational**
+## 6. The most important reinterpretation: autonomy is relational
 
 The thesis's deepest contribution, in my reading, is that **autonomy is not independence**.
 
@@ -262,30 +285,35 @@ That is much closer to **relational autonomy** than to classical notions of inde
 
 For multi-agent systems this becomes even more interesting:
 
-       Agent A  
-       desires A  
-           │  
-           ▼  
-       interaction  
-           │  
-     ┌─────┴─────┐  
-     ▼           ▼  
- Agent B       WORLD  
-desires B     dynamics  
-     │           │  
-     └─────┬─────┘  
-           ▼  
-      transformed  
-       situation  
-           │  
-           ▼  
+```text
+       Agent A
+       desires A
+           │
+           ▼
+       interaction
+           │
+     ┌─────┴─────┐
+     ▼           ▼
+```
+
+ Agent B       WORLD
+```text
+desires B     dynamics
+     │           │
+     └─────┬─────┘
+           ▼
+      transformed
+       situation
+           │
+           ▼
    new desires / goals
+```
 
 The intelligence of the system is therefore partly **between agents**, not exclusively inside them.
 
 **Confidence: 0.96.**
 
-## **7\. The thesis also provides a critique of current "agent" architectures**
+## 7. The thesis also provides a critique of current "agent" architectures
 
 There is a particularly revealing argument concerning *metagaming*. Lefèvre criticizes systems where the game master attempts to determine what a player is "allowed" to decide based on what the character supposedly knows. His argument is that this can destroy the fundamental sovereignty of the player: the player is precisely the entity responsible for deciding what the character attempts. The system should provide information and consequences, not secretly take over the decision.
 
@@ -295,34 +323,38 @@ Translated into AI:
 
 Bad agent architecture:
 
-LLM proposes X  
-     ↓  
-policy says "X isn't allowed"  
-     ↓  
-X disappears
+```text
+       LLM proposes X
+              ↓
+policy says "X isn't allowed"
+              ↓
+        X disappears
+```
 
 More interesting architecture:
 
-LLM proposes X  
-     ↓  
-environment evaluates X  
-     ↓  
-constraints \+ uncertainty \+ consequences  
-     ↓  
-resolution  
-     ↓  
-agent observes what actually happened
+```text
+             LLM proposes X
+                   ↓
+        environment evaluates X
+                   ↓
+constraints + uncertainty + consequences
+                   ↓
+               resolution
+                   ↓
+ agent observes what actually happened
+```
 
 This preserves the agent's **sovereignty of intention** while preserving the environment's **sovereignty of consequence**.
 
 That distinction could be extremely useful for designing agents that are allowed to be genuinely autonomous without being allowed to violate system boundaries.
 
-**8\. Drama, karma and fortune are three different kinds of agent environment**
+**8. Drama, karma and fortune are three different kinds of agent environment**
 
 The thesis distinguishes three fundamental modes of resolution:
 
-* **Drama** — the authority decides what happens.  
-* **Karma** — the result follows from the adequacy of the means.  
+* **Drama** — the authority decides what happens.
+* **Karma** — the result follows from the adequacy of the means.
 * **Fortune** — the result is determined by chance.
 
 Lefèvre explicitly connects these modes to the larger genres of scenes, quests and campaigns.
@@ -350,73 +382,77 @@ The architecture of the agent should differ accordingly.
 
 **Confidence: 0.94.**
 
-## **9\. "The game master as institution" could become an architecture for agentic orchestration**
+## 9. "The game master as institution" could become an architecture for agentic orchestration
 
 This is perhaps the most concrete reinterpretation.
 
 Lefèvre's *meneur* performs several functions simultaneously:
 
-                 MENEUR  
-                    │  
-       ┌────────────┼────────────┐  
-       ▼            ▼            ▼  
-   maintains     resolves      exposes  
-   context       conflicts     information  
-       │            │            │  
-       └────────────┼────────────┘  
-                    ▼  
-             transforms world  
-                    │  
-                    ▼  
+```text
+                 MENEUR
+                    │
+       ┌────────────┼────────────┐
+       ▼            ▼            ▼
+   maintains     resolves      exposes
+   context       conflicts     information
+       │            │            │
+       └────────────┼────────────┘
+                    ▼
+             transforms world
+                    │
+                    ▼
              next decision
+```
 
 He is therefore neither simply:
 
-* a planner,  
-* a tool executor,  
-* a narrator,  
-* a memory system,  
+* a planner,
+* a tool executor,
+* a narrator,
+* a memory system,
 * nor a controller.
 
 He is the **institutional layer connecting agent desires to environmental consequences**.
 
 That maps surprisingly well onto an architecture for autonomous agents:
 
-┌─────────────────────────────────────────┐  
-│             AGENT / DESIRE               │  
-│ goals · values · intentions · memory     │  
-└───────────────────┬─────────────────────┘  
-                    │  
-                    ▼  
-┌─────────────────────────────────────────┐  
-│          INTERACTION / DECISION          │  
-│ interpret situation → formulate action   │  
-└───────────────────┬─────────────────────┘  
-                    │  
-                    ▼  
-┌─────────────────────────────────────────┐  
-│        INSTITUTIONAL ENVIRONMENT         │  
-│ rules · norms · actors · resources       │  
-│ hidden state · causal dynamics           │  
-└───────────────────┬─────────────────────┘  
-                    │  
-                    ▼  
-┌─────────────────────────────────────────┐  
-│              RESOLUTION                  │  
-│ causal · stochastic · negotiated          │  
-└───────────────────┬─────────────────────┘  
-                    │  
-                    ▼  
-┌─────────────────────────────────────────┐  
-│          UPDATED SHARED WORLD             │  
-│ new facts · new constraints · new goals  │  
-└───────────────────┬─────────────────────┘  
-                    │  
+```text
+┌─────────────────────────────────────────┐
+│             AGENT / DESIRE               │
+│ goals · values · intentions · memory     │
+└───────────────────┬─────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────┐
+│          INTERACTION / DECISION          │
+│ interpret situation → formulate action   │
+└───────────────────┬─────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────┐
+│        INSTITUTIONAL ENVIRONMENT        │
+│ rules · norms · actors · resources      │
+│ hidden state · causal dynamics          │
+└───────────────────┬─────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────┐
+│              RESOLUTION                 │
+│ causal · stochastic · negotiated        │
+└───────────────────┬─────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────┐
+│          UPDATED SHARED WORLD           │
+│ new facts · new constraints · new goals │
+└───────────────────┬─────────────────────┘
+                    │
                     └──────────► next loop
+```
 
 This is much closer to a **complex adaptive system** than to an LLM wrapped in a while-loop.
 
-## **10\. The thesis's "theory-practice" relationship is itself relevant to agents**
+## 10. The thesis's "theory-practice" relationship is itself relevant to agents
 
 There is one final idea that deserves particular attention given your previous questions about agent frameworks.
 
@@ -424,17 +460,19 @@ Lefèvre argues that RPG theory is not simply an abstract description imposed on
 
 That suggests an important agent principle:
 
-experience  
-    ↓  
-reflection  
-    ↓  
-abstraction  
-    ↓  
-policy / skill / model  
-    ↓  
-future action  
-    ↓  
-new experience
+```text
+      experience
+          ↓
+      reflection
+          ↓
+     abstraction
+          ↓
+policy / skill / model
+          ↓
+    future action
+          ↓
+    new experience
+```
 
 This is considerably richer than ordinary episodic memory.
 
@@ -460,75 +498,77 @@ This connects directly to the kind of **agent self-improvement through reflectio
 
 The thesis can therefore be compressed into a surprisingly strong alternative model:
 
-                ┌─────────────────────┐  
-                 │  PERSISTENT DESIRES  │  
-                 │ values / objectives  │  
-                 └──────────┬──────────┘  
-                            │  
-                            ▼  
-                  ┌──────────────────┐  
-                  │      QUESTS      │  
-                  │ temporal projects│  
-                  └────────┬─────────┘  
-                           │  
-                           ▼  
-                ┌─────────────────────┐  
-                │ CURRENT SITUATION   │  
-                │ incomplete context  │  
-                └─────────┬───────────┘  
-                          │  
-                     interpret  
-                          │  
-                          ▼  
-                ┌─────────────────────┐  
-                │     INTENTION       │  
-                │ "what I want to do" │  
-                └─────────┬───────────┘  
-                          │  
-                    situated means  
-                          │  
-                          ▼  
-                ┌─────────────────────┐  
-                │       ACTION        │  
-                └─────────┬───────────┘  
-                          │  
-                     WORLD RESOLUTION  
-                          │  
-             ┌────────────┼────────────┐  
-             ▼            ▼            ▼  
-           causal      stochastic    social  
-             │            │            │  
-             └────────────┼────────────┘  
-                          ▼  
-                ┌─────────────────────┐  
-                │  CHANGED WORLD      │  
-                │ new facts, tensions │  
-                │ possibilities       │  
-                └─────────┬───────────┘  
-                          │  
-                    reinterpretation  
-                          │  
-                          ▼  
-                   NEW PRESENT  
-                          │  
-                          ▼  
-                     NEW QUESTS
+```text
+                ┌─────────────────────┐
+                │  PERSISTENT DESIRES │
+                │ values / objectives │
+                └──────────┬──────────┘
+                           │
+                           ▼
+                  ┌──────────────────┐
+                  │      QUESTS      │
+                  │ temporal projects│
+                  └────────┬─────────┘
+                           │
+                           ▼
+                ┌─────────────────────┐
+                │ CURRENT SITUATION   │
+                │ incomplete context  │
+                └─────────┬───────────┘
+                          │
+                     interpret
+                          │
+                          ▼
+                ┌─────────────────────┐
+                │     INTENTION       │
+                │ "what I want to do" │
+                └─────────┬───────────┘
+                          │
+                    situated means
+                          │
+                          ▼
+                ┌─────────────────────┐
+                │       ACTION        │
+                └─────────┬───────────┘
+                          │
+                     WORLD RESOLUTION
+                          │
+             ┌────────────┼────────────┐
+             ▼            ▼            ▼
+           causal      stochastic    social
+             │            │            │
+             └────────────┼────────────┘
+                          ▼
+                ┌─────────────────────┐
+                │  CHANGED WORLD      │
+                │ new facts, tensions │
+                │ possibilities       │
+                └─────────┬───────────┘
+                          │
+                    reinterpretation
+                          │
+                          ▼
+                     NEW PRESENT
+                          │
+                          ▼
+                      NEW QUESTS
+```
 
 The conceptual shift is substantial:
 
 **Current agent paradigm**
 
-> autonomy \= ability to independently execute a plan.
+> autonomy = ability to independently execute a plan.
 
 **Lefèvre-inspired paradigm**
 
-> autonomy \= ability to maintain and transform a trajectory of desires through continuous interaction with a partially known, resistant, institutionally structured environment.
+> autonomy = ability to maintain and transform a trajectory of desires through continuous interaction with a partially known, resistant, institutionally structured environment.
 
 The second definition makes autonomy **emergent, relational, temporal and situated**.
 
 It also explains why an agent can become more autonomous without necessarily becoming less dependent on its environment. In fact, the opposite may be true: **the richer the environment's resistance, memory, actors, norms and causal structure, the more meaningful the agent's autonomy becomes.**
 
-## **The most interesting connection with your earlier agent research**
+## The most interesting connection with your earlier agent research
 
 Placed alongside the concepts we have discussed around **Meadows, Morin, Le Moigne, Lévy, Monnin and Csikszentmihalyi**, Lefèvre supplies something that those perspectives do not quite provide by themselves:
 
@@ -548,27 +588,29 @@ And there is a striking consequence: **the "agent" may not be the LLM at all.**
 
 The more faithful abstraction would be:
 
-            ┌──────────────────────────┐  
-             │       AGENT SYSTEM       │  
-             │                          │  
-             │  desires                 │  
-             │  memory                  │  
-             │  interpretation          │  
-             │  intentions              │  
-             └────────────┬─────────────┘  
-                          │  
-                    ↕ recursive dialogue  
-                          │  
-             ┌────────────┴─────────────┐  
-             │     WORLD / INSTITUTION  │  
-             │                          │  
-             │  constraints             │  
-             │  affordances             │  
-             │  other agents            │  
-             │  hidden state            │  
-             │  norms                   │  
-             │  causal dynamics         │  
+```text
+             ┌──────────────────────────┐
+             │       AGENT SYSTEM       │
+             │                          │
+             │  desires                 │
+             │  memory                  │
+             │  interpretation          │
+             │  intentions              │
+             └────────────┬─────────────┘
+                          │
+                    ↕ recursive dialogue
+                          │
+             ┌────────────┴─────────────┐
+             │     WORLD / INSTITUTION  │
+             │                          │
+             │  constraints             │
+             │  affordances             │
+             │  other agents            │
+             │  hidden state            │
+             │  norms                   │
+             │  causal dynamics         │
              └──────────────────────────┘
+```
 
 **Autonomy is a property of the coupling**, not merely of the model inside the upper box.
 

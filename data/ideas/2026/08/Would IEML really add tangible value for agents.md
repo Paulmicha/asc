@@ -8,25 +8,21 @@ This is probably the central question. My answer is: **today, mostly redundant f
 
 The key insight is that LLMs already have a kind of "latent IEML."
 
-## **The strongest argument against IEML**
+## The strongest argument against IEML
 
 One of Lévy's original premises was that computers lacked semantics. Around 2010–2013, that was largely true.
 
 The workflow looked like:
 
+```text
 Natural language
-
-↓
-
-Parser
-
-↓
-
-Ontology
-
-↓
-
+       ↓
+     Parser
+       ↓
+    Ontology
+       ↓
 Reasoning engine
+```
 
 The symbolic layer was indispensable because machines could not infer meaning from text.
 
@@ -34,12 +30,12 @@ LLMs changed that.
 
 A transformer already constructs an internal semantic representation. It is not symbolic, but it is rich enough that it can:
 
-* recognize paraphrases  
-* translate languages  
-* infer analogies  
-* classify concepts  
-* detect contradictions  
-* generate taxonomies  
+* recognize paraphrases
+* translate languages
+* infer analogies
+* classify concepts
+* detect contradictions
+* generate taxonomies
 * map between ontologies
 
 Without any explicit IEML.
@@ -48,7 +44,7 @@ This eliminates much of the original motivation.
 
 ---
 
-## **But LLM semantics are implicit**
+## But LLM semantics are implicit
 
 The important difference is not "semantic vs syntactic."
 
@@ -66,10 +62,10 @@ cat ≈ feline ≈ pet
 
 but you cannot directly inspect
 
-* why  
-* through which intermediate concepts  
-* according to which ontology  
-* with what confidence  
+* why
+* through which intermediate concepts
+* according to which ontology
+* with what confidence
 * under which assumptions
 
 Everything exists inside billions of parameters.
@@ -78,13 +74,13 @@ IEML attempts to externalize that representation.
 
 ---
 
-## **Think of compilers**
+## Think of compilers
 
 Programming languages provide a useful analogy.
 
 When writing
 
-a \= b \+ c
+a = b + c
 
 the compiler constructs an AST.
 
@@ -94,21 +90,16 @@ Nobody wants to.
 
 But many compiler optimizations operate on it.
 
+```text
 Likewise,
-
 Natural language
-
 ↓
-
 LLM
-
 ↓
-
 Internal semantic representation
-
 ↓
-
 Answer
+```
 
 already exists.
 
@@ -118,18 +109,18 @@ That is a fundamentally different purpose.
 
 ---
 
-## **Where I think IEML is unnecessary**
+## Where I think IEML is unnecessary
 
 Many agent tasks simply do not require explicit symbolic semantics.
 
 Examples include:
 
-* summarization  
-* translation  
-* coding  
-* email writing  
-* brainstorming  
-* search  
+* summarization
+* translation
+* coding
+* email writing
+* brainstorming
+* search
 * RAG over a few thousand documents
 
 An LLM already performs these remarkably well.
@@ -138,18 +129,18 @@ Introducing IEML would mostly add complexity.
 
 ---
 
-## **Where I think it becomes valuable**
+## Where I think it becomes valuable
 
 Its advantages grow when the system must maintain knowledge over years rather than minutes.
 
 Imagine an organization with:
 
-* 50 million documents  
-* thousands of agents  
-* decades of accumulated knowledge  
-* multiple languages  
-* evolving terminology  
-* changing ontologies  
+* 50 million documents
+* thousands of agents
+* decades of accumulated knowledge
+* multiple languages
+* evolving terminology
+* changing ontologies
 * provenance requirements
 
 Now problems appear that embeddings do not solve cleanly.
@@ -166,21 +157,19 @@ Those are questions about explicit conceptual evolution.
 
 ---
 
-## **Meadows provides a useful criterion**
+## Meadows provides a useful criterion
 
 This connects nicely to Meadows' leverage points.
 
 LLMs primarily intervene at the **flow** level.
 
-Input
-
-↓
-
+```text
+  Input
+    ↓
 Reasoning
-
-↓
-
-Output
+    ↓
+ Output
+```
 
 IEML would intervene at the **information structure** level.
 
@@ -190,7 +179,7 @@ That is a deeper leverage point.
 
 ---
 
-## **Monnin strengthens the case**
+## Monnin strengthens the case
 
 Monnin repeatedly argues that digital objects have persistent identities.
 
@@ -206,7 +195,7 @@ If your goal is building an evolving epistemic infrastructure, it becomes limiti
 
 ---
 
-## **I would not implement IEML literally**
+## I would not implement IEML literally
 
 This is where I diverge from Lévy.
 
@@ -218,23 +207,17 @@ The semantic layer would be generated only when persistence matters.
 
 For example:
 
-Document
-
-↓
-
+```text
+   Document
+       ↓
 LLM extraction
-
-↓
-
+       ↓
 Semantic graph
-
-↓
-
+       ↓
 Version history
-
-↓
-
-Agent memory
+       ↓
+ Agent memory
+```
 
 The LLM remains the cognitive engine.
 
@@ -242,42 +225,44 @@ The symbolic layer becomes the durable memory.
 
 ---
 
-## **A hybrid architecture seems more promising**
+## A hybrid architecture seems more promising
 
 The architecture I find most compelling now is:
 
-Natural language  
-        │  
-        ▼  
-      LLM  
-        │  
-        ├── Fast reasoning  
-        │  
-        └── Semantic extraction  
-                │  
-                ▼  
-      Persistent semantic graph  
-                │  
-      Provenance  
-      Versioning  
-      Evidence  
+```text
+Natural language
+        │
+        ▼
+      LLM
+        │
+        ├── Fast reasoning
+        │
+        └── Semantic extraction
+                │
+                ▼
+      Persistent semantic graph
+                │
+      Provenance
+      Versioning
+      Evidence
       Confidence
+```
 
 Notice that the symbolic representation is *derived* from the neural one, not a replacement for it.
 
 ---
 
-## **One aspect of IEML that may become increasingly important**
+## One aspect of IEML that may become increasingly important
 
 Ironically, I think the most valuable part of IEML is **not** its language.
 
 It is its insistence that semantics should satisfy properties like:
 
-* compositionality  
-* computability  
-* canonical representation  
-* invertibility where possible  
-* stable identifiers  
+* compositionality
+* computability
+* canonical representation
+* invertibility where possible
+* stable identifiers
 * semantic interoperability
 
 Those principles remain highly relevant even if IEML itself is never adopted.
@@ -294,7 +279,7 @@ Lévy often presents IEML as a language because that is its formal manifestation
 
 A useful analogy is the evolution of maps.
 
-### **Natural language is giving directions**
+### Natural language is giving directions
 
 Someone tells you:
 
@@ -306,7 +291,7 @@ This is roughly how LLMs operate. They are extraordinarily good at navigating th
 
 ---
 
-### **GPS provides coordinates**
+### GPS provides coordinates
 
 Instead, you can say:
 
@@ -322,7 +307,7 @@ IEML aims to do something analogous for concepts.
 
 ---
 
-### **The compass analogy**
+### The compass analogy
 
 A compass does not tell you where to go.
 
@@ -338,19 +323,19 @@ An LLM may produce:
 
 The question then becomes:
 
-* Which notion of resilience?  
-* Related to ecology?  
-* Cybernetics?  
-* Organizational theory?  
-* Systems engineering?  
-* Does it overlap with robustness?  
+* Which notion of resilience?
+* Related to ecology?
+* Cybernetics?
+* Organizational theory?
+* Systems engineering?
+* Does it overlap with robustness?
 * Does it contradict antifragility?
 
 A semantic coordinate system gives those concepts persistent positions relative to one another.
 
 ---
 
-### **LLMs already have an internal compass**
+### LLMs already have an internal compass
 
 This is the important nuance.
 
@@ -362,10 +347,10 @@ When prompted with:
 
 it activates nearby concepts:
 
-* systems  
-* feedback  
-* leverage points  
-* resilience  
+* systems
+* feedback
+* leverage points
+* resilience
 * limits to growth
 
 When prompted with:
@@ -376,30 +361,34 @@ another neighborhood activates.
 
 The difference is that this map is:
 
-* distributed  
-* implicit  
-* inaccessible  
+* distributed
+* implicit
+* inaccessible
 * model-dependent
 
 You cannot inspect it directly.
 
 ---
 
-### **IEML externalizes the map**
+### IEML externalizes the map
 
 Rather than relying on a model's internal geometry, IEML tries to build an explicit one.
 
 Instead of:
 
-LLM parameters  
-    ↓  
+```text
+   LLM parameters
+          ↓
 latent semantic space
+```
 
 you have:
 
-Explicit semantic space  
-        ↑  
+```text
+Explicit semantic space
+           ↑
    shared by agents
+```
 
 Multiple agents—even using different LLMs—could orient themselves using the same semantic reference.
 
@@ -407,7 +396,7 @@ That is analogous to different GPS manufacturers all using the same latitude and
 
 ---
 
-### **This also explains Monnin's connection**
+### This also explains Monnin's connection
 
 Monnin asks:
 
@@ -425,17 +414,17 @@ Those are complementary questions.
 
 ---
 
-### **One extension I think is missing**
+### One extension I think is missing
 
 If I were extending Lévy's framework today, I would add a second axis beyond semantics: **epistemic state**.
 
 A concept would not only have a semantic position, but also metadata such as:
 
-* confidence  
-* provenance  
-* temporal validity  
-* supporting evidence  
-* competing interpretations  
+* confidence
+* provenance
+* temporal validity
+* supporting evidence
+* competing interpretations
 * uncertainty
 
 Then the "compass" becomes closer to a **nautical chart**.
@@ -445,4 +434,3 @@ It does not merely tell you where concepts are; it also indicates which regions 
 That strikes me as particularly valuable for long-lived agent societies. Rather than asking only "Where is this idea in semantic space?", they could also ask "How reliable is our current position, and what evidence supports it?" That moves the representation from a map of meaning toward a map of knowledge.
 
 **Confidence level:** 0.99
-

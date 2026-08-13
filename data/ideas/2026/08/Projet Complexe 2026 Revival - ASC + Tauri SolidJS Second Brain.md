@@ -6,7 +6,7 @@
 [https://github.com/Paulmicha/projet-complexe](https://github.com/Paulmicha/projet-complexe)
 [https://chatgpt.com/s/t_6a7cce6079d88191804cecdac5cc21e1](https://chatgpt.com/s/t_6a7cce6079d88191804cecdac5cc21e1)
 
-# First shot
+## First shot
 
 You are not really building a Tauri application that happens to have a backend. You are building a **visual control plane over ASC**, where Tauri/Solid is deliberately kept thin and ASC remains the authority for everything that touches the machine.
 
@@ -51,11 +51,11 @@ This also makes your original idea of ASC much more coherent: **ASC becomes the 
 
 I previously proposed a Rust layer containing things such as:
 
-filesystem
-process management
-background workers
-OS integration
-ASC integration
+- filesystem
+- process management
+- background workers
+- OS integration
+- ASC integration
 
 I would now remove almost all of that.
 
@@ -229,12 +229,12 @@ The UI then becomes a visual client of this interface.
 And because you already use ASC from the terminal, the UI and CLI become **two interfaces to the same control plane**:
 
 ```text
-                  ASC
-                  /   \
-                 /     \
-             CLI       GUI
-             │          │
-         terminal      Tauri
+        ASC
+       /   \
+      /     \
+   CLI       GUI
+   │          │
+terminal      Tauri
 ```
 
 This is considerably better than making the Tauri application the canonical interface.
@@ -247,14 +247,14 @@ They can become part of the project's **operational interface**.
 
 For example:
 
-make test
-make index
-make index-test
-make worker
-make graph
-make agent-test
-make provision
-make backup
+- make test
+- make index
+- make index-test
+- make worker
+- make graph
+- make agent-test
+- make provision
+- make backup
 
 The Tauri UI can invoke the same ASC entry points that you use manually.
 
@@ -383,7 +383,7 @@ That gives you the same swappability you want at the OS level, but also at the *
 
 This is one of the strongest aspects of your architecture.
 
-### **OS portability**
+### OS portability
 
 ```text
 ASC
@@ -392,8 +392,7 @@ ASC
  ├── Ubuntu hook
  └── Windows hook
 ```
-
-### **Tool portability**
+### Tool portability
 
 ```text
 DocumentExtractor
@@ -402,8 +401,7 @@ DocumentExtractor
  ├── pdftotext
  └── custom extractor
 ```
-
-### **AI portability**
+### AI portability
 
 ```text
 AgentBackend
@@ -431,24 +429,24 @@ That is much more powerful than merely making Tauri cross-platform.
 
 I would avoid designing the frontend around technical components such as:
 
-Solr page
-ArangoDB page
-Docker page
-Python page
-Tauri page
+- Solr page
+- ArangoDB page
+- Docker page
+- Python page
+- Tauri page
 
 Instead:
 
 Knowledge
-Projects
-Machines
-Storage
-Services
-Workers
-Agents
-Sources
-Graphs
-Activity
+- Projects
+- Machines
+- Storage
+- Services
+- Workers
+- Agents
+- Sources
+- Graphs
+- Activity
 
 Those are stable concepts.
 
@@ -472,13 +470,13 @@ Machine
 
 Whether the information comes from:
 
-/proc
-lsblk
-lshw
-Docker
-SSH
-Windows APIs
-ASC hooks
+- /proc
+- lsblk
+- lshw
+- Docker
+- SSH
+- Windows APIs
+- ASC hooks
 
 is irrelevant to the UI.
 
@@ -589,25 +587,25 @@ Kobalte provides the behavioral/accessibility primitives.
 
 You provide:
 
-body {}
-h1 {}
-h2 {}
-p {}
-a {}
-button {}
-dialog {}
-nav {}
-article {}
+- body {}
+- h1 {}
+- h2 {}
+- p {}
+- a {}
+- button {}
+- dialog {}
+- nav {}
+- article {}
 
 and your application-specific vocabulary:
 
-.knowledge {}
-.graph {}
-.machine {}
-.agent {}
-.project {}
-.source {}
-.timeline {}
+- .knowledge {}
+- .graph {}
+- .machine {}
+- .agent {}
+- .project {}
+- .source {}
+- .timeline {}
 
 This is much closer to the kind of interface you're describing.
 
@@ -685,10 +683,10 @@ Agent: research-agent
 
 The same events should be accessible through:
 
-GUI
-CLI
-logs
-machine-readable event stream
+- GUI
+- CLI
+- logs
+- machine-readable event stream
 
 Again, ASC is an excellent place to normalize this.
 
@@ -696,9 +694,11 @@ Again, ASC is an excellent place to normalize this.
 
 Rather than Tauri constantly polling ASC:
 
+```text
 Tauri → ASC → status
 Tauri → ASC → status
 Tauri → ASC → status
+```
 
 I'd eventually want:
 
@@ -733,36 +733,36 @@ Second Brain is authoritative about interpretation.
 
 More formally:
 
-ASC
-= "What exists and what can be done?"
+- ASC
+- = "What exists and what can be done?"
 
 Second Brain
 = "What does it mean, how is it related, and how should I understand it?"
 
 Examples:
 
-### **ASC**
+### ASC
 
 This machine has:
-32 GB RAM
-12 CPU threads
-GTX 1050
-Debian 13
-Docker running
-immich container running
+- 32 GB RAM
+- 12 CPU threads
+- GTX 1050
+- Debian 13
+- Docker running
+- immich container running
 
-### **Second Brain**
+### Second Brain
 
 This is my development laptop.
 
-It hosts:
-ASC
-project-complexe
-Drupal project
+- It hosts:
+- ASC
+- project-complexe
+- Drupal project
 
-It is related to:
-AI research
-local LLM experiments
+- It is related to:
+- AI research
+- local LLM experiments
 
 The GTX 1050 constrains:
 local model selection
@@ -838,12 +838,12 @@ I would now **not use `tauri-start-solid` as the foundation**.
 
 I'd start with:
 
-Tauri 2
-SolidJS
-TypeScript
-Vite
-Kobalte
-plain CSS
+- Tauri 2
+- SolidJS
+- TypeScript
+- Vite
+- Kobalte
+- plain CSS
 
 Nothing else.
 
@@ -865,6 +865,7 @@ Your project's differentiator isn't going to be its component library.
 
 It will be:
 
+```text
 ASC
   +
 knowledge model
@@ -876,6 +877,7 @@ graph
 agent orchestration
   +
 visualization
+```
 
 The frontend should therefore be almost boring technologically.
 
@@ -893,23 +895,23 @@ Make it:
 
 Then the first Tauri screen can be almost absurdly simple:
 
-Machine
-Debian 13
-12 CPU threads
-32 GB RAM
-GTX 1050
+- Machine
+- Debian 13
+- 12 CPU threads
+- 32 GB RAM
+- GTX 1050
 
-ASC
-running
+- ASC
+- running
 
-Projects
-  projet-complexe
-  asc
-  chouette.net.br
+- Projects
+- projet-complexe
+- asc
+- chouette.net.br
 
-Workers
-  indexing       idle
-  backups        running
+- Workers
+- indexing       idle
+- backups        running
 
 If that works from:
 
@@ -925,7 +927,7 @@ Everything else can grow around it.
 
 **Confidence: 0.97.** Your clarification makes the ASC-as-control-plane boundary unusually well-defined. The strongest architectural risk is not Tauri, SolidJS, Kobalte, or Python; it is allowing the second-brain UI to acquire direct knowledge of OS/tool implementations that ASC is specifically intended to abstract. Keeping that boundary strict preserves the portability, terminal reproducibility, lightweight frontend, and eventual agent swappability you are aiming for.
 
-# Follow-up 1 : where to draw the line between projects (responsibilities)
+## Follow-up 1 : where to draw the line between projects (responsibilities)
 
 What I liked about the [https://github.com/Paulmicha/projet-complexe](https://github.com/Paulmicha/projet-complexe) project was its separation (visually) between **task-oriented** and **knowledge-oriented** use cases. The [https://github.com/Paulmicha/asc](https://github.com/Paulmicha/asc) is much more generic, but I figured [https://github.com/Paulmicha/projet-complexe](https://github.com/Paulmicha/projet-complexe) could just rely on it. So I am torn between :
 
@@ -983,7 +985,7 @@ The "dev stack" should be the thing that makes ASC useful to the second brain, n
 
 The two projects have different reasons for existing.
 
-### **ASC answers:**
+### ASC answers:
 
 > How do I operate my computational environment?
 
@@ -1013,7 +1015,7 @@ provisioning
 
 logs
 
-### **`projet-complexe` answers:**
+### `projet-complexe` answers:
 
 > How do I understand, organize, manipulate and act upon what exists in that environment?
 
@@ -1048,17 +1050,17 @@ Trying to put them into one repository would create a dangerous gravitational pu
 "Since the second brain needs X..."
 
 ```text
-       ↓
-put X in projet-complexe
-       ↓
+                ↓
+    put X in projet-complexe
+                ↓
 "Since X needs system access..."
-       ↓
-put system abstraction there
-       ↓
-"Since we already have that..."
-       ↓
+                ↓
+  put system abstraction there
+                ↓
+ "Since we already have that..."
+                ↓
 ASC functionality gets duplicated
-       ↓
+                ↓
 two ways of doing the same thing
 ```
 
@@ -1111,7 +1113,7 @@ That repository can then contain the things that are *specific to your second-br
 
 This is where the separation becomes particularly powerful.
 
-### **ASC itself**
+### ASC itself
 
 Portable:
 
@@ -1123,8 +1125,7 @@ ASC
 ├── Windows implementation
 └── ...
 ```
-
-### **Your ASC environment**
+### Your ASC environment
 
 Personal / machine-specific:
 
@@ -1138,8 +1139,7 @@ my-asc-stack
 ├── agent runtimes
 └── other services
 ```
-
-### **The second brain**
+### The second brain
 
 Conceptually portable:
 
@@ -1536,11 +1536,11 @@ But conceptually there is a useful future boundary:
 
 ```text
 projet-complexe
-        │
-        │
-     protocol
-        │
-        ▼
+       │
+       │
+   protocol
+       │
+       ▼
       ASC
 ```
 
@@ -1604,16 +1604,16 @@ github.com/Paulmicha/
 With the dependencies:
 
 ```text
-                 projet-complexe
-                         │
-                         ▼
-                    asc-protocol
-                         │
-                         ▼
-                        ASC
-                         │
-                         ▼
-                    asc-stack
+projet-complexe
+       │
+       ▼
+ asc-protocol
+       │
+       ▼
+      ASC
+       │
+       ▼
+   asc-stack
 ```
 
 Notice what this prevents:
@@ -1678,15 +1678,15 @@ That's enough.
 
 It preserves **three different kinds of identity**.
 
-### **ASC**
+### ASC
 
 **How things are operated.**
 
-### **`asc-stack`**
+### `asc-stack`
 
 **How your particular computational environment is assembled.**
 
-### **`projet-complexe`**
+### `projet-complexe`
 
 **How you understand and work with that environment.**
 
@@ -1721,7 +1721,7 @@ That is a strong architecture.
 
 I would therefore **keep `projet-complexe` as a separate repository and evolve it into the second-brain/agent environment**, while making an `asc-stack`-type repository the concrete infrastructure composition underneath it. The visual task/knowledge split should remain one of the defining architectural concepts of `projet-complexe`, not be swallowed by ASC. **Confidence: 0.97.**
 
-# Follow-up 2 : Embed the asc-protocol idea into ASC itself (just use yaml)
+## Follow-up 2 : Embed the asc-protocol idea into ASC itself (just use yaml)
 
 About "asc-protocol" :
 
@@ -1843,24 +1843,24 @@ This is important because it prevents YAML from gradually becoming an imperative
 
 I would resist adding things like:
 
-run:
-  command: ...
-  if: ...
-  foreach: ...
-  parallel: ...
+- run:
+- command: ...
+- if: ...
+- foreach: ...
+- parallel: ...
 
 too early.
 
 The more powerful model is:
 
-software:
-  ...
+- software:
+- ...
 
 plus:
 
-software/install
-software/status
-software/uninstall
+- software/install
+- software/status
+- software/uninstall
 
 plus hooks that resolve those operations.
 
@@ -1922,20 +1922,24 @@ That avoids having to reproduce the entire complexity of OO inheritance.
 
 Imagine:
 
-# software.entity.yml
+## software.entity.yml
 
 include:
   - entity.entity
 
+```text
 field:
   status:
     type: enum
     values:
+```
+
       - installed
       - unhealthy
       - outdated
       - unavailable
 
+```text
   executable:
     type: path
 
@@ -1947,16 +1951,17 @@ field:
 
   dependencies:
     type: entity[]
+```
 
 Then:
 
-# tesseract.entity.yml
+## tesseract.entity.yml
 
 include:
   - software.entity
 
-entity:
-  type: tesseract
+- entity:
+- type: tesseract
 
 Now Tesseract automatically participates in the `software` vocabulary.
 
@@ -1968,6 +1973,7 @@ provides the implementation.
 
 That means ASC can eventually reason:
 
+```text
 tesseract
     is software
     has executable
@@ -1975,6 +1981,7 @@ tesseract
     has directories
     depends on ...
     provides recognize/text
+```
 
 without knowing anything specifically about Tesseract.
 
@@ -1988,11 +1995,11 @@ Your current root entity already anticipates a capability/contract vocabulary, i
 
 I would think of these as two different axes:
 
-ENTITY
-"What is this?"
+- ENTITY
+- "What is this?"
 
-ABILITY / CONTRACT
-"What can this participate in?"
+- ABILITY / CONTRACT
+- "What can this participate in?"
 
 For example:
 
@@ -2030,8 +2037,8 @@ easyocr.entity.yml
 
 Now the UI doesn't need:
 
-if tesseract
-else if easyocr
+- if tesseract
+- else if easyocr
 
 It can ask:
 
@@ -2093,9 +2100,9 @@ recognize/text
 
 and selects variants such as:
 
-STACK_VERSION
-HOST_OS
-PROVISION_USING
+- STACK_VERSION
+- HOST_OS
+- PROVISION_USING
 
 ([GitHub](https://github.com/Paulmicha/asc/blob/main/asc/extensions/cognition/recognize/text.sh))
 
@@ -2178,17 +2185,17 @@ I think you're touching an important distinction.
 
 I'd model at least these three execution concepts:
 
-invoke
-wrap
-nest
+- invoke
+- wrap
+- nest
 
-### **`invoke`**
+### `invoke`
 
 Run an operation.
 
 ocr(file)
 
-### **`wrap`**
+### `wrap`
 
 Treat an external program as an ASC operation.
 
@@ -2206,16 +2213,17 @@ ASC
        ├── stderr
        └── exit status
 ```
-
-### **`nest`**
+### `nest`
 
 Compose ASC operations inside another ASC execution context.
 
+```text
 nest(
     recognize(file),
     index(result),
     relate(result)
 )
+```
 
 That gives you a distinction between:
 
@@ -2231,27 +2239,33 @@ I would preserve that distinction.
 
 Rather than creating a complicated execution language, you could eventually have something conceptually like:
 
+```text
 batch(
     a(),
     b(),
     c()
 )
+```
 
 versus:
 
+```text
 sequence(
     a(),
     b(),
     c()
 )
+```
 
 and perhaps:
 
+```text
 pipe(
     a(),
     b(),
     c()
 )
+```
 
 That gives you three fundamentally different semantics:
 
@@ -2284,12 +2298,12 @@ include:
 
 with capabilities such as:
 
-agent/run
-agent/stop
-agent/status
-agent/log
-agent/ask
-agent/approve
+- agent/run
+- agent/stop
+- agent/status
+- agent/log
+- agent/ask
+- agent/approve
 
 And then the second brain could display an agent's execution using the same underlying abstraction as any other ASC operation.
 
@@ -2358,21 +2372,20 @@ Tauri
   ├── runOCR()
   └── ...
 ```
-
 ## 12. The filename-safe argument naming problem is real
 
 I would be conservative here.
 
 You essentially have several namespaces:
 
-filesystem
-ASC entity
-ASC operation
-argument
-property
-contract
-hook
-scope
+- filesystem
+- ASC entity
+- ASC operation
+- argument
+- property
+- contract
+- hook
+- scope
 
 and they eventually need to coexist in filenames.
 
@@ -2384,10 +2397,10 @@ Something along the lines of:
 
 with a separate convention for hierarchy:
 
-software/tesseract
-recognize/text
-agent/run
-project/status
+- software/tesseract
+- recognize/text
+- agent/run
+- project/status
 
 But avoid putting arbitrary shell syntax into identifiers.
 
@@ -2405,16 +2418,16 @@ remains one identifier.
 
 Then argument names can remain:
 
-input-file
-output-dir
-host-name
-agent-id
+- input-file
+- output-dir
+- host-name
+- agent-id
 
 rather than:
 
-input file
-input/file
-input$file
+- input file
+- input/file
+- input$file
 
 The critical rule is:
 
@@ -2440,28 +2453,28 @@ from:
 
 and determine whether that means:
 
-argv
-stdin
-environment
-file
-glob
-entity reference
-property reference
-literal
-expression
+- argv
+- stdin
+- environment
+- file
+- glob
+- entity reference
+- property reference
+- literal
+- expression
 
 I'd establish a very small type vocabulary.
 
 Something conceptually like:
 
-literal
-path
-entity
-field
-list
-expression
-stdin
-stdout
+- literal
+- path
+- entity
+- field
+- list
+- expression
+- stdin
+- stdout
 
 Then:
 
@@ -2485,8 +2498,10 @@ test-in(foo,[bar,baz])
 
 could resolve:
 
+```text
 foo       → literal
 [bar,baz] → list
+```
 
 This prevents the DSL from eventually becoming ambiguous shell interpolation.
 
@@ -2537,33 +2552,33 @@ This is where I think your design becomes much more interesting than I initially
 You could have:
 
 ```text
-YAML
- │
- │ declares
- ▼
+                    YAML
+                     │
+                 │ declares
+                     ▼
 entities / contracts / fields / capabilities
- │
- │ interpreted by
- ▼
-ASC DSL
- │
- │ resolves
- ▼
-operations / hooks / arguments
- │
- │ executes
- ▼
-shell / programs / workers
+                     │
+              │ interpreted by
+                     ▼
+                  ASC DSL
+                     │
+                 │ resolves
+                     ▼
+       operations / hooks / arguments
+                     │
+                 │ executes
+                     ▼
+         shell / programs / workers
 ```
 
 And then ASC can potentially introspect itself:
 
-"What is tesseract?"
-"What can tesseract do?"
-"What does recognize-text accept?"
-"Which implementations satisfy OCR?"
-"What dependencies does this software have?"
-"Which machine provides this capability?"
+- "What is tesseract?"
+- "What can tesseract do?"
+- "What does recognize-text accept?"
+- "Which implementations satisfy OCR?"
+- "What dependencies does this software have?"
+- "Which machine provides this capability?"
 
 The same declarations that tell ASC how to execute something can tell the Tauri UI how to **represent it**.
 
@@ -2573,18 +2588,18 @@ That is a major opportunity.
 
 Imagine the UI receives an entity description:
 
-tesseract
-entity: software
-capabilities:
+- tesseract
+- entity: software
+- capabilities:
   - executable
   - recognize-text
 
-fields:
-  status
-  executable
-  files
-  dirs
-  dependencies
+- fields:
+- status
+- executable
+- files
+- dirs
+- dependencies
 
 It can automatically produce a visual representation:
 
@@ -2615,24 +2630,24 @@ This is where the two repositories converge elegantly.
 
 ASC could define:
 
-entity
-software
-machine
-file
-process
-service
+- entity
+- software
+- machine
+- file
+- process
+- service
 
 while `projet-complexe` could extend the vocabulary:
 
-project
-idea
-research
-source
-concept
-note
-task
-agent
-publication
+- project
+- idea
+- research
+- source
+- concept
+- note
+- task
+- agent
+- publication
 
 They could all use the same declaration mechanism.
 
@@ -2707,25 +2722,25 @@ Don't try to specify the entire DSL.
 
 Your current `entity.entity.yml` is already signalling a very broad vocabulary:
 
-is
-access
-include
-field
-triple
-link
-synonym
-override
-hook
-wrap
-nest
-sidecar
-entity
-taxonomy
-cognition
-contract
-required
-optional
-...
+- is
+- access
+- include
+- field
+- triple
+- link
+- synonym
+- override
+- hook
+- wrap
+- nest
+- sidecar
+- entity
+- taxonomy
+- cognition
+- contract
+- required
+- optional
+- ...
 
 ([GitHub](https://github.com/Paulmicha/asc/blob/main/asc/extensions/entity/entity/entity.entity.yml))
 
@@ -2735,18 +2750,18 @@ The danger is designing the language before you have enough real operations to c
 
 I would instead implement perhaps:
 
-include
-entity
-field
-hook
-contract
+- include
+- entity
+- field
+- hook
+- contract
 
 first.
 
 Then:
 
-wrap
-nest
+- wrap
+- nest
 
 when actual composition requires them.
 
@@ -2777,25 +2792,25 @@ If ASC operations are themselves entities/capabilities, then the second brain ca
 For example:
 
 ```text
-                KNOWLEDGE
-                     │
-                     ▼
-                   TASK
-                     │
-                     ▼
-                   AGENT
-                     │
-                     ▼
-               ASC operation
-                     │
-                     ▼
-                  program
-                     │
-                     ▼
-                  artifact
-                     │
-                     ▼
-                KNOWLEDGE
+  KNOWLEDGE
+      │
+      ▼
+    TASK
+      │
+      ▼
+    AGENT
+      │
+      ▼
+ASC operation
+      │
+      ▼
+   program
+      │
+      ▼
+  artifact
+      │
+      ▼
+  KNOWLEDGE
 ```
 
 The system becomes reflexive.
@@ -2846,6 +2861,7 @@ I would now settle on this:
 
 And the crucial conceptual equations would be:
 
+```text
 ENTITY
     = description of something
 
@@ -2866,12 +2882,13 @@ NEST
 
 ASC
     = resolver + executor + declarative substrate
+```
 
 That is enough to make your "protocol" live **inside ASC**, without creating a protocol repository.
 
 The real thing to design carefully now is not another repository. It is the **semantic boundary between YAML declarations, DSL expressions, and executable hooks**. If that boundary remains tiny and orthogonal, `projet-complexe` can become a very sophisticated second brain and agent controller without turning ASC into a second-brain-specific framework.
 
-# Follow-up 3 : you could have read my README first (but we’ll manage)
+## Follow-up 3 : you could have read my README first (but we’ll manage)
 
 I already have written some clarifications regarding some of the suggestions and / or interrogations you made, here's what I had in mind : (see attached) can you go through it and revise your answer where appropriate ?
 
@@ -2918,25 +2935,28 @@ Your notes make clear that the **filesystem itself is part of ASC's language**.
 
 For example:
 
-$subject/$action
-$subject/$object/$action
+- $subject/$action
+- $subject/$object/$action
 
 are not merely implementation paths. They carry semantic information.
 
 Likewise:
 
-[entity].entity.yml
-[able].able.yml
-[action].sh
-[hook].{file_ext}
-{subject}.inc.sh
+- [entity].entity.yml
+- [able].able.yml
+- [action].sh
+- [hook].{file_ext}
+- {subject}.inc.sh
 
 are all syntactic forms in a larger naming grammar.
 
 So I would now describe ASC as:
 
+```text
 ASC =
     filesystem grammar
+```
+
   + declarative grammar
   + executable grammar
   + composition grammar
@@ -2966,8 +2986,8 @@ That means `$subject`, `$object`, and `$action` are better understood as **seman
 
 The distinction:
 
-remote-host--foobar
-remote-host--reverse-proxy--state
+- remote-host--foobar
+- remote-host--reverse-proxy--state
 
 also makes this explicit: `--` means a relation rather than an entry point.
 
@@ -3014,19 +3034,19 @@ doesn't necessarily represent an abstract function invocation in the programming
 It represents something closer to:
 
 ```text
-                DSL expression
-                       │
-                       ▼
-                 ASC resolution
-                       │
-                       ▼
-                fixed entry point
-                       │
-                       ▼
-                    script
-                       │
-                       ▼
-                     hook
+ DSL expression
+        │
+        ▼
+ ASC resolution
+        │
+        ▼
+fixed entry point
+        │
+        ▼
+     script
+        │
+        ▼
+      hook
 ```
 
 And your intention to make `make` understand DSL as a fallback reinforces this: DSL becomes another way of addressing the same ASC machinery, rather than a second execution system.
@@ -3035,9 +3055,9 @@ And your intention to make `make` understand DSL as a fallback reinforces this: 
 
 I previously proposed:
 
-invoke
-wrap
-nest
+- invoke
+- wrap
+- nest
 
 as three execution primitives.
 
@@ -3057,8 +3077,8 @@ I would therefore **not define `nest` primarily as an execution primitive**.
 
 Instead:
 
-nestable
-=
+- nestable
+- =
 something that can contain / expose a subordinate ASC structure
 
 Execution can happen inside it, but nesting is fundamentally a **structural property**.
@@ -3096,8 +3116,8 @@ Your notes point toward something more general.
 
 You describe:
 
-field = stored instance value
-prop  = YAML constant shared by entities
+- field = stored instance value
+- prop  = YAML constant shared by entities
 
 with fields being editable/stored and props being inherited/composed YAML constants.
 
@@ -3111,6 +3131,7 @@ I would therefore avoid imposing the OO analogy too strongly.
 
 Instead:
 
+```text
 .entity.yml
     = what this kind of thing declares
 
@@ -3125,6 +3146,7 @@ Instead:
 
 .include
     = composition
+```
 
 That is closer to **structural composition** than inheritance.
 
@@ -3152,11 +3174,11 @@ include(A, B)
 
 means roughly:
 
-resolve B
-+
-merge B's declaration
-+
-resolve conflicts according to ASC rules
+- resolve B
+- +
+- merge B's declaration
+- +
+- resolve conflicts according to ASC rules
 
 rather than:
 
@@ -3203,21 +3225,21 @@ projet-complexe
 
 And your `asc-stack` would mostly be:
 
-level 6
-project-specific environment
+- level 6
+- project-specific environment
 
 with perhaps some reusable contributions eventually migrating upward.
 
 That gives you a natural evolutionary mechanism:
 
 ```text
-private experiment
-      ↓
+  private experiment
+          ↓
 project implementation
-      ↓
-contrib extension
-      ↓
-ASC core
+          ↓
+  contrib extension
+          ↓
+       ASC core
 ```
 
 without requiring you to decide upfront what belongs where.
@@ -3265,9 +3287,9 @@ while reusable semantics go back into ASC.
 
 This is more like:
 
-ASC = language/runtime
-asc-stack = my deployment/environment
-projet-complexe = visual + semantic application
+- ASC = language/runtime
+- asc-stack = my deployment/environment
+- projet-complexe = visual + semantic application
 
 ## 9. Your sidecar concept is much more fundamental than I understood
 
@@ -3306,27 +3328,27 @@ That is exactly what your second brain will need.
 
 A research entity might have:
 
-research.entity.yml
-research.md
-sources/
-notes/
-data/
+- research.entity.yml
+- research.md
+- sources/
+- notes/
+- data/
 
 A project might have:
 
-project.entity.yml
-README.md
-src/
-tests/
-compose.yml
+- project.entity.yml
+- README.md
+- src/
+- tests/
+- compose.yml
 
 An agent might have:
 
-agent.entity.yml
-prompt.tpl
-config.yml
-logs/
-plans/
+- agent.entity.yml
+- prompt.tpl
+- config.yml
+- logs/
+- plans/
 
 The entity is the **virtual conceptual object**.
 
@@ -3365,6 +3387,7 @@ Then `projet-complexe` **defines a knowledge vocabulary using ASC**.
 
 For example:
 
+```text
 projet-complexe/
     extensions/
         knowledge/
@@ -3380,6 +3403,7 @@ projet-complexe/
             agent/
             plan/
             run/
+```
 
 That is cleaner.
 
@@ -3414,11 +3438,13 @@ Something like:
 
 The "killswitch" could therefore mean:
 
+```text
 task mode
 → hide knowledge-centric affordances
 
 knowledge mode
 → hide execution-centric affordances
+```
 
 without maintaining two separate data models.
 
@@ -3435,31 +3461,31 @@ This is potentially the missing central concept.
 Consider:
 
 ```text
-KNOWLEDGE
-   │
-   │ informs
-   ▼
-CHANGE
-   │
-   │ produces
-   ▼
-TASK
-   │
-   │ executed by
-   ▼
-AGENT
-   │
-   │ invokes
-   ▼
-ASC
-   │
-   │ modifies
-   ▼
+  KNOWLEDGE
+      │
+  │ informs
+      ▼
+    CHANGE
+      │
+  │ produces
+      ▼
+     TASK
+      │
+│ executed by
+      ▼
+    AGENT
+      │
+  │ invokes
+      ▼
+     ASC
+      │
+  │ modifies
+      ▼
 FILES / SYSTEM
-   │
-   │ generates
-   ▼
-KNOWLEDGE
+      │
+ │ generates
+      ▼
+  KNOWLEDGE
 ```
 
 That creates a cycle:
@@ -3467,7 +3493,7 @@ That creates a cycle:
 ```text
 knowledge
     ↓
-change
+ change
     ↓
 execution
     ↓
@@ -3488,8 +3514,8 @@ This is another consequence of your notes.
 
 Your relations:
 
-subject--object
-subject--predicate--object
+- subject--object
+- subject--predicate--object
 
 are explicitly described as useful notation but with mapping to complex memory stores out of scope.
 
@@ -3501,13 +3527,13 @@ ArangoDB/Solr/etc. can eventually be indexing/projection infrastructure.
 
 But ASC's primary representation can remain:
 
-filesystem
-+
-YAML
-+
-sidecars
-+
-relations
+- filesystem
+- +
+- YAML
+- +
+- sidecars
+- +
+- relations
 
 The database becomes an **index/projection**, not the canonical representation.
 
@@ -3526,12 +3552,13 @@ For your second brain, this is particularly attractive.
 
 rather than:
 
-ArangoDB
-   ↑
+```text
+ ArangoDB
+    ↑
 everything
-   ↑
-ASC
-
+    ↑
+   ASC
+```
 ## 14. This also clarifies where Docling belongs
 
 I previously put Docling in the "knowledge layer".
@@ -3568,16 +3595,16 @@ The Builder isn't just a code generator.
 
 Your notes explicitly connect:
 
-blueprint
-atomic
-nestable
-usable
-templates
-files
-dirs
-vars
-functions
-ASC instances
+- blueprint
+- atomic
+- nestable
+- usable
+- templates
+- files
+- dirs
+- vars
+- functions
+- ASC instances
 
 and even propose using a single `atomic.able` representation.
 
@@ -3612,10 +3639,12 @@ That's a reflective loop.
 
 Your template examples show:
 
+```text
 {{ slot }}
 <asc-if ...>
 <asc-for ...>
 {{ entity-preview(...) }}
+```
 
 This means you actually have at least two syntactic languages emerging:
 
@@ -3681,6 +3710,7 @@ Something like:
 
 The UI can then zoom through the same nested structures:
 
+```text
 machine
   → project
     → directory
@@ -3688,24 +3718,29 @@ machine
         → code
           → function
             → variable
+```
 
 or:
 
+```text
 research
   → source
     → document
       → page
         → passage
           → concept
+```
 
 or:
 
+```text
 agent
   → run
     → plan
       → task
         → command
           → process
+```
 
 This is exactly where your `nest.able = zoom.able` idea becomes potentially foundational rather than cosmetic.
 
@@ -3727,14 +3762,14 @@ as a completely separate application model unless experience forces it.
 
 Instead, let agents participate in the existing ASC vocabulary:
 
-agent.entity
-agent.able
-process/thread
-task
-change
-sidecar
-command
-hook
+- agent.entity
+- agent.able
+- process/thread
+- task
+- change
+- sidecar
+- command
+- hook
 
 Then an agent run becomes something like:
 
@@ -3774,30 +3809,30 @@ This is another example of why ASC shouldn't simply mirror POSIX.
 
 I previously suggested introducing a type vocabulary such as:
 
-literal
-path
-entity
-field
-list
-expression
+- literal
+- path
+- entity
+- field
+- list
+- expression
 
 I still think the underlying problem is real, but your current DSL notation already suggests a much more deliberately **shell-oriented** solution:
 
-a
-a-1
-a-1s
-o-max-4
-bo-y
+- a
+- a-1
+- a-1s
+- o-max-4
+- bo-y
 
 I would therefore **not introduce a large explicit type system yet**.
 
 Instead, first stabilize:
 
-a
-a-N
-a-Ns
-o-name
-bo-name
+- a
+- a-N
+- a-Ns
+- o-name
+- bo-name
 
 and let entry points establish interpretation.
 
@@ -3815,8 +3850,8 @@ test-in(a1,[slug(a-1,-),slug(a-1,_)])
 
 can compile conceptually to:
 
-$1
-"$1"-?
+- $1
+- "$1"-?
 
 while:
 
@@ -3830,12 +3865,14 @@ It is **naming those positional/option slots declaratively**.
 
 So I'd keep your proposed mapping:
 
+```text
 a       → $@
 a-1     → $1
 a-N     → $N
 a-1s    → shifted/rest arguments
 o-X     → named option
 bo-X    → boolean option
+```
 
 and make the DSL compiler/resolver responsible for preparing the shell scope.
 
@@ -3848,11 +3885,11 @@ I strongly agree with this after reading the notes.
 You have multiple reasons for it:
 
 ```text
-DSL expression
+  DSL expression
         ↓
 frozen entry point
         ↓
-filesystem path
+ filesystem path
 ```
 
 and you are considering paths such as:
@@ -3892,15 +3929,15 @@ The latter becomes something like a compiled/cached addressable artifact.
 Then:
 
 ```text
-DSL
- ↓
-resolution
- ↓
-freeze
- ↓
+      DSL
+       ↓
+   resolution
+       ↓
+     freeze
+       ↓
 filesystem pivot
- ↓
-execution
+       ↓
+   execution
 ```
 
 This fits extremely well with your Builder/cache ideas.
@@ -3937,8 +3974,8 @@ indexes
 Never:
 
 ```text
-frozen DSL
-    ↓
+     frozen DSL
+          ↓
 becomes authoritative
 ```
 
@@ -3985,23 +4022,23 @@ I would now **not create a separate "knowledge model" inside the Tauri applicati
 The temptation would be:
 
 ```text
-SolidJS
-   ↓
-TypeScript models
-   ↓
+            SolidJS
+               ↓
+       TypeScript models
+               ↓
 Task / Note / Concept / Project
 ```
 
 Instead:
 
 ```text
-SolidJS
-   ↓
+         SolidJS
+            ↓
 ASC entity representation
-   ↓
-ASC declarations
-   ↓
-filesystem
+            ↓
+    ASC declarations
+            ↓
+       filesystem
 ```
 
 The UI can cache/normalize data for performance, obviously.
@@ -4010,15 +4047,15 @@ But conceptually, the UI should **discover the vocabulary from ASC**.
 
 That allows the UI to display:
 
-task
-knowledge
-machine
-software
-document
-agent
-change
-file
-project
+- task
+- knowledge
+- machine
+- software
+- document
+- agent
+- change
+- file
+- project
 
 without needing each one hard-coded into the application.
 
@@ -4056,10 +4093,10 @@ EntityView
 
 with:
 
-TaskView
-KnowledgeView
-MachineView
-AgentView
+- TaskView
+- KnowledgeView
+- MachineView
+- AgentView
 
 being relatively thin semantic projections.
 
@@ -4075,11 +4112,11 @@ atomic.able
 
 for:
 
-vars
-functions
-files
-dirs
-ASC instance
+- vars
+- functions
+- files
+- dirs
+- ASC instance
 
 That suggests "atomic" in ASC means:
 
@@ -4103,14 +4140,14 @@ atomic
 Then higher-level structures are compositions:
 
 ```text
-atomic
-   ↓
-nest
-   ↓
-blueprint
-   ↓
-project
-   ↓
+  atomic
+     ↓
+   nest
+     ↓
+ blueprint
+     ↓
+  project
+     ↓
 environment
 ```
 
@@ -4126,8 +4163,8 @@ is exactly the kind of metadata discipline that will matter enormously once you 
 
 For example, avoid:
 
-type: note
-description: "This is a note about..."
+- type: note
+- description: "This is a note about..."
 
 because the filesystem/entity context already establishes `note`.
 
@@ -4211,6 +4248,7 @@ That captures much more of what your notes are actually describing.
 
 The resulting correspondence is:
 
+```text
 YAML       → declaration
 path       → identity / address
 entity     → virtual thing
@@ -4228,6 +4266,7 @@ builder    → generation
 freeze     → derived executable/cache representation
 thread     → ASC-managed execution pivot
 change     → transformation
+```
 
 That is, in my view, the real architecture emerging from your notes.
 
@@ -4254,17 +4293,17 @@ The reason is now clearer.
 The UI is going to be a major consumer of the semantic invariants established there:
 
 ```text
-naming
-   ↓
+       naming
+          ↓
 filesystem addressing
-   ↓
-YAML entities
-   ↓
-DSL expressions
-   ↓
-entry points
-   ↓
-hooks
+          ↓
+    YAML entities
+          ↓
+   DSL expressions
+          ↓
+    entry points
+          ↓
+        hooks
 ```
 
 If those move underneath a prematurely built UI, you will end up encoding unstable ASC semantics in TypeScript components.
@@ -4302,26 +4341,26 @@ My previous answer had the right **repository separation**, but the wrong center
 
 I was thinking:
 
-ASC
-= execution/control plane
+- ASC
+- = execution/control plane
 
-asc-stack
-= infrastructure
+- asc-stack
+- = infrastructure
 
-projet-complexe
-= semantic application
+- projet-complexe
+- = semantic application
 
 After reading your notes, I think the better model is:
 
-ASC
-= computational language + filesystem-oriented runtime
+- ASC
+- = computational language + filesystem-oriented runtime
 
-asc-stack
-= one concrete environment expressed through ASC
+- asc-stack
+- = one concrete environment expressed through ASC
 
-projet-complexe
-= graphical/semantic projection of that environment,
-  adding its own task/knowledge/agent vocabulary
+- projet-complexe
+- = graphical/semantic projection of that environment,
+- adding its own task/knowledge/agent vocabulary
 
 And the most important conceptual loop is:
 
@@ -4362,7 +4401,7 @@ That is much closer to what your notes describe than the more conventional "API 
 
 The particularly strong idea is that **the same structure can be viewed as code, filesystem, entity, sidecar, DSL, generated artifact, execution, and graphical object depending on the perspective**. That gives `projet-complexe` a genuinely appropriate foundation for becoming the visual second brain and agent-control environment you have in mind, without requiring ASC itself to become second-brain-specific. **Confidence: 0.98.**
 
-# Conclusion
+## Conclusion
 
 [https://chatgpt.com/s/t_6a7d0bf4f704819193956960a3a40085](https://chatgpt.com/s/t_6a7d0bf4f704819193956960a3a40085)
 
@@ -4372,9 +4411,8 @@ The beginning of the README already contains the right thesis. I would make the 
 
 That gives you a natural bridge from the "hard problem of naming things" to the Second Brain / Tauri project without making the README sound like it was secretly designed for that application all along.
 
-### **Proposed conclusion**
+## Proposed conclusion
 
-## Conclusion
 
 ASC starts from a deceptively simple problem: **things are difficult to compose when they are difficult to name**.
 
@@ -4391,18 +4429,18 @@ This matters increasingly as software stops being written exclusively by humans.
 The ambition is consequently recursive:
 
 ```text
-name things
-    ↓
-make them addressable
-    ↓
-make them composable
-    ↓
-make their relationships explicit
-    ↓
-make their behavior discoverable
-    ↓
+               name things
+                    ↓
+          make them addressable
+                    ↓
+          make them composable
+                    ↓
+    make their relationships explicit
+                    ↓
+    make their behavior discoverable
+                    ↓
 make the resulting system understandable
-    ↓
+                    ↓
 make it usable by humans and agents alike
 ```
 
@@ -4423,17 +4461,17 @@ The long-term goal is therefore deliberately broader than automation:
 The important progression is:
 
 ```text
-hard problem of naming
-        ↓
-shared vocabulary
-        ↓
+       hard problem of naming
+                 ↓
+         shared vocabulary
+                 ↓
 entry points / namespaces / variants
-        ↓
+                 ↓
 composable computational structures
-        ↓
-human + agent discoverability
-        ↓
-Second Brain
+                 ↓
+   human + agent discoverability
+                 ↓
+            Second Brain
 ```
 
 It also preserves the particularly strong phrase already present in your README:
@@ -4470,29 +4508,29 @@ That suggests a much richer analogy.
 
 Go gives you a remarkably small vocabulary:
 
-stones
-intersections
-groups
-liberties
-territory
-captures
-connections
+- stones
+- intersections
+- groups
+- liberties
+- territory
+- captures
+- connections
 
 Yet enormous structures emerge from those primitives.
 
 ASC seems to be pursuing something analogous:
 
-names
-entities
+- names
+- entities
 entry points
-namespaces
-scripts
-sidecars
-hooks
-arguments
-environment
-nesting
-relations
+- namespaces
+- scripts
+- sidecars
+- hooks
+- arguments
+- environment
+- nesting
+- relations
 
 The important property isn't that either system has few concepts. It's that **the concepts are sufficiently stable and composable that complex configurations can emerge without requiring a new abstraction for every situation**.
 
@@ -4502,11 +4540,11 @@ That is almost exactly what your README's:
 
 is saying.
 
-### **I would actually strengthen the analogy**
+### I would actually strengthen the analogy
 
 The conclusion could explicitly return to it:
 
-## Conclusion
+#### Conclusion
 
 ASC starts from a deceptively simple problem: the hard problem of naming things.
 

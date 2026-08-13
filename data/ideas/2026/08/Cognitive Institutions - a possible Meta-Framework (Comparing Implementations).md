@@ -1,4 +1,4 @@
-# Cognitive Institutions \- a possible Meta-Framework
+# Cognitive Institutions - a possible Meta-Framework
 
 ## on Comparing Implementations
 
@@ -17,7 +17,7 @@ These two projects operate at almost opposite layers of the agent stack.
 | Target | Coding agents | Any LLM application |
 | Philosophy | Better process → better outcomes | Better constraints → safer outcomes |
 | Main abstraction | Skills, methodologies, workflows | Validators, guards, policies |
-| Typical implementation | Prompt \+ skills \+ orchestration | Python middleware around LLM calls |
+| Typical implementation | Prompt + skills + orchestration | Python middleware around LLM calls |
 | Acts on | Planning and execution | Inputs and outputs |
 | Success metric | Higher engineering quality and autonomy | Lower risk and higher reliability |
 
@@ -27,47 +27,51 @@ Guardrails is almost orthogonal. It wraps LLM calls with input/output validators
 
 ---
 
-## **In systems terms**
+## In systems terms
 
 Since we've recently discussed Donella Meadows, Pierre Lévy, Alexandre Monnin and agent architectures, I think a useful decomposition is:
 
-         Human Intent  
-                │  
-                ▼  
-      Goal Formation  
-                │  
-                ▼  
-      Planning / Deliberation  
-                │  
-                ▼  
-      Task Execution  
-                │  
-                ▼  
-      Verification  
-                │  
-                ▼  
-      Memory / Learning  
-                │  
-                ▼  
-        Environment
+```text
+     Human Intent
+           │
+           ▼
+    Goal Formation
+           │
+           ▼
+Planning / Deliberation
+           │
+           ▼
+    Task Execution
+           │
+           ▼
+     Verification
+           │
+           ▼
+   Memory / Learning
+           │
+           ▼
+      Environment
+```
 
 Superpowers mostly lives here:
 
-Goal Formation  
-Planning  
-Execution  
-Verification
+- Goal Formation
+- Planning
+- Execution
+- Verification
 
 Guardrails lives here:
 
-Input  
-      │  
-      ▼  
-LLM  
-      │  
-Output validation  
-      │  
+```text
+          Input
+            │
+            ▼
+           LLM
+            │
+    Output validation
+            │
 Tool invocation validation
+```
 
 One improves cognition.
 
@@ -75,27 +79,28 @@ The other constrains behavior.
 
 ---
 
-## **They are complementary**
+## They are complementary
 
 An ideal coding agent would use both.
 
-Human  
-   │  
-   ▼  
-Superpowers  
-   │  
-Planning  
-   │  
-Subagents  
-   │  
-Guardrails  
-   │  
-Filesystem  
-Git  
-Docker  
-Internet
-
+```text
+     Human
+       │
+       ▼
+  Superpowers
+       │
+    Planning
+       │
+   Subagents
+       │
+   Guardrails
+       │
+   Filesystem
+      Git
+     Docker
+    Internet
 Superpowers says
+```
 
 > "Here's how to think."
 
@@ -107,7 +112,7 @@ Those are different responsibilities.
 
 ---
 
-# **Towards a formal comparison framework**
+## Towards a formal comparison framework
 
 I actually think this is the missing piece in the current agent ecosystem.
 
@@ -119,26 +124,26 @@ I would instead classify every project along approximately 15 dimensions.
 
 ---
 
-## **1\. Purpose**
+### 1. Purpose
 
 What problem does it solve?
 
 Examples
 
-* orchestration  
-* planning  
-* memory  
-* safety  
-* evaluation  
-* retrieval  
-* tool use  
-* coordination  
-* simulation  
+* orchestration
+* planning
+* memory
+* safety
+* evaluation
+* retrieval
+* tool use
+* coordination
+* simulation
 * learning
 
 ---
 
-## **2\. Architectural layer**
+### 2. Architectural layer
 
 For example
 
@@ -164,58 +169,58 @@ Many projects operate at different layers.
 
 ---
 
-## **3\. Cognitive function**
+### 3. Cognitive function
 
 Borrowing loosely from cognitive science.
 
 Examples
 
-* perception  
-* attention  
-* working memory  
-* episodic memory  
-* semantic memory  
-* planning  
-* reasoning  
-* reflection  
-* action  
-* learning  
+* perception
+* attention
+* working memory
+* episodic memory
+* semantic memory
+* planning
+* reasoning
+* reflection
+* action
+* learning
 * self-evaluation
 
 This was already emerging in our discussions about Pi and Hermes.
 
 ---
 
-## **4\. Degree of autonomy**
+### 4. Degree of autonomy
 
 Questions like
 
 Can it
 
-* answer one prompt?  
-* execute one task?  
-* execute plans?  
-* execute recursively?  
-* self-decompose?  
+* answer one prompt?
+* execute one task?
+* execute plans?
+* execute recursively?
+* self-decompose?
 * recover from failure?
 
 ---
 
-## **5\. Time horizon**
+### 5. Time horizon
 
 Can it operate over
 
-* seconds  
-* minutes  
-* hours  
-* days  
+* seconds
+* minutes
+* hours
+* days
 * persistent projects
 
 Superpowers explicitly optimizes for long engineering sessions.
 
 ---
 
-## **6\. Memory model**
+### 6. Memory model
 
 Examples
 
@@ -241,46 +246,46 @@ One of the strongest differentiators between Pi, Hermes, Agno, etc.
 
 ---
 
-## **7\. World model**
+### 7. World model
 
 Does the framework maintain an explicit representation of
 
-* goals  
-* plans  
-* state  
-* resources  
-* dependencies  
+* goals
+* plans
+* state
+* resources
+* dependencies
 * constraints
 
 or does it simply rely on the LLM context?
 
 ---
 
-## **8\. Control mechanism**
+### 8. Control mechanism
 
 How does it influence the model?
 
 Examples
 
-* prompts  
-* skills  
-* rules  
-* symbolic constraints  
-* finite state machines  
-* validators  
-* graph execution  
-* planners  
+* prompts
+* skills
+* rules
+* symbolic constraints
+* finite state machines
+* validators
+* graph execution
+* planners
 * schedulers
 
-Superpowers:  
-mostly prompts \+ skills.
+- Superpowers:
+- mostly prompts + skills.
 
-Guardrails:  
-validators.
+- Guardrails:
+- validators.
 
 ---
 
-## **9\. Feedback loops**
+### 9. Feedback loops
 
 Inspired directly by Meadows.
 
@@ -288,17 +293,17 @@ Questions
 
 Does the system have
 
-* monitoring  
-* evaluation  
-* retries  
-* reflection  
-* repair  
-* adaptation  
+* monitoring
+* evaluation
+* retries
+* reflection
+* repair
+* adaptation
 * learning
 
 ---
 
-## **10\. Leverage point (Meadows)**
+### 10. Leverage point (Meadows)
 
 This one is particularly interesting.
 
@@ -308,12 +313,12 @@ Examples
 
 Changing
 
-* parameters  
-* feedback loops  
-* information flows  
-* rules  
-* self-organization  
-* goals  
+* parameters
+* feedback loops
+* information flows
+* rules
+* self-organization
+* goals
 * paradigms
 
 Guardrails mainly modifies **rules** and **information flows**.
@@ -324,7 +329,7 @@ That makes Meadows surprisingly applicable here.
 
 ---
 
-## **11\. Representation formalism**
+### 11. Representation formalism
 
 Inspired by Pierre Lévy and IEML.
 
@@ -352,17 +357,17 @@ Events
 
 ---
 
-## **12\. Human-agent interaction model**
+### 12. Human-agent interaction model
 
 Examples
 
 Human
 
-* commands  
-* reviews  
-* collaborates  
-* supervises  
-* teaches  
+* commands
+* reviews
+* collaborates
+* supervises
+* teaches
 * approves
 
 Superpowers is strongly collaborative.
@@ -371,7 +376,7 @@ Guardrails is mostly invisible.
 
 ---
 
-## **13\. Extensibility**
+### 13. Extensibility
 
 How are new capabilities added?
 
@@ -393,16 +398,16 @@ DSL
 
 ---
 
-## **14\. Verification philosophy**
+### 14. Verification philosophy
 
 Does it rely on
 
-* trust  
-* tests  
-* symbolic proofs  
-* validators  
-* human review  
-* consensus  
+* trust
+* tests
+* symbolic proofs
+* validators
+* human review
+* consensus
 * multiple agents
 
 Superpowers emphasizes TDD and code review.
@@ -411,7 +416,7 @@ Guardrails emphasizes validation.
 
 ---
 
-## **15\. Adaptivity**
+### 15. Adaptivity
 
 Static?
 
@@ -427,7 +432,7 @@ Updates memory?
 
 ---
 
-# **Applying this framework**
+## Applying this framework
 
 This becomes much more interesting when comparing the projects we've discussed over the last several conversations:
 
@@ -448,16 +453,15 @@ Notice that these are mostly *composable modules*, not competitors.
 
 ---
 
-## **A possible meta-framework**
+## A possible meta-framework
 
 The direction I think would be most valuable—especially in light of our discussions on Meadows, Lévy, Monnin, and Csikszentmihalyi—is to evaluate agent frameworks not as software libraries but as **cognitive institutions**. Each project can be characterized along four orthogonal axes:
 
-* **Cognition**: planning, reasoning, memory, attention, reflection.  
-* **Governance**: constraints, policies, permissions, verification, accountability.  
-* **Ecology**: interaction with humans, tools, other agents, and the environment.  
+* **Cognition**: planning, reasoning, memory, attention, reflection.
+* **Governance**: constraints, policies, permissions, verification, accountability.
+* **Ecology**: interaction with humans, tools, other agents, and the environment.
 * **Evolution**: learning, adaptation, self-modification, and long-term development.
 
 This reframes the ecosystem from a collection of libraries into a modular architecture for artificial cognitive systems. It also provides a stable basis for comparing future projects without being tied to transient implementation details.
 
 **Confidence:** 0.98
-

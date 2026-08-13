@@ -6,16 +6,16 @@ I think there is a deeper connection than merely borrowing the metaphor of "flow
 
 In fact, your recent threads suggest four complementary perspectives:
 
-* **Donella Meadows**: regulate the dynamics of a complex adaptive system.  
-* **Pierre Lévy**: organize meaning within a semantic space.  
-* **Alexandre Monnin**: redirect socio-technical systems toward sustainable trajectories.  
+* **Donella Meadows**: regulate the dynamics of a complex adaptive system.
+* **Pierre Lévy**: organize meaning within a semantic space.
+* **Alexandre Monnin**: redirect socio-technical systems toward sustainable trajectories.
 * **Mihaly Csikszentmihalyi**: maintain cognition within an optimal operating regime.
 
 Viewed together, they begin to describe an architecture rather than separate theories.
 
 ---
 
-## **1\. Flow becomes "epistemic flow"**
+## 1. Flow becomes "epistemic flow"
 
 For humans:
 
@@ -29,13 +29,13 @@ The important point is that *effective* capacity is not simply model size.
 
 It depends on things such as:
 
-* available context  
-* retrieval quality  
-* tool availability  
-* memory organization  
-* planning depth  
-* decomposition strategy  
-* uncertainty estimation  
+* available context
+* retrieval quality
+* tool availability
+* memory organization
+* planning depth
+* decomposition strategy
+* uncertainty estimation
 * time/token budget
 
 A 7B model with excellent retrieval may outperform a 70B model with poor context.
@@ -44,17 +44,17 @@ So "skill" is actually an emergent property of the entire cognitive architecture
 
 ---
 
-## **2\. What is "too easy" for an agent?**
+## 2. What is "too easy" for an agent?
 
 An agent is under-challenged when it has excessive unused capacity relative to the problem.
 
 Symptoms include:
 
-* overthinking  
-* hallucinated complexity  
-* unnecessary abstractions  
-* verbosity  
-* recursive planning  
+* overthinking
+* hallucinated complexity
+* unnecessary abstractions
+* verbosity
+* recursive planning
 * inventing distinctions that do not exist
 
 You can observe this in many LLMs.
@@ -75,7 +75,7 @@ LLMs ramble.
 
 ---
 
-## **3\. What is "too difficult"?**
+## 3. What is "too difficult"?
 
 The opposite regime is far more interesting.
 
@@ -83,23 +83,23 @@ The effective complexity exceeds the available cognitive resources.
 
 Examples:
 
-* context window saturated  
-* contradictory instructions  
-* missing ontology  
-* too many objectives  
-* hidden assumptions  
-* missing world model  
+* context window saturated
+* contradictory instructions
+* missing ontology
+* too many objectives
+* hidden assumptions
+* missing world model
 * excessive branching factor
 
 The symptoms become familiar.
 
 The model begins to:
 
-* forget constraints  
-* contradict itself  
-* latch onto superficial cues  
-* ignore part of the prompt  
-* randomly prioritize objectives  
+* forget constraints
+* contradict itself
+* latch onto superficial cues
+* ignore part of the prompt
+* randomly prioritize objectives
 * oscillate between incompatible interpretations
 
 Humans experience anxiety.
@@ -108,7 +108,7 @@ Agents experience instability.
 
 ---
 
-## **4\. Prompt engineering is really challenge regulation**
+## 4. Prompt engineering is really challenge regulation
 
 This may be one of the most useful reinterpretations.
 
@@ -120,17 +120,17 @@ I think a better formulation is:
 
 That means regulating:
 
-* complexity  
-* ambiguity  
-* branching factor  
-* uncertainty  
+* complexity
+* ambiguity
+* branching factor
+* uncertainty
 * objective count
 
 instead of merely reducing token count.
 
 ---
 
-## **5\. Complexity is not prompt length**
+## 5. Complexity is not prompt length
 
 This is a crucial distinction.
 
@@ -154,7 +154,7 @@ So challenge should be measured by **solution-space entropy**, not token count.
 
 ---
 
-## **6\. ASC begins to make sense**
+## 6. ASC begins to make sense
 
 This is where I think your ASC project naturally fits.
 
@@ -172,12 +172,12 @@ Instead of asking
 
 ASC might transform the problem into
 
-* ontology  
-* assumptions  
-* constraints  
-* objectives  
-* known unknowns  
-* perspective  
+* ontology
+* assumptions
+* constraints
+* objectives
+* known unknowns
+* perspective
 * desired abstraction level
 
 before inference begins.
@@ -186,7 +186,7 @@ That is remarkably similar to moving the task back into the flow channel.
 
 ---
 
-## **7\. Meadows would call this leverage**
+## 7. Meadows would call this leverage
 
 Donella Meadows repeatedly emphasizes that changing information flows often has greater leverage than increasing resources.
 
@@ -208,7 +208,7 @@ That is a higher leverage point.
 
 ---
 
-## **8\. Lévy would call this semantic topology**
+## 8. Lévy would call this semantic topology
 
 Pierre Lévy argues that knowledge is fundamentally organized through navigable semantic structures.
 
@@ -232,7 +232,7 @@ instead of
 
 ---
 
-## **9\. Monnin would probably call this redirection**
+## 9. Monnin would probably call this redirection
 
 Monnin often criticizes technological systems that optimize locally while producing systemic pathologies.
 
@@ -246,7 +246,7 @@ That is a redirection of the system rather than an optimization within it.
 
 ---
 
-## **10\. A possible formalization**
+## 10. A possible formalization
 
 I think there is an opportunity to define an explicit quantity analogous to Csikszentmihalyi's challenge-skill balance.
 
@@ -254,32 +254,32 @@ For an agent, define:
 
 > **Cognitive Load Ratio (CLR)**
 
-\[  
-CLR \= \\frac{\\text{Problem Complexity}}{\\text{Effective Cognitive Capacity}}  
-\]
+[
+CLR = \frac{\text{Problem Complexity}}{\text{Effective Cognitive Capacity}}
+]
 
 ![][image1]
 
 where Problem Complexity could incorporate:
 
-* semantic ambiguity  
-* ontology size  
-* branching factor  
-* uncertainty  
-* novelty  
-* objective conflicts  
-* planning depth  
+* semantic ambiguity
+* ontology size
+* branching factor
+* uncertainty
+* novelty
+* objective conflicts
+* planning depth
 * external dependencies
 
 and Effective Cognitive Capacity could include:
 
-* model capability  
-* active memory quality  
-* retrieval relevance  
-* tool availability  
-* planning algorithm  
-* token budget  
-* time budget  
+* model capability
+* active memory quality
+* retrieval relevance
+* tool availability
+* planning algorithm
+* token budget
+* time budget
 * semantic organization of the context
 
 The optimal regime is not where CLR is minimized, but where it remains within a bounded interval. Below that interval, the agent tends toward overgeneration, unnecessary elaboration, or idle reasoning. Above it, omissions, contradictions, forgotten constraints, and unstable reasoning become more likely.
@@ -331,7 +331,7 @@ I would distinguish four progressively more powerful approaches:
 | 3 | What problem is actually being presented? | Context engineering |
 | 4 | What cognitive regime should the agent enter? | Meta-cognitive regulation |
 
-Your ASC project seems to be drifting toward Level 4\.
+Your ASC project seems to be drifting toward Level 4.
 
 ---
 
@@ -349,11 +349,11 @@ But neither asks whether the request itself is cognitively well-posed.
 
 The real issues may be:
 
-* conflicting objectives  
-* undefined terminology  
-* missing ontology  
-* excessive abstraction  
-* hidden assumptions  
+* conflicting objectives
+* undefined terminology
+* missing ontology
+* excessive abstraction
+* hidden assumptions
 * several problems mixed together
 
 Changing the wording cannot fix those.
@@ -376,51 +376,56 @@ That is a fundamentally different objective.
 
 I actually think there is a missing preprocessing stage in most agent frameworks.
 
+```text
 Today the pipeline usually looks like
-
-User  
-   ↓  
-Prompt  
-   ↓  
-LLM  
-   ↓  
+User
+   ↓
+Prompt
+   ↓
+LLM
+   ↓
 Answer
+```
 
 Most recent agent systems expand the middle:
 
-User  
-   ↓  
-Prompt  
-   ↓  
-Planner  
-Memory  
-Retriever  
-Tools  
-Reflection  
-   ↓  
+```text
+User
+   ↓
+Prompt
+   ↓
+Planner
+Memory
+Retriever
+Tools
+Reflection
+   ↓
 Answer
+```
 
 But the input itself remains almost untouched.
 
 I think your discussions point toward something more like
 
-User intent  
-      ↓  
-Semantic analysis  
-      ↓  
-Ontology extraction  
-      ↓  
-Goal decomposition  
-      ↓  
-Constraint detection  
-      ↓  
-Complexity estimation  
-      ↓  
-Context restructuring  
-      ↓  
-Reasoning  
-      ↓  
-Verification
+```text
+     User intent
+          ↓
+  Semantic analysis
+          ↓
+ Ontology extraction
+          ↓
+ Goal decomposition
+          ↓
+Constraint detection
+          ↓
+Complexity estimation
+          ↓
+Context restructuring
+          ↓
+      Reasoning
+          ↓
+    Verification
+```
 
 Notice that prompting has almost disappeared.
 
@@ -446,9 +451,9 @@ This also suggests a richer concept than "reverse prompting."
 
 A possible progression would be:
 
-* **Reverse prompting**: infer the prompt from the output.  
-* **Context inversion**: infer the latent assumptions, ontology, objectives, constraints, and missing information behind the request.  
-* **Cognitive calibration**: transform that representation so its complexity matches the current agent's effective capabilities.  
+* **Reverse prompting**: infer the prompt from the output.
+* **Context inversion**: infer the latent assumptions, ontology, objectives, constraints, and missing information behind the request.
+* **Cognitive calibration**: transform that representation so its complexity matches the current agent's effective capabilities.
 * **Execution**: only then invoke the reasoning engine.
 
 The first step reconstructs instructions.

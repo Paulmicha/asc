@@ -4,9 +4,9 @@ The leverage points are ordered from **least effective (12)** to **most transfor
 
 Given our previous discussions around **Pi**, **Agno**, **Hermes-Agent**, local LLMs, memory architectures, tool use, RAG, and building a lightweight agent framework, the leverage points map remarkably well onto AI agent design.
 
-| \# | Leverage Point | Explanation | AI Agent Context | Concrete Implementation Ideas | Relative Impact |
+| # | Leverage Point | Explanation | AI Agent Context | Concrete Implementation Ideas | Relative Impact |
 | ----- | ----- | ----- | ----- | ----- | ----- |
-| 12 | Constants, parameters, numbers | Numerical tuning without changing behaviour. | Model temperature, context window size, retry count, embedding dimensions, timeout values. | temperature=0.2→0.4, chunk size 1024→2048, max\_iterations=10 | ★☆☆☆☆ |
+| 12 | Constants, parameters, numbers | Numerical tuning without changing behaviour. | Model temperature, context window size, retry count, embedding dimensions, timeout values. | temperature=0.2→0.4, chunk size 1024→2048, max_iterations=10 | ★☆☆☆☆ |
 | 11 | Sizes of buffers | Increase or decrease storage capacity. Buffers absorb fluctuations. | Memory size, vector DB capacity, cache size, conversation history length. | SQLite → Postgres, larger embedding store, longer episodic memory | ★☆☆☆☆ |
 | 10 | Structure of stocks and flows | Physical/logical architecture of the system. | Memory architecture, event pipeline, tool orchestration, message routing. | Separate semantic memory from episodic memory; event bus instead of direct calls | ★★☆☆☆ |
 | 9 | Delays | Time between action and effect. | Memory consolidation, planning frequency, evaluation cadence. | Batch summarisation nightly instead of every turn; delayed reflection agent | ★★☆☆☆ |
@@ -21,27 +21,28 @@ Given our previous discussions around **Pi**, **Agno**, **Hermes-Agent**, local 
 
 ---
 
-# **Applying this to an AI agent architecture**
+## Applying this to an AI agent architecture
 
-## **12\. Parameters**
+### 12. Parameters
 
 This is where nearly everyone begins.
 
-temperature  
-top\_p  
-max\_tokens  
-retry\_count  
-embedding\_model  
-chunk\_size
+- temperature
+- top_p
+- max_tokens
+- retry_count
+- embedding_model
+- chunk_size
 
 Changing these often produces only incremental improvements.
 
 For example:
 
-temperature \= 0.2  
-↓
-
-temperature \= 0.4
+```text
+temperature = 0.2
+        ↓
+temperature = 0.4
+```
 
 may improve creativity while reducing determinism.
 
@@ -49,57 +50,63 @@ Useful, but rarely transformational.
 
 ---
 
-## **11\. Buffers**
+### 11. Buffers
 
 Buffers smooth variation.
 
 Examples include
 
-* context window  
-* vector database  
-* memory cache  
-* document cache  
+* context window
+* vector database
+* memory cache
+* document cache
 * message queue
 
 For Pi or Hermes this might mean
 
-Conversation  
-        ↓  
-Rolling Summary  
-        ↓  
+```text
+  Conversation
+       ↓
+Rolling Summary
+       ↓
 Long-term Memory
+```
 
 instead of simply truncating conversations.
 
 ---
 
-## **10\. Stocks and Flows**
+### 10. Stocks and Flows
 
 This is where architecture begins.
 
 Instead of
 
-User  
- ↓  
-LLM  
- ↓  
+```text
+ User
+  ↓
+ LLM
+  ↓
 Answer
+```
 
 you might build
 
-User  
- ↓  
-Planner  
- ↓  
-Research  
- ↓  
-Memory  
- ↓  
-Reasoning  
- ↓  
-Executor  
- ↓  
+```text
+   User
+    ↓
+ Planner
+    ↓
+ Research
+    ↓
+  Memory
+    ↓
+Reasoning
+    ↓
+ Executor
+    ↓
 Reflection
+```
 
 Nothing about the models changed.
 
@@ -109,7 +116,7 @@ This generally produces much larger improvements than parameter tuning.
 
 ---
 
-## **9\. Delays**
+### 9. Delays
 
 Most current agents update memory immediately.
 
@@ -125,19 +132,15 @@ creates noise.
 
 Instead
 
-Conversation
-
-↓
-
-Episodic Memory
-
-↓
-
+```text
+   Conversation
+        ↓
+ Episodic Memory
+        ↓
 Nightly Reflection
-
-↓
-
+        ↓
 Semantic Knowledge
+```
 
 Now memories become curated instead of accumulated.
 
@@ -145,36 +148,30 @@ This is remarkably similar to human sleep.
 
 ---
 
-## **8\. Balancing Feedback**
+### 8. Balancing Feedback
 
 Most open-source agents lack sufficient negative feedback.
 
 A better architecture:
 
-Planner
-
-↓
-
-Executor
-
-↓
-
-Verifier
-
-↓
-
-Repair
-
-↓
-
+```text
+  Planner
+     ↓
+  Executor
+     ↓
+  Verifier
+     ↓
+   Repair
+     ↓
 Final Answer
+```
 
 Examples
 
-* compile errors  
-* failing tests  
-* hallucination detector  
-* source verification  
+* compile errors
+* failing tests
+* hallucination detector
+* source verification
 * confidence estimation
 
 Hermes already contains elements of this philosophy.
@@ -183,51 +180,41 @@ Pi could adopt similar evaluator loops.
 
 ---
 
-## **7\. Reinforcing Feedback**
+### 7. Reinforcing Feedback
 
 Good systems become better over time.
 
 For example
 
-Task completed successfully
-
-↓
-
-Store workflow
-
-↓
-
-Reuse workflow
-
-↓
-
+```text
+ Task completed successfully
+              ↓
+       Store workflow
+              ↓
+       Reuse workflow
+              ↓
 Future success rate increases
+```
 
 Eventually
 
-Agent
-
-↓
-
-Skill Library
-
-↓
-
+```text
+       Agent
+         ↓
+   Skill Library
+         ↓
 Agent becomes better
-
-↓
-
-More skills
-
-↓
-
-Better agent
+         ↓
+    More skills
+         ↓
+    Better agent
+```
 
 This positive loop is what makes human organisations improve.
 
 ---
 
-## **6\. Information Flow**
+### 6. Information Flow
 
 One of Meadows' favourite leverage points.
 
@@ -235,25 +222,27 @@ Many agents currently give every component identical information.
 
 Instead
 
-Planner  
-    sees:  
+```text
+Planner
+    sees:
         goals
 
-Coder  
-    sees:  
+Coder
+    sees:
         repository
 
-Researcher  
-    sees:  
+Researcher
+    sees:
         web
 
-Memory  
-    sees:  
+Memory
+    sees:
         long-term knowledge
 
-Reviewer  
-    sees:  
+Reviewer
+    sees:
         everything
+```
 
 Information becomes specialised.
 
@@ -263,7 +252,7 @@ This is precisely where multi-agent systems become significantly more effective.
 
 ---
 
-## **5\. Rules**
+### 5. Rules
 
 Rules define behaviour.
 
@@ -273,78 +262,68 @@ Agent can execute anything.
 
 you might define
 
-Filesystem  
+```text
+Filesystem
     read-only
 
-Network  
+Network
     researcher only
 
-Shell  
+Shell
     approval required
 
-Database  
+Database
     transactional only
 
-Memory  
+Memory
     append only
+```
 
 This improves
 
-* safety  
-* reproducibility  
+* safety
+* reproducibility
 * debugging
 
 Agno and Hermes both incorporate explicit capability and tool abstractions that align with this idea.
 
 ---
 
-## **4\. Self-Organisation**
+### 4. Self-Organisation
 
 This is where systems begin changing themselves.
 
 Imagine
 
-Planner notices
-
-"I solve Kubernetes problems frequently."
-
+```text
+Planner notices "I solve Kubernetes problems frequently."
 ↓
-
-Creates
-
-Kubernetes Specialist Agent
-
+Creates Kubernetes Specialist Agent
 ↓
-
 Registers tool
-
 ↓
-
 Future planners automatically use it
+```
 
 No human intervention.
 
 Another example:
 
+```text
 Repeated reasoning pattern
-
-↓
-
+            ↓
 Generate reusable workflow
-
-↓
-
-Store
-
-↓
-
-Reuse
+            ↓
+          Store
+            ↓
+          Reuse
+```
 
 The framework becomes progressively richer.
 
 ---
 
-## **3\. Goals**
+### 3. Goals
 
 Many agent frameworks optimise for answering questions.
 
@@ -352,22 +331,22 @@ That may be the wrong goal.
 
 Instead
 
-Goal:  
-Complete the user's project.
+- Goal:
+- Complete the user's project.
 
 Now the agent naturally chooses to
 
-* plan  
-* remember  
-* verify  
-* automate  
+* plan
+* remember
+* verify
+* automate
 * revisit unfinished work
 
 Changing the goal changes every downstream design decision, often more than changing the implementation itself.
 
 ---
 
-## **2\. Paradigms**
+### 2. Paradigms
 
 This is the deepest shift most architectures can make.
 
@@ -385,40 +364,41 @@ Pi, Agno, and Hermes largely differ at this level. Pi leans toward a modular cog
 
 ---
 
-## **1\. Transcending Paradigms**
+### 1. Transcending Paradigms
 
 This is Meadows' highest leverage point.
 
 A truly adaptive agent would not commit permanently to any single architecture. Instead, it would treat architectures themselves as hypotheses to be tested. For example:
 
-Current architecture  
-        ↓  
-Observe performance  
-        ↓  
-Identify limitations  
-        ↓  
-Generate alternative architecture  
-        ↓  
-Benchmark  
-        ↓  
-Adopt if superior
+```text
+      Current architecture
+                ↓
+       Observe performance
+                ↓
+      Identify limitations
+                ↓
+Generate alternative architecture
+                ↓
+            Benchmark
+                ↓
+        Adopt if superior
+```
 
 In practical terms, this could mean maintaining multiple planning strategies, memory systems, or coordination patterns and selecting—or even evolving—the most effective one for a given domain.
 
 Such an agent becomes capable of improving not only its knowledge but also the way it reasons and organises itself. This moves beyond "learning new facts" toward "learning better ways to learn."
 
-## **Synthesis for your project**
+### Synthesis for your project
 
 From the discussions we've had about building a lightweight, locally runnable agent framework inspired by Pi and Hermes, the highest-return investments are unlikely to come from experimenting with different local LLMs or adjusting inference parameters. The largest gains are more likely to come from:
 
-1. Designing distinct episodic, semantic, procedural, and working memory systems rather than a single conversation history.  
-2. Building explicit planner–executor–reviewer feedback loops with verification and reflection.  
-3. Treating information routing as a first-class concern so each specialised agent receives only the context it needs.  
-4. Allowing the framework to accumulate reusable skills and workflows from successful executions.  
-5. Defining the framework's goal as completing long-term projects rather than generating isolated responses.  
+1. Designing distinct episodic, semantic, procedural, and working memory systems rather than a single conversation history.
+2. Building explicit planner–executor–reviewer feedback loops with verification and reflection.
+3. Treating information routing as a first-class concern so each specialised agent receives only the context it needs.
+4. Allowing the framework to accumulate reusable skills and workflows from successful executions.
+5. Defining the framework's goal as completing long-term projects rather than generating isolated responses.
 6. Eventually enabling the framework to evaluate and evolve its own workflows and architecture through controlled self-organisation.
 
 This progression closely follows Meadows' hierarchy: it starts with architectural improvements (levels 10–6), progresses through behavioural changes (levels 5–3), and ultimately approaches adaptive cognitive systems (levels 2–1), where the agent can improve not only what it knows but how it is structured to solve problems.
 
 **Confidence:** 0.99
-
