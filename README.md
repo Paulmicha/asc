@@ -16,11 +16,13 @@ Here is what I am currently building with it (when I have some free time) :
 
 ["_Projet Complexe_" 2026 Revival - ASC + Tauri SolidJS Second Brain](data/ideas/2026/08/Projet%20Complexe%202026%20Revival%20(v2)%20-%20ASC,%20Projet%20Complexe%20and%20Projet%20Complexe%20ASC.md)
 
+The PDF version has rendered (mermaid js) diagrams : [PDF](data/ideas/2026/08/Projet%20Complexe%202026%20Revival%20(v2)%20-%20ASC,%20Projet%20Complexe%20and%20Projet%20Complexe%20ASC.pdf)
+
 ## Theoretical Ramblings
 
 Currently along the lines of reinterpreting Mihaly Csikszentmihalyi's Flow for agents.
 
-Details :
+Details (see folder [data/ideas/2026/08](data/ideas/2026/08)) :
 
 - [Reverse Prompting VS Cognitive Load Ratio \(Reinterpreting Mihaly Csikszentmihalyi's Flow for Agents\)](data/ideas/2026/08/Reverse%20Prompting%20VS%20Cognitive%20Load%20Ratio%20\(Reinterpreting%20Mihaly%20Csikszentmihalyi's%20Flow%20for%20Agents\).md)
 - [AI Agents Leverage Points (Places to Intervene in a System) Applicability](data/ideas/2026/08/AI%20Agents%20Leverage%20Points%20(Places%20to%20Intervene%20in%20a%20System)%20Applicability.md)
