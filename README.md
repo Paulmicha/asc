@@ -594,12 +594,13 @@ Subfolder name (same structure as tests) = "tpl"
 - `$subject` / `{subject}.inc.sh`  : results in a single file generated
 
 Ex :
-- `asc/extensions/builder/template/core/subject/[action].sh`
-- `asc/extensions/builder/template/core/subject/{subject}.inc.sh`
-- `asc/extensions/builder/template/core/subject/{subject}.opt-inc.sh`
-- `asc/extensions/builder/template/core/subject/[object]/[action].sh`
-- `asc/extensions/builder/template/core/subject/[object]/{subject}.inc.sh`
-- `asc/extensions/builder/template/core/subject/[object]/{subject}.opt-inc.sh`
+- `asc/extensions/builder/template/core/[subject]/[action].sh`
+- `asc/extensions/builder/template/core/[subject]/{subject}.inc.sh`
+- `asc/extensions/builder/template/core/[subject]/{subject}.opt-inc.sh`
+- `asc/extensions/builder/template/core/[subject]/[object]/[action].sh`
+- `asc/extensions/builder/template/core/[subject]/[object]/{subject}.inc.sh`
+- `asc/extensions/builder/template/core/[subject]/[object]/{subject}.opt-inc.sh`
+- `asc/extensions/builder/template/core/test/[test_group].sh`
 - `asc/extensions/builder/template/core/test/[test_suite]/[test_case].test.sh`
 - etc.
 
@@ -607,7 +608,7 @@ Ex :
 
 Multi-line template files syntax
 
-Ex : `asc/extensions/builder/template/core/subject/[action].sh`
+Ex : `asc/extensions/builder/template/core/[subject]/[action].sh`
 
 ```txt
 #!/usr/bin/env bash
@@ -637,13 +638,13 @@ or even things like :
   ...
 </asc-if>
 ...
-<asc-foreach items="foobar_arr">
+<asc-for each="foobar_arr as foobar">
   ...
-</asc-foreach>
+</asc-for>
 ...
-<asc-foreach items_dsl="entity-list-last(foobar,10)">
+<asc-for each="entity-list-last(foobar,10).sidecar(file).path as path">
   ...
-</asc-foreach>
+</asc-for>
 ...
 {{ entity-preview(foobar) }}
 ...

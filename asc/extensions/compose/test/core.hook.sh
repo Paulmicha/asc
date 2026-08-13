@@ -13,4 +13,4 @@
 #   asc/test/core.sh
 #
 
-f_test_batch_exec 'asc/extensions/compose/test/asc'
+f_test_batch_exec 'asc/extensions/compose/test/core'
