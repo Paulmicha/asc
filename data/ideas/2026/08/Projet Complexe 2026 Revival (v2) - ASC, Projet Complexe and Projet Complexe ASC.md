@@ -10,26 +10,21 @@ The answer should not be to turn ASC into a second brain, nor to turn Projet Com
 
 The architecture becomes much clearer if three projects are distinguished:
 
-```text
-                         PROJET COMPLEXE
-                    desktop / semantic interface
-                              │
-                              │
-                    PROJET COMPLEXE ASC
-                 specific pivots / entry points
-                              │
-                              │
-                              ▼
-                            ASC
-                 computational vocabulary / core
-                              │
-          ┌───────────────────┼───────────────────┐
-          │                   │                   │
-       filesystem          processes           machines
-          │                   │                   │
-       services            workers             hosts
-          │                   │                   │
-       containers           agents             shell
+```mermaid
+flowchart TB
+  PC["PROJET COMPLEXE<br/>desktop / semantic interface"]
+  PCA["PROJET COMPLEXE ASC<br/>specific pivots / entry points"]
+  ASC["ASC<br/>computational vocabulary / core"]
+  PC --> PCA --> ASC
+  ASC --> FS[filesystem]
+  ASC --> PR[processes]
+  ASC --> MA[machines]
+  FS --> SV[services]
+  PR --> WK[workers]
+  MA --> HO[hosts]
+  SV --> CT[containers]
+  WK --> AG[agents]
+  HO --> SH[shell]
 ```
 
 These are not three competing implementations of the same thing.
@@ -148,21 +143,18 @@ Its desktop application is envisioned as a Tauri + SolidJS application, but the 
 
 The essential part is the semantic distinction between:
 
-```text
-                    PROJET COMPLEXE
-                           │
-             ┌─────────────┴─────────────┐
-             │                           │
-           TASKS                      KNOWLEDGE
-             │                           │
-      what must happen?             what is known?
-             │                           │
-             └─────────────┬─────────────┘
-                           │
-                         AGENTS
-                           │
-                           ▼
-                         ASC
+```mermaid
+flowchart TB
+  PC[PROJET COMPLEXE]
+  T["TASKS<br/>what must happen?"]
+  K["KNOWLEDGE<br/>what is known?"]
+  A[AGENTS]
+  ASC[ASC]
+  PC --> T
+  PC --> K
+  T --> A
+  K --> A
+  A --> ASC
 ```
 
 Tasks and knowledge are therefore not merely two navigation tabs.
@@ -189,18 +181,12 @@ In other words, Projet Complexe ASC is where we say:
 
 Conceptually:
 
-```text
-ASC
-│
-│ generic vocabulary
-│
-▼
-Projet Complexe ASC
-│
-│ project-specific pivots
-│
-▼
-Projet Complexe
+```mermaid
+flowchart TB
+  ASC["ASC<br/>generic vocabulary"]
+  PCA["Projet Complexe ASC<br/>project-specific pivots"]
+  PC[Projet Complexe]
+  ASC --> PCA --> PC
 ```
 
 For example, ASC may generically know how to:
@@ -277,22 +263,23 @@ Projet Complexe
 
 The dangerous architecture would be:
 
-```text
-Projet Complexe
-├── Tauri
-├── SolidJS
-├── filesystem
-├── shell
-├── process management
-├── Docker
-├── Solr
-├── ArangoDB
-├── Docling
-├── OCR
-├── agents
-├── task model
-├── knowledge model
-└── operating-system abstraction
+```mermaid
+flowchart TB
+  PC[Projet Complexe]
+  PC --> Tauri
+  PC --> SolidJS
+  PC --> filesystem
+  PC --> shell
+  PC --> PM[process management]
+  PC --> Docker
+  PC --> Solr
+  PC --> ArangoDB
+  PC --> Docling
+  PC --> OCR
+  PC --> agents
+  PC --> TM[task model]
+  PC --> KM[knowledge model]
+  PC --> OSA[operating-system abstraction]
 ```
 
 This looks convenient initially.
@@ -305,34 +292,28 @@ Second, ASC begins acquiring concepts that only make sense for one application.
 
 The result is duplication:
 
-```text
-          Projet Complexe
-          /             \
-    system model      semantic model
-          │                 │
-          └──────┬──────────┘
-                 │
-              overlap
-                 │
-                ASC
+```mermaid
+flowchart TB
+  PC[Projet Complexe]
+  SM[system model]
+  SE[semantic model]
+  OV[overlap]
+  ASC[ASC]
+  PC --> SM
+  PC --> SE
+  SM --> OV
+  SE --> OV
+  OV --> ASC
 ```
 
 The three-project architecture prevents this gravitational pull.
 
-```text
-                         Projet Complexe
-                              │
-                    semantic concepts
-                              │
-                              ▼
-                    Projet Complexe ASC
-                              │
-                    project-specific pivots
-                              │
-                              ▼
-                             ASC
-                              │
-                    generic execution model
+```mermaid
+flowchart TB
+  PC["Projet Complexe<br/>semantic concepts"]
+  PCA["Projet Complexe ASC<br/>project-specific pivots"]
+  ASC["ASC<br/>generic execution model"]
+  PC --> PCA --> ASC
 ```
 
 Each layer can therefore remain relatively ignorant of the layers above it.
@@ -411,20 +392,9 @@ The DSL does not need to recreate arbitrary shell syntax every time.
 
 Instead:
 
-```text
-                    DSL expression
-                          │
-                          ▼
-                    fixed pivot
-                          │
-                          ▼
-                    entry point
-                          │
-                          ▼
-                       hook
-                          │
-                          ▼
-                   concrete command
+```mermaid
+flowchart TB
+  DSL[DSL expression] --> FP[fixed pivot] --> EP[entry point] --> H[hook] --> CC[concrete command]
 ```
 
 The entry point is therefore not merely a shell script.
@@ -455,30 +425,11 @@ These are different views of the same underlying structure.
 
 ASC can therefore be understood as several complementary representations.
 
-```text
-YAML
-    declares
-
-paths
-    address
-
-DSL
-    formulates / composes
-
-entry points
-    provide fixed pivots
-
-hooks
-    implement
-
-sidecars
-    concretize
-
-Builder
-    generates
-
-shell
-    executes
+```mermaid
+flowchart TB
+  YAML["YAML — declares"] --> paths["paths — address"] --> DSL["DSL — formulates / composes"]
+  DSL --> EP["entry points — provide fixed pivots"] --> hooks["hooks — implement"]
+  hooks --> sidecars["sidecars — concretize"] --> Builder["Builder — generates"] --> shell["shell — executes"]
 ```
 
 The objective is not to introduce abstraction for abstraction's sake.
@@ -513,21 +464,12 @@ A concrete hook can then implement the capability.
 
 The conceptual chain becomes:
 
-```text
-entity
-   │
-   ├── structure
-   │
-   └── capabilities
-          │
-          ▼
-      entry point
-          │
-          ▼
-        hook
-          │
-          ▼
-      executable
+```mermaid
+flowchart TB
+  E[entity]
+  E --> ST[structure]
+  E --> CAP[capabilities]
+  CAP --> EP[entry point] --> H[hook] --> X[executable]
 ```
 
 This is composition rather than conventional object-oriented inheritance.
@@ -544,12 +486,11 @@ Not:
 
 There is a useful distinction between:
 
-```text
-ENTITY
-What is this?
-
-ABILITY / CONTRACT
-What can this participate in or do?
+```mermaid
+flowchart TB
+  E["ENTITY<br/>What is this?"]
+  A["ABILITY / CONTRACT<br/>What can this participate in or do?"]
+  E --- A
 ```
 
 For example:
@@ -615,16 +556,9 @@ If one agent backend is replaced by another, `spawn-researcher` can remain.
 
 This is the same abstraction principle operating at several scales:
 
-```text
-OS implementation
-        ↓
-tool implementation
-        ↓
-ASC capability
-        ↓
-project-specific pivot
-        ↓
-semantic operation
+```mermaid
+flowchart TB
+  OS[OS implementation] --> TI[tool implementation] --> AC[ASC capability] --> PP[project-specific pivot] --> SO[semantic operation]
 ```
 
 # 10. Projet Complexe should remain ignorant of implementation details
@@ -708,20 +642,24 @@ The interface should instead become a **visual query surface over a complex syst
 
 For example:
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│                       PROJET COMPLEXE                       │
-├────────────────────────┬────────────────────────────────────┤
-│                        │                                    │
-│ Tasks                  │                                    │
-│ Knowledge              │       contextual view              │
-│ Projects               │                                    │
-│ Sources                │       document / graph /           │
-│ Agents                 │       timeline / execution         │
-│ Machines               │                                    │
-│ Activity               │                                    │
-│                        │                                    │
-└────────────────────────┴────────────────────────────────────┘
+```mermaid
+flowchart LR
+  subgraph PC["PROJET COMPLEXE"]
+    direction LR
+    subgraph NAV[navigation]
+      Tasks
+      Knowledge
+      Projects
+      Sources
+      Agents
+      Machines
+      Activity
+    end
+    subgraph VIEW["contextual view"]
+      CV["document / graph / timeline / execution"]
+    end
+    NAV --- VIEW
+  end
 ```
 
 A machine can appear because it is relevant to a project.
@@ -752,20 +690,18 @@ There is no requirement that everything physically live in one graph database.
 
 The conceptual graph can instead be projected from several stores:
 
-```text
-                  DOMAIN MODEL
-                       │
-          ┌────────────┼────────────┐
-          │            │            │
-       SQL/data     documents     events
-          │            │            │
-          └────────────┼────────────┘
-                       │
-                    indexes
-                       │
-              ┌────────┼────────┐
-              │        │        │
-             SQL      Solr    Arango
+```mermaid
+flowchart TB
+  DM[DOMAIN MODEL]
+  DM --> SQLD[SQL/data]
+  DM --> DOC[documents]
+  DM --> EV[events]
+  SQLD --> IX[indexes]
+  DOC --> IX
+  EV --> IX
+  IX --> SQL[SQL]
+  IX --> Solr
+  IX --> Arango
 ```
 
 The graph is therefore a model of relationships.
@@ -784,47 +720,50 @@ A machine therefore becomes more than a hardware dashboard.
 
 Conceptually:
 
-```text
-Machine
-├── identity
-├── OS
-├── CPU
-├── GPU
-├── memory
-├── disks
-├── network
-├── services
-├── workers
-├── projects
-└── constraints
+```mermaid
+flowchart TB
+  M[Machine]
+  M --> identity
+  M --> OS
+  M --> CPU
+  M --> GPU
+  M --> memory
+  M --> disks
+  M --> network
+  M --> services
+  M --> workers
+  M --> projects
+  M --> constraints
 ```
 
 Projet Complexe can then relate that machine to semantic objects:
 
-```text
-Machine
-    ├── hosts → Project
-    ├── runs → Agent
-    ├── provides → Capability
-    ├── contains → Document
-    ├── constrained-by → Hardware
-    └── produces → Artifact
+```mermaid
+flowchart LR
+  M[Machine]
+  M -->|hosts| P[Project]
+  M -->|runs| A[Agent]
+  M -->|provides| C[Capability]
+  M -->|contains| D[Document]
+  M -->|constrained-by| H[Hardware]
+  M -->|produces| AR[Artifact]
 ```
 
 The result is a unified model:
 
-```text
-Machine
-    │
-    ├── hosts → Project
-    │               │
-    │               ├── produces → Document
-    │               │                   │
-    │               │                   └── relates → Concept
-    │               │
-    │               └── assigned → Agent
-    │
-    └── constrained-by → Hardware
+```mermaid
+flowchart TB
+  M[Machine]
+  P[Project]
+  D[Document]
+  C[Concept]
+  A[Agent]
+  H[Hardware]
+  M -->|hosts| P
+  M -->|constrained-by| H
+  P -->|produces| D
+  D -->|relates| C
+  P -->|assigned| A
 ```
 
 This is where ASC and the second brain become complementary without becoming the same project.
@@ -881,14 +820,15 @@ The Tauri application should not recreate ASC.
 
 Its responsibilities are approximately:
 
-```text
-Tauri
-├── application lifecycle
-├── window management
-├── IPC
-├── secure communication
-├── packaging
-└── desktop integration
+```mermaid
+flowchart TB
+  T[Tauri]
+  T --> AL[application lifecycle]
+  T --> WM[window management]
+  T --> IPC
+  T --> SC[secure communication]
+  T --> PKG[packaging]
+  T --> DI[desktop integration]
 ```
 
 SolidJS provides:
@@ -911,22 +851,15 @@ ASC provides the computational substrate.
 
 The application therefore becomes:
 
-```text
-Tauri
-   │
-   └── SolidJS
-          │
-          ├── task model
-          ├── knowledge model
-          ├── project model
-          ├── agent model
-          └── visualizations
-                    │
-                    ▼
-             Projet Complexe ASC
-                    │
-                    ▼
-                   ASC
+```mermaid
+flowchart TB
+  T[Tauri] --> S[SolidJS]
+  S --> TM[task model]
+  S --> KM[knowledge model]
+  S --> PM[project model]
+  S --> AM[agent model]
+  S --> V[visualizations]
+  V --> PCA[Projet Complexe ASC] --> ASC[ASC]
 ```
 
 This keeps the Rust portion deliberately small.
@@ -941,13 +874,13 @@ The invariant should be:
 
 Conceptually:
 
-```text
-                   ASC
-                  /   \
-                 /     \
-              CLI       GUI
-               │         │
-            terminal    Tauri
+```mermaid
+flowchart TB
+  ASC[ASC]
+  ASC --> CLI
+  ASC --> GUI
+  CLI --> terminal
+  GUI --> Tauri
 ```
 
 If the UI says:
@@ -974,19 +907,20 @@ Tauri → ASC → status
 
 The natural model is:
 
-```text
-ASC
-├── commands
-└── events
-      ├── project.changed
-      ├── machine.changed
-      ├── worker.started
-      ├── worker.output
-      ├── agent.started
-      ├── agent.tool_call
-      ├── task.changed
-      ├── indexing.progress
-      └── indexing.completed
+```mermaid
+flowchart TB
+  ASC[ASC]
+  ASC --> CMD[commands]
+  ASC --> EV[events]
+  EV --> PC[project.changed]
+  EV --> MC[machine.changed]
+  EV --> WS[worker.started]
+  EV --> WO[worker.output]
+  EV --> AS[agent.started]
+  EV --> AT[agent.tool_call]
+  EV --> TC[task.changed]
+  EV --> IP[indexing.progress]
+  EV --> IC[indexing.completed]
 ```
 
 The desktop application subscribes.
@@ -1007,15 +941,14 @@ An agent is a computational actor operating inside this environment.
 
 A useful conceptual model is:
 
-```text
-Agent
-└── Thread
-      └── Change
-            ├── command
-            ├── command
-            ├── observation
-            ├── result
-            └── sidecar
+```mermaid
+flowchart TB
+  A[Agent] --> T[Thread] --> CH[Change]
+  CH --> C1[command]
+  CH --> C2[command]
+  CH --> O[observation]
+  CH --> R[result]
+  CH --> S[sidecar]
 ```
 
 The important thing is that agent activity becomes visible as activity in the same environment.
@@ -1099,29 +1032,16 @@ It means that each can impose a stopping condition on the other.
 
 The first direction is:
 
-```text
-TASK
- │
- │ encounters an unknown
- │
- ▼
-KNOWLEDGE GAP
- │
- │ necessary to proceed
- ▼
-RESEARCH
- │
- ├── researcher agent
- ├── source retrieval
- ├── extraction
- ├── comparison
- └── synthesis
- │
- ▼
-KNOWLEDGE
- │
- ▼
-TASK RESUMES
+```mermaid
+flowchart TB
+  TASK --> KG["KNOWLEDGE GAP<br/>necessary to proceed"]
+  KG --> RES[RESEARCH]
+  RES --> RA[researcher agent]
+  RES --> SR[source retrieval]
+  RES --> EX[extraction]
+  RES --> CO[comparison]
+  RES --> SY[synthesis]
+  RES --> KNOW[KNOWLEDGE] --> TR[TASK RESUMES]
 ```
 
 A task can therefore **kill or suspend itself** because it discovers that it lacks knowledge necessary to continue responsibly.
@@ -1144,46 +1064,21 @@ Suppose an agent is asked to accomplish:
 
 It may begin researching:
 
-```text
-technology X
-    ↓
-papers
-    ↓
-alternatives
-    ↓
-historical context
-    ↓
-benchmarks
-    ↓
-community discussions
-    ↓
-related technologies
-    ↓
-theoretical background
-    ↓
-more papers
-    ↓
-...
+```mermaid
+flowchart TB
+  TX[technology X] --> papers --> alternatives --> HC[historical context]
+  HC --> benchmarks --> CD[community discussions] --> RT[related technologies]
+  RT --> TB[theoretical background] --> MP[more papers] --> ELL[...]
 ```
 
 At some point, the research process can become effectively unbounded.
 
 The system then needs the opposite control:
 
-```text
-KNOWLEDGE GATHERING
-        │
-        │ becomes excessive
-        │
-        ▼
-TASK IMPERATIVE
-        │
-        │ "enough knowledge to act"
-        ▼
-STOP RESEARCH
-        │
-        ▼
-EXECUTE TASK
+```mermaid
+flowchart TB
+  KG["KNOWLEDGE GATHERING<br/>becomes excessive"] --> TI["TASK IMPERATIVE<br/>enough knowledge to act"]
+  TI --> SR[STOP RESEARCH] --> ET[EXECUTE TASK]
 ```
 
 Knowledge gathering must therefore be killable by the task it exists to serve.
@@ -1194,41 +1089,13 @@ This is the second direction of the mutual killswitch.
 
 The resulting loop is:
 
-```text
-                    ┌────────────────────┐
-                    │       TASK         │
-                    │ "achieve X"        │
-                    └─────────┬──────────┘
-                              │
-                              ▼
-                       Can we proceed?
-                         /          \
-                       yes           no
-                        │             │
-                        │             ▼
-                        │        KNOWLEDGE GAP
-                        │             │
-                        │             ▼
-                        │          RESEARCH
-                        │             │
-                        │             ▼
-                        │      sufficient knowledge?
-                        │          /       \
-                        │        no         yes
-                        │        │           │
-                        │        │           ▼
-                        │        │       TASK RESUMES
-                        │        │
-                        │        │
-                        │        ▼
-                        │   research limit /
-                        │   unattainable
-                        │        │
-                        │        ▼
-                        │   TASK IMPERATIVE
-                        │        │
-                        └────────┴──────────►
-                                  ACT
+```mermaid
+flowchart TB
+  TASK["TASK<br/>achieve X"] --> Q1{Can we proceed?}
+  Q1 -->|yes| ACT[ACT]
+  Q1 -->|no| KG[KNOWLEDGE GAP] --> RES[RESEARCH] --> Q2{sufficient knowledge?}
+  Q2 -->|yes| TR[TASK RESUMES] --> ACT
+  Q2 -->|no| RL["research limit / unattainable"] --> TI[TASK IMPERATIVE] --> ACT
 ```
 
 The critical concept is **sufficiency**.
@@ -1281,30 +1148,16 @@ I have learned enough; further learning is no longer justified by the task.
 
 That gives us a three-state epistemic/action loop:
 
-```text
-             ACT
-              │
-              │ uncertainty blocks action
-              ▼
-           INQUIRE
-              │
-              │ sufficient evidence
-              ▼
-             ACT
+```mermaid
+flowchart TB
+  ACT1[ACT] -->|"uncertainty blocks action"| INQ[INQUIRE] -->|"sufficient evidence"| ACT2[ACT]
 ```
 
 with a second constraint:
 
-```text
-             INQUIRE
-                │
-                │ research cost grows
-                ▼
-             STOP
-                │
-                ▼
-         accept uncertainty
-         or change strategy
+```mermaid
+flowchart TB
+  INQ[INQUIRE] -->|"research cost grows"| STOP --> ALT["accept uncertainty<br/>or change strategy"]
 ```
 
 The task therefore supplies a bounded purpose to knowledge.
@@ -1349,17 +1202,10 @@ The system should avoid a hierarchy where every unknown automatically spawns ano
 
 A knowledge gap should be represented explicitly:
 
-```text
-Task
-  │
-  └── requires → Knowledge
-                     │
-                     └── missing
-                          │
-                          ▼
-                     Research Task
-                          │
-                          └── Agent
+```mermaid
+flowchart TB
+  T[Task] -->|requires| K[Knowledge]
+  K -->|missing| RT[Research Task] --> A[Agent]
 ```
 
 The research task has its own budget and stopping conditions.
@@ -1444,24 +1290,11 @@ It stops being merely an archive and becomes part of the agent's control system.
 
 The deeper model is therefore:
 
-```text
-                 KNOWLEDGE
-                     │
-              informs / constrains
-                     │
-                     ▼
-TASK ─────────────► AGENT
- │                   │
- │                   │
- │                   ▼
- │                ACTION
- │                   │
- │                   ▼
- └──────────────► WORLD
-                     │
-                     │ observations
-                     ▼
-                 KNOWLEDGE
+```mermaid
+flowchart TB
+  K1[KNOWLEDGE] -->|"informs / constrains"| AGENT
+  TASK --> AGENT --> ACTION --> WORLD -->|"observations"| K2[KNOWLEDGE]
+  TASK --> WORLD
 ```
 
 Knowledge constrains action.
@@ -1576,19 +1409,20 @@ It is displaying the system's **epistemic state**.
 
 An agent run can therefore be represented as:
 
-```text
-Agent
-├── intent
-├── task
-├── knowledge requirements
-├── plan
-├── observation
-├── tool call
-├── command
-├── result
-├── knowledge update
-├── state transition
-└── completion
+```mermaid
+flowchart TB
+  A[Agent]
+  A --> intent
+  A --> task
+  A --> KR[knowledge requirements]
+  A --> plan
+  A --> observation
+  A --> TC[tool call]
+  A --> command
+  A --> result
+  A --> KU[knowledge update]
+  A --> ST[state transition]
+  A --> completion
 ```
 
 For example:
@@ -1690,15 +1524,13 @@ It may invoke remote services.
 
 The semantic object is therefore:
 
-```text
-Agent
-   │
-   └── Thread
-          │
-          ├── command
-          ├── observation
-          ├── result
-          └── change
+```mermaid
+flowchart TB
+  A[Agent] --> T[Thread]
+  T --> C[command]
+  T --> O[observation]
+  T --> R[result]
+  T --> CH[change]
 ```
 
 while the implementation may involve:
@@ -1719,15 +1551,14 @@ A `change` can become a bridge between execution and knowledge.
 
 For example:
 
-```text
-Agent
-   │
-   └── Change
-          ├── modified file
-          ├── created document
-          ├── started process
-          ├── changed task state
-          └── added knowledge
+```mermaid
+flowchart TB
+  A[Agent] --> CH[Change]
+  CH --> MF[modified file]
+  CH --> CD[created document]
+  CH --> SP[started process]
+  CH --> CTS[changed task state]
+  CH --> AK[added knowledge]
 ```
 
 This makes autonomous work auditable.
@@ -1752,12 +1583,9 @@ This is particularly useful when the thing being represented is not itself natur
 
 For example:
 
-```text
-entity
-   │
-   └── sidecar
-          │
-          └── executable / metadata / declaration
+```mermaid
+flowchart TB
+  E[entity] --> S[sidecar] --> X["executable / metadata / declaration"]
 ```
 
 The same pattern can apply to agents, threads, capabilities, software and other computational objects.
@@ -1885,12 +1713,15 @@ This keeps the underlying primitives simple.
 
 It also becomes useful for agents:
 
-```text
-Research task
-   ├── researcher A
-   ├── researcher B
-   ├── researcher C
-   └── synthesis
+```mermaid
+flowchart TB
+  RT[Research task]
+  RT --> A[researcher A]
+  RT --> B[researcher B]
+  RT --> C[researcher C]
+  A --> SY[synthesis]
+  B --> SY
+  C --> SY
 ```
 
 The orchestration layer can decide that A, B and C are independent while synthesis depends on all three.
@@ -1899,27 +1730,17 @@ The orchestration layer can decide that A, B and C are independent while synthes
 
 Projet Complexe ASC can define compositions such as:
 
-```text
-research
-    ├── search
-    ├── retrieve
-    ├── extract
-    ├── compare
-    └── synthesize
-
-index
-    ├── detect
-    ├── extract
-    ├── normalize
-    ├── index
-    └── relate
-
-run-agent
-    ├── create thread
-    ├── assign task
-    ├── provide knowledge context
-    ├── execute
-    └── emit changes
+```mermaid
+flowchart TB
+  subgraph research
+    R1[search] --> R2[retrieve] --> R3[extract] --> R4[compare] --> R5[synthesize]
+  end
+  subgraph index
+    I1[detect] --> I2[extract] --> I3[normalize] --> I4[index] --> I5[relate]
+  end
+  subgraph runAgent[run-agent]
+    A1[create thread] --> A2[assign task] --> A3[provide knowledge context] --> A4[execute] --> A5[emit changes]
+  end
 ```
 
 These are not ASC primitives.
@@ -1956,15 +1777,9 @@ Again, compose capabilities.
 
 The architecture becomes:
 
-```text
-ASC
-    generic primitives
-        ↓
-Projet Complexe ASC
-    domain compositions
-        ↓
-Projet Complexe
-    semantic / visual environment
+```mermaid
+flowchart TB
+  ASC["ASC<br/>generic primitives"] --> PCA["Projet Complexe ASC<br/>domain compositions"] --> PC["Projet Complexe<br/>semantic / visual environment"]
 ```
 
 This is much healthier than adding every new second-brain concept to ASC itself.
@@ -2061,27 +1876,19 @@ It should not contain generic OS abstractions.
 
 The dependency direction is:
 
-```text
-Projet Complexe
-       │
-       ▼
-Projet Complexe ASC
-       │
-       ▼
-      ASC
+```mermaid
+flowchart TB
+  PC[Projet Complexe] --> PCA[Projet Complexe ASC] --> ASC[ASC]
 ```
 
 But the conceptual authority is different:
 
-```text
-ASC
-    execution authority
-
-Projet Complexe ASC
-    integration / composition authority
-
-Projet Complexe
-    semantic interpretation authority
+```mermaid
+flowchart TB
+  ASC["ASC<br/>execution authority"]
+  PCA["Projet Complexe ASC<br/>integration / composition authority"]
+  PC["Projet Complexe<br/>semantic interpretation authority"]
+  ASC --- PCA --- PC
 ```
 
 # 45. The environment is deliberately asymmetric
@@ -2096,20 +1903,18 @@ Projet Complexe knows the semantic concepts it needs and the capabilities expose
 
 Therefore:
 
-```text
-ASC
- ↑
- │
-Projet Complexe ASC
- ↑
- │
-Projet Complexe
+```mermaid
+flowchart BT
+  PC[Projet Complexe] --> PCA[Projet Complexe ASC] --> ASC[ASC]
 ```
 
 not:
 
-```text
-ASC ↔ Projet Complexe ↔ Projet Complexe ASC
+```mermaid
+flowchart LR
+  subgraph anti["anti-pattern — circular coupling"]
+    ASC <--> PC[Projet Complexe] <--> PCA[Projet Complexe ASC]
+  end
 ```
 
 This one-way dependency is what keeps the architecture from becoming circular.
@@ -2217,16 +2022,10 @@ And the result can itself be represented by ASC.
 
 For example:
 
-```text
-Machine
-   └── hosts
-         └── Projet Complexe
-                └── runs
-                      └── Agent
-                            └── executes
-                                  └── ASC entry point
-                                        └── invokes
-                                              └── process
+```mermaid
+flowchart TB
+  M[Machine] -->|hosts| PC[Projet Complexe] -->|runs| A[Agent]
+  A -->|executes| EP[ASC entry point] -->|invokes| P[process]
 ```
 
 The system can therefore describe itself.
@@ -2293,18 +2092,9 @@ More broadly:
 
 This provides:
 
-```text
-semantic intent
-      ↓
-project-specific pivot
-      ↓
-ASC capability
-      ↓
-hook
-      ↓
-implementation
-      ↓
-machine
+```mermaid
+flowchart TB
+  SI[semantic intent] --> PP[project-specific pivot] --> AC[ASC capability] --> H[hook] --> IMP[implementation] --> M[machine]
 ```
 
 The same operation can therefore remain reproducible from the terminal.
@@ -2335,18 +2125,10 @@ The goal is to make the shell's affordances legible.
 
 This gives a useful progression:
 
-```text
-raw shell
-    ↓
-named shell environment
-    ↓
-structured computational environment
-    ↓
-discoverable capabilities
-    ↓
-observable execution
-    ↓
-agent-operable environment
+```mermaid
+flowchart TB
+  RS[raw shell] --> NSE[named shell environment] --> SCE[structured computational environment]
+  SCE --> DC[discoverable capabilities] --> OE[observable execution] --> AOE[agent-operable environment]
 ```
 
 The agent is not merely executing commands.
@@ -2428,35 +2210,26 @@ Once those relationships are explicit, a surprising amount of implementation bec
 
 For example:
 
-```text
-PDF
- │
- ├── is → document
- │
- ├── requires → extraction
- │
- └── provides → text
+```mermaid
+flowchart LR
+  PDF --> |"is"| DOC[document]
+  PDF --> |"requires"| EX[extraction]
+  PDF --> |"provides"| TXT[text]
 ```
 
 and:
 
-```text
-Docling
- │
- ├── is → software
- │
- └── provides → structured extraction
+```mermaid
+flowchart LR
+  D[Docling] -->|"is"| SW[software]
+  D -->|"provides"| SE[structured extraction]
 ```
 
 The system can then compose:
 
-```text
-PDF
-  → extraction
-  → Docling
-  → text
-  → indexing
-  → knowledge
+```mermaid
+flowchart LR
+  PDF --> EX[extraction] --> D[Docling] --> TXT[text] --> IX[indexing] --> K[knowledge]
 ```
 
 The project is not written from scratch.
@@ -2561,64 +2334,27 @@ new knowledge
 
 # 58. The whole architecture can be expressed as a loop
 
-```text
-                    WORLD
-                      │
-                      │ observation
-                      ▼
-                    ASC
-                      │
-                computational
-                 representation
-                      │
-                      ▼
-          PROJET COMPLEXE ASC
-                      │
-                 capabilities
-                 / pivots
-                      │
-                      ▼
-              PROJET COMPLEXE
-                      │
-              semantic model
-                      │
-             ┌────────┴────────┐
-             │                 │
-          KNOWLEDGE          TASK
-             │                 │
-             └────────┬────────┘
-                      │
-                    AGENT
-                      │
-                   ACTION
-                      │
-                      ▼
-                    ASC
-                      │
-                      ▼
-                    WORLD
+```mermaid
+flowchart TB
+  W1[WORLD] -->|"observation"| ASC1[ASC]
+  ASC1 -->|"computational representation"| PCA[PROJET COMPLEXE ASC]
+  PCA -->|"capabilities / pivots"| PC[PROJET COMPLEXE]
+  PC --> SM[semantic model]
+  SM --> K[KNOWLEDGE]
+  SM --> T[TASK]
+  K --> A[AGENT]
+  T --> A
+  A --> ACT[ACTION] --> ASC2[ASC] --> W2[WORLD]
 ```
 
 And the task/knowledge mutual killswitch operates inside this loop:
 
-```text
-TASK
- │
- ├── enough knowledge → ACT
- │
- └── insufficient knowledge
-          │
-          ▼
-       RESEARCH
-          │
-          ├── sufficient → ACT
-          │
-          └── excessive / unattainable
-                    │
-                    ▼
-              TASK IMPERATIVE
-                    │
-                    └── STOP RESEARCH
+```mermaid
+flowchart TB
+  TASK -->|"enough knowledge"| ACT1[ACT]
+  TASK -->|"insufficient knowledge"| RES[RESEARCH]
+  RES -->|"sufficient"| ACT2[ACT]
+  RES -->|"excessive / unattainable"| TI[TASK IMPERATIVE] --> SR[STOP RESEARCH]
 ```
 
 This is a much more precise model of autonomous work than simply:
@@ -2759,51 +2495,31 @@ This rule is more useful than deciding according to programming language or repo
 
 The resulting system can be summarized as:
 
-```text
-                         PROJET COMPLEXE
-                  semantic / visual universe
-                              │
-                              │
-                    task ↔ knowledge
-                              │
-                            agents
-                              │
-                              ▼
-                   PROJET COMPLEXE ASC
-                   domain-specific pivots
-                              │
-                              │
-                              ▼
-                             ASC
-              generic computational vocabulary
-                              │
-             ┌────────────────┼────────────────┐
-             │                │                │
-         filesystem        processes        machines
-             │                │                │
-         services          workers          hosts
-             │                │                │
-             └────────────────┼────────────────┘
-                              │
-                            WORLD
+```mermaid
+flowchart TB
+  PC["PROJET COMPLEXE<br/>semantic / visual universe"]
+  TK["task ↔ knowledge"]
+  AG[agents]
+  PCA["PROJET COMPLEXE ASC<br/>domain-specific pivots"]
+  ASC["ASC<br/>generic computational vocabulary"]
+  PC --> TK --> AG --> PCA --> ASC
+  ASC --> FS[filesystem]
+  ASC --> PR[processes]
+  ASC --> MA[machines]
+  FS --> SV[services]
+  PR --> WK[workers]
+  MA --> HO[hosts]
+  SV --> W[WORLD]
+  WK --> W
+  HO --> W
 ```
 
 The direction of abstraction is:
 
-```text
-world
-  ↓
-ASC
-  ↓
-project-specific pivots
-  ↓
-semantic model
-  ↓
-human / agent decisions
-  ↓
-actions
-  ↓
-world
+```mermaid
+flowchart TB
+  W1[world] --> ASC --> PP[project-specific pivots] --> SM[semantic model]
+  SM --> HAD[human / agent decisions] --> ACT[actions] --> W2[world]
 ```
 
 # 63. The deeper ambition
@@ -2850,24 +2566,11 @@ Projet Complexe gives those structures semantic context.
 
 Agents can then operate somewhere between the two:
 
-```text
-intent
-  ↓
-task
-  ↓
-knowledge requirements
-  ↓
-capability discovery
-  ↓
-ASC pivot
-  ↓
-execution
-  ↓
-observation
-  ↓
-knowledge update
-  ↓
-task progress
+```mermaid
+flowchart TB
+  intent --> task --> KR[knowledge requirements] --> CD[capability discovery]
+  CD --> AP[ASC pivot] --> EX[execution] --> OBS[observation]
+  OBS --> KU[knowledge update] --> TP[task progress]
 ```
 
 This is much closer to an environment in which agents can genuinely operate than simply giving an LLM access to a terminal.
@@ -2913,20 +2616,10 @@ And ASC can connect those representations.
 
 This means the same activity can be inspected as:
 
-```text
-human concept
-    ↕
-semantic object
-    ↕
-ASC entity
-    ↕
-entry point
-    ↕
-execution
-    ↕
-event
-    ↕
-result
+```mermaid
+flowchart TB
+  HC[human concept] <--> SO[semantic object] <--> AE[ASC entity]
+  AE <--> EP[entry point] <--> EX[execution] <--> EV[event] <--> R[result]
 ```
 
 That traceability is potentially more important than any individual feature.
@@ -3034,16 +2727,10 @@ extract-document
 
 which can resolve through:
 
-```text
-Projet Complexe
-        ↓
-Projet Complexe ASC
-        ↓
-ASC
-        ↓
-extraction capability
-        ↓
-implementation
+```mermaid
+flowchart TB
+  PC[Projet Complexe] --> PCA[Projet Complexe ASC] --> ASC
+  ASC --> EC[extraction capability] --> IMP[implementation]
 ```
 
 The same applies to:
@@ -3113,71 +2800,30 @@ ASC, Projet Complexe ASC and Projet Complexe should not be understood as three v
 
 They form a stack of increasingly specific meaning.
 
-```text
-┌───────────────────────────────────────────────────────────────┐
-│                     PROJET COMPLEXE                           │
-│                                                               │
-│  Meaning · Tasks · Knowledge · Research · Projects · Agents  │
-│                                                               │
-│  "What am I trying to understand or accomplish?"             │
-└───────────────────────────────┬───────────────────────────────┘
-                                │
-                                ▼
-┌───────────────────────────────────────────────────────────────┐
-│                  PROJET COMPLEXE ASC                          │
-│                                                               │
-│  Domain-specific pivots · compositions · integrations        │
-│                                                               │
-│  "How does this particular environment expose ASC?"          │
-└───────────────────────────────┬───────────────────────────────┘
-                                │
-                                ▼
-┌───────────────────────────────────────────────────────────────┐
-│                            ASC                                │
-│                                                               │
-│  Names · Entities · Entry points · Hooks · Sidecars          │
-│  Capabilities · DSL · Threads · Execution · Composition      │
-│                                                               │
-│  "What exists, where is it, and what can be done?"            │
-└───────────────────────────────┬───────────────────────────────┘
-                                │
-                                ▼
-                       COMPUTATIONAL WORLD
+```mermaid
+flowchart TB
+  PC["PROJET COMPLEXE<br/>Meaning · Tasks · Knowledge · Research · Projects · Agents<br/><i>What am I trying to understand or accomplish?</i>"]
+  PCA["PROJET COMPLEXE ASC<br/>Domain-specific pivots · compositions · integrations<br/><i>How does this particular environment expose ASC?</i>"]
+  ASC["ASC<br/>Names · Entities · Entry points · Hooks · Sidecars<br/>Capabilities · DSL · Threads · Execution · Composition<br/><i>What exists, where is it, and what can be done?</i>"]
+  CW[COMPUTATIONAL WORLD]
+  PC --> PCA --> ASC --> CW
 ```
 
 The relationship between task and knowledge then becomes the dynamic core of the upper layer:
 
-```text
-                         TASK
-                          │
-                 knowledge insufficient
-                          │
-                          ▼
-                      RESEARCH
-                          │
-                  knowledge sufficient
-                          │
-                          ▼
-                         TASK
-                          │
-                     execution
-                          │
-                          ▼
-                       WORLD
-                          │
-                     observation
-                          │
-                          ▼
-                      KNOWLEDGE
+```mermaid
+flowchart TB
+  T1[TASK] -->|"knowledge insufficient"| RES[RESEARCH]
+  RES -->|"knowledge sufficient"| T2[TASK] -->|"execution"| W[WORLD]
+  W -->|"observation"| K[KNOWLEDGE]
 ```
 
 with a mutual killswitch:
 
-```text
-TASK ──────────────► kills excessive RESEARCH
-
-RESEARCH / KNOWLEDGE GAP
-       ─────────────► kills or suspends unjustified TASK EXECUTION
+```mermaid
+flowchart LR
+  TASK -->|"kills excessive"| RES[RESEARCH]
+  RKG["RESEARCH / KNOWLEDGE GAP"] -->|"kills or suspends unjustified"| TE[TASK EXECUTION]
 ```
 
 This gives autonomous agents something more interesting than unrestricted tool access.
@@ -3224,42 +2870,21 @@ This distinction matters because a project-specific concept can still be impleme
 
 The intended evolutionary direction is therefore:
 
-```text
-                    increasing genericity
-                           ↑
-                           │
-project implementation ────┤
-                           │
-third-party contrib ───────┤
-                           │
-ASC contrib ───────────────┤
-                           │
-ASC core ──────────────────┤
-                           │
-primitive ─────────────────┤
-                           │
-primordial ────────────────┘
+```mermaid
+flowchart BT
+  PI[project implementation] --> TPC[third-party contrib]
+  TPC --> AC[ASC contrib] --> ACO[ASC core] --> PR[primitive] --> PO[primordial]
+  PO -.->|"increasing genericity"| PI
 ```
 
 Or operationally:
 
-```text
-private experiment
-       │
-       ▼
-project-specific implementation
-       │
-       │ demonstrated reusable value
-       ▼
-third-party / personal contrib
-       │
-       │ demonstrated broader applicability
-       ▼
-ASC contrib
-       │
-       │ demonstrated fundamental status
-       ▼
-ASC core
+```mermaid
+flowchart TB
+  PE[private experiment] --> PSI[project-specific implementation]
+  PSI -->|"demonstrated reusable value"| TPC[third-party / personal contrib]
+  TPC -->|"demonstrated broader applicability"| AC[ASC contrib]
+  AC -->|"demonstrated fundamental status"| ACO[ASC core]
 ```
 
 This means that **ASC should not try to predict the final ontology in advance**.
@@ -3393,33 +3018,22 @@ That distinction is essential:
 
 The three projects therefore occupy different roles.
 
-```text
-ASC
-│
-├── primordial
-├── primitives
-├── core extensions
-└── contrib extensions
-        │
-        └── reusable ecosystem extensions
-                │
-                ▼
-       third-party contrib
-                │
-                ▼
-       Projet Complexe ASC
-                │
-                └── project-specific ASC compositions
-                        │
-                        ▼
-                 Projet Complexe
-                        │
-                        ├── task
-                        ├── knowledge
-                        ├── research
-                        ├── publication
-                        ├── project
-                        └── agents
+```mermaid
+flowchart TB
+  ASC[ASC]
+  ASC --> primordial
+  ASC --> primitives
+  ASC --> CE[core extensions]
+  ASC --> CX[contrib extensions]
+  CX --> REE[reusable ecosystem extensions] --> TPC[third-party contrib]
+  TPC --> PCA[Projet Complexe ASC]
+  PCA --> PSC[project-specific ASC compositions] --> PC[Projet Complexe]
+  PC --> task
+  PC --> knowledge
+  PC --> research
+  PC --> publication
+  PC --> project
+  PC --> agents
 ```
 
 But the last two should not be interpreted as simply “levels 6 and 7”.
@@ -3468,38 +3082,19 @@ That does not mean ASC should acquire a primitive called `research-agent`.
 
 Instead:
 
-```text
-Projet Complexe
-        │
-        │ semantic requirement
-        ▼
-Projet Complexe ASC
-        │
-        │ project-specific composition
-        ▼
-ASC
-        │
-        │ generic primitives
-        ▼
-execution
+```mermaid
+flowchart TB
+  PC[Projet Complexe] -->|"semantic requirement"| PCA[Projet Complexe ASC]
+  PCA -->|"project-specific composition"| ASC
+  ASC -->|"generic primitives"| EX[execution]
 ```
 
 Later, if the abstraction proves useful outside Projet Complexe, it can migrate:
 
-```text
-Projet Complexe ASC
-        │
-        │ reused elsewhere
-        ▼
-third-party contrib
-        │
-        │ broadly reusable
-        ▼
-ASC contrib
-        │
-        │ fundamental
-        ▼
-ASC core
+```mermaid
+flowchart TB
+  PCA[Projet Complexe ASC] -->|"reused elsewhere"| TPC[third-party contrib]
+  TPC -->|"broadly reusable"| AC[ASC contrib] -->|"fundamental"| ACO[ASC core]
 ```
 
 This makes the architecture evolutionary rather than speculative.
@@ -3518,18 +3113,11 @@ Experience determines that.
 
 A useful pattern is:
 
-```text
-invent locally
-     ↓
-use in practice
-     ↓
-observe repeated structure
-     ↓
-extract generic contract
-     ↓
-make reusable extension
-     ↓
-promote if sufficiently fundamental
+```mermaid
+flowchart TB
+  IL[invent locally] --> UP[use in practice] --> ORS[observe repeated structure]
+  ORS --> EGC[extract generic contract] --> MRE[make reusable extension]
+  MRE --> PROM[promote if sufficiently fundamental]
 ```
 
 This is especially important for autonomous-agent concepts.
@@ -3621,18 +3209,13 @@ It is initially a **Projet Complexe autonomous-agent control concept**, potentia
 
 The relationship is:
 
-```text
-Projet Complexe
-    │
-    │ defines the semantic imperative
-    │
-    ├── TASK
-    │     │
-    │     └── discovers missing knowledge
-    │
-    └── KNOWLEDGE
-          │
-          └── gathers evidence
+```mermaid
+flowchart TB
+  PC["Projet Complexe<br/>defines the semantic imperative"]
+  PC --> TASK
+  PC --> KNOW[KNOWLEDGE]
+  TASK --> DMK[discovers missing knowledge]
+  KNOW --> GE[gathers evidence]
 ```
 
 Projet Complexe ASC can expose the operational pivots:
@@ -3660,18 +3243,12 @@ execute
 
 Thus:
 
-```text
-semantic policy
-       ↓
-Projet Complexe
-
-operational composition
-       ↓
-Projet Complexe ASC
-
-generic execution mechanism
-       ↓
-ASC
+```mermaid
+flowchart TB
+  SP[semantic policy] --> PC[Projet Complexe]
+  OC[operational composition] --> PCA[Projet Complexe ASC]
+  GEM[generic execution mechanism] --> ASC
+  PC --> PCA --> ASC
 ```
 
 This is exactly the sort of concept that the genericity scale is designed to protect.
@@ -3686,71 +3263,22 @@ The most accurate representation is therefore not a simple vertical stack.
 
 It is:
 
-```text
-                           GENERICITY
-                               ↑
-                               │
-                    ┌──────────┴──────────┐
-                    │        ASC          │
-                    │                     │
-                    │ primordial          │
-                    │ primitive           │
-                    │ core                │
-                    │ contrib             │
-                    └──────────┬──────────┘
-                               │
-                    reusable ASC vocabulary
-                               │
-                    ┌──────────▼──────────┐
-                    │  external / third-  │
-                    │  party extensions   │
-                    └──────────┬──────────┘
-                               │
-                         composition
-                               │
-                    ┌──────────▼──────────┐
-                    │ PROJET COMPLEXE ASC │
-                    │                     │
-                    │ specific pivots     │
-                    │ specific hooks      │
-                    │ specific workflows  │
-                    │ environment config  │
-                    └──────────┬──────────┘
-                               │
-                         semantic use
-                               │
-                    ┌──────────▼──────────┐
-                    │  PROJET COMPLEXE    │
-                    │                     │
-                    │ task                │
-                    │ knowledge           │
-                    │ research            │
-                    │ agents              │
-                    │ projects            │
-                    │ desktop UI          │
-                    └─────────────────────┘
+```mermaid
+flowchart TB
+  ASC["ASC<br/>primordial · primitive · core · contrib"]
+  ASC -->|"reusable ASC vocabulary"| EXT["external / third-party extensions"]
+  EXT -->|"composition"| PCA["PROJET COMPLEXE ASC<br/>specific pivots · hooks · workflows · env config"]
+  PCA -->|"semantic use"| PC["PROJET COMPLEXE<br/>task · knowledge · research · agents · projects · desktop UI"]
+  ASC -.->|"GENERICITY ↑"| ASC
 ```
 
 And concepts can move **upward in genericity** when experience warrants it:
 
-```text
-Projet Complexe
-      │
-      │ proven reusable
-      ▼
-Projet Complexe ASC
-      │
-      │ useful beyond this project
-      ▼
-third-party contrib
-      │
-      │ ecosystem-wide usefulness
-      ▼
-ASC contrib
-      │
-      │ fundamental
-      ▼
-ASC core
+```mermaid
+flowchart TB
+  PC[Projet Complexe] -->|"proven reusable"| PCA[Projet Complexe ASC]
+  PCA -->|"useful beyond this project"| TPC[third-party contrib]
+  TPC -->|"ecosystem-wide usefulness"| AC[ASC contrib] -->|"fundamental"| ACO[ASC core]
 ```
 
 That is the missing conceptual mechanism tying the three projects together.
@@ -3843,19 +3371,11 @@ A purely knowledge-oriented agent risks researching without end.
 
 The interesting autonomous system lies between them:
 
-```text
-                 KNOWLEDGE
-                     │
-                     │ enables justified action
-                     ▼
-                    TASK
-                     │
-                     │ produces observations
-                     ▼
-                    WORLD
-                     │
-                     │ produces new knowledge
-                     └──────────────► KNOWLEDGE
+```mermaid
+flowchart TB
+  K1[KNOWLEDGE] -->|"enables justified action"| TASK
+  TASK -->|"produces observations"| WORLD
+  WORLD -->|"produces new knowledge"| K2[KNOWLEDGE]
 ```
 
 The mutual killswitch keeps the loop bounded.
