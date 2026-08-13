@@ -46,8 +46,6 @@ The important architectural rule is therefore:
 
 This gives each project a reason to exist.
 
----
-
 # 1. The three projects
 
 ## 1.1 ASC: the computational vocabulary
@@ -118,8 +116,6 @@ capability
 
 without requiring ASC to become specialized for every domain that uses it.
 
----
-
 # 2. Projet Complexe: the semantic and visual environment
 
 Projet Complexe has a different concern.
@@ -178,8 +174,6 @@ A task is oriented toward achieving something.
 Knowledge is oriented toward understanding something.
 
 Agents sit at the intersection because autonomous activity necessarily moves between the two.
-
----
 
 # 3. Projet Complexe ASC: the specific pivots
 
@@ -279,8 +273,6 @@ Projet Complexe
     knowledge and projects?
 ```
 
----
-
 # 4. Why this is better than a monolith
 
 The dangerous architecture would be:
@@ -345,8 +337,6 @@ The three-project architecture prevents this gravitational pull.
 
 Each layer can therefore remain relatively ignorant of the layers above it.
 
----
-
 # 5. ASC is not the operating system
 
 ASC should not attempt to replace Linux, Windows, POSIX, Bash, Docker or other existing computational systems.
@@ -402,8 +392,6 @@ agent portability
 ```
 
 The consumer should ask for a capability rather than care about the implementation.
-
----
 
 # 6. ASC's central mechanism: naming and pivots
 
@@ -462,8 +450,6 @@ graph node
 ```
 
 These are different views of the same underlying structure.
-
----
 
 # 7. YAML, filesystem, DSL and shell
 
@@ -554,8 +540,6 @@ Not:
 
 > class A extends class B.
 
----
-
 # 8. Entity versus ability
 
 There is a useful distinction between:
@@ -598,8 +582,6 @@ It should be possible for it to reason more abstractly:
 ASC can then discover or resolve an implementation.
 
 That is a fundamentally different model from hard-coding tool names everywhere.
-
----
 
 # 9. The project-specific layer should exploit this
 
@@ -644,8 +626,6 @@ project-specific pivot
         ↓
 semantic operation
 ```
-
----
 
 # 10. Projet Complexe should remain ignorant of implementation details
 
@@ -705,8 +685,6 @@ Those are implementation facts.
 
 The semantic model should outlive them.
 
----
-
 # 11. Projet Complexe is therefore not a system dashboard
 
 This distinction is crucial.
@@ -756,8 +734,6 @@ A service can appear because it constrains an operation.
 
 Everything is contextual.
 
----
-
 # 12. The graph is conceptual, not necessarily the database
 
 The system may contain:
@@ -797,8 +773,6 @@ The graph is therefore a model of relationships.
 It is not necessarily the storage architecture.
 
 This distinction preserves implementation freedom.
-
----
 
 # 13. Machines become knowledge objects
 
@@ -859,8 +833,6 @@ ASC tells us what is observable and executable.
 
 Projet Complexe gives it semantic meaning.
 
----
-
 # 14. The central distinction: execution versus interpretation
 
 A useful formulation is:
@@ -902,8 +874,6 @@ execution vs interpretation
 ```
 
 The Tauri application is simply one interface through which the interpretive layer can interact with the execution layer.
-
----
 
 # 15. Tauri should remain thin
 
@@ -961,8 +931,6 @@ Tauri
 
 This keeps the Rust portion deliberately small.
 
----
-
 # 16. CLI and GUI should be two interfaces to the same system
 
 One of the strongest consequences of this architecture is that the GUI should never become the only way to operate the system.
@@ -993,8 +961,6 @@ the underlying operation should still be inspectable and reproducible through AS
 This is important for debugging, automation, scripting and agents.
 
 It also prevents the desktop application from becoming a mysterious execution environment that cannot be understood outside itself.
-
----
 
 # 17. Events should be first-class
 
@@ -1032,8 +998,6 @@ An external client can subscribe.
 An agent controller can subscribe.
 
 This means that execution becomes observable without forcing every consumer to understand the implementation.
-
----
 
 # 18. Agents are not another silo
 
@@ -1073,8 +1037,6 @@ output
 ```
 
 This is precisely where ASC's computational vocabulary becomes useful.
-
----
 
 # 19. The task/knowledge distinction is deeper than a UI distinction
 
@@ -1127,8 +1089,6 @@ A task may reveal that knowledge is missing.
 
 This is where the more interesting idea begins.
 
----
-
 # 20. The task/knowledge mutual killswitch
 
 The phrase **“task-oriented vs knowledge-oriented: mutual killswitch”** should be understood literally as a control principle for autonomous agents.
@@ -1173,8 +1133,6 @@ The task says, in effect:
 This is not failure.
 
 It is a controlled transition from execution to inquiry.
-
----
 
 # 21. The opposite direction is equally important
 
@@ -1231,8 +1189,6 @@ EXECUTE TASK
 Knowledge gathering must therefore be killable by the task it exists to serve.
 
 This is the second direction of the mutual killswitch.
-
----
 
 # 22. The complete control loop
 
@@ -1292,8 +1248,6 @@ Likewise, the goal of task execution is not:
 It is:
 
 > make progress until a knowledge deficit becomes materially blocking.
-
----
 
 # 23. This changes what “autonomous” means
 
@@ -1357,8 +1311,6 @@ The task therefore supplies a bounded purpose to knowledge.
 
 Knowledge supplies a bounded legitimacy to action.
 
----
-
 # 24. This is particularly relevant to researcher agents
 
 A researcher agent should not simply have the objective:
@@ -1391,8 +1343,6 @@ It exists because something needs to be accomplished.
 
 This prevents knowledge acquisition from becoming an independent optimization target.
 
----
-
 # 25. The same principle applies to agents researching agents
 
 The system should avoid a hierarchy where every unknown automatically spawns another infinite research tree.
@@ -1423,8 +1373,6 @@ knowledge unavailable
 rather than silently expanding forever.
 
 This creates a natural form of bounded autonomy.
-
----
 
 # 26. Knowledge is therefore not merely a database
 
@@ -1469,8 +1417,6 @@ KnowledgeGap
 
 because that object can directly influence task execution.
 
----
-
 # 27. The knowledge graph should contain uncertainty
 
 A semantic environment becomes more useful to autonomous agents when it can represent not only:
@@ -1493,8 +1439,6 @@ X is sufficient for decision D.
 This makes the knowledge layer operational.
 
 It stops being merely an archive and becomes part of the agent's control system.
-
----
 
 # 28. Tasks and knowledge form a coupled system
 
@@ -1532,8 +1476,6 @@ Excessive knowledge gathering is interrupted by the task imperative.
 
 This is a feedback system rather than a pipeline.
 
----
-
 # 29. The “mutual killswitch” is therefore a control-theoretic idea
 
 The term is intentionally stronger than “feedback loop”.
@@ -1567,8 +1509,6 @@ A purely task-oriented system risks blind execution.
 A purely knowledge-oriented system risks endless inquiry.
 
 The mutual killswitch is the mechanism that keeps them coupled without allowing either to become sovereign.
-
----
 
 # 30. This may become one of Projet Complexe's most important concepts
 
@@ -1632,8 +1572,6 @@ The UI is not merely displaying work.
 
 It is displaying the system's **epistemic state**.
 
----
-
 # 31. Agent activity should become an event stream
 
 An agent run can therefore be represented as:
@@ -1695,8 +1633,6 @@ This is much more informative than simply showing:
 agent running
 ```
 
----
-
 # 32. ASC should expose execution events, not interpret them
 
 ASC can provide:
@@ -1727,8 +1663,6 @@ This is another important boundary.
 ASC reports what happened.
 
 Projet Complexe determines what it means.
-
----
 
 # 33. Threads, processes and agents
 
@@ -1779,8 +1713,6 @@ APIs
 
 ASC provides the pivot through which those implementation details become addressable.
 
----
-
 # 34. Changes are particularly important
 
 A `change` can become a bridge between execution and knowledge.
@@ -1810,8 +1742,6 @@ the system can represent:
 
 That is an important foundation for trustworthy autonomous systems.
 
----
-
 # 35. Sidecars make virtual things concrete
 
 A recurring ASC pattern is that a conceptual object can have a concrete representation.
@@ -1836,8 +1766,6 @@ The sidecar is not necessarily the object itself.
 
 It is a concrete projection of the object.
 
----
-
 # 36. The filename-safe constraint matters
 
 If the filesystem is part of the vocabulary, names need to remain safe and predictable.
@@ -1860,8 +1788,6 @@ This constraint is not cosmetic.
 
 It is part of making the vocabulary composable.
 
----
-
 # 37. The DSL should remain small
 
 The DSL should not become a replacement for Bash.
@@ -1881,8 +1807,6 @@ ASC DSL:
 The DSL therefore benefits from being deliberately constrained.
 
 The more it becomes another general-purpose programming language, the less useful the relationship with the filesystem and entry-point model becomes.
-
----
 
 # 38. Argument mapping belongs to the pivot model
 
@@ -1907,8 +1831,6 @@ The entry point establishes interpretation.
 The DSL supplies the composition.
 
 The shell receives the final concrete arguments.
-
----
 
 # 39. `wrap`, `nest` and composition
 
@@ -1943,8 +1865,6 @@ over:
 duplicate
 ```
 
----
-
 # 40. Parallelism should be a property of composition
 
 Parallelism should not require every individual primitive to understand concurrency.
@@ -1974,8 +1894,6 @@ Research task
 ```
 
 The orchestration layer can decide that A, B and C are independent while synthesis depends on all three.
-
----
 
 # 41. Projet Complexe ASC is where this becomes practical
 
@@ -2009,8 +1927,6 @@ These are not ASC primitives.
 They are meaningful compositions for this particular environment.
 
 This is exactly why the third project should remain thin.
-
----
 
 # 42. Projet Complexe can therefore evolve without redefining ASC
 
@@ -2052,8 +1968,6 @@ Projet Complexe
 ```
 
 This is much healthier than adding every new second-brain concept to ASC itself.
-
----
 
 # 43. The repository boundaries
 
@@ -2137,8 +2051,6 @@ Contains:
 
 It should not contain generic OS abstractions.
 
----
-
 # 44. The three layers can be summarized in one table
 
 | Project | Fundamental question | Vocabulary | Responsibility |
@@ -2172,8 +2084,6 @@ Projet Complexe
     semantic interpretation authority
 ```
 
----
-
 # 45. The environment is deliberately asymmetric
 
 The three projects should not know equally much about one another.
@@ -2203,8 +2113,6 @@ ASC ↔ Projet Complexe ↔ Projet Complexe ASC
 ```
 
 This one-way dependency is what keeps the architecture from becoming circular.
-
----
 
 # 46. The Second Brain should not become an ASC frontend
 
@@ -2245,8 +2153,6 @@ The UI should not become:
 
 > Here is a service management console.
 
----
-
 # 47. Conversely, ASC should not become a knowledge graph
 
 ASC can expose relationships.
@@ -2274,8 +2180,6 @@ The default assumption should be:
 > domain semantics belong above ASC.
 
 This keeps ASC genuinely reusable.
-
----
 
 # 48. The architecture is recursive
 
@@ -2329,8 +2233,6 @@ The system can therefore describe itself.
 
 That is potentially much more important than any individual UI feature.
 
----
-
 # 49. The same structure can be seen from different perspectives
 
 A computational object can be viewed as:
@@ -2359,8 +2261,6 @@ The UI does not need to invent an artificial graph.
 
 The graph is already implicit in the relationships between computational objects.
 
----
-
 # 50. This is why the desktop UI can become much more than a dashboard
 
 The Tauri application can become a visual projection of:
@@ -2380,8 +2280,6 @@ That is much closer to a **second brain** than a conventional productivity appli
 And because ASC makes the computational environment observable, the second brain does not have to remain purely informational.
 
 It can act.
-
----
 
 # 51. But action should remain mediated by ASC
 
@@ -2411,8 +2309,6 @@ machine
 
 The same operation can therefore remain reproducible from the terminal.
 
----
-
 # 52. This is also important for agents
 
 An autonomous agent should not receive an arbitrary shell and an enormous unstructured environment and be expected to infer everything.
@@ -2434,8 +2330,6 @@ Then it can reason over a structured environment.
 The goal is not to prevent agents from using the shell.
 
 The goal is to make the shell's affordances legible.
-
----
 
 # 53. ASC as an environment for agents
 
@@ -2460,8 +2354,6 @@ The agent is not merely executing commands.
 It is navigating a vocabulary.
 
 This is where the original ambition of ASC becomes relevant to autonomous agents.
-
----
 
 # 54. The Go analogy
 
@@ -2513,8 +2405,6 @@ In that sense:
 Not because computation is a game.
 
 Because a stable vocabulary turns an otherwise chaotic space of possibilities into a space of meaningful moves.
-
----
 
 # 55. “If you name things right, projects practically write themselves”
 
@@ -2573,8 +2463,6 @@ The project is not written from scratch.
 
 It is assembled from named capabilities.
 
----
-
 # 56. This is the real relationship between ASC and the Second Brain
 
 The Second Brain does not need ASC because it needs a backend.
@@ -2590,8 +2478,6 @@ That distinction matters.
 It means ASC can continue evolving independently.
 
 And Projet Complexe can become increasingly sophisticated without forcing ASC to absorb its semantics.
-
----
 
 # 57. The research environment becomes a particularly interesting test case
 
@@ -2673,8 +2559,6 @@ to:
 new knowledge
 ```
 
----
-
 # 58. The whole architecture can be expressed as a loop
 
 ```text
@@ -2742,8 +2626,6 @@ This is a much more precise model of autonomous work than simply:
 ```text
 agent → tools → result
 ```
-
----
 
 # 59. What should be built first
 
@@ -2814,8 +2696,6 @@ the most important architectural boundary has already been demonstrated.
 
 Everything else can grow around it.
 
----
-
 # 60. What should not be built first
 
 Avoid premature construction of:
@@ -2844,8 +2724,6 @@ If it is a genuinely reusable computational primitive, it may belong in ASC.
 If it is specific to Projet Complexe, it probably belongs in Projet Complexe ASC.
 
 If it exists primarily to interpret, visualize or organize meaning for the user, it belongs in Projet Complexe.
-
----
 
 # 61. A practical rule for deciding where something belongs
 
@@ -2876,8 +2754,6 @@ When introducing a new concept:
 - it is primarily a human/agent semantic interaction.
 
 This rule is more useful than deciding according to programming language or repository convenience.
-
----
 
 # 62. The architectural hierarchy
 
@@ -2930,8 +2806,6 @@ actions
 world
 ```
 
----
-
 # 63. The deeper ambition
 
 ASC begins from the hard problem of naming things.
@@ -2965,8 +2839,6 @@ agents
 The same vocabulary can progressively connect things that are normally represented through completely different systems.
 
 This is the real potential of the architecture.
-
----
 
 # 64. From shell vocabulary to agent vocabulary
 
@@ -3003,8 +2875,6 @@ This is much closer to an environment in which agents can genuinely operate than
 The terminal remains there.
 
 It is simply no longer the only representation of what the terminal can do.
-
----
 
 # 65. The environment becomes inspectable
 
@@ -3061,8 +2931,6 @@ result
 
 That traceability is potentially more important than any individual feature.
 
----
-
 # 66. The system should remain lightweight
 
 The architecture does not require a huge stack.
@@ -3107,8 +2975,6 @@ The point is not technological maximalism.
 
 The point is to establish a coherent vocabulary over heterogeneous technologies.
 
----
-
 # 67. The resulting system is deliberately plastic
 
 This architecture allows substitutions without conceptual collapse.
@@ -3141,8 +3007,6 @@ Capability
 ```
 
 This is the kind of plasticity that makes the architecture durable.
-
----
 
 # 68. The key invariant
 
@@ -3197,8 +3061,6 @@ inspect
 
 Stable names make implementations replaceable.
 
----
-
 # 69. The deeper meaning of “Let's make words matter”
 
 This phrase is not merely a slogan.
@@ -3244,8 +3106,6 @@ can become computable concepts rather than merely UI labels.
 The goal is therefore:
 
 > **Make words matter by giving names stable computational consequences.**
-
----
 
 # 70. The final synthesis
 
@@ -3340,7 +3200,564 @@ Projet Complexe ASC provides the concrete pivots through which this particular e
 
 Projet Complexe provides the semantic environment in which humans and agents can understand, organize and direct it.
 
----
+# Genericity Scale and the Three-Project Boundary
+
+The three-project architecture should not be understood as three successive abstraction layers.
+
+There are actually **two dimensions**:
+
+1. a **genericity scale**, describing how broadly reusable a concept is;
+2. a **project boundary**, describing which project currently owns and composes that concept.
+
+The genericity scale is:
+
+```text
+1. primordial
+2. primitive
+3. ASC core extension
+4. ASC contrib extension
+5. third-party contrib extension
+6. project-specific implementation
+```
+
+This distinction matters because a project-specific concept can still be implemented *using ASC*. Conversely, something originally invented for Projet Complexe may later prove sufficiently reusable to migrate upward.
+
+The intended evolutionary direction is therefore:
+
+```text
+                    increasing genericity
+                           ↑
+                           │
+project implementation ────┤
+                           │
+third-party contrib ───────┤
+                           │
+ASC contrib ───────────────┤
+                           │
+ASC core ──────────────────┤
+                           │
+primitive ─────────────────┤
+                           │
+primordial ────────────────┘
+```
+
+Or operationally:
+
+```text
+private experiment
+       │
+       ▼
+project-specific implementation
+       │
+       │ demonstrated reusable value
+       ▼
+third-party / personal contrib
+       │
+       │ demonstrated broader applicability
+       ▼
+ASC contrib
+       │
+       │ demonstrated fundamental status
+       ▼
+ASC core
+```
+
+This means that **ASC should not try to predict the final ontology in advance**.
+
+A concept can start as a very specific implementation and migrate upward when experience demonstrates that it deserves to become generic.
+
+# The six levels
+
+## 1. Primordial
+
+These are concepts so fundamental that ASC builds its vocabulary around them rather than defining them as ordinary extensions.
+
+They form the substrate from which the rest of the system is constructed.
+
+## 2. Primitive
+
+Primitives are the basic reusable computational concepts of ASC.
+
+They should have stable semantics and should not depend on Projet Complexe.
+
+Examples include the kinds of concepts around:
+
+```text
+entity
+field
+prop
+able
+include
+namespace
+entry point
+hook
+sidecar
+thread
+change
+```
+
+The exact primitive vocabulary can evolve, but its defining property is **genericity**.
+
+A primitive should make sense independently of a particular second brain, research workflow or desktop application.
+
+## 3. ASC core extensions
+
+These are concepts that are not necessarily primordial or primitive, but have become sufficiently fundamental to belong to ASC itself.
+
+They extend the generic computational vocabulary without being tied to one particular project.
+
+ASC core is therefore not merely a fixed kernel.
+
+It can grow.
+
+The important constraint is that its additions remain broadly meaningful.
+
+## 4. ASC contrib extensions
+
+These are reusable extensions that are valuable within the ASC ecosystem but are not fundamental enough to belong to the core.
+
+This provides an important pressure-release mechanism.
+
+Without a contrib level, every useful abstraction faces a binary decision:
+
+```text
+core
+or
+not ASC
+```
+
+The contrib level allows:
+
+```text
+useful + reusable
+but
+not fundamental
+```
+
+to remain part of the ASC ecosystem without contaminating the core vocabulary.
+
+## 5. Third-party contrib extensions
+
+This is where reusable external implementations can live.
+
+A capability may originate outside ASC itself while still exposing itself through ASC's vocabulary.
+
+For example, a particular document-extraction, indexing, graph, AI or operating-system integration can become an ASC-compatible extension without becoming an ASC primitive.
+
+This is where tool-level portability becomes particularly useful.
+
+The semantic capability can remain stable:
+
+```text
+document extraction
+```
+
+while implementations vary:
+
+```text
+Docling
+Tika
+pdftotext
+custom extractor
+```
+
+The implementation is replaceable because the capability has a stable ASC-facing address.
+
+## 6. Project-specific implementations
+
+At the most specific end are implementations whose meaning depends on one particular environment.
+
+This is where **Projet Complexe ASC** primarily lives.
+
+For example:
+
+```text
+research
+researcher-agent
+knowledge-gap
+task-blocked
+task-resume
+index-my-corpus
+publish-research-note
+```
+
+may be meaningful and useful within Projet Complexe without being appropriate ASC primitives.
+
+They can nevertheless be expressed *through* ASC.
+
+That distinction is essential:
+
+> **Being implemented with ASC does not make something part of ASC's generic vocabulary.**
+
+# The three projects mapped onto the genericity scale
+
+The three projects therefore occupy different roles.
+
+```text
+ASC
+│
+├── primordial
+├── primitives
+├── core extensions
+└── contrib extensions
+        │
+        └── reusable ecosystem extensions
+                │
+                ▼
+       third-party contrib
+                │
+                ▼
+       Projet Complexe ASC
+                │
+                └── project-specific ASC compositions
+                        │
+                        ▼
+                 Projet Complexe
+                        │
+                        ├── task
+                        ├── knowledge
+                        ├── research
+                        ├── publication
+                        ├── project
+                        └── agents
+```
+
+But the last two should not be interpreted as simply “levels 6 and 7”.
+
+They are different dimensions.
+
+**Projet Complexe ASC** is primarily a *computational integration/composition space*.
+
+**Projet Complexe** is primarily a *semantic and visual application space*.
+
+A project-specific concept can therefore exist in both:
+
+```text
+Projet Complexe ASC:
+    spawn-researcher
+    index-document
+    search-knowledge
+    execute-task
+
+Projet Complexe:
+    Research
+    KnowledgeGap
+    Task
+    Agent
+    Evidence
+    Decision
+```
+
+The first group describes **how the environment operates**.
+
+The second describes **what that operation means**.
+
+# Why the boundary matters
+
+The genericity scale prevents a common architectural failure:
+
+> promoting every useful project-specific abstraction into the generic core.
+
+Suppose Projet Complexe needs:
+
+```text
+research-agent
+```
+
+That does not mean ASC should acquire a primitive called `research-agent`.
+
+Instead:
+
+```text
+Projet Complexe
+        │
+        │ semantic requirement
+        ▼
+Projet Complexe ASC
+        │
+        │ project-specific composition
+        ▼
+ASC
+        │
+        │ generic primitives
+        ▼
+execution
+```
+
+Later, if the abstraction proves useful outside Projet Complexe, it can migrate:
+
+```text
+Projet Complexe ASC
+        │
+        │ reused elsewhere
+        ▼
+third-party contrib
+        │
+        │ broadly reusable
+        ▼
+ASC contrib
+        │
+        │ fundamental
+        ▼
+ASC core
+```
+
+This makes the architecture evolutionary rather than speculative.
+
+# Genericity is therefore a promotion mechanism
+
+The six levels should not merely classify existing things.
+
+They should describe how concepts **mature**.
+
+A project can safely invent concepts locally.
+
+It does not need to know whether they belong in ASC.
+
+Experience determines that.
+
+A useful pattern is:
+
+```text
+invent locally
+     ↓
+use in practice
+     ↓
+observe repeated structure
+     ↓
+extract generic contract
+     ↓
+make reusable extension
+     ↓
+promote if sufficiently fundamental
+```
+
+This is especially important for autonomous-agent concepts.
+
+It is entirely reasonable for Projet Complexe to experiment with:
+
+```text
+knowledge-gap
+research-budget
+research-killswitch
+task-killswitch
+agent-run
+evidence-sufficiency
+```
+
+without deciding prematurely that these are universal concepts.
+
+The project is precisely where such concepts can be tested.
+
+If they later prove to describe a more general class of autonomous systems, they can migrate upward.
+
+# The three projects therefore have different ambitions
+
+## ASC core
+
+**Ambition:**
+
+> establish a generic computational vocabulary.
+
+ASC should answer:
+
+```text
+What is this?
+Where is it?
+What does it expose?
+What can it do?
+How can it be composed?
+How can it be executed?
+How can its effects be observed?
+```
+
+Its success criterion is **genericity**.
+
+## Projet Complexe ASC
+
+**Ambition:**
+
+> turn generic ASC mechanisms into the specific computational pivots required by one sophisticated environment.
+
+It should answer:
+
+```text
+How do we compose ASC to provide:
+    research?
+    indexing?
+    agent execution?
+    knowledge operations?
+    task operations?
+```
+
+Its success criterion is **useful composition without contaminating ASC's generic core**.
+
+## Projet Complexe
+
+**Ambition:**
+
+> provide the semantic and visual environment in which humans and agents organize tasks, knowledge and action.
+
+It should answer:
+
+```text
+What are we trying to accomplish?
+What do we know?
+What do we not know?
+What matters?
+What is related?
+What should happen next?
+Why is execution blocked?
+When is knowledge sufficient?
+```
+
+Its success criterion is **semantic usefulness**.
+
+# The mutual killswitch belongs primarily here
+
+The task/knowledge mutual killswitch is therefore not an ASC primitive by default.
+
+It is initially a **Projet Complexe autonomous-agent control concept**, potentially implemented through Projet Complexe ASC and ASC primitives.
+
+The relationship is:
+
+```text
+Projet Complexe
+    │
+    │ defines the semantic imperative
+    │
+    ├── TASK
+    │     │
+    │     └── discovers missing knowledge
+    │
+    └── KNOWLEDGE
+          │
+          └── gathers evidence
+```
+
+Projet Complexe ASC can expose the operational pivots:
+
+```text
+spawn-researcher
+pause-task
+resume-task
+kill-research
+inspect-knowledge-gap
+```
+
+ASC supplies the generic mechanisms:
+
+```text
+thread
+change
+command
+hook
+entry point
+event
+stop
+execute
+```
+
+Thus:
+
+```text
+semantic policy
+       ↓
+Projet Complexe
+
+operational composition
+       ↓
+Projet Complexe ASC
+
+generic execution mechanism
+       ↓
+ASC
+```
+
+This is exactly the sort of concept that the genericity scale is designed to protect.
+
+The **idea** may eventually prove highly general.
+
+The **implementation** should first remain project-specific.
+
+# The final architectural picture
+
+The most accurate representation is therefore not a simple vertical stack.
+
+It is:
+
+```text
+                           GENERICITY
+                               ↑
+                               │
+                    ┌──────────┴──────────┐
+                    │        ASC          │
+                    │                     │
+                    │ primordial          │
+                    │ primitive           │
+                    │ core                │
+                    │ contrib             │
+                    └──────────┬──────────┘
+                               │
+                    reusable ASC vocabulary
+                               │
+                    ┌──────────▼──────────┐
+                    │  external / third-  │
+                    │  party extensions   │
+                    └──────────┬──────────┘
+                               │
+                         composition
+                               │
+                    ┌──────────▼──────────┐
+                    │ PROJET COMPLEXE ASC │
+                    │                     │
+                    │ specific pivots     │
+                    │ specific hooks      │
+                    │ specific workflows  │
+                    │ environment config  │
+                    └──────────┬──────────┘
+                               │
+                         semantic use
+                               │
+                    ┌──────────▼──────────┐
+                    │  PROJET COMPLEXE    │
+                    │                     │
+                    │ task                │
+                    │ knowledge           │
+                    │ research            │
+                    │ agents              │
+                    │ projects            │
+                    │ desktop UI          │
+                    └─────────────────────┘
+```
+
+And concepts can move **upward in genericity** when experience warrants it:
+
+```text
+Projet Complexe
+      │
+      │ proven reusable
+      ▼
+Projet Complexe ASC
+      │
+      │ useful beyond this project
+      ▼
+third-party contrib
+      │
+      │ ecosystem-wide usefulness
+      ▼
+ASC contrib
+      │
+      │ fundamental
+      ▼
+ASC core
+```
+
+That is the missing conceptual mechanism tying the three projects together.
+
+**ASC is not merely the bottom layer. It is the genericity gradient's stable center. Projet Complexe ASC is the experimental/compositional frontier. Projet Complexe is the semantic application where new abstractions are discovered and tested.**
+
+**Confidence level: 0.99**
 
 # Conclusion
 
@@ -3499,6 +3916,8 @@ In that sense:
 > **ASC is trying to make the computational environment playable.**
 
 Not because computation is literally a game, but because a stable vocabulary turns an otherwise unbounded space of possibilities into a space of meaningful moves.
+
+And this becomes particularly interesting when the player is no longer necessarily human.
 
 That may ultimately be the bridge between ASC and autonomous agents.
 
