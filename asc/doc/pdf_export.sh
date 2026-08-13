@@ -25,6 +25,10 @@
 #   asc/doc/pdf_export.sh 'data/ideas/2026/08/Agents of Redirection (Donella Meadows, Alexandre Monnin, Pierre Lévy).md'
 #   asc/doc/pdf_export.sh --force 'docs/asc/builder.md'
 #
+#   # All *.md files under a folder (recursive) :
+#   asc/doc/pdf_export.sh 'data/ideas/2026/08'
+#   asc/doc/pdf_export.sh --force docs/asc
+#
 
 . asc/bootstrap.sh
 
@@ -46,7 +50,7 @@ pdf_playwright_prepare() {
 
 pdf_playwright_prepare
 
-p_single_doc=''
+p_target=''
 p_all=0
 
 while [[ $# -gt 0 ]]; do
@@ -60,11 +64,11 @@ while [[ $# -gt 0 ]]; do
       exit 1
       ;;
     *)
-      if [[ -n "$p_single_doc" ]]; then
+      if [[ -n "$p_target" ]]; then
         echo "Unexpected extra argument: $1"
         exit 1
       fi
-      p_single_doc="$1"
+      p_target="$1"
       shift
       ;;
   esac
@@ -106,19 +110,32 @@ if [[ ! -f "asc/vendor/mermaid.esm.min.mjs" ]]; then
   exit 1
 fi
 
+# True if path is under data/ideas or docs (relative or absolute).
+doc_under_export_roots() {
+  local p="$1" abs
+  p="${p#./}"
+  p="${p%/}"
+  case "$p" in
+    data/ideas|data/ideas/*|docs|docs/*) return 0 ;;
+  esac
+  if [[ -e "$p" ]]; then
+    if [[ -d "$p" ]]; then
+      abs="$(cd "$p" && pwd)"
+    else
+      abs="$(cd "$(dirname "$p")" && pwd)/$(basename "$p")"
+    fi
+    case "$abs" in
+      "$PWD/data/ideas"|"$PWD/data/ideas/"*|"$PWD/docs"|"$PWD/docs/"*) return 0 ;;
+    esac
+  fi
+  return 1
+}
+
 doc_is_exportable_md() {
-  local p_md="$1" abs
+  local p_md="$1"
   [[ -f "$p_md" ]] || return 1
   [[ "${p_md##*.}" == 'md' ]] || return 1
-  p_md="${p_md#./}"
-  case "$p_md" in
-    data/ideas/*|docs/*) return 0 ;;
-  esac
-  abs="$(cd "$(dirname "$p_md")" && pwd)/$(basename "$p_md")"
-  case "$abs" in
-    "$PWD/data/ideas/"*|"$PWD/docs/"*) return 0 ;;
-  esac
-  return 1
+  doc_under_export_roots "$p_md"
 }
 
 doc_md_to_pdf() {
@@ -146,25 +163,58 @@ doc_pdf_export_one() {
   "$PDF_MD2PDF_PY" "$PDF_ASC_WRAPPER" "$p_md" -o "$pdf"
 }
 
-if [[ -n "$p_single_doc" ]]; then
-  if [[ ! -f "$p_single_doc" ]]; then
-    echo "File not found: $p_single_doc"
-    exit 1
-  fi
-  if ! doc_is_exportable_md "$p_single_doc"; then
-    echo "Expected a markdown file under data/ideas/ or docs/: $p_single_doc"
-    exit 1
-  fi
-  doc_pdf_export_one "$p_single_doc"
-else
+doc_pdf_export_tree() {
+  local root="$1"
+  local found=0
   while IFS= read -r -d '' md; do
-    # Normalize leading ./
     md="${md#./}"
+    found=1
     doc_pdf_export_one "$md"
-  done < <(
-    {
-      [[ -d data/ideas ]] && find data/ideas -type f -name '*.md' -print0
-      [[ -d docs ]] && find docs -type f -name '*.md' -print0
-    } | sort -z
-  )
+  done < <(find "$root" -type f -name '*.md' -print0 | sort -z)
+  if [[ "$found" -eq 0 ]]; then
+    echo "No *.md files under: $root"
+    return 1
+  fi
+  return 0
+}
+
+if [[ -n "$p_target" ]]; then
+  p_target="${p_target#./}"
+  p_target="${p_target%/}"
+  if [[ -d "$p_target" ]]; then
+    if ! doc_under_export_roots "$p_target"; then
+      echo "Expected a folder under data/ideas/ or docs/: $p_target"
+      exit 1
+    fi
+    doc_pdf_export_tree "$p_target" || exit $?
+  elif [[ -f "$p_target" ]]; then
+    if ! doc_is_exportable_md "$p_target"; then
+      echo "Expected a markdown file under data/ideas/ or docs/: $p_target"
+      exit 1
+    fi
+    doc_pdf_export_one "$p_target"
+  else
+    echo "Path not found: $p_target"
+    exit 1
+  fi
+else
+  local_found=0
+  if [[ -d data/ideas ]]; then
+    while IFS= read -r -d '' md; do
+      md="${md#./}"
+      local_found=1
+      doc_pdf_export_one "$md"
+    done < <(find data/ideas -type f -name '*.md' -print0 | sort -z)
+  fi
+  if [[ -d docs ]]; then
+    while IFS= read -r -d '' md; do
+      md="${md#./}"
+      local_found=1
+      doc_pdf_export_one "$md"
+    done < <(find docs -type f -name '*.md' -print0 | sort -z)
+  fi
+  if [[ "$local_found" -eq 0 ]]; then
+    echo "No *.md files found under data/ideas or docs"
+    exit 1
+  fi
 fi
