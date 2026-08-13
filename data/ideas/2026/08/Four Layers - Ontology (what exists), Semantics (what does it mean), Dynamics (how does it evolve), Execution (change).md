@@ -55,20 +55,21 @@ Instead an agent should manipulate Web objects.
 
 For example
 
-```text
-       PDF
-        ↓
-   Annotations
-        ↓
-      Claims
-        ↓
-     Concepts
-        ↓
-    Relations
-        ↓
-   Discussions
-        ↓
-Derived hypotheses
+```mermaid
+flowchart TB
+  n0["PDF"]
+  n1["Annotations"]
+  n2["Claims"]
+  n3["Concepts"]
+  n4["Relations"]
+  n5["Discussions"]
+  n6["Derived hypotheses"]
+  n0 --> n1
+  n1 --> n2
+  n2 --> n3
+  n3 --> n4
+  n4 --> n5
+  n5 --> n6
 ```
 
 Each level becomes its own object.
@@ -158,16 +159,17 @@ Meadows explains how those objects change.
 
 For example
 
-```text
-Research corpus
-       ↓
-New publication
-       ↓
-Reclassification
-       ↓
- New citations
-       ↓
- Paradigm shift
+```mermaid
+flowchart TB
+  n0["Research corpus"]
+  n1["New publication"]
+  n2["Reclassification"]
+  n3["New citations"]
+  n4["Paradigm shift"]
+  n0 --> n1
+  n1 --> n2
+  n2 --> n3
+  n3 --> n4
 ```
 
 is a feedback system.
@@ -218,28 +220,13 @@ The graph becomes recursive.
 
 If I were designing the architecture today, I would separate four layers.
 
-```text
-Ontology
-What exists?
-(Web Objects)
-
-    ↓
-
-Semantics
-What does it mean?
-(IEML / semantic graph)
-
-    ↓
-
-Dynamics
-How does it evolve?
-(System dynamics)
-
-    ↓
-
-Execution
-Who changes it?
-(Agents)
+```mermaid
+flowchart TB
+  O["Ontology<br/>What exists?<br/>(Web Objects)"]
+  S["Semantics<br/>What does it mean?<br/>(IEML / semantic graph)"]
+  D["Dynamics<br/>How does it evolve?<br/>(System dynamics)"]
+  E["Execution<br/>Who changes it?<br/>(Agents)"]
+  O --> S --> D --> E
 ```
 
 That decomposition is remarkably clean.

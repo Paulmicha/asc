@@ -36,10 +36,11 @@ Changing these often produces only incremental improvements.
 
 For example:
 
-```text
-temperature = 0.2
-        ↓
-temperature = 0.4
+```mermaid
+flowchart TB
+  n0["temperature = 0.2"]
+  n1["temperature = 0.4"]
+  n0 --> n1
 ```
 
 may improve creativity while reducing determinism.
@@ -60,12 +61,13 @@ Examples include
 
 For Pi or Hermes this might mean
 
-```text
-  Conversation
-       ↓
-Rolling Summary
-       ↓
-Long-term Memory
+```mermaid
+flowchart TB
+  n0["Conversation"]
+  n1["Rolling Summary"]
+  n2["Long-term Memory"]
+  n0 --> n1
+  n1 --> n2
 ```
 
 instead of simply truncating conversations.
@@ -76,30 +78,32 @@ This is where architecture begins.
 
 Instead of
 
-```text
- User
-  ↓
- LLM
-  ↓
-Answer
+```mermaid
+flowchart TB
+  n0["User"]
+  n1["LLM"]
+  n2["Answer"]
+  n0 --> n1
+  n1 --> n2
 ```
 
 you might build
 
-```text
-   User
-    ↓
- Planner
-    ↓
- Research
-    ↓
-  Memory
-    ↓
-Reasoning
-    ↓
- Executor
-    ↓
-Reflection
+```mermaid
+flowchart TB
+  n0["User"]
+  n1["Planner"]
+  n2["Research"]
+  n3["Memory"]
+  n4["Reasoning"]
+  n5["Executor"]
+  n6["Reflection"]
+  n0 --> n1
+  n1 --> n2
+  n2 --> n3
+  n3 --> n4
+  n4 --> n5
+  n5 --> n6
 ```
 
 Nothing about the models changed.
@@ -124,14 +128,15 @@ creates noise.
 
 Instead
 
-```text
-   Conversation
-        ↓
- Episodic Memory
-        ↓
-Nightly Reflection
-        ↓
-Semantic Knowledge
+```mermaid
+flowchart TB
+  n0["Conversation"]
+  n1["Episodic Memory"]
+  n2["Nightly Reflection"]
+  n3["Semantic Knowledge"]
+  n0 --> n1
+  n1 --> n2
+  n2 --> n3
 ```
 
 Now memories become curated instead of accumulated.
@@ -144,16 +149,17 @@ Most open-source agents lack sufficient negative feedback.
 
 A better architecture:
 
-```text
-  Planner
-     ↓
-  Executor
-     ↓
-  Verifier
-     ↓
-   Repair
-     ↓
-Final Answer
+```mermaid
+flowchart TB
+  n0["Planner"]
+  n1["Executor"]
+  n2["Verifier"]
+  n3["Repair"]
+  n4["Final Answer"]
+  n0 --> n1
+  n1 --> n2
+  n2 --> n3
+  n3 --> n4
 ```
 
 Examples
@@ -174,28 +180,30 @@ Good systems become better over time.
 
 For example
 
-```text
- Task completed successfully
-              ↓
-       Store workflow
-              ↓
-       Reuse workflow
-              ↓
-Future success rate increases
+```mermaid
+flowchart TB
+  n0["Task completed successfully"]
+  n1["Store workflow"]
+  n2["Reuse workflow"]
+  n3["Future success rate increases"]
+  n0 --> n1
+  n1 --> n2
+  n2 --> n3
 ```
 
 Eventually
 
-```text
-       Agent
-         ↓
-   Skill Library
-         ↓
-Agent becomes better
-         ↓
-    More skills
-         ↓
-    Better agent
+```mermaid
+flowchart TB
+  n0["Agent"]
+  n1["Skill Library"]
+  n2["Agent becomes better"]
+  n3["More skills"]
+  n4["Better agent"]
+  n0 --> n1
+  n1 --> n2
+  n2 --> n3
+  n3 --> n4
 ```
 
 This positive loop is what makes human organisations improve.
@@ -277,28 +285,30 @@ This is where systems begin changing themselves.
 
 Imagine
 
-```text
-Planner notices "I solve Kubernetes problems frequently."
-↓
-Creates Kubernetes Specialist Agent
-↓
-Registers tool
-↓
-Future planners automatically use it
+```mermaid
+flowchart TB
+  n0["Planner notices 'I solve Kubernetes problems frequently.'"]
+  n1["Creates Kubernetes Specialist Agent"]
+  n2["Registers tool"]
+  n3["Future planners automatically use it"]
+  n0 --> n1
+  n1 --> n2
+  n2 --> n3
 ```
 
 No human intervention.
 
 Another example:
 
-```text
-Repeated reasoning pattern
-            ↓
-Generate reusable workflow
-            ↓
-          Store
-            ↓
-          Reuse
+```mermaid
+flowchart TB
+  n0["Repeated reasoning pattern"]
+  n1["Generate reusable workflow"]
+  n2["Store"]
+  n3["Reuse"]
+  n0 --> n1
+  n1 --> n2
+  n2 --> n3
 ```
 
 The framework becomes progressively richer.
@@ -346,18 +356,19 @@ This is Meadows' highest leverage point.
 
 A truly adaptive agent would not commit permanently to any single architecture. Instead, it would treat architectures themselves as hypotheses to be tested. For example:
 
-```text
-      Current architecture
-                ↓
-       Observe performance
-                ↓
-      Identify limitations
-                ↓
-Generate alternative architecture
-                ↓
-            Benchmark
-                ↓
-        Adopt if superior
+```mermaid
+flowchart TB
+  n0["Current architecture"]
+  n1["Observe performance"]
+  n2["Identify limitations"]
+  n3["Generate alternative architecture"]
+  n4["Benchmark"]
+  n5["Adopt if superior"]
+  n0 --> n1
+  n1 --> n2
+  n2 --> n3
+  n3 --> n4
+  n4 --> n5
 ```
 
 In practical terms, this could mean maintaining multiple planning strategies, memory systems, or coordination patterns and selecting—or even evolving—the most effective one for a given domain.

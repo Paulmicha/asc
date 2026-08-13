@@ -358,55 +358,61 @@ That is a fundamentally different objective.
 
 I actually think there is a missing preprocessing stage in most agent frameworks.
 
-```text
-Today the pipeline usually looks like
-User
-   ↓
-Prompt
-   ↓
-LLM
-   ↓
-Answer
+```mermaid
+flowchart TB
+  n0["User"]
+  n1["Prompt"]
+  n2["LLM"]
+  n3["Answer"]
+  n0 --> n1
+  n1 --> n2
+  n2 --> n3
 ```
 
 Most recent agent systems expand the middle:
 
-```text
-User
-   ↓
-Prompt
-   ↓
-Planner
-Memory
-Retriever
-Tools
-Reflection
-   ↓
-Answer
+```mermaid
+flowchart TB
+  n0["User"]
+  n1["Prompt"]
+  n2["Planner"]
+  n3["Memory"]
+  n4["Retriever"]
+  n5["Tools"]
+  n6["Reflection"]
+  n7["Answer"]
+  n0 --> n1
+  n1 --> n2
+  n2 --> n3
+  n3 --> n4
+  n4 --> n5
+  n5 --> n6
+  n6 --> n7
 ```
 
 But the input itself remains almost untouched.
 
 I think your discussions point toward something more like
 
-```text
-     User intent
-          ↓
-  Semantic analysis
-          ↓
- Ontology extraction
-          ↓
- Goal decomposition
-          ↓
-Constraint detection
-          ↓
-Complexity estimation
-          ↓
-Context restructuring
-          ↓
-      Reasoning
-          ↓
-    Verification
+```mermaid
+flowchart TB
+  n0["User intent"]
+  n1["Semantic analysis"]
+  n2["Ontology extraction"]
+  n3["Goal decomposition"]
+  n4["Constraint detection"]
+  n5["Complexity estimation"]
+  n6["Context restructuring"]
+  n7["Reasoning"]
+  n8["Verification"]
+  n0 --> n1
+  n1 --> n2
+  n2 --> n3
+  n3 --> n4
+  n4 --> n5
+  n5 --> n6
+  n6 --> n7
+  n7 --> n8
 ```
 
 Notice that prompting has almost disappeared.

@@ -11,30 +11,16 @@ Fig. 16 : Le jeu de rôle, vue d'ensemble (p. 262)
 
 The thesis starts from a deliberately non-trivial conception of tabletop RPGs. A role-playing game is not fundamentally a story being told by one person to others. It is a **communication loop** between two functional voices: the players, who decide, and the game master (*meneur*), who describes and resolves. The basic loop is therefore:
 
-```text
-       WORLD / CONTEXT
-             │
-             ▼
-       [ DESCRIPTION ]
-             │
-             ▼
-          PLAYER
-             │
-        intention +
-          means
-             │
-             ▼
-        [ DECISION ]
-             │
-             ▼
-          GM / WORLD
-             │
-          resolution
-             │
-             ▼
-       [ CONSEQUENCE ]
-             │
-             └──────────► new description
+```mermaid
+flowchart TB
+    world["WORLD / CONTEXT"] --> description["DESCRIPTION"]
+    description --> player["PLAYER"]
+    player --> means["intention + means"]
+    means --> decision["DECISION"]
+    decision --> gm["GM / WORLD"]
+    gm --> resolution["resolution"]
+    resolution --> consequence["CONSEQUENCE"]
+    consequence --> newdesc["new description"]
 ```
 
 The important point is that **none of the three stages has meaning independently**. Description creates the decision space; decision expresses an intention using available means; resolution transforms the context and thereby determines what can be described next. The result is not a predetermined narrative but a continually modified state of the shared world.
@@ -47,36 +33,25 @@ This is almost the inverse of the dominant tool-calling model of agents:
 
 Typical tool-oriented agent
 
-```text
-      goal
-       ↓
-  choose tool
-       ↓
-tool(parameters)
-       ↓
-     result
-       ↓
-      LLM
+```mermaid
+flowchart TB
+    goal --> choose["choose tool"]
+    choose --> tool["tool(parameters)"]
+    tool --> result
+    result --> LLM
 ```
 
 Lefèvre suggests something closer to:
 
-```text
-           agent desire
-                 ↓
-    interpret current situation
-                 ↓
-          form intention
-                 ↓
-propose action using situated means
-                 ↓
-    environment resolves action
-                 ↓
-  observe transformed environment
-                 ↓
-       reinterpret situation
-                 ↓
-           new intention
+```mermaid
+flowchart TB
+    desire["agent desire"] --> interpret["interpret current situation"]
+    interpret --> intention["form intention"]
+    intention --> propose["propose action using situated means"]
+    propose --> resolve["environment resolves action"]
+    resolve --> observe["observe transformed environment"]
+    observe --> reinterpret["reinterpret situation"]
+    reinterpret --> newint["new intention"]
 ```
 
 The distinction matters enormously. **Autonomy is not simply the capacity to choose among available actions. It is the capacity to formulate intentions against an incompletely known, resistant world whose response modifies the subsequent action space.** That is a much richer definition of agent autonomy than "LLM + tools."
@@ -91,29 +66,27 @@ This provides a very useful reinterpretation of agent environments.
 
 A conventional agent architecture tends to represent its environment as:
 
-```text
-STATE
- ├── objects
- ├── resources
- ├── available tools
- └── constraints
+```mermaid
+flowchart TB
+    STATE --> objects
+    STATE --> resources
+    STATE --> tools["available tools"]
+    STATE --> constraints
 ```
 
 Lefèvre's conception is closer to:
 
-```text
-             WORLD
-        ┌───────┼────────┐
-        │       │        │
-     objects  actors   rules
-        │       │        │
-        └── relationships ┘
-                 │
-          latent possibilities
-                 │
-             tensions
-                 │
-          consequences
+```mermaid
+flowchart TB
+    WORLD --> objects
+    WORLD --> actors
+    WORLD --> rules
+    objects --> relationships
+    actors --> relationships
+    rules --> relationships
+    relationships --> latent["latent possibilities"]
+    latent --> tensions
+    tensions --> consequences
 ```
 
 An environment becomes interesting for autonomy when it contains **things that want things**. In the thesis, NPCs and factions are therefore not merely data structures. Their desires collide with those of the players, and those collisions generate scenes. The complexity of the world consequently depends less on how many objects it contains than on **how many interacting desires and relations it contains**.
@@ -132,30 +105,22 @@ This has a direct correspondence with **open-ended agent environments**.
 
 A naive architecture attempts to maintain:
 
-```text
-complete world model
-         ↓
-  perfect planning
-         ↓
-       action
+```mermaid
+flowchart TB
+    complete["complete world model"] --> perfect["perfect planning"]
+    perfect --> action
 ```
 
 The Lefèvre model implies:
 
-```text
-partial world model
-         ↓
- current situation
-         ↓
- desire / intention
-         ↓
-       action
-         ↓
-  new information
-         ↓
-world-model revision
-         ↓
- new possibilities
+```mermaid
+flowchart TB
+    partial["partial world model"] --> current["current situation"]
+    current --> desire["desire / intention"]
+    desire --> action
+    action --> info["new information"]
+    info --> revision["world-model revision"]
+    revision --> possibilities["new possibilities"]
 ```
 
 The unknown is therefore not simply a deficiency in the agent's knowledge. **It is structurally productive.**
@@ -176,32 +141,15 @@ because "observe" is not passive observation of an immutable world.
 
 Instead:
 
-```text
-     PAST
-      │
-      ▼
-current state
-      │
-      ▼
-interpretation
-      │
-      ▼
-  intention
-      │
-      ▼
-    action
-      │
-      ▼
-```
-
- environmental
-```text
- transformation
-        │
-        ▼
- NEW PRESENT
-        │
-        └──────► interpretation
+```mermaid
+flowchart TB
+    PAST --> current["current state"]
+    current --> interpretation
+    interpretation --> intention
+    intention --> action
+    action --> transform["environmental transformation"]
+    transform --> NEW["NEW PRESENT"]
+    NEW --> reinterpretation["interpretation"]
 ```
 
 The key is the **irreversibility of contextual transformation**. A good agent should not simply repeat a planning cycle against the same state representation. Each action should change the semantic conditions under which future actions become intelligible.
@@ -214,31 +162,15 @@ This resonates strongly with your earlier interest in **Donella Meadows, complex
 
 Lefèvre does not stop at the atomic loop. He builds a hierarchy:
 
-```text
-DESIRE
-  │
-  ▼
-QUEST
-  │
-  ▼
-SCENES / CONFLICTS
-  │
-  ▼
-DECISIONS
-  │
-  ▼
-RESOLUTIONS
-  │
-  ▼
-CONSEQUENCES
-  │
-  └──────────────┐
-                 ▼
-             CAMPAIGN
-                 │
-                 ▼
-        transformed character
-        + transformed world
+```mermaid
+flowchart TB
+    DESIRE --> QUEST
+    QUEST --> scenes["SCENES / CONFLICTS"]
+    scenes --> DECISIONS
+    DECISIONS --> RESOLUTIONS
+    RESOLUTIONS --> CONSEQUENCES
+    CONSEQUENCES --> CAMPAIGN
+    CAMPAIGN --> transformed["transformed character + transformed world"]
 ```
 
 A desire is not yet an action. It becomes a **quest**, which organizes a sequence of possible scenes. Each scene confronts different desires. Resolution progressively reduces the space of possible futures until one becomes actual. Lefèvre describes this explicitly as a movement from **virtuality toward actuality**: success and failure initially constitute a space of possible scenarios, and each resolved scene progressively contracts that space.
@@ -251,20 +183,14 @@ user request → task → completion
 
 one could have:
 
-```text
-values / persistent drives
-            ↓
-   long-term objectives
-            ↓
-      current quests
-            ↓
-  situational intentions
-            ↓
-         actions
-            ↓
-       observations
-            ↓
-      revised quests
+```mermaid
+flowchart TB
+    values["values / persistent drives"] --> longterm["long-term objectives"]
+    longterm --> quests["current quests"]
+    quests --> intentions["situational intentions"]
+    intentions --> actions
+    actions --> observations
+    observations --> revised["revised quests"]
 ```
 
 The agent's autonomy would then reside partly in its ability to **transform intentions into intermediate quests**, rather than waiting for a human to specify every subtask.
@@ -285,28 +211,14 @@ That is much closer to **relational autonomy** than to classical notions of inde
 
 For multi-agent systems this becomes even more interesting:
 
-```text
-       Agent A
-       desires A
-           │
-           ▼
-       interaction
-           │
-     ┌─────┴─────┐
-     ▼           ▼
-```
-
- Agent B       WORLD
-```text
-desires B     dynamics
-     │           │
-     └─────┬─────┘
-           ▼
-      transformed
-       situation
-           │
-           ▼
-   new desires / goals
+```mermaid
+flowchart TB
+    A["Agent A<br/>desires A"] --> interaction
+    interaction --> B["Agent B<br/>desires B"]
+    interaction --> W["WORLD<br/>dynamics"]
+    B --> transformed["transformed situation"]
+    W --> transformed
+    transformed --> new["new desires / goals"]
 ```
 
 The intelligence of the system is therefore partly **between agents**, not exclusively inside them.
@@ -323,26 +235,20 @@ Translated into AI:
 
 Bad agent architecture:
 
-```text
-       LLM proposes X
-              ↓
-policy says "X isn't allowed"
-              ↓
-        X disappears
+```mermaid
+flowchart TB
+    LLM["LLM proposes X"] --> policy["policy says \"X isn't allowed\""]
+    policy --> disappears["X disappears"]
 ```
 
 More interesting architecture:
 
-```text
-             LLM proposes X
-                   ↓
-        environment evaluates X
-                   ↓
-constraints + uncertainty + consequences
-                   ↓
-               resolution
-                   ↓
- agent observes what actually happened
+```mermaid
+flowchart TB
+    LLM["LLM proposes X"] --> env["environment evaluates X"]
+    env --> constraints["constraints + uncertainty + consequences"]
+    constraints --> resolution
+    resolution --> observes["agent observes what actually happened"]
 ```
 
 This preserves the agent's **sovereignty of intention** while preserving the environment's **sovereignty of consequence**.
@@ -388,20 +294,15 @@ This is perhaps the most concrete reinterpretation.
 
 Lefèvre's *meneur* performs several functions simultaneously:
 
-```text
-                 MENEUR
-                    │
-       ┌────────────┼────────────┐
-       ▼            ▼            ▼
-   maintains     resolves      exposes
-   context       conflicts     information
-       │            │            │
-       └────────────┼────────────┘
-                    ▼
-             transforms world
-                    │
-                    ▼
-             next decision
+```mermaid
+flowchart TB
+    MENEUR --> maintains["maintains context"]
+    MENEUR --> resolves["resolves conflicts"]
+    MENEUR --> exposes["exposes information"]
+    maintains --> transforms["transforms world"]
+    resolves --> transforms
+    exposes --> transforms
+    transforms --> next["next decision"]
 ```
 
 He is therefore neither simply:
@@ -416,38 +317,13 @@ He is the **institutional layer connecting agent desires to environmental conseq
 
 That maps surprisingly well onto an architecture for autonomous agents:
 
-```text
-┌─────────────────────────────────────────┐
-│             AGENT / DESIRE               │
-│ goals · values · intentions · memory     │
-└───────────────────┬─────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│          INTERACTION / DECISION          │
-│ interpret situation → formulate action   │
-└───────────────────┬─────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│        INSTITUTIONAL ENVIRONMENT        │
-│ rules · norms · actors · resources      │
-│ hidden state · causal dynamics          │
-└───────────────────┬─────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│              RESOLUTION                 │
-│ causal · stochastic · negotiated        │
-└───────────────────┬─────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────┐
-│          UPDATED SHARED WORLD           │
-│ new facts · new constraints · new goals │
-└───────────────────┬─────────────────────┘
-                    │
-                    └──────────► next loop
+```mermaid
+flowchart TB
+    agent["AGENT / DESIRE<br/>goals · values · intentions · memory"] --> decision["INTERACTION / DECISION<br/>interpret situation → formulate action"]
+    decision --> institution["INSTITUTIONAL ENVIRONMENT<br/>rules · norms · actors · resources<br/>hidden state · causal dynamics"]
+    institution --> resolution["RESOLUTION<br/>causal · stochastic · negotiated"]
+    resolution --> world["UPDATED SHARED WORLD<br/>new facts · new constraints · new goals"]
+    world --> next["next loop"]
 ```
 
 This is much closer to a **complex adaptive system** than to an LLM wrapped in a while-loop.
@@ -460,18 +336,13 @@ Lefèvre argues that RPG theory is not simply an abstract description imposed on
 
 That suggests an important agent principle:
 
-```text
-      experience
-          ↓
-      reflection
-          ↓
-     abstraction
-          ↓
-policy / skill / model
-          ↓
-    future action
-          ↓
-    new experience
+```mermaid
+flowchart TB
+    experience --> reflection
+    reflection --> abstraction
+    abstraction --> policy["policy / skill / model"]
+    policy --> future["future action"]
+    future --> newexp["new experience"]
 ```
 
 This is considerably richer than ordinary episodic memory.
@@ -498,60 +369,20 @@ This connects directly to the kind of **agent self-improvement through reflectio
 
 The thesis can therefore be compressed into a surprisingly strong alternative model:
 
-```text
-                ┌─────────────────────┐
-                │  PERSISTENT DESIRES │
-                │ values / objectives │
-                └──────────┬──────────┘
-                           │
-                           ▼
-                  ┌──────────────────┐
-                  │      QUESTS      │
-                  │ temporal projects│
-                  └────────┬─────────┘
-                           │
-                           ▼
-                ┌─────────────────────┐
-                │ CURRENT SITUATION   │
-                │ incomplete context  │
-                └─────────┬───────────┘
-                          │
-                     interpret
-                          │
-                          ▼
-                ┌─────────────────────┐
-                │     INTENTION       │
-                │ "what I want to do" │
-                └─────────┬───────────┘
-                          │
-                    situated means
-                          │
-                          ▼
-                ┌─────────────────────┐
-                │       ACTION        │
-                └─────────┬───────────┘
-                          │
-                     WORLD RESOLUTION
-                          │
-             ┌────────────┼────────────┐
-             ▼            ▼            ▼
-           causal      stochastic    social
-             │            │            │
-             └────────────┼────────────┘
-                          ▼
-                ┌─────────────────────┐
-                │  CHANGED WORLD      │
-                │ new facts, tensions │
-                │ possibilities       │
-                └─────────┬───────────┘
-                          │
-                    reinterpretation
-                          │
-                          ▼
-                     NEW PRESENT
-                          │
-                          ▼
-                      NEW QUESTS
+```mermaid
+flowchart TB
+    desires["PERSISTENT DESIRES<br/>values / objectives"] --> quests["QUESTS<br/>temporal projects"]
+    quests --> situation["CURRENT SITUATION<br/>incomplete context"]
+    situation -->|interpret| intention["INTENTION<br/>\"what I want to do\""]
+    intention -->|situated means| action["ACTION"]
+    action -->|WORLD RESOLUTION| causal
+    action -->|WORLD RESOLUTION| stochastic
+    action -->|WORLD RESOLUTION| social
+    causal --> changed["CHANGED WORLD<br/>new facts, tensions<br/>possibilities"]
+    stochastic --> changed
+    social --> changed
+    changed -->|reinterpretation| NEW["NEW PRESENT"]
+    NEW --> NEWQUESTS["NEW QUESTS"]
 ```
 
 The conceptual shift is substantial:
@@ -588,28 +419,9 @@ And there is a striking consequence: **the "agent" may not be the LLM at all.**
 
 The more faithful abstraction would be:
 
-```text
-             ┌──────────────────────────┐
-             │       AGENT SYSTEM       │
-             │                          │
-             │  desires                 │
-             │  memory                  │
-             │  interpretation          │
-             │  intentions              │
-             └────────────┬─────────────┘
-                          │
-                    ↕ recursive dialogue
-                          │
-             ┌────────────┴─────────────┐
-             │     WORLD / INSTITUTION  │
-             │                          │
-             │  constraints             │
-             │  affordances             │
-             │  other agents            │
-             │  hidden state            │
-             │  norms                   │
-             │  causal dynamics         │
-             └──────────────────────────┘
+```mermaid
+flowchart TB
+    agent["AGENT SYSTEM<br/>desires<br/>memory<br/>interpretation<br/>intentions"] <-->|recursive dialogue| world["WORLD / INSTITUTION<br/>constraints<br/>affordances<br/>other agents<br/>hidden state<br/>norms<br/>causal dynamics"]
 ```
 
 **Autonomy is a property of the coupling**, not merely of the model inside the upper box.

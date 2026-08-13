@@ -14,14 +14,15 @@ One of Lévy's original premises was that computers lacked semantics. Around 201
 
 The workflow looked like:
 
-```text
-Natural language
-       ↓
-     Parser
-       ↓
-    Ontology
-       ↓
-Reasoning engine
+```mermaid
+flowchart TB
+  n0["Natural language"]
+  n1["Parser"]
+  n2["Ontology"]
+  n3["Reasoning engine"]
+  n0 --> n1
+  n1 --> n2
+  n2 --> n3
 ```
 
 The symbolic layer was indispensable because machines could not infer meaning from text.
@@ -88,14 +89,15 @@ But many compiler optimizations operate on it.
 
 Likewise,
 
-```text
-Natural language
-  ↓
- LLM
-  ↓
-Internal semantic representation
-  ↓
-Answer
+```mermaid
+flowchart TB
+  n0["Natural language"]
+  n1["LLM"]
+  n2["Internal semantic representation"]
+  n3["Answer"]
+  n0 --> n1
+  n1 --> n2
+  n2 --> n3
 ```
 
 already exists.
@@ -154,12 +156,13 @@ This connects nicely to Meadows' leverage points.
 
 LLMs primarily intervene at the **flow** level.
 
-```text
-  Input
-    ↓
-Reasoning
-    ↓
- Output
+```mermaid
+flowchart TB
+  n0["Input"]
+  n1["Reasoning"]
+  n2["Output"]
+  n0 --> n1
+  n1 --> n2
 ```
 
 IEML would intervene at the **information structure** level.
@@ -194,16 +197,17 @@ The semantic layer would be generated only when persistence matters.
 
 For example:
 
-```text
-   Document
-       ↓
-LLM extraction
-       ↓
-Semantic graph
-       ↓
-Version history
-       ↓
- Agent memory
+```mermaid
+flowchart TB
+  n0["Document"]
+  n1["LLM extraction"]
+  n2["Semantic graph"]
+  n3["Version history"]
+  n4["Agent memory"]
+  n0 --> n1
+  n1 --> n2
+  n2 --> n3
+  n3 --> n4
 ```
 
 The LLM remains the cognitive engine.
@@ -214,23 +218,16 @@ The symbolic layer becomes the durable memory.
 
 The architecture I find most compelling now is:
 
-```text
-Natural language
-        │
-        ▼
-      LLM
-        │
-        ├── Fast reasoning
-        │
-        └── Semantic extraction
-                │
-                ▼
-      Persistent semantic graph
-                │
-            Provenance
-            Versioning
-            Evidence
-            Confidence
+```mermaid
+flowchart TB
+  NL[Natural language] --> LLM
+  LLM --> FR[Fast reasoning]
+  LLM --> SE[Semantic extraction]
+  SE --> PSG[Persistent semantic graph]
+  PSG --> Provenance
+  PSG --> Versioning
+  PSG --> Evidence
+  PSG --> Confidence
 ```
 
 Notice that the symbolic representation is *derived* from the neural one, not a replacement for it.
@@ -351,18 +348,18 @@ Rather than relying on a model's internal geometry, IEML tries to build an expli
 
 Instead of:
 
-```text
-   LLM parameters
-          ↓
-latent semantic space
+```mermaid
+flowchart TB
+  n0["LLM parameters"]
+  n1["latent semantic space"]
+  n0 --> n1
 ```
 
 you have:
 
-```text
-Explicit semantic space
-           ↑
-   shared by agents
+```mermaid
+flowchart BT
+  SBA[shared by agents] --> ESS[Explicit semantic space]
 ```
 
 Multiple agents—even using different LLMs—could orient themselves using the same semantic reference.

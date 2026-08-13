@@ -29,26 +29,21 @@ Guardrails is almost orthogonal. It wraps LLM calls with input/output validators
 
 Since we've recently discussed Donella Meadows, Pierre Lévy, Alexandre Monnin and agent architectures, I think a useful decomposition is:
 
-```text
-     Human Intent
-           │
-           ▼
-    Goal Formation
-           │
-           ▼
-Planning / Deliberation
-           │
-           ▼
-    Task Execution
-           │
-           ▼
-     Verification
-           │
-           ▼
-   Memory / Learning
-           │
-           ▼
-      Environment
+```mermaid
+flowchart TB
+  n0["Human Intent"]
+  n1["Goal Formation"]
+  n2["Planning / Deliberation"]
+  n3["Task Execution"]
+  n4["Verification"]
+  n5["Memory / Learning"]
+  n6["Environment"]
+  n0 --> n1
+  n1 --> n2
+  n2 --> n3
+  n3 --> n4
+  n4 --> n5
+  n5 --> n6
 ```
 
 Superpowers mostly lives here:
@@ -60,15 +55,11 @@ Superpowers mostly lives here:
 
 Guardrails lives here:
 
-```text
-          Input
-            │
-            ▼
-           LLM
-            │
-    Output validation
-            │
-Tool invocation validation
+```mermaid
+flowchart TB
+  Input --> LLM
+  LLM --> OV[Output validation]
+  LLM --> TIV[Tool invocation validation]
 ```
 
 One improves cognition.
@@ -79,22 +70,13 @@ The other constrains behavior.
 
 An ideal coding agent would use both.
 
-```text
-     Human
-       │
-       ▼
-  Superpowers
-       │
-    Planning
-       │
-   Subagents
-       │
-   Guardrails
-       │
-   Filesystem
-      Git
-     Docker
-    Internet
+```mermaid
+flowchart TB
+  H[Human] --> SP[Superpowers] --> Planning --> Subagents --> Guardrails
+  Guardrails --> Filesystem
+  Guardrails --> Git
+  Guardrails --> Docker
+  Guardrails --> Internet
 ```
 
 Superpowers says

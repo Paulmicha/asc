@@ -164,22 +164,23 @@ IEML could encode that hierarchy directly.
 
 For example
 
-```text
-          System
-             ↓
-       Feedback Loop
-             ↓
-     Information Flow
-             ↓
-           Rules
-             ↓
-     Self-Organization
-             ↓
-           Goals
-             ↓
-         Paradigm
-             ↓
-Ability to Change Paradigms
+```mermaid
+flowchart TB
+  n0["System"]
+  n1["Feedback Loop"]
+  n2["Information Flow"]
+  n3["Rules"]
+  n4["Self-Organization"]
+  n5["Goals"]
+  n6["Paradigm"]
+  n7["Ability to Change Paradigms"]
+  n0 --> n1
+  n1 --> n2
+  n2 --> n3
+  n3 --> n4
+  n4 --> n5
+  n5 --> n6
+  n6 --> n7
 ```
 
 An agent could then ask
@@ -209,18 +210,19 @@ Today RAG indexes all of these independently.
 
 IEML suggests another layer.
 
-```text
-   Raw document
-         ↓
-    Extraction
-         ↓
-Semantic primitives
-         ↓
- Canonical concepts
-         ↓
-Knowledge graph
-         ↓
-     Embeddings
+```mermaid
+flowchart TB
+  n0["Raw document"]
+  n1["Extraction"]
+  n2["Semantic primitives"]
+  n3["Canonical concepts"]
+  n4["Knowledge graph"]
+  n5["Embeddings"]
+  n0 --> n1
+  n1 --> n2
+  n2 --> n3
+  n3 --> n4
+  n4 --> n5
 ```
 
 Notice embeddings become only the retrieval layer.
@@ -257,22 +259,23 @@ Interestingly, I would not use IEML the way Lévy originally envisioned.
 
 Instead I would place it beneath the LLM.
 
-```text
-        User
-          ↓
-         LLM
-          ↓
-       Planner
-          ↓
-    Agent Society
-          ↓
-Semantic Layer (IEML)
-          ↓
-   Knowledge Graph
-          ↓
-    Vector Index
-          ↓
-      Documents
+```mermaid
+flowchart TB
+  n0["User"]
+  n1["LLM"]
+  n2["Planner"]
+  n3["Agent Society"]
+  n4["Semantic Layer (IEML)"]
+  n5["Knowledge Graph"]
+  n6["Vector Index"]
+  n7["Documents"]
+  n0 --> n1
+  n1 --> n2
+  n2 --> n3
+  n3 --> n4
+  n4 --> n5
+  n5 --> n6
+  n6 --> n7
 ```
 
 Each layer compensates for the weaknesses of the others.

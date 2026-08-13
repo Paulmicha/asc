@@ -18,31 +18,37 @@ The key rule should be:
 
 That gives you a very clean separation:
 
-```text
-┌──────────────────────────────────────────────────────────────┐
-│                    SECOND BRAIN / UI                         │
-│                                                              │
-│  SolidJS + Kobalte + your own CSS                            │
-│                                                              │
-│  documents · graphs · projects · machines · agents · logs    │
-└───────────────────────────────┬──────────────────────────────┘
-                                │
-                         ASC API / CLI
-                                │
-┌───────────────────────────────▼──────────────────────────────┐
-│                            ASC                               │
-│                     CONTROL PLANE                            │
-│                                                              │
-│  filesystem · processes · workers · cron · projects          │
-│  hosts · SSH · Docker · packages · Python · services         │
-│  logs · provisioning · OS-specific hooks                     │
-└───────────────────────────────┬──────────────────────────────┘
-                                │
-              ┌─────────────────┼─────────────────┐
-              │                 │                 │
-           Debian             Windows          future OS
-              │                 │                 │
-        hook implementation  hook implementation  ...
+```mermaid
+flowchart TB
+  SECOND_BRAIN_UI["SECOND BRAIN / UI"]
+  SolidJS_Kobalte_your_own_CSS["SolidJS + Kobalte + your own CSS"]
+  documents_graphs_projects_machines_agents_logs["documents · graphs · projects · machines · agents · logs"]
+  ASC_API_CLI["ASC API / CLI"]
+  ASC["ASC"]
+  CONTROL_PLANE["CONTROL PLANE"]
+  filesystem_processes_workers_cron_projects["filesystem · processes · workers · cron · projects"]
+  hosts_SSH_Docker_packages_Python_services["hosts · SSH · Docker · packages · Python · services"]
+  logs_provisioning_OS_specific_hooks["logs · provisioning · OS-specific hooks"]
+  Debian["Debian"]
+  Windows["Windows"]
+  future_OS["future OS"]
+  hook_implementation["hook implementation"]
+  hook_implementation_2["hook implementation"]
+  node["..."]
+  SECOND_BRAIN_UI --> SolidJS_Kobalte_your_own_CSS
+  SolidJS_Kobalte_your_own_CSS --> documents_graphs_projects_machines_agents_logs
+  documents_graphs_projects_machines_agents_logs --> ASC_API_CLI
+  ASC_API_CLI --> ASC
+  ASC --> CONTROL_PLANE
+  CONTROL_PLANE --> filesystem_processes_workers_cron_projects
+  filesystem_processes_workers_cron_projects --> hosts_SSH_Docker_packages_Python_services
+  hosts_SSH_Docker_packages_Python_services --> logs_provisioning_OS_specific_hooks
+  logs_provisioning_OS_specific_hooks --> Debian
+  logs_provisioning_OS_specific_hooks --> Windows
+  logs_provisioning_OS_specific_hooks --> future_OS
+  Debian --> hook_implementation
+  Windows --> hook_implementation_2
+  future_OS --> node
 ```
 
 This also makes your original idea of ASC much more coherent: **ASC becomes the machine abstraction, while the second-brain application becomes the machine's visual/intellectual interface.**
@@ -61,29 +67,44 @@ I would now remove almost all of that.
 
 Your Tauri layer should be much thinner:
 
-```text
-Tauri
-│
-├── window management
-├── application lifecycle
-├── IPC
-├── secure communication with ASC
-├── packaging
-└── desktop-specific UI integration
+```mermaid
+flowchart TB
+  Tauri["Tauri"]
+  window_management["window management"]
+  application_lifecycle["application lifecycle"]
+  IPC["IPC"]
+  secure_communication_with_ASC["secure communication with ASC"]
+  packaging["packaging"]
+  desktop_specific_UI_integration["desktop-specific UI integration"]
+  Tauri --> window_management
+  Tauri --> application_lifecycle
+  Tauri --> IPC
+  Tauri --> secure_communication_with_ASC
+  Tauri --> packaging
+  Tauri --> desktop_specific_UI_integration
 ```
 
 Not:
 
-```text
-Tauri
-├── filesystem
-├── shell commands
-├── process spawning
-├── cron
-├── Docker
-├── SSH
-├── package installation
-└── OS configuration
+```mermaid
+flowchart TB
+  Tauri["Tauri"]
+  filesystem["filesystem"]
+  shell_commands["shell commands"]
+  process_spawning["process spawning"]
+  cron["cron"]
+  Docker["Docker"]
+  SSH["SSH"]
+  package_installation["package installation"]
+  OS_configuration["OS configuration"]
+  Tauri --> filesystem
+  Tauri --> shell_commands
+  Tauri --> process_spawning
+  Tauri --> cron
+  Tauri --> Docker
+  Tauri --> SSH
+  Tauri --> package_installation
+  Tauri --> OS_configuration
 ```
 
 Those belong to ASC.
@@ -94,22 +115,31 @@ This is an unusually clean division of responsibility.
 
 The interesting abstraction is therefore:
 
-```text
-                   SECOND BRAIN
-                         │
-                         │
-                    "I want X"
-                         │
-                         ▼
-                        ASC
-                         │
-             ┌───────────┼───────────┐
-             │           │           │
-           local       remote      virtual
-             │           │           │
-           Linux        SSH        Docker
-             │           │           │
-          hook A       hook B      hook C
+```mermaid
+flowchart TB
+  SECOND_BRAIN["SECOND BRAIN"]
+  I_want_X["'I want X'"]
+  ASC["ASC"]
+  local["local"]
+  remote["remote"]
+  virtual["virtual"]
+  Linux["Linux"]
+  SSH["SSH"]
+  Docker["Docker"]
+  hook_A["hook A"]
+  hook_B["hook B"]
+  hook_C["hook C"]
+  SECOND_BRAIN --> I_want_X
+  I_want_X --> ASC
+  ASC --> local
+  ASC --> remote
+  ASC --> virtual
+  local --> Linux
+  remote --> SSH
+  virtual --> Docker
+  Linux --> hook_A
+  SSH --> hook_B
+  Docker --> hook_C
 ```
 
 The UI doesn't need to know whether:
@@ -142,26 +172,31 @@ That is exactly the kind of indirection that will make your application portable
 
 The Tauri application can effectively become:
 
-```text
-┌─────────────────────────────────────────┐
-│              Tauri application          │
-│                                         │
-│  SolidJS                                │
-│  ├── views                              │
-│  ├── graph visualization                │
-│  ├── editors                            │
-│  ├── agent monitoring                   │
-│  ├── project explorer                   │
-│  └── system visualization               │
-│                                         │
-│  Tauri                                  │
-│  └── ASC transport                      │
-└──────────────────────┬──────────────────┘
-                       │
-                 ASC protocol
-                       │
-                       ▼
-                      ASC
+```mermaid
+flowchart TB
+  Tauri_application["Tauri application"]
+  SolidJS["SolidJS"]
+  views["views"]
+  graph_visualization["graph visualization"]
+  editors["editors"]
+  agent_monitoring["agent monitoring"]
+  project_explorer["project explorer"]
+  system_visualization["system visualization"]
+  Tauri["Tauri"]
+  ASC_transport["ASC transport"]
+  ASC_protocol["ASC protocol"]
+  ASC["ASC"]
+  Tauri_application --> SolidJS
+  SolidJS --> views
+  views --> graph_visualization
+  graph_visualization --> editors
+  editors --> agent_monitoring
+  agent_monitoring --> project_explorer
+  project_explorer --> system_visualization
+  system_visualization --> Tauri
+  Tauri --> ASC_transport
+  ASC_transport --> ASC_protocol
+  ASC_protocol --> ASC
 ```
 
 The Rust portion can consequently remain very small.
@@ -182,59 +217,92 @@ It becomes:
 
 For example:
 
-```text
-asc
-├── host
-│   ├── info
-│   ├── processes
-│   ├── services
-│   ├── resources
-│   └── hardware
-│
-├── filesystem
-│   ├── list
-│   ├── inspect
-│   ├── watch
-│   └── search
-│
-├── projects
-│   ├── list
-│   ├── status
-│   ├── start
-│   └── stop
-│
-├── workers
-│   ├── list
-│   ├── start
-│   ├── stop
-│   └── logs
-│
-├── hosts
-│   ├── local
-│   ├── remote
-│   ├── provision
-│   └── status
-│
-└── agents
-    ├── list
-    ├── start
-    ├── stop
-    ├── status
-    ├── logs
-    └── events
+```mermaid
+flowchart TB
+  asc["asc"]
+  host["host"]
+  info["info"]
+  processes["processes"]
+  services["services"]
+  resources["resources"]
+  hardware["hardware"]
+  filesystem["filesystem"]
+  list["list"]
+  inspect["inspect"]
+  watch["watch"]
+  search["search"]
+  projects["projects"]
+  list_2["list"]
+  status["status"]
+  start["start"]
+  stop["stop"]
+  workers["workers"]
+  list_3["list"]
+  start_2["start"]
+  stop_2["stop"]
+  logs["logs"]
+  hosts["hosts"]
+  local["local"]
+  remote["remote"]
+  provision["provision"]
+  status_2["status"]
+  agents["agents"]
+  list_4["list"]
+  start_3["start"]
+  stop_3["stop"]
+  status_3["status"]
+  logs_2["logs"]
+  events["events"]
+  asc --> host
+  host --> info
+  host --> processes
+  host --> services
+  host --> resources
+  host --> hardware
+  asc --> filesystem
+  filesystem --> list
+  filesystem --> inspect
+  filesystem --> watch
+  filesystem --> search
+  asc --> projects
+  projects --> list_2
+  projects --> status
+  projects --> start
+  projects --> stop
+  asc --> workers
+  workers --> list_3
+  workers --> start_2
+  workers --> stop_2
+  workers --> logs
+  asc --> hosts
+  hosts --> local
+  hosts --> remote
+  hosts --> provision
+  hosts --> status_2
+  asc --> agents
+  agents --> list_4
+  agents --> start_3
+  agents --> stop_3
+  agents --> status_3
+  agents --> logs_2
+  agents --> events
 ```
 
 The UI then becomes a visual client of this interface.
 
 And because you already use ASC from the terminal, the UI and CLI become **two interfaces to the same control plane**:
 
-```text
-        ASC
-       /   \
-      /     \
-   CLI       GUI
-    │         │
- terminal   Tauri
+```mermaid
+flowchart TB
+  ASC["ASC"]
+  CLI["CLI"]
+  terminal["terminal"]
+  GUI["GUI"]
+  Tauri["Tauri"]
+  ASC --> CLI
+  CLI --> terminal
+  ASC --> GUI
+  GUI --> Tauri
 ```
 
 This is considerably better than making the Tauri application the canonical interface.
@@ -286,43 +354,63 @@ I would **not turn Python into an architectural dependency of the application**.
 
 Instead:
 
-```text
-ASC
- │
- ├── Bash
- ├── Rust
- ├── Python
- ├── external binaries
- ├── Docker
- └── whatever else is appropriate
+```mermaid
+flowchart TB
+  ASC["ASC"]
+  Bash["Bash"]
+  Rust["Rust"]
+  Python["Python"]
+  external_binaries["external binaries"]
+  Docker["Docker"]
+  whatever_else_is_appropriate["whatever else is appropriate"]
+  ASC --> Bash
+  ASC --> Rust
+  ASC --> Python
+  ASC --> external_binaries
+  ASC --> Docker
+  ASC --> whatever_else_is_appropriate
 ```
 
 ASC becomes the orchestration layer.
 
 For example:
 
-```text
-ASC
- └── index-document
-        ├── detect type
-        ├── PDF → pdftotext
-        ├── complex PDF → Docling
-        ├── EPUB → ebook tooling
-        ├── image → OCR
-        └── source → parser
+```mermaid
+flowchart TB
+  ASC["ASC"]
+  index_document["└── index-document"]
+  detect_type["├── detect type"]
+  PDF_pdftotext["├── PDF → pdftotext"]
+  complex_PDF_Docling["├── complex PDF → Docling"]
+  EPUB_ebook_tooling["├── EPUB → ebook tooling"]
+  image_OCR["├── image → OCR"]
+  source_parser["└── source → parser"]
+  ASC --> index_document
+  index_document --> detect_type
+  detect_type --> PDF_pdftotext
+  PDF_pdftotext --> complex_PDF_Docling
+  complex_PDF_Docling --> EPUB_ebook_tooling
+  EPUB_ebook_tooling --> image_OCR
+  image_OCR --> source_parser
 ```
 
 The UI doesn't care.
 
 It sees:
 
-```text
-Document
- ├── status
- ├── extracted text
- ├── metadata
- ├── relationships
- └── indexing state
+```mermaid
+flowchart TB
+  Document["Document"]
+  status["status"]
+  extracted_text["extracted text"]
+  metadata["metadata"]
+  relationships["relationships"]
+  indexing_state["indexing state"]
+  Document --> status
+  Document --> extracted_text
+  Document --> metadata
+  Document --> relationships
+  Document --> indexing_state
 ```
 
 That is exactly how I would handle Docling.
@@ -333,19 +421,21 @@ You don't need to become a Python developer merely because Docling happens to be
 
 For your particular project, this architecture is attractive:
 
-```text
-                GUI
-                  │
-                  ▼
-                 ASC
-                  │
-       ┌──────────┼──────────┐
-       ▼          ▼          ▼
-      CLI       scripts    binaries
-       │          │          │
-       └──────────┼──────────┘
-                  ▼
-             actual work
+```mermaid
+flowchart TB
+  GUI["GUI"]
+  ASC["ASC"]
+  CLI["CLI"]
+  scripts["scripts"]
+  binaries["binaries"]
+  actual_work["actual work"]
+  GUI --> ASC
+  ASC --> CLI
+  ASC --> scripts
+  ASC --> binaries
+  CLI --> actual_work
+  scripts --> actual_work
+  binaries --> actual_work
 ```
 
 For example:
@@ -378,42 +468,66 @@ This is one of the strongest aspects of your architecture.
 
 ### OS portability
 
-```text
-ASC
- ├── Debian hook
- ├── Arch hook
- ├── Ubuntu hook
- └── Windows hook
+```mermaid
+flowchart TB
+  ASC["ASC"]
+  Debian_hook["Debian hook"]
+  Arch_hook["Arch hook"]
+  Ubuntu_hook["Ubuntu hook"]
+  Windows_hook["Windows hook"]
+  ASC --> Debian_hook
+  ASC --> Arch_hook
+  ASC --> Ubuntu_hook
+  ASC --> Windows_hook
 ```
 ### Tool portability
 
-```text
-DocumentExtractor
- ├── Docling
- ├── Tika
- ├── pdftotext
- └── custom extractor
+```mermaid
+flowchart TB
+  DocumentExtractor["DocumentExtractor"]
+  Docling["Docling"]
+  Tika["Tika"]
+  pdftotext["pdftotext"]
+  custom_extractor["custom extractor"]
+  DocumentExtractor --> Docling
+  DocumentExtractor --> Tika
+  DocumentExtractor --> pdftotext
+  DocumentExtractor --> custom_extractor
 ```
 ### AI portability
 
-```text
-AgentBackend
- ├── Cursor
- ├── Tiiny
- ├── local LLM
- ├── remote API
- └── future agent
+```mermaid
+flowchart TB
+  AgentBackend["AgentBackend"]
+  Cursor["Cursor"]
+  Tiiny["Tiiny"]
+  local_LLM["local LLM"]
+  remote_API["remote API"]
+  future_agent["future agent"]
+  AgentBackend --> Cursor
+  AgentBackend --> Tiiny
+  AgentBackend --> local_LLM
+  AgentBackend --> remote_API
+  AgentBackend --> future_agent
 ```
 
 The UI only sees the abstract capability.
 
-```text
-              capability
-                   │
-        ┌──────────┼──────────┐
-        ▼          ▼          ▼
-       ASC     extractor    agent
-       hook     backend    backend
+```mermaid
+flowchart TB
+  capability["capability"]
+  ASC["ASC"]
+  extractor["extractor"]
+  agent["agent"]
+  hook["hook"]
+  backend["backend"]
+  backend_2["backend"]
+  capability --> ASC
+  capability --> extractor
+  capability --> agent
+  ASC --> hook
+  extractor --> backend
+  agent --> backend_2
 ```
 
 That is much more powerful than merely making Tauri cross-platform.
@@ -445,19 +559,31 @@ Those are stable concepts.
 
 For example:
 
-```text
-Machine
-├── identity
-├── OS
-├── CPU
-├── GPU
-├── memory
-├── disks
-├── mounts
-├── network
-├── services
-├── workers
-└── projects
+```mermaid
+flowchart TB
+  Machine["Machine"]
+  identity["identity"]
+  OS["OS"]
+  CPU["CPU"]
+  GPU["GPU"]
+  memory["memory"]
+  disks["disks"]
+  mounts["mounts"]
+  network["network"]
+  services["services"]
+  workers["workers"]
+  projects["projects"]
+  Machine --> identity
+  Machine --> OS
+  Machine --> CPU
+  Machine --> GPU
+  Machine --> memory
+  Machine --> disks
+  Machine --> mounts
+  Machine --> network
+  Machine --> services
+  Machine --> workers
+  Machine --> projects
 ```
 
 Whether the information comes from:
@@ -484,36 +610,58 @@ I'd treat machines as **nodes in the same knowledge graph**.
 
 For example:
 
-```text
-                Paul
-                  │
-         ┌────────┼────────┐
-         │        │        │
-       laptop    NAS      server
-         │        │        │
-      Debian     DSM     Ubuntu
-         │        │        │
-      ┌──┴──┐     │      ┌─┴──┐
-     CPU   GPU   disks   VM  containers
-      │     │             │      │
-      └─────┼─────────────┴──────┘
-            │
-          projects
-            │
-        ┌───┴────┐
-      Drupal    ASC
+```mermaid
+flowchart TB
+  Paul["Paul"]
+  laptop["laptop"]
+  NAS["NAS"]
+  server["server"]
+  Debian["Debian"]
+  DSM["DSM"]
+  Ubuntu["Ubuntu"]
+  CPU["CPU"]
+  GPU["GPU"]
+  disks["disks"]
+  VM["VM"]
+  containers["containers"]
+  projects["projects"]
+  Drupal["Drupal"]
+  ASC["ASC"]
+  Paul --> laptop
+  Paul --> NAS
+  Paul --> server
+  laptop --> Debian
+  NAS --> DSM
+  server --> Ubuntu
+  Debian --> CPU
+  DSM --> disks
+  Ubuntu --> VM
+  CPU --> projects
+  GPU --> projects
+  disks --> projects
+  VM --> projects
+  containers --> projects
+  projects --> Drupal
+  projects --> ASC
 ```
 
 And then:
 
-```text
-Project
-   ├── lives on → machine
-   ├── uses → service
-   ├── reads → document
-   ├── produced → artifact
-   ├── modified by → agent
-   └── published as → webpage
+```mermaid
+flowchart TB
+  Project["Project"]
+  lives_on_machine["├── lives on → machine"]
+  uses_service["├── uses → service"]
+  reads_document["├── reads → document"]
+  produced_artifact["├── produced → artifact"]
+  modified_by_agent["├── modified by → agent"]
+  published_as_webpage["└── published as → webpage"]
+  Project --> lives_on_machine
+  lives_on_machine --> uses_service
+  uses_service --> reads_document
+  reads_document --> produced_artifact
+  produced_artifact --> modified_by_agent
+  modified_by_agent --> published_as_webpage
 ```
 
 This is where the "second brain" and "ASC" aspects stop being two separate applications.
@@ -534,21 +682,31 @@ as a graph in the UI without requiring every piece of information to live in Ara
 
 Think in terms of:
 
-```text
-               DOMAIN GRAPH
-                     │
-       ┌─────────────┼─────────────┐
-       │             │             │
-   relational     documents      events
-     data          / files       / logs
-       │             │             │
-       └─────────────┼─────────────┘
-                     │
-                projections
-                     │
-             ┌───────┼───────┐
-             ▼       ▼       ▼
-            SQL     Solr   Arango
+```mermaid
+flowchart TB
+  DOMAIN_GRAPH["DOMAIN GRAPH"]
+  relational["relational"]
+  documents["documents"]
+  events["events"]
+  data["data"]
+  files["/ files"]
+  logs["/ logs"]
+  projections["projections"]
+  SQL["SQL"]
+  Solr["Solr"]
+  Arango["Arango"]
+  DOMAIN_GRAPH --> relational
+  DOMAIN_GRAPH --> documents
+  DOMAIN_GRAPH --> events
+  relational --> data
+  documents --> files
+  events --> logs
+  data --> projections
+  files --> projections
+  logs --> projections
+  projections --> SQL
+  projections --> Solr
+  projections --> Arango
 ```
 
 That gives you freedom to choose storage according to workload.
@@ -604,28 +762,44 @@ This is much closer to the kind of interface you're describing.
 
 Your description suggests something more interesting:
 
-```text
-┌────────────────────────────────────────────────────────────┐
-│ project-complexe                                      [ ]  │
-├────────────┬───────────────────────────────────────────────┤
-│            │                                               │
-│ Knowledge  │                                               │
-│ Projects   │       contextual visualization                │
-│ Machines   │                                               │
-│ Agents     │       text / graph / diagram                  │
-│ Sources    │                                               │
-│ Activity   │                                               │
-│            │                                               │
-└────────────┴───────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+  project_complexe["project-complexe"]
+  node["[ ]"]
+  Knowledge["Knowledge"]
+  Projects["Projects"]
+  contextual_visualization["contextual visualization"]
+  Machines["Machines"]
+  Agents["Agents"]
+  text_graph_diagram["text / graph / diagram"]
+  Sources["Sources"]
+  Activity["Activity"]
+  project_complexe --> Knowledge
+  node --> Knowledge
+  Knowledge --> Projects
+  Knowledge --> contextual_visualization
+  Projects --> Machines
+  contextual_visualization --> Machines
+  Machines --> Agents
+  Machines --> text_graph_diagram
+  Agents --> Sources
+  text_graph_diagram --> Sources
+  Sources --> Activity
 ```
 
 Rather than:
 
-```text
-┌─────┐ ┌─────┐ ┌─────┐
-│CPU  │ │RAM  │ │DISK │
-│ 47% │ │ 62% │ │ 81% │
-└─────┘ └─────┘ └─────┘
+```mermaid
+flowchart TB
+  CPU["CPU"]
+  RAM["RAM"]
+  DISK["DISK"]
+  n_47["47%"]
+  n_62["62%"]
+  n_81["81%"]
+  CPU --> n_47
+  RAM --> n_62
+  DISK --> n_81
 ```
 
 The former is much more appropriate for your goal.
@@ -636,39 +810,48 @@ The interface becomes a **visual query surface over a complex system**, not a co
 
 I would represent an agent's activity as an event stream:
 
-```text
-Agent
- ├── intent
- ├── plan
- ├── tool call
- ├── filesystem observation
- ├── command
- ├── result
- ├── reasoning artifact
- ├── state transition
- └── completion
+```mermaid
+flowchart TB
+  Agent["Agent"]
+  intent["intent"]
+  plan["plan"]
+  tool_call["tool call"]
+  filesystem_observation["filesystem observation"]
+  command["command"]
+  result["result"]
+  reasoning_artifact["reasoning artifact"]
+  state_transition["state transition"]
+  completion["completion"]
+  Agent --> intent
+  Agent --> plan
+  Agent --> tool_call
+  Agent --> filesystem_observation
+  Agent --> command
+  Agent --> result
+  Agent --> reasoning_artifact
+  Agent --> state_transition
+  Agent --> completion
 ```
 
 Then visualize it as:
 
-```text
-Agent: research-agent
-──────────────────────────────────────────
-10:42  PLAN
-       Search local corpus for "complexity"
-10:42  SEARCH
-       Solr → 143 results
-10:43  OPEN
-       2013-04 MONNIN Ver.pdf
-10:43  EXTRACT
-       Docling
-10:44  RELATE
-       → Web philosophy
-       → Semantic sphere
-10:44  WRITE
-       research-note.md
-10:45  WAITING
-       human approval
+```mermaid
+flowchart TB
+  Agent_research_agent["Agent: research-agent"]
+  n_10_42_PLAN["10:42 PLAN"]
+  n_10_42_SEARCH["10:42 SEARCH"]
+  n_10_43_OPEN["10:43 OPEN"]
+  n_10_43_EXTRACT["10:43 EXTRACT"]
+  n_10_44_RELATE["10:44 RELATE"]
+  n_10_44_WRITE["10:44 WRITE"]
+  n_10_45_WAITING["10:45 WAITING"]
+  Agent_research_agent --> n_10_42_PLAN
+  n_10_42_PLAN --> n_10_42_SEARCH
+  n_10_42_SEARCH --> n_10_43_OPEN
+  n_10_43_OPEN --> n_10_43_EXTRACT
+  n_10_43_EXTRACT --> n_10_44_RELATE
+  n_10_44_RELATE --> n_10_44_WRITE
+  n_10_44_WRITE --> n_10_45_WAITING
 ```
 
 The same events should be accessible through:
@@ -692,17 +875,27 @@ Tauri → ASC → status
 
 I'd eventually want:
 
-```text
-ASC
- ├── command API
- └── event stream
-       ├── project.changed
-       ├── machine.changed
-       ├── worker.started
-       ├── worker.output
-       ├── agent.tool_call
-       ├── indexing.progress
-       └── indexing.completed
+```mermaid
+flowchart TB
+  ASC["ASC"]
+  command_API["├── command API"]
+  event_stream["└── event stream"]
+  project_changed["├── project.changed"]
+  machine_changed["├── machine.changed"]
+  worker_started["├── worker.started"]
+  worker_output["├── worker.output"]
+  agent_tool_call["├── agent.tool_call"]
+  indexing_progress["├── indexing.progress"]
+  indexing_completed["└── indexing.completed"]
+  ASC --> command_API
+  command_API --> event_stream
+  event_stream --> project_changed
+  project_changed --> machine_changed
+  machine_changed --> worker_started
+  worker_started --> worker_output
+  worker_output --> agent_tool_call
+  agent_tool_call --> indexing_progress
+  indexing_progress --> indexing_completed
 ```
 
 The UI subscribes.
@@ -758,63 +951,71 @@ That separation is extremely powerful.
 
 ## 17. The architecture I'd now recommend
 
-```text
-                        USER
-                           │
-                           ▼
-              ┌─────────────────────────┐
-              │     SECOND BRAIN        │
-              │                         │
-              │ Tauri                   │
-              │   └── SolidJS           │
-              │        └── Kobalte      │
-              │                         │
-              │      custom CSS         │
-              └────────────┬────────────┘
-                           │
-                     ASC protocol
-                           │
-                           ▼
-              ┌───────────────────────────┐
-              │          ASC              │
-              │                           │
-              │  execution/control plane  │
-              │                           │
-              ├───────────────────────────┤
-              │ filesystem                │
-              │ processes                 │
-              │ workers                   │
-              │ cron                      │
-              │ projects                  │
-              │ machines                  │
-              │ SSH                       │
-              │ Docker                    │
-              │ provisioning              │
-              │ logs                      │
-              │ agents                    │
-              └────────────┬──────────────┘
-                           │
-               ┌───────────┼────────────┐
-               │           │            │
-               ▼           ▼            ▼
-            scripts     binaries      Python
-               │           │            │
-               │           │       Docling/etc.
-               │           │            │
-               └───────────┼────────────┘
-                           │
-                     infrastructure
-                           │
-            ┌──────────────┼───────────────┐
-            ▼              ▼               ▼
-          files           Solr          ArangoDB
-            │              │               │
-            └──────────────┼───────────────┘
-                           │
-                     semantic model
-                           │
-                           ▼
-                   SECOND-BRAIN GRAPH
+```mermaid
+flowchart TB
+  USER["USER"]
+  SECOND_BRAIN["SECOND BRAIN"]
+  Tauri["Tauri"]
+  SolidJS["SolidJS"]
+  Kobalte["Kobalte"]
+  custom_CSS["custom CSS"]
+  ASC_protocol["ASC protocol"]
+  ASC["ASC"]
+  execution_control_plane["execution/control plane"]
+  filesystem["filesystem"]
+  processes["processes"]
+  workers["workers"]
+  cron["cron"]
+  projects["projects"]
+  machines["machines"]
+  SSH["SSH"]
+  Docker["Docker"]
+  provisioning["provisioning"]
+  logs["logs"]
+  agents["agents"]
+  scripts["scripts"]
+  binaries["binaries"]
+  Python["Python"]
+  Docling_etc["Docling/etc."]
+  infrastructure["infrastructure"]
+  files["files"]
+  Solr["Solr"]
+  ArangoDB["ArangoDB"]
+  semantic_model["semantic model"]
+  SECOND_BRAIN_GRAPH["SECOND-BRAIN GRAPH"]
+  USER --> SECOND_BRAIN
+  SECOND_BRAIN --> Tauri
+  Tauri --> SolidJS
+  SolidJS --> Kobalte
+  Kobalte --> custom_CSS
+  custom_CSS --> ASC_protocol
+  ASC_protocol --> ASC
+  ASC --> execution_control_plane
+  execution_control_plane --> filesystem
+  filesystem --> processes
+  processes --> workers
+  workers --> cron
+  cron --> projects
+  projects --> machines
+  machines --> SSH
+  SSH --> Docker
+  Docker --> provisioning
+  provisioning --> logs
+  logs --> agents
+  agents --> scripts
+  agents --> binaries
+  agents --> Python
+  scripts --> Docling_etc
+  binaries --> Docling_etc
+  Python --> Docling_etc
+  Docling_etc --> infrastructure
+  infrastructure --> files
+  infrastructure --> Solr
+  infrastructure --> ArangoDB
+  files --> semantic_model
+  Solr --> semantic_model
+  ArangoDB --> semantic_model
+  semantic_model --> SECOND_BRAIN_GRAPH
 ```
 
 The apparent circularity is intentional: ASC exposes the computational world; the second brain builds a semantic representation of it.
@@ -929,35 +1130,36 @@ I agree with your second option, with one refinement:
 
 **I would keep three conceptual layers, but only two application repositories:**
 
-```text
-                    ┌───────────────────────────┐
-                    │       projet-complexe     │
-                    │                           │
-                    │  Second brain + agent UI  │
-                    │                           │
-                    │  TASKS       KNOWLEDGE    │
-                    │    │             │        │
-                    │    └──────┬──────┘        │
-                    │           │               │
-                    │     semantic model        │
-                    └───────────┬───────────────┘
-                                │
-                         ASC dev stack
-                                │
-                    ┌───────────▼───────────┐
-                    │          ASC          │
-                    │                       │
-                    │ OS / projects / jobs  │
-                    │ hosts / services      │
-                    │ workers / logs        │
-                    │ provisioning / hooks  │
-                    └───────────┬───────────┘
-                                │
-                    ┌───────────▼───────────┐
-                    │      physical world   │
-                    │ laptops / NAS / disks │
-                    │ servers / containers  │
-                    └───────────────────────┘
+```mermaid
+flowchart TB
+  projet_complexe["projet-complexe"]
+  Second_brain_agent_UI["Second brain + agent UI"]
+  TASKS["TASKS"]
+  KNOWLEDGE["KNOWLEDGE"]
+  semantic_model["semantic model"]
+  ASC_dev_stack["ASC dev stack"]
+  ASC["ASC"]
+  OS_projects_jobs["OS / projects / jobs"]
+  hosts_services["hosts / services"]
+  workers_logs["workers / logs"]
+  provisioning_hooks["provisioning / hooks"]
+  physical_world["physical world"]
+  laptops_NAS_disks["laptops / NAS / disks"]
+  servers_containers["servers / containers"]
+  projet_complexe --> Second_brain_agent_UI
+  Second_brain_agent_UI --> TASKS
+  Second_brain_agent_UI --> KNOWLEDGE
+  TASKS --> semantic_model
+  KNOWLEDGE --> semantic_model
+  semantic_model --> ASC_dev_stack
+  ASC_dev_stack --> ASC
+  ASC --> OS_projects_jobs
+  OS_projects_jobs --> hosts_services
+  hosts_services --> workers_logs
+  workers_logs --> provisioning_hooks
+  provisioning_hooks --> physical_world
+  physical_world --> laptops_NAS_disks
+  laptops_NAS_disks --> servers_containers
 ```
 
 The important point is that **`projet-complexe` should not become a generic system-management application merely because ASC can expose all that information**.
@@ -1011,20 +1213,21 @@ These are related, but they are **not the same domain**.
 
 Trying to put them into one repository would create a dangerous gravitational pull:
 
-```text
-"Since the second brain needs X..."
-                ↓
-    put X in projet-complexe
-                ↓
-"Since X needs system access..."
-                ↓
-  put system abstraction there
-                ↓
- "Since we already have that..."
-                ↓
-ASC functionality gets duplicated
-                ↓
-two ways of doing the same thing
+```mermaid
+flowchart TB
+  Since_the_second_brain_needs_X["'Since the second brain needs X...'"]
+  put_X_in_projet_complexe["put X in projet-complexe"]
+  Since_X_needs_system_access["'Since X needs system access...'"]
+  put_system_abstraction_there["put system abstraction there"]
+  Since_we_already_have_that["'Since we already have that...'"]
+  ASC_functionality_gets_duplicated["ASC functionality gets duplicated"]
+  two_ways_of_doing_the_same_thing["two ways of doing the same thing"]
+  Since_the_second_brain_needs_X --> put_X_in_projet_complexe
+  put_X_in_projet_complexe --> Since_X_needs_system_access
+  Since_X_needs_system_access --> put_system_abstraction_there
+  put_system_abstraction_there --> Since_we_already_have_that
+  Since_we_already_have_that --> ASC_functionality_gets_duplicated
+  ASC_functionality_gets_duplicated --> two_ways_of_doing_the_same_thing
 ```
 
 The separate repository creates a hard architectural constraint against that drift.
@@ -1055,17 +1258,27 @@ would make more sense to me.
 
 Its job would be to instantiate a particular **environment around ASC**:
 
-```text
-ASC
- └── my-environment
-       ├── indexing
-       ├── Solr
-       ├── ArangoDB
-       ├── Docling
-       ├── embeddings
-       ├── agent runtimes
-       ├── monitoring
-       └── project-specific services
+```mermaid
+flowchart TB
+  ASC["ASC"]
+  my_environment["└── my-environment"]
+  indexing["├── indexing"]
+  Solr["├── Solr"]
+  ArangoDB["├── ArangoDB"]
+  Docling["├── Docling"]
+  embeddings["├── embeddings"]
+  agent_runtimes["├── agent runtimes"]
+  monitoring["├── monitoring"]
+  project_specific_services["└── project-specific services"]
+  ASC --> my_environment
+  my_environment --> indexing
+  indexing --> Solr
+  Solr --> ArangoDB
+  ArangoDB --> Docling
+  Docling --> embeddings
+  embeddings --> agent_runtimes
+  agent_runtimes --> monitoring
+  monitoring --> project_specific_services
 ```
 
 That repository can then contain the things that are *specific to your second-brain environment* without polluting ASC itself.
@@ -1078,55 +1291,78 @@ This is where the separation becomes particularly powerful.
 
 Portable:
 
-```text
-ASC
-├── Debian implementation
-├── Ubuntu implementation
-├── Arch implementation
-├── Windows implementation
-└── ...
+```mermaid
+flowchart TB
+  ASC["ASC"]
+  Debian_implementation["Debian implementation"]
+  Ubuntu_implementation["Ubuntu implementation"]
+  Arch_implementation["Arch implementation"]
+  Windows_implementation["Windows implementation"]
+  node["..."]
+  ASC --> Debian_implementation
+  ASC --> Ubuntu_implementation
+  ASC --> Arch_implementation
+  ASC --> Windows_implementation
+  ASC --> node
 ```
 ### Your ASC environment
 
 Personal / machine-specific:
 
-```text
-my-asc-stack
-├── Solr
-├── ArangoDB
-├── Docling
-├── OCR
-├── embedding models
-├── agent runtimes
-└── other services
+```mermaid
+flowchart TB
+  my_asc_stack["my-asc-stack"]
+  Solr["Solr"]
+  ArangoDB["ArangoDB"]
+  Docling["Docling"]
+  OCR["OCR"]
+  embedding_models["embedding models"]
+  agent_runtimes["agent runtimes"]
+  other_services["other services"]
+  my_asc_stack --> Solr
+  my_asc_stack --> ArangoDB
+  my_asc_stack --> Docling
+  my_asc_stack --> OCR
+  my_asc_stack --> embedding_models
+  my_asc_stack --> agent_runtimes
+  my_asc_stack --> other_services
 ```
 ### The second brain
 
 Conceptually portable:
 
-```text
-projet-complexe
-├── tasks
-├── knowledge
-├── agents
-├── graphs
-└── publication
+```mermaid
+flowchart TB
+  projet_complexe["projet-complexe"]
+  tasks["tasks"]
+  knowledge["knowledge"]
+  agents["agents"]
+  graphs["graphs"]
+  publication["publication"]
+  projet_complexe --> tasks
+  projet_complexe --> knowledge
+  projet_complexe --> agents
+  projet_complexe --> graphs
+  projet_complexe --> publication
 ```
 
 This gives you:
 
-```text
-                    projet-complexe
-                            │
-                       ASC protocol
-                            │
-                       asc-stack
-                            │
-                            ASC
-                            │
-               ┌────────────┼────────────┐
-               │            │            │
-            Debian       Windows       future
+```mermaid
+flowchart TB
+  projet_complexe["projet-complexe"]
+  ASC_protocol["ASC protocol"]
+  asc_stack["asc-stack"]
+  ASC["ASC"]
+  Debian["Debian"]
+  Windows["Windows"]
+  future["future"]
+  projet_complexe --> ASC_protocol
+  ASC_protocol --> asc_stack
+  asc_stack --> ASC
+  ASC --> Debian
+  ASC --> Windows
+  ASC --> future
 ```
 
 The second brain doesn't need to know whether the environment underneath it is your Debian laptop or some future Windows machine.
@@ -1159,22 +1395,25 @@ The latter is environment implementation.
 
 Conceptually:
 
-```text
-projet-complexe
-        │
-        │ "index this source"
-        ▼
-       ASC
-        │
-        ▼
-  indexing capability
-        │
-        ▼
-   asc-stack
-        ├── Docling
-        ├── Tika
-        ├── OCR
-        └── Solr
+```mermaid
+flowchart TB
+  projet_complexe["projet-complexe"]
+  index_this_source["'index this source'"]
+  ASC["ASC"]
+  indexing_capability["indexing capability"]
+  asc_stack["asc-stack"]
+  Docling["Docling"]
+  Tika["Tika"]
+  OCR["OCR"]
+  Solr["Solr"]
+  projet_complexe --> index_this_source
+  index_this_source --> ASC
+  ASC --> indexing_capability
+  indexing_capability --> asc_stack
+  asc_stack --> Docling
+  Docling --> Tika
+  Tika --> OCR
+  OCR --> Solr
 ```
 
 That distinction will save you a lot of coupling later.
@@ -1185,41 +1424,60 @@ This is actually the strongest argument for keeping `projet-complexe` independen
 
 The old application's conceptual split can become something much richer:
 
-```text
-┌──────────────────────────────────────────────────────────────┐
-│                       PROJET COMPLEXE                        │
-├─────────────────────────────┬────────────────────────────────┤
-│                             │                                │
-│          TASKS              │          KNOWLEDGE             │
-│                             │                                │
-│  What needs to happen?      │  What do I know?               │
-│                             │                                │
-│  ├── inbox                  │  ├── sources                   │
-│  ├── projects               │  ├── notes                     │
-│  ├── plans                  │  ├── concepts                  │
-│  ├── agents                 │  ├── documents                 │
-│  ├── scheduled work         │  ├── relationships             │
-│  └── execution              │  ├── research                  │
-│                             │  └── publications              │
-│                             │                                │
-└─────────────────────────────┴────────────────────────────────┘
+```mermaid
+flowchart TB
+  PROJET_COMPLEXE["PROJET COMPLEXE"]
+  TASKS["TASKS"]
+  KNOWLEDGE["KNOWLEDGE"]
+  What_needs_to_happen["What needs to happen?"]
+  What_do_I_know["What do I know?"]
+  inbox["inbox"]
+  sources["sources"]
+  projects["projects"]
+  notes["notes"]
+  plans["plans"]
+  concepts["concepts"]
+  agents["agents"]
+  documents["documents"]
+  scheduled_work["scheduled work"]
+  relationships["relationships"]
+  execution["execution"]
+  research["research"]
+  publications["publications"]
+  PROJET_COMPLEXE --> TASKS
+  PROJET_COMPLEXE --> KNOWLEDGE
+  TASKS --> What_needs_to_happen
+  KNOWLEDGE --> What_do_I_know
+  What_needs_to_happen --> inbox
+  What_do_I_know --> sources
+  inbox --> projects
+  sources --> notes
+  projects --> plans
+  notes --> concepts
+  plans --> agents
+  concepts --> documents
+  agents --> scheduled_work
+  documents --> relationships
+  scheduled_work --> execution
+  relationships --> research
+  execution --> publications
+  research --> publications
 ```
 
 Then there is a third dimension:
 
-```text
-                      KNOWLEDGE
-                           │
-                           │ informs
-                           ▼
-TASKS ────────────────► AGENTS
-  │                        │
-  │                        │ execute
-  │                        ▼
-  └────────────────────► ASC
-                           │
-                           ▼
-                       COMPUTING
+```mermaid
+flowchart TB
+  KNOWLEDGE["KNOWLEDGE"]
+  TASKS["TASKS"]
+  AGENTS["AGENTS"]
+  ASC["ASC"]
+  COMPUTING["COMPUTING"]
+  KNOWLEDGE -->|"informs"| TASKS
+  KNOWLEDGE -->|"informs"| AGENTS
+  TASKS --> ASC
+  AGENTS --> ASC
+  ASC --> COMPUTING
 ```
 
 That is much more interesting than a conventional task manager + note-taking application.
@@ -1230,41 +1488,63 @@ Make it a **domain-level distinction**.
 
 For example:
 
-```text
-Task
-├── objective
-├── state
-├── dependencies
-├── project
-├── assigned agent
-├── inputs
-├── outputs
-└── execution history
+```mermaid
+flowchart TB
+  Task["Task"]
+  objective["objective"]
+  state["state"]
+  dependencies["dependencies"]
+  project["project"]
+  assigned_agent["assigned agent"]
+  inputs["inputs"]
+  outputs["outputs"]
+  execution_history["execution history"]
+  Task --> objective
+  Task --> state
+  Task --> dependencies
+  Task --> project
+  Task --> assigned_agent
+  Task --> inputs
+  Task --> outputs
+  Task --> execution_history
 ```
 
 versus:
 
-```text
-KnowledgeObject
-├── content
-├── provenance
-├── concepts
-├── relations
-├── sources
-├── confidence
-├── visibility
-└── publication state
+```mermaid
+flowchart TB
+  KnowledgeObject["KnowledgeObject"]
+  content["content"]
+  provenance["provenance"]
+  concepts["concepts"]
+  relations["relations"]
+  sources["sources"]
+  confidence["confidence"]
+  visibility["visibility"]
+  publication_state["publication state"]
+  KnowledgeObject --> content
+  KnowledgeObject --> provenance
+  KnowledgeObject --> concepts
+  KnowledgeObject --> relations
+  KnowledgeObject --> sources
+  KnowledgeObject --> confidence
+  KnowledgeObject --> visibility
+  KnowledgeObject --> publication_state
 ```
 
 They can then intersect:
 
-```text
-Task
-  │
-  ├── requires → KnowledgeObject
-  ├── produces → KnowledgeObject
-  ├── modifies → KnowledgeObject
-  └── executed by → Agent
+```mermaid
+flowchart TB
+  Task["Task"]
+  requires["requires → KnowledgeObject"]
+  produces["produces → KnowledgeObject"]
+  modifies["modifies → KnowledgeObject"]
+  executed_by["executed by → Agent"]
+  Task --> requires
+  Task --> produces
+  Task --> modifies
+  Task --> executed_by
 ```
 
 That is a much stronger model than:
@@ -1279,33 +1559,31 @@ Agents don't need to be another top-level information silo.
 
 They become the **bridge between task and knowledge**.
 
-```text
-                   KNOWLEDGE
-                        │
-              ┌─────────┼─────────┐
-              │         │         │
-           sources    concepts   context
-              │         │         │
-              └─────────┼─────────┘
-                        │
-                        ▼
-                      AGENT
-                        │
-                      PLAN
-                        │
-                        ▼
-                      TASK
-                        │
-                        ▼
-                       ASC
-                        │
-                    execution
-                        │
-                        ▼
-                      RESULT
-                        │
-                        ▼
-                    KNOWLEDGE
+```mermaid
+flowchart TB
+  KNOWLEDGE["KNOWLEDGE"]
+  sources["sources"]
+  concepts["concepts"]
+  context["context"]
+  AGENT["AGENT"]
+  PLAN["PLAN"]
+  TASK["TASK"]
+  ASC["ASC"]
+  execution["execution"]
+  RESULT["RESULT"]
+  KNOWLEDGE_2["KNOWLEDGE"]
+  KNOWLEDGE --> sources
+  KNOWLEDGE --> concepts
+  KNOWLEDGE --> context
+  sources --> AGENT
+  concepts --> AGENT
+  context --> AGENT
+  AGENT --> PLAN
+  PLAN --> TASK
+  TASK --> ASC
+  ASC --> execution
+  execution --> RESULT
+  RESULT --> KNOWLEDGE_2
 ```
 
 This is where your earlier interest in agent autonomy becomes relevant.
@@ -1320,24 +1598,41 @@ It becomes a process moving through your **task/knowledge environment**, while A
 
 I would expect something like:
 
-```text
-asc-stack/
-├── compose/
-│   ├── solr/
-│   ├── arangodb/
-│   └── ...
-├── services/
-│   ├── indexing/
-│   ├── extraction/
-│   ├── embeddings/
-│   └── ...
-├── workers/
-├── models/
-├── asc/
-│   └── hooks / configuration
-├── scripts/
-├── Makefile
-└── README.md
+```mermaid
+flowchart TB
+  asc_stack["asc-stack/"]
+  compose["compose/"]
+  solr["solr/"]
+  arangodb["arangodb/"]
+  node["..."]
+  services["services/"]
+  indexing["indexing/"]
+  extraction["extraction/"]
+  embeddings["embeddings/"]
+  node_2["..."]
+  workers["workers/"]
+  models["models/"]
+  asc["asc/"]
+  hooks_configuration["hooks / configuration"]
+  scripts["scripts/"]
+  Makefile["Makefile"]
+  README_md["README.md"]
+  asc_stack --> compose
+  compose --> solr
+  compose --> arangodb
+  compose --> node
+  asc_stack --> services
+  services --> indexing
+  services --> extraction
+  services --> embeddings
+  services --> node_2
+  asc_stack --> workers
+  asc_stack --> models
+  asc_stack --> asc
+  asc --> hooks_configuration
+  asc_stack --> scripts
+  asc_stack --> Makefile
+  asc_stack --> README_md
 ```
 
 But importantly:
@@ -1367,15 +1662,25 @@ For example, today:
 
 Tomorrow:
 
-```text
-┌──────────────────────────┐
-│ PROJECT                  │
-│                          │
-│ indexing     ● running   │
-│ backup       ● scheduled │
-│ services     7/7         │
-│ agents       2 active    │
-└──────────────────────────┘
+```mermaid
+flowchart TB
+  PROJECT["PROJECT"]
+  indexing["indexing"]
+  running["● running"]
+  backup["backup"]
+  scheduled["● scheduled"]
+  services["services"]
+  n_7_7["7/7"]
+  agents["agents"]
+  n_2_active["2 active"]
+  PROJECT --> indexing
+  PROJECT --> running
+  indexing --> backup
+  running --> scheduled
+  backup --> services
+  scheduled --> n_7_7
+  services --> agents
+  n_7_7 --> n_2_active
 ```
 
 But both ultimately invoke the same ASC capabilities.
@@ -1386,29 +1691,38 @@ That's excellent because the GUI isn't creating a parallel operational reality.
 
 I would therefore think of the Tauri application as having **two distinct backends**:
 
-```text
-                   Tauri + Solid
-                         │
-              ┌──────────┴──────────┐
-              │                     │
-              ▼                     ▼
-             ASC             Knowledge layer
-              │                     │
-        machine reality       semantic reality
-              │                     │
-       "what exists?"       "what does it mean?"
+```mermaid
+flowchart TB
+  Tauri_Solid["Tauri + Solid"]
+  ASC["ASC"]
+  Knowledge_layer["Knowledge layer"]
+  machine_reality["machine reality"]
+  semantic_reality["semantic reality"]
+  what_exists["'what exists?'"]
+  what_does_it_mean["'what does it mean?'"]
+  Tauri_Solid --> ASC
+  Tauri_Solid --> Knowledge_layer
+  ASC --> machine_reality
+  Knowledge_layer --> semantic_reality
+  machine_reality --> what_exists
+  semantic_reality --> what_does_it_mean
 ```
 
 And the really interesting functionality emerges from their intersection:
 
-```text
-Machine
-   ├── hosts → Project
-   │             ├── produces → Document
-   │             │                 │
-   │             │                 └── relates → Concept
-   │             └── assigned → Agent
-   └── constrained by → Hardware
+```mermaid
+flowchart TB
+  Machine["Machine"]
+  hosts["hosts → Project"]
+  produces["produces → Document"]
+  relates["relates → Concept"]
+  assigned["assigned → Agent"]
+  constrained_by["constrained by → Hardware"]
+  Machine --> hosts
+  hosts --> produces
+  produces --> relates
+  hosts --> assigned
+  Machine --> constrained_by
 ```
 
 That is the "second brain" part.
@@ -1464,14 +1778,13 @@ Not now, necessarily.
 
 But conceptually there is a useful future boundary:
 
-```text
-projet-complexe
-       │
-       │
-   protocol
-       │
-       ▼
-      ASC
+```mermaid
+flowchart TB
+  projet_complexe["projet-complexe"]
+  protocol["protocol"]
+  ASC["ASC"]
+  projet_complexe --> protocol
+  protocol --> ASC
 ```
 
 That protocol could eventually deserve its own small package/specification:
@@ -1490,15 +1803,17 @@ containing things such as:
 
 Then:
 
-```text
-                   asc-protocol
-                    /           \
-                   /             \
-                  ▼               ▼
-        projet-complexe           ASC
-              │                    │
-              ▼                    ▼
-             UI               implementations
+```mermaid
+flowchart TB
+  asc_protocol["asc-protocol"]
+  projet_complexe["projet-complexe"]
+  UI["UI"]
+  ASC["ASC"]
+  implementations["implementations"]
+  asc_protocol --> projet_complexe
+  projet_complexe --> UI
+  asc_protocol --> ASC
+  ASC --> implementations
 ```
 
 I would **not create this repository prematurely**. First let the interface emerge from actual use.
@@ -1509,48 +1824,62 @@ But keeping the possibility in mind will prevent you from accidentally making Ta
 
 Eventually I could see your personal ecosystem becoming:
 
-```text
-github.com/Paulmicha/
-│
-├── asc
-│      generic computational control plane
-│
-├── asc-stack
-│      your concrete local environment
-│
-├── projet-complexe
-│      knowledge + tasks + agents UI
-│
-└── asc-protocol        [possibly later]
-       shared interface
+```mermaid
+flowchart TB
+  github_com_Paulmicha["github.com/Paulmicha/"]
+  asc["asc"]
+  generic_computational_control_plane["generic computational control plane"]
+  asc_stack["asc-stack"]
+  your_concrete_local_environment["your concrete local environment"]
+  projet_complexe["projet-complexe"]
+  knowledge_tasks_agents_UI["knowledge + tasks + agents UI"]
+  asc_protocol["asc-protocol"]
+  possibly_later["[possibly later]"]
+  shared_interface["shared interface"]
+  github_com_Paulmicha --> asc
+  asc --> generic_computational_control_plane
+  generic_computational_control_plane --> asc_stack
+  asc_stack --> your_concrete_local_environment
+  your_concrete_local_environment --> projet_complexe
+  projet_complexe --> knowledge_tasks_agents_UI
+  knowledge_tasks_agents_UI --> asc_protocol
+  knowledge_tasks_agents_UI --> possibly_later
+  asc_protocol --> shared_interface
+  possibly_later --> shared_interface
 ```
 
 With the dependencies:
 
-```text
-projet-complexe
-       │
-       ▼
- asc-protocol
-       │
-       ▼
-      ASC
-       │
-       ▼
-   asc-stack
+```mermaid
+flowchart TB
+  projet_complexe["projet-complexe"]
+  asc_protocol["asc-protocol"]
+  ASC["ASC"]
+  asc_stack["asc-stack"]
+  projet_complexe --> asc_protocol
+  asc_protocol --> ASC
+  ASC --> asc_stack
 ```
 
 Notice what this prevents:
 
-```text
-projet-complexe
-      ├── Docker
-      ├── Linux
-      ├── Solr
-      ├── Python
-      ├── Docling
-      ├── SSH
-      └── systemd
+```mermaid
+flowchart TB
+  projet_complexe["projet-complexe"]
+  Docker["Docker"]
+  Linux["Linux"]
+  Solr["Solr"]
+  Python["Python"]
+  Docling["Docling"]
+  SSH["SSH"]
+  systemd["systemd"]
+  projet_complexe --> Docker
+  projet_complexe --> Linux
+  projet_complexe --> Solr
+  projet_complexe --> Python
+  projet_complexe --> Docling
+  projet_complexe --> SSH
+  projet_complexe --> systemd
 ```
 
 That would be exactly the wrong direction.
@@ -1561,19 +1890,26 @@ There is one architectural danger in your preferred option.
 
 You could simply move the monolith one level down:
 
-```text
-projet-complexe
-        │
-        ▼
-    asc-stack
-        ├── Solr
-        ├── ArangoDB
-        ├── Docling
-        ├── agents
-        ├── backups
-        ├── indexing
-        ├── everything
-        └── ...
+```mermaid
+flowchart TB
+  projet_complexe["projet-complexe"]
+  asc_stack["asc-stack"]
+  Solr["Solr"]
+  ArangoDB["ArangoDB"]
+  Docling["Docling"]
+  agents["agents"]
+  backups["backups"]
+  indexing["indexing"]
+  everything["everything"]
+  node["..."]
+  asc_stack --> Solr
+  asc_stack --> ArangoDB
+  asc_stack --> Docling
+  asc_stack --> agents
+  asc_stack --> backups
+  asc_stack --> indexing
+  asc_stack --> everything
+  asc_stack --> node
 ```
 
 and eventually `asc-stack` becomes an enormous personal infrastructure repository.
@@ -1616,27 +1952,25 @@ Those are three genuinely different concerns.
 
 And your original task/knowledge distinction gives `projet-complexe` an additional identity that neither ASC nor the dev stack possesses:
 
-```text
-                        HUMAN
-                           │
-                           ▼
-                  ┌─────────────────┐
-                  │ projet-complexe │
-                  │                 │
-                  │ TASK   KNOWLEDGE│
-                  │   \       /     │
-                  │    AGENTS       │
-                  └────────┬────────┘
-                           │
-                    interpretation
-                           │
-                           ▼
-                        ASC
-                           │
-                     execution
-                           │
-                           ▼
-                     COMPUTING
+```mermaid
+flowchart TB
+  HUMAN["HUMAN"]
+  projet_complexe["projet-complexe"]
+  TASK["TASK"]
+  KNOWLEDGE["KNOWLEDGE"]
+  AGENTS["AGENTS"]
+  interpretation["interpretation"]
+  ASC["ASC"]
+  execution["execution"]
+  COMPUTING["COMPUTING"]
+  HUMAN --> projet_complexe
+  HUMAN --> TASK
+  HUMAN --> KNOWLEDGE
+  HUMAN --> AGENTS
+  HUMAN --> interpretation
+  HUMAN --> ASC
+  HUMAN --> execution
+  HUMAN --> COMPUTING
 ```
 
 That is a strong architecture.
@@ -1697,27 +2031,38 @@ What you are designing inside ASC is actually more interesting: **the YAML decla
 
 The architecture starts looking like this:
 
-```text
-                        ASC
-                          │
-             ┌────────────┴────────────┐
-             │                         │
-        DECLARATIVE SIDE          IMPERATIVE SIDE
-             │                         │
-           *.yml                      *.sh
-             │                         │
-     entities / contracts       entry points / hooks
-     fields / links             wrap / nest / execute
-     capabilities               actual programs
-     inheritance
-             │                         │
-             └────────────┬────────────┘
-                          │
-                    ASC DSL/runtime
-                          │
-              ┌───────────┴───────────┐
-              │                       │
-        terminal / make          Tauri UI
+```mermaid
+flowchart TB
+  ASC["ASC"]
+  DECLARATIVE_SIDE["DECLARATIVE SIDE"]
+  IMPERATIVE_SIDE["IMPERATIVE SIDE"]
+  yml["*.yml"]
+  sh["*.sh"]
+  entities_contracts["entities / contracts"]
+  entry_points_hooks["entry points / hooks"]
+  fields_links["fields / links"]
+  wrap_nest_execute["wrap / nest / execute"]
+  capabilities["capabilities"]
+  actual_programs["actual programs"]
+  inheritance["inheritance"]
+  ASC_DSL_runtime["ASC DSL/runtime"]
+  terminal_make["terminal / make"]
+  Tauri_UI["Tauri UI"]
+  ASC --> DECLARATIVE_SIDE
+  ASC --> IMPERATIVE_SIDE
+  DECLARATIVE_SIDE --> yml
+  IMPERATIVE_SIDE --> sh
+  yml --> entities_contracts
+  sh --> entry_points_hooks
+  entities_contracts --> fields_links
+  entry_points_hooks --> wrap_nest_execute
+  fields_links --> capabilities
+  wrap_nest_execute --> actual_programs
+  capabilities --> inheritance
+  actual_programs --> inheritance
+  inheritance --> ASC_DSL_runtime
+  ASC_DSL_runtime --> terminal_make
+  ASC_DSL_runtime --> Tauri_UI
 ```
 
 I think this is a **very good direction**, provided you keep one distinction extremely clear:
@@ -1734,31 +2079,29 @@ And your OCR example is almost a perfect demonstration of the complementary impe
 
 Not two.
 
-```text
-┌──────────────────────────────────────────┐
-│             DECLARATION                  │
-│                                          │
-│ *.entity.yml                             │
-│ *.able.yml                               │
-│ fields / inheritance / contracts / links │
-└────────────────────┬─────────────────────┘
-                     │
-                     ▼
-┌──────────────────────────────────────────┐
-│             INTERPRETATION               │
-│                                          │
-│ ASC DSL                                  │
-│ parser / resolver / argument mapping     │
-│ include / inheritance / nesting / wrap   │
-└────────────────────┬─────────────────────┘
-                     │
-                     ▼
-┌──────────────────────────────────────────┐
-│              EXECUTION                   │
-│                                          │
-│ *.sh / hooks / external programs         │
-│ Python / binaries / Docker / etc.        │
-└──────────────────────────────────────────┘
+```mermaid
+flowchart TB
+  DECLARATION["DECLARATION"]
+  entity_yml["*.entity.yml"]
+  able_yml["*.able.yml"]
+  fields_inheritance_contracts_links["fields / inheritance / contracts / links"]
+  INTERPRETATION["INTERPRETATION"]
+  ASC_DSL["ASC DSL"]
+  parser_resolver_argument_mapping["parser / resolver / argument mapping"]
+  include_inheritance_nesting_wrap["include / inheritance / nesting / wrap"]
+  EXECUTION["EXECUTION"]
+  sh_hooks_external_programs["*.sh / hooks / external programs"]
+  Python_binaries_Docker_etc["Python / binaries / Docker / etc."]
+  DECLARATION --> entity_yml
+  entity_yml --> able_yml
+  able_yml --> fields_inheritance_contracts_links
+  fields_inheritance_contracts_links --> INTERPRETATION
+  INTERPRETATION --> ASC_DSL
+  ASC_DSL --> parser_resolver_argument_mapping
+  parser_resolver_argument_mapping --> include_inheritance_nesting_wrap
+  include_inheritance_nesting_wrap --> EXECUTION
+  EXECUTION --> sh_hooks_external_programs
+  sh_hooks_external_programs --> Python_binaries_Docker_etc
 ```
 
 This is important because it prevents YAML from gradually becoming an imperative programming language.
@@ -1823,16 +2166,21 @@ That gives you much more freedom.
 
 For example:
 
-```text
-software.entity.yml
-        ├── process.able.yml
-        ├── sidecar.able.yml - i.e. file(s), dir(s) ?
-        ├── wrap.able.yml - i.e. Docker ?
-        ├── compose.able.yml - i.e. Docker compose stack service, Helm chart, Debian apt package, or even just plain Python scripts ?
-        └── depend.able.yml
-                │
-                ▼
-          tesseract.entity.yml
+```mermaid
+flowchart TB
+  software_entity_yml["software.entity.yml"]
+  process_able_yml["process.able.yml"]
+  sidecar_able_yml_i_e_file_s_dir_s["sidecar.able.yml - i.e. file(s), dir(s) ?"]
+  wrap_able_yml_i_e_Docker["wrap.able.yml - i.e. Docker ?"]
+  compose_able_yml_i_e_Docker_compose_stack_service_Helm_chart_Debian_apt_package_or_even_just_plain_Python_scripts["compose.able.yml - i.e. Docker compose stack service, Helm chart, Debian apt package, or even just plain Python scripts ?"]
+  depend_able_yml["depend.able.yml"]
+  tesseract_entity_yml["tesseract.entity.yml"]
+  software_entity_yml --> process_able_yml
+  process_able_yml --> sidecar_able_yml_i_e_file_s_dir_s
+  sidecar_able_yml_i_e_file_s_dir_s --> wrap_able_yml_i_e_Docker
+  wrap_able_yml_i_e_Docker --> compose_able_yml_i_e_Docker_compose_stack_service_Helm_chart_Debian_apt_package_or_even_just_plain_Python_scripts
+  compose_able_yml_i_e_Docker_compose_stack_service_Helm_chart_Debian_apt_package_or_even_just_plain_Python_scripts --> depend_able_yml
+  depend_able_yml --> tesseract_entity_yml
 ```
 
 The result is a composed declaration.
@@ -1968,39 +2316,63 @@ This is exactly the kind of abstraction that could later become extremely useful
 
 You could eventually have:
 
-```text
-ENTITY
-├── software
-├── machine
-├── file
-├── project
-├── document
-├── agent
-└── person
+```mermaid
+flowchart TB
+  ENTITY["ENTITY"]
+  software["software"]
+  machine["machine"]
+  file["file"]
+  project["project"]
+  document["document"]
+  agent["agent"]
+  person["person"]
+  ENTITY --> software
+  ENTITY --> machine
+  ENTITY --> file
+  ENTITY --> project
+  ENTITY --> document
+  ENTITY --> agent
+  ENTITY --> person
 ```
 
-```text
-ABILITY
-├── executable
-├── searchable
-├── indexable
-├── recognizable
-├── writable
-├── observable
-├── schedulable
-├── executable
-├── backupable
-└── publishable
+```mermaid
+flowchart TB
+  ABILITY["ABILITY"]
+  executable["executable"]
+  searchable["searchable"]
+  indexable["indexable"]
+  recognizable["recognizable"]
+  writable["writable"]
+  observable["observable"]
+  schedulable["schedulable"]
+  executable_2["executable"]
+  backupable["backupable"]
+  publishable["publishable"]
+  ABILITY --> executable
+  ABILITY --> searchable
+  ABILITY --> indexable
+  ABILITY --> recognizable
+  ABILITY --> writable
+  ABILITY --> observable
+  ABILITY --> schedulable
+  ABILITY --> executable_2
+  ABILITY --> backupable
+  ABILITY --> publishable
 ```
 
 Then:
 
-```text
-Tesseract
-├── entity: software
-├── ability: executable
-├── ability: recognize-text
-└── ability: sidecar
+```mermaid
+flowchart TB
+  Tesseract["Tesseract"]
+  entity_software["entity: software"]
+  ability_executable["ability: executable"]
+  ability_recognize_text["ability: recognize-text"]
+  ability_sidecar["ability: sidecar"]
+  Tesseract --> entity_software
+  Tesseract --> ability_executable
+  Tesseract --> ability_recognize_text
+  Tesseract --> ability_sidecar
 ```
 
 This gives your DSL a potentially very expressive vocabulary without making the DSL itself complicated.
@@ -2009,11 +2381,15 @@ This gives your DSL a potentially very expressive vocabulary without making the 
 
 Your current abstract script essentially does:
 
-```text
-recognize/text
-     ├── pre-hook
-     ├── main hook
-     └── post-hook
+```mermaid
+flowchart TB
+  recognize_text["recognize/text"]
+  pre_hook["pre-hook"]
+  main_hook["main hook"]
+  post_hook["post-hook"]
+  recognize_text --> pre_hook
+  recognize_text --> main_hook
+  recognize_text --> post_hook
 ```
 
 and selects variants such as:
@@ -2030,20 +2406,27 @@ I'd preserve this.
 
 Conceptually:
 
-```text
-                recognize/text
-                       │
-               abstract operation
-                       │
-            ┌──────────┼──────────┐
-            ▼          ▼          ▼
-          pre        execute      post
-                       │
-                 implementation
-                       │
-          ┌────────────┼────────────┐
-          ▼            ▼            ▼
-       tesseract     docling       ...
+```mermaid
+flowchart TB
+  recognize_text["recognize/text"]
+  abstract_operation["abstract operation"]
+  pre["pre"]
+  execute["execute"]
+  post["post"]
+  implementation["implementation"]
+  tesseract["tesseract"]
+  docling["docling"]
+  node["..."]
+  recognize_text --> abstract_operation
+  abstract_operation --> pre
+  abstract_operation --> execute
+  abstract_operation --> post
+  pre --> implementation
+  execute --> implementation
+  post --> implementation
+  implementation --> tesseract
+  implementation --> docling
+  implementation --> node
 ```
 
 The abstract entry point doesn't care which implementation wins.
@@ -2080,18 +2463,25 @@ The shell is still the bottom layer.
 
 So:
 
-```text
- ASC DSL
-    ├── resolve command
-    ├── resolve entity
-    ├── resolve hook
-    ├── map arguments
-    ├── establish scope
-    ├── establish execution mode
-    └── invoke
-          │
-          ▼
-        shell
+```mermaid
+flowchart TB
+  ASC_DSL["ASC DSL"]
+  resolve_command["resolve command"]
+  resolve_entity["resolve entity"]
+  resolve_hook["resolve hook"]
+  map_arguments["map arguments"]
+  establish_scope["establish scope"]
+  establish_execution_mode["establish execution mode"]
+  invoke["invoke"]
+  shell["shell"]
+  ASC_DSL --> resolve_command
+  resolve_command --> resolve_entity
+  resolve_entity --> resolve_hook
+  resolve_hook --> map_arguments
+  map_arguments --> establish_scope
+  establish_scope --> establish_execution_mode
+  establish_execution_mode --> invoke
+  invoke --> shell
 ```
 
 This keeps the DSL small.
@@ -2120,13 +2510,19 @@ wrap(tesseract,file)
 
 Conceptually:
 
-```text
-ASC
- └── external process
-       ├── stdin
-       ├── stdout
-       ├── stderr
-       └── exit status
+```mermaid
+flowchart TB
+  ASC["ASC"]
+  external_process["└── external process"]
+  stdin["├── stdin"]
+  stdout["├── stdout"]
+  stderr["├── stderr"]
+  exit_status["└── exit status"]
+  ASC --> external_process
+  external_process --> stdin
+  stdin --> stdout
+  stdout --> stderr
+  stderr --> exit_status
 ```
 ### `nest`
 
@@ -2192,10 +2588,15 @@ A → B → C
 
 parallel
 
-```text
-A ─┬
-B ─┼─→ results
-C ─┘
+```mermaid
+flowchart TB
+  results["results"]
+  A["A"]
+  B["B"]
+  C["C"]
+  A --> results
+  B --> results
+  C --> results
 ```
 
 pipe
@@ -2232,13 +2633,19 @@ with capabilities such as:
 
 And then the second brain could display an agent's execution using the same underlying abstraction as any other ASC operation.
 
-```text
-Agent
-  ├── invokes → search
-  ├── invokes → recognize-text
-  ├── invokes → read-file
-  ├── invokes → write-file
-  └── invokes → test
+```mermaid
+flowchart TB
+  Agent["Agent"]
+  invokes_search["├── invokes → search"]
+  invokes_recognize_text["├── invokes → recognize-text"]
+  invokes_read_file["├── invokes → read-file"]
+  invokes_write_file["├── invokes → write-file"]
+  invokes_test["└── invokes → test"]
+  Agent --> invokes_search
+  invokes_search --> invokes_recognize_text
+  invokes_recognize_text --> invokes_read_file
+  invokes_read_file --> invokes_write_file
+  invokes_write_file --> invokes_test
 ```
 
 The UI isn't special-casing AI.
@@ -2267,32 +2674,44 @@ ASC resolves them.
 
 The UI receives structured results/events.
 
-```text
-Tauri
-  │ ASC expression
-  ▼
-ASC
-  ├── parse
-  ├── resolve
-  ├── authorize
-  ├── map arguments
-  ├── execute
-  └── emit events
-  │
-  ▼
-Tauri
+```mermaid
+flowchart TB
+  Tauri["Tauri"]
+  ASC_expression["ASC expression"]
+  ASC["ASC"]
+  parse["parse"]
+  resolve["resolve"]
+  authorize["authorize"]
+  map_arguments["map arguments"]
+  emit_events["emit events"]
+  Tauri_2["Tauri"]
+  Tauri --> ASC_expression
+  ASC_expression --> ASC
+  ASC --> parse
+  parse --> resolve
+  resolve --> authorize
+  authorize --> map_arguments
+  map_arguments --> emit_events
+  emit_events --> Tauri_2
 ```
 
 This is far cleaner than:
 
-```text
-Tauri
-  ├── invokeTesseract()
-  ├── getSolrStatus()
-  ├── runDocker()
-  ├── getDiskInfo()
-  ├── runOCR()
-  └── ...
+```mermaid
+flowchart TB
+  Tauri["Tauri"]
+  invokeTesseract["invokeTesseract()"]
+  getSolrStatus["getSolrStatus()"]
+  runDocker["runDocker()"]
+  getDiskInfo["getDiskInfo()"]
+  runOCR["runOCR()"]
+  node["..."]
+  Tauri --> invokeTesseract
+  Tauri --> getSolrStatus
+  Tauri --> runDocker
+  Tauri --> getDiskInfo
+  Tauri --> runOCR
+  Tauri --> node
 ```
 
 ## 12. The filename-safe argument naming problem is real
@@ -2478,24 +2897,25 @@ This is where I think your design becomes much more interesting than I initially
 
 You could have:
 
-```text
-                    YAML
-                     │
-                     │ declares
-                     ▼
-entities / contracts / fields / capabilities
-                     │
-                     │ interpreted by
-                     ▼
-                  ASC DSL
-                     │
-                     │ resolves
-                     ▼
-       operations / hooks / arguments
-                     │
-                     │ executes
-                     ▼
-         shell / programs / workers
+```mermaid
+flowchart TB
+  YAML["YAML"]
+  declares["declares"]
+  entities_contracts_fields_capabilities["entities / contracts / fields / capabilities"]
+  interpreted_by["interpreted by"]
+  ASC_DSL["ASC DSL"]
+  resolves["resolves"]
+  operations_hooks_arguments["operations / hooks / arguments"]
+  executes["executes"]
+  shell_programs_workers["shell / programs / workers"]
+  YAML --> declares
+  declares --> entities_contracts_fields_capabilities
+  entities_contracts_fields_capabilities --> interpreted_by
+  interpreted_by --> ASC_DSL
+  ASC_DSL --> resolves
+  resolves --> operations_hooks_arguments
+  operations_hooks_arguments --> executes
+  executes --> shell_programs_workers
 ```
 
 And then ASC can potentially introspect itself:
@@ -2581,15 +3001,19 @@ Not because `projet-complexe` becomes part of ASC, but because ASC provides the 
 
 For example:
 
-```text
-projet-complexe
-       ├── idea.entity.yml
-       ├── research.entity.yml
-       ├── source.entity.yml
-       └── agent.entity.yml
-                │
-                ▼
-              ASC
+```mermaid
+flowchart TB
+  projet_complexe["projet-complexe"]
+  idea_entity_yml["idea.entity.yml"]
+  research_entity_yml["research.entity.yml"]
+  source_entity_yml["source.entity.yml"]
+  agent_entity_yml["agent.entity.yml"]
+  ASC["ASC"]
+  projet_complexe --> idea_entity_yml
+  idea_entity_yml --> research_entity_yml
+  research_entity_yml --> source_entity_yml
+  source_entity_yml --> agent_entity_yml
+  agent_entity_yml --> ASC
 ```
 
 This makes the repository boundary much less problematic.
@@ -2602,25 +3026,39 @@ ASC provides the language.
 
 I would now conceptualize your repositories as:
 
-```text
-┌───────────────────────────────────────────┐
-│                    ASC                    │
-│                                           │
-│  minimal runtime + DSL + YAML semantics   │
-│  hooks + execution + capabilities         │
-└──────────────────────┬────────────────────┘
-                       │
-             extension vocabulary
-                       │
-          ┌────────────┴────────────┐
-          │                         │
-     asc-stack                projet-complexe
-          │                         │
-  infrastructure            knowledge vocabulary
-  machines                  task vocabulary
-  services                  agent vocabulary
-  indexing                  publication
-  tooling                   visualization
+```mermaid
+flowchart TB
+  ASC["ASC"]
+  minimal_runtime_DSL_YAML_semantics["minimal runtime + DSL + YAML semantics"]
+  hooks_execution_capabilities["hooks + execution + capabilities"]
+  extension_vocabulary["extension vocabulary"]
+  asc_stack["asc-stack"]
+  projet_complexe["projet-complexe"]
+  infrastructure["infrastructure"]
+  knowledge_vocabulary["knowledge vocabulary"]
+  machines["machines"]
+  task_vocabulary["task vocabulary"]
+  services["services"]
+  agent_vocabulary["agent vocabulary"]
+  indexing["indexing"]
+  publication["publication"]
+  tooling["tooling"]
+  visualization["visualization"]
+  ASC --> minimal_runtime_DSL_YAML_semantics
+  minimal_runtime_DSL_YAML_semantics --> hooks_execution_capabilities
+  hooks_execution_capabilities --> extension_vocabulary
+  extension_vocabulary --> asc_stack
+  extension_vocabulary --> projet_complexe
+  asc_stack --> infrastructure
+  projet_complexe --> knowledge_vocabulary
+  infrastructure --> machines
+  knowledge_vocabulary --> task_vocabulary
+  machines --> services
+  task_vocabulary --> agent_vocabulary
+  services --> indexing
+  agent_vocabulary --> publication
+  indexing --> tooling
+  publication --> visualization
 ```
 
 This is better than:
@@ -2716,26 +3154,21 @@ If ASC operations are themselves entities/capabilities, then the second brain ca
 
 For example:
 
-```text
-  KNOWLEDGE
-      │
-      ▼
-    TASK
-      │
-      ▼
-    AGENT
-      │
-      ▼
-ASC operation
-      │
-      ▼
-   program
-      │
-      ▼
-  artifact
-      │
-      ▼
-  KNOWLEDGE
+```mermaid
+flowchart TB
+  KNOWLEDGE["KNOWLEDGE"]
+  TASK["TASK"]
+  AGENT["AGENT"]
+  ASC_operation["ASC operation"]
+  program["program"]
+  artifact["artifact"]
+  KNOWLEDGE_2["KNOWLEDGE"]
+  KNOWLEDGE --> TASK
+  TASK --> AGENT
+  AGENT --> ASC_operation
+  ASC_operation --> program
+  program --> artifact
+  artifact --> KNOWLEDGE_2
 ```
 
 The system becomes reflexive.
@@ -2746,42 +3179,57 @@ That is very different from a normal CRUD application.
 
 I would now settle on this:
 
-```text
-                 projet-complexe
-              Tauri + SolidJS + Kobalte
-                       │
-                       │ ASC DSL / events
-                       ▼
-┌─────────────────────────────────────────────────┐
-│                      ASC                        │
-│                                                 │
-│ YAML declaration layer                          │
-│ ├── *.entity.yml                                │
-│ ├── *.able.yml                                  │
-│ └── other declarative extensions                │
-│                                                 │
-│ DSL/runtime                                     │
-│ ├── resolution                                  │
-│ ├── include/composition                         │
-│ ├── argument mapping                            │
-│ ├── scope                                       │
-│ ├── wrap                                        │
-│ ├── nest                                        │
-│ └── execution                                   │
-│                                                 │
-│ execution layer                                 │
-│ ├── abstract entry points                       │
-│ ├── hooks                                       │
-│ └── external programs                           │
-└───────────────────────┬─────────────────────────┘
-                        │
-                  asc-stack
-                        │
-             concrete environment
-                        │
-       ┌────────────────┼────────────────┐
-       ▼                ▼                ▼
-    machines          services         tools
+```mermaid
+flowchart TB
+  projet_complexe["projet-complexe"]
+  Tauri_SolidJS_Kobalte["Tauri + SolidJS + Kobalte"]
+  ASC_DSL_events["ASC DSL / events"]
+  ASC["ASC"]
+  YAML_declaration_layer["YAML declaration layer"]
+  entity_yml["*.entity.yml"]
+  able_yml["*.able.yml"]
+  other_declarative_extensions["other declarative extensions"]
+  DSL_runtime["DSL/runtime"]
+  resolution["resolution"]
+  include_composition["include/composition"]
+  argument_mapping["argument mapping"]
+  scope["scope"]
+  wrap["wrap"]
+  nest["nest"]
+  execution["execution"]
+  execution_layer["execution layer"]
+  abstract_entry_points["abstract entry points"]
+  hooks["hooks"]
+  external_programs["external programs"]
+  asc_stack["asc-stack"]
+  concrete_environment["concrete environment"]
+  machines["machines"]
+  services["services"]
+  tools["tools"]
+  projet_complexe --> Tauri_SolidJS_Kobalte
+  Tauri_SolidJS_Kobalte --> ASC_DSL_events
+  ASC_DSL_events --> ASC
+  ASC --> YAML_declaration_layer
+  YAML_declaration_layer --> entity_yml
+  entity_yml --> able_yml
+  able_yml --> other_declarative_extensions
+  other_declarative_extensions --> DSL_runtime
+  DSL_runtime --> resolution
+  resolution --> include_composition
+  include_composition --> argument_mapping
+  argument_mapping --> scope
+  scope --> wrap
+  wrap --> nest
+  nest --> execution
+  execution --> execution_layer
+  execution_layer --> abstract_entry_points
+  abstract_entry_points --> hooks
+  hooks --> external_programs
+  external_programs --> asc_stack
+  asc_stack --> concrete_environment
+  concrete_environment --> machines
+  concrete_environment --> services
+  concrete_environment --> tools
 ```
 
 And the crucial conceptual equations would be:
@@ -2827,21 +3275,29 @@ That means several of my previous recommendations should be withdrawn or reframe
 
 The strongest architectural consequence is this:
 
-```text
-                        ASC
-                          │
-          ┌───────────────┼────────────────┐
-          │               │                │
-      filesystem        YAML             DSL
-       structure      declaration       expression
-          │               │                │
-          └───────────────┼────────────────┘
-                          │
-                    executable pivots
-                          │
-                    hooks / shell
-                          │
-                     real programs
+```mermaid
+flowchart TB
+  ASC["ASC"]
+  filesystem["filesystem"]
+  YAML["YAML"]
+  DSL["DSL"]
+  structure["structure"]
+  declaration["declaration"]
+  expression["expression"]
+  executable_pivots["executable pivots"]
+  hooks_shell["hooks / shell"]
+  real_programs["real programs"]
+  ASC --> filesystem
+  ASC --> YAML
+  ASC --> DSL
+  filesystem --> structure
+  YAML --> declaration
+  DSL --> expression
+  structure --> executable_pivots
+  declaration --> executable_pivots
+  expression --> executable_pivots
+  executable_pivots --> hooks_shell
+  hooks_shell --> real_programs
 ```
 
 And `projet-complexe` should indeed sit **above this**, but not as a conventional "client of an ASC API". It should become a **visual/semantic projection of the ASC universe**, with its own task/knowledge vocabulary.
@@ -2917,18 +3373,21 @@ also makes this explicit: `--` means a relation rather than an entry point.
 
 So I would now model ASC's namespace roughly as:
 
-```text
-            ASC NAME
-                 │
-       ┌─────────┼──────────┐
-       │         │          │
-    subject    object     action
-       │         │          │
-       └─────────┼──────────┘
-                 │
-          filesystem path
-                 │
-          executable pivot
+```mermaid
+flowchart TB
+  ASC_NAME["ASC NAME"]
+  subject["subject"]
+  object["object"]
+  action["action"]
+  filesystem_path["filesystem path"]
+  executable_pivot["executable pivot"]
+  ASC_NAME --> subject
+  ASC_NAME --> object
+  ASC_NAME --> action
+  subject --> filesystem_path
+  object --> filesystem_path
+  action --> filesystem_path
+  filesystem_path --> executable_pivot
 ```
 
 The filesystem is therefore not merely storage. It is **part of the semantic addressing system**.
@@ -2957,20 +3416,17 @@ doesn't necessarily represent an abstract function invocation in the programming
 
 It represents something closer to:
 
-```text
-   DSL expression
-        │
-        ▼
-  ASC resolution
-        │
-        ▼
-fixed entry point
-        │
-        ▼
-      script
-        │
-        ▼
-      hook
+```mermaid
+flowchart TB
+  DSL_expression["DSL expression"]
+  ASC_resolution["ASC resolution"]
+  fixed_entry_point["fixed entry point"]
+  script["script"]
+  hook["hook"]
+  DSL_expression --> ASC_resolution
+  ASC_resolution --> fixed_entry_point
+  fixed_entry_point --> script
+  script --> hook
 ```
 
 And your intention to make `make` understand DSL as a fallback reinforces this: DSL becomes another way of addressing the same ASC machinery, rather than a second execution system.
@@ -3009,23 +3465,34 @@ Execution can happen inside it, but nesting is fundamentally a **structural prop
 
 For example:
 
-```text
-project
-└── directory
-    └── file
-        └── code
-            └── function
-                └── variable
+```mermaid
+flowchart TB
+  project["project"]
+  directory["└── directory"]
+  file["└── file"]
+  code["└── code"]
+  function["└── function"]
+  variable["└── variable"]
+  project --> directory
+  directory --> file
+  file --> code
+  code --> function
+  function --> variable
 ```
 
 and:
 
-```text
-agent
-└── plan
-    └── task
-        └── action
-            └── process
+```mermaid
+flowchart TB
+  agent["agent"]
+  plan["└── plan"]
+  task["└── task"]
+  action["└── action"]
+  process["└── process"]
+  agent --> plan
+  plan --> task
+  task --> action
+  action --> process
 ```
 
 could all share the same structural mechanism.
@@ -3131,21 +3598,30 @@ It should **not modify the meaning of ASC primitives**.
 
 Instead it should live predominantly around levels 5–6:
 
-```text
-ASC
-├── primordial
-├── primitive
-├── core
-├── contrib
-└── extension point
-      │
-      ▼
-projet-complexe
-    ├── task
-    ├── knowledge
-    ├── research
-    ├── publication
-    └── agents
+```mermaid
+flowchart TB
+  ASC["ASC"]
+  primordial["primordial"]
+  primitive["primitive"]
+  core["core"]
+  contrib["contrib"]
+  extension_point["extension point"]
+  projet_complexe["projet-complexe"]
+  task["task"]
+  knowledge["knowledge"]
+  research["research"]
+  publication["publication"]
+  agents["agents"]
+  ASC --> primordial
+  ASC --> primitive
+  ASC --> core
+  ASC --> contrib
+  ASC --> extension_point
+  projet_complexe --> task
+  projet_complexe --> knowledge
+  projet_complexe --> research
+  projet_complexe --> publication
+  projet_complexe --> agents
 ```
 
 And your `asc-stack` would mostly be:
@@ -3157,14 +3633,15 @@ with perhaps some reusable contributions eventually migrating upward.
 
 That gives you a natural evolutionary mechanism:
 
-```text
-  private experiment
-          ↓
-project implementation
-          ↓
-  contrib extension
-          ↓
-       ASC core
+```mermaid
+flowchart TB
+  private_experiment["private experiment"]
+  project_implementation["project implementation"]
+  contrib_extension["contrib extension"]
+  ASC_core["ASC core"]
+  private_experiment --> project_implementation
+  project_implementation --> contrib_extension
+  contrib_extension --> ASC_core
 ```
 
 without requiring you to decide upfront what belongs where.
@@ -3177,14 +3654,21 @@ But I would now make `asc-stack` considerably thinner than I previously suggeste
 
 I previously imagined it as something like:
 
-```text
-asc-stack
-├── Solr
-├── ArangoDB
-├── Docling
-├── embedding services
-├── agents
-└── infrastructure
+```mermaid
+flowchart TB
+  asc_stack["asc-stack"]
+  Solr["Solr"]
+  ArangoDB["ArangoDB"]
+  Docling["Docling"]
+  embedding_services["embedding services"]
+  agents["agents"]
+  infrastructure["infrastructure"]
+  asc_stack --> Solr
+  asc_stack --> ArangoDB
+  asc_stack --> Docling
+  asc_stack --> embedding_services
+  asc_stack --> agents
+  asc_stack --> infrastructure
 ```
 
 Your notes suggest that much of this should actually become **ASC entities, sidecars, commands and extensions**.
@@ -3197,15 +3681,23 @@ should primarily be a **composition/configuration of your personal ASC environme
 
 For example:
 
-```text
-asc-stack
-├── machines
-├── hosts
-├── projects
-├── services
-├── overrides
-├── contrib
-└── environment-specific configuration
+```mermaid
+flowchart TB
+  asc_stack["asc-stack"]
+  machines["machines"]
+  hosts["hosts"]
+  projects["projects"]
+  services["services"]
+  overrides["overrides"]
+  contrib["contrib"]
+  environment_specific_configuration["environment-specific configuration"]
+  asc_stack --> machines
+  asc_stack --> hosts
+  asc_stack --> projects
+  asc_stack --> services
+  asc_stack --> overrides
+  asc_stack --> contrib
+  asc_stack --> environment_specific_configuration
 ```
 
 while reusable semantics go back into ASC.
@@ -3231,20 +3723,24 @@ and:
 
 This gives you an extremely elegant duality:
 
-```text
-            VIRTUAL
-               │
-             entity
-               │
-               │ represented by
-               ▼
-             SIDECAR
-               │
-        ┌──────┼──────┐
-        │      │      │
-       yml    sh     md
-        │      │      │
-     metadata code   prose
+```mermaid
+flowchart TB
+  VIRTUAL["VIRTUAL"]
+  entity["entity"]
+  SIDECAR["SIDECAR"]
+  yml["yml"]
+  sh["sh"]
+  md["md"]
+  metadata_code["metadata code"]
+  prose["prose"]
+  VIRTUAL --> entity
+  entity -->|"represented by"| SIDECAR
+  SIDECAR --> yml
+  SIDECAR --> sh
+  SIDECAR --> md
+  yml --> metadata_code
+  sh --> metadata_code
+  md --> prose
 ```
 
 The same concept can therefore have different concrete representations.
@@ -3295,17 +3791,25 @@ I would no longer make that a separate architectural layer.
 
 Instead:
 
-```text
-ASC
-│
-├── entity vocabulary
-├── sidecar vocabulary
-├── nesting
-├── relationships
-├── fields
-├── props
-├── contracts
-└── execution
+```mermaid
+flowchart TB
+  ASC["ASC"]
+  entity_vocabulary["entity vocabulary"]
+  sidecar_vocabulary["sidecar vocabulary"]
+  nesting["nesting"]
+  relationships["relationships"]
+  fields["fields"]
+  props["props"]
+  contracts["contracts"]
+  execution["execution"]
+  ASC --> entity_vocabulary
+  ASC --> sidecar_vocabulary
+  ASC --> nesting
+  ASC --> relationships
+  ASC --> fields
+  ASC --> props
+  ASC --> contracts
+  ASC --> execution
 ```
 
 Then `projet-complexe` **defines a knowledge vocabulary using ASC**.
@@ -3344,21 +3848,32 @@ I would preserve it not merely as two UI modes but as two **orthogonal perspecti
 
 Something like:
 
-```text
-                   ASC ENTITY SPACE
-                           │
-             ┌─────────────┴─────────────┐
-             │                           │
-       TASK PERSPECTIVE             KNOWLEDGE PERSPECTIVE
-             │                           │
-        what changes?                what exists?
-        what next?                   what relates?
-        what executes?               what explains?
-        what depends?                what originates?
-             │                           │
-             └─────────────┬─────────────┘
-                           │
-                        same data
+```mermaid
+flowchart TB
+  ASC_ENTITY_SPACE["ASC ENTITY SPACE"]
+  TASK_PERSPECTIVE["TASK PERSPECTIVE"]
+  KNOWLEDGE_PERSPECTIVE["KNOWLEDGE PERSPECTIVE"]
+  what_changes["what changes?"]
+  what_exists["what exists?"]
+  what_next["what next?"]
+  what_relates["what relates?"]
+  what_executes["what executes?"]
+  what_explains["what explains?"]
+  what_depends["what depends?"]
+  what_originates["what originates?"]
+  same_data["same data"]
+  ASC_ENTITY_SPACE --> TASK_PERSPECTIVE
+  ASC_ENTITY_SPACE --> KNOWLEDGE_PERSPECTIVE
+  TASK_PERSPECTIVE --> what_changes
+  KNOWLEDGE_PERSPECTIVE --> what_exists
+  what_changes --> what_next
+  what_exists --> what_relates
+  what_next --> what_executes
+  what_relates --> what_explains
+  what_executes --> what_depends
+  what_explains --> what_originates
+  what_depends --> same_data
+  what_originates --> same_data
 ```
 
 The "killswitch" could therefore mean:
@@ -3385,46 +3900,44 @@ This is potentially the missing central concept.
 
 Consider:
 
-```text
-  KNOWLEDGE
-      │
-      │ informs
-      ▼
-    CHANGE
-      │
-      │ produces
-      ▼
-     TASK
-      │
-      │ executed by
-      ▼
-    AGENT
-      │
-      │ invokes
-      ▼
-     ASC
-      │
-      │ modifies
-      ▼
-FILES / SYSTEM
-      │
-      │ generates
-      ▼
-  KNOWLEDGE
+```mermaid
+flowchart TB
+  KNOWLEDGE["KNOWLEDGE"]
+  CHANGE["CHANGE"]
+  TASK["TASK"]
+  executed_by["executed by"]
+  AGENT["AGENT"]
+  invokes["invokes"]
+  ASC["ASC"]
+  modifies["modifies"]
+  FILES_SYSTEM["FILES / SYSTEM"]
+  generates["generates"]
+  KNOWLEDGE_2["KNOWLEDGE"]
+  KNOWLEDGE -->|"informs"| CHANGE
+  CHANGE -->|"produces"| TASK
+  TASK --> executed_by
+  executed_by --> AGENT
+  AGENT --> invokes
+  invokes --> ASC
+  ASC --> modifies
+  modifies --> FILES_SYSTEM
+  FILES_SYSTEM --> generates
+  generates --> KNOWLEDGE_2
 ```
 
 That creates a cycle:
 
-```text
-knowledge
-    ↓
- change
-    ↓
-execution
-    ↓
-artifact
-    ↓
-knowledge
+```mermaid
+flowchart TB
+  knowledge["knowledge"]
+  change["change"]
+  execution["execution"]
+  artifact["artifact"]
+  knowledge_2["knowledge"]
+  knowledge --> change
+  change --> execution
+  execution --> artifact
+  artifact --> knowledge_2
 ```
 
 This fits your "everything is a reformulation problem" idea extraordinarily well.
@@ -3466,25 +3979,34 @@ The database becomes an **index/projection**, not the canonical representation.
 
 For your second brain, this is particularly attractive.
 
-```text
-            canonical
-                 │
-        filesystem + ASC
-                 │
-       ┌─────────┼──────────┐
-       ▼         ▼          ▼
-     Solr      Arango      RAG
-     index      graph     indexes
+```mermaid
+flowchart TB
+  canonical["canonical"]
+  filesystem_ASC["filesystem + ASC"]
+  Solr["Solr"]
+  Arango["Arango"]
+  RAG["RAG"]
+  index["index"]
+  graph["graph"]
+  indexes["indexes"]
+  canonical --> filesystem_ASC
+  filesystem_ASC --> Solr
+  filesystem_ASC --> Arango
+  filesystem_ASC --> RAG
+  Solr --> index
+  Arango --> graph
+  RAG --> indexes
 ```
 
 rather than:
 
-```text
- ArangoDB
-    ↑
-everything
-    ↑
-   ASC
+```mermaid
+flowchart TB
+  ArangoDB["ArangoDB"]
+  everything["everything"]
+  ASC["ASC"]
+  ArangoDB --> everything
+  everything --> ASC
 ```
 
 ## 14. This also clarifies where Docling belongs
@@ -3493,22 +4015,23 @@ I previously put Docling in the "knowledge layer".
 
 I'd now put it much lower:
 
-```text
-document
-   │
-   ▼
-recognize / extract
-   │
-   ├── Docling
-   ├── Tika
-   ├── OCR
-   └── other hooks
-   │
-   ▼
-sidecars / extracted artifacts
-   │
-   ▼
-ASC entities
+```mermaid
+flowchart TB
+  document["document"]
+  recognize_extract["recognize / extract"]
+  Docling["Docling"]
+  Tika["Tika"]
+  OCR["OCR"]
+  other_hooks["other hooks"]
+  sidecars_extracted_artifacts["sidecars / extracted artifacts"]
+  ASC_entities["ASC entities"]
+  document --> recognize_extract
+  recognize_extract --> Docling
+  Docling --> Tika
+  Tika --> OCR
+  OCR --> other_hooks
+  other_hooks --> sidecars_extracted_artifacts
+  sidecars_extracted_artifacts --> ASC_entities
 ```
 
 So Docling isn't a semantic dependency of `projet-complexe`.
@@ -3540,17 +4063,27 @@ That suggests Builder is effectively ASC's **metaprogramming layer**.
 
 So I'd now conceptualize:
 
-```text
-ASC
-├── Runtime
-├── Declarative model
-├── DSL
-├── Hooks
-└── Builder
-      ├── blueprints
-      ├── templates
-      ├── code entities
-      └── generated sidecars
+```mermaid
+flowchart TB
+  ASC["ASC"]
+  Runtime["Runtime"]
+  Declarative_model["Declarative model"]
+  DSL["DSL"]
+  Hooks["Hooks"]
+  Builder["Builder"]
+  blueprints["blueprints"]
+  templates["templates"]
+  code_entities["code entities"]
+  generated_sidecars["generated sidecars"]
+  ASC --> Runtime
+  ASC --> Declarative_model
+  ASC --> DSL
+  ASC --> Hooks
+  ASC --> Builder
+  Builder --> blueprints
+  Builder --> templates
+  Builder --> code_entities
+  Builder --> generated_sidecars
 ```
 
 The Builder can therefore produce ASC structures that ASC itself can subsequently consume.
@@ -3610,58 +4143,82 @@ and more as:
 
 Something like:
 
-```text
-                        projet-complexe
-                               │
-                ┌──────────────┼──────────────┐
-                │              │              │
-             TASKS         KNOWLEDGE        SYSTEM
-                │              │              │
-                └──────────────┼──────────────┘
-                               │
-                        ASC representation
-                               │
-                   ┌───────────┼───────────┐
-                   │           │           │
-                entities    sidecars    execution
-                   │           │           │
-                   └───────────┼───────────┘
-                               │
-                              ASC
+```mermaid
+flowchart TB
+  projet_complexe["projet-complexe"]
+  TASKS["TASKS"]
+  KNOWLEDGE["KNOWLEDGE"]
+  SYSTEM["SYSTEM"]
+  ASC_representation["ASC representation"]
+  entities["entities"]
+  sidecars["sidecars"]
+  execution["execution"]
+  ASC["ASC"]
+  projet_complexe --> TASKS
+  projet_complexe --> KNOWLEDGE
+  projet_complexe --> SYSTEM
+  TASKS --> ASC_representation
+  KNOWLEDGE --> ASC_representation
+  SYSTEM --> ASC_representation
+  ASC_representation --> entities
+  ASC_representation --> sidecars
+  ASC_representation --> execution
+  entities --> ASC
+  sidecars --> ASC
+  execution --> ASC
 ```
 
 The UI can then zoom through the same nested structures:
 
-```text
-machine
-  → project
-    → directory
-      → file
-        → code
-          → function
-            → variable
+```mermaid
+flowchart TB
+  machine["machine"]
+  project["project"]
+  directory["directory"]
+  file["file"]
+  code["code"]
+  function["function"]
+  variable["variable"]
+  machine --> project
+  project --> directory
+  directory --> file
+  file --> code
+  code --> function
+  function --> variable
 ```
 
 or:
 
-```text
-research
-  → source
-    → document
-      → page
-        → passage
-          → concept
+```mermaid
+flowchart TB
+  research["research"]
+  source["source"]
+  document["document"]
+  page["page"]
+  passage["passage"]
+  concept["concept"]
+  research --> source
+  source --> document
+  document --> page
+  page --> passage
+  passage --> concept
 ```
 
 or:
 
-```text
-agent
-  → run
-    → plan
-      → task
-        → command
-          → process
+```mermaid
+flowchart TB
+  agent["agent"]
+  run["run"]
+  plan["plan"]
+  task["task"]
+  command["command"]
+  process["process"]
+  agent --> run
+  run --> plan
+  plan --> task
+  task --> command
+  command --> process
 ```
 
 This is exactly where your `nest.able = zoom.able` idea becomes potentially foundational rather than cosmetic.
@@ -3672,12 +4229,17 @@ This is another change I would make to my previous recommendation.
 
 Don't build:
 
-```text
-Agent
-  ├── AgentTask
-  ├── AgentTool
-  ├── AgentExecution
-  └── AgentMemory
+```mermaid
+flowchart TB
+  Agent["Agent"]
+  AgentTask["AgentTask"]
+  AgentTool["AgentTool"]
+  AgentExecution["AgentExecution"]
+  AgentMemory["AgentMemory"]
+  Agent --> AgentTask
+  Agent --> AgentTool
+  Agent --> AgentExecution
+  Agent --> AgentMemory
 ```
 
 as a completely separate application model unless experience forces it.
@@ -3695,14 +4257,21 @@ Instead, let agents participate in the existing ASC vocabulary:
 
 Then an agent run becomes something like:
 
-```text
-agent
-└── thread
-    └── change
-        ├── command
-        ├── command
-        ├── command
-        └── result sidecars
+```mermaid
+flowchart TB
+  agent["agent"]
+  thread["└── thread"]
+  change["└── change"]
+  command["├── command"]
+  command_2["├── command"]
+  command_3["├── command"]
+  result_sidecars["└── result sidecars"]
+  agent --> thread
+  thread --> change
+  change --> command
+  command --> command_2
+  command_2 --> command_3
+  command_3 --> result_sidecars
 ```
 
 This is much closer to your stated ambition of making agents visible as things happening **inside the computational environment**.
@@ -3806,12 +4375,13 @@ I strongly agree with this after reading the notes.
 
 You have multiple reasons for it:
 
-```text
-  DSL expression
-        ↓
-frozen entry point
-        ↓
- filesystem path
+```mermaid
+flowchart TB
+  DSL_expression["DSL expression"]
+  frozen_entry_point["frozen entry point"]
+  filesystem_path["filesystem path"]
+  DSL_expression --> frozen_entry_point
+  frozen_entry_point --> filesystem_path
 ```
 
 and you are considering paths such as:
@@ -3850,16 +4420,17 @@ The latter becomes something like a compiled/cached addressable artifact.
 
 Then:
 
-```text
-      DSL
-       ↓
-   resolution
-       ↓
-     freeze
-       ↓
-filesystem pivot
-       ↓
-   execution
+```mermaid
+flowchart TB
+  DSL["DSL"]
+  resolution["resolution"]
+  freeze["freeze"]
+  filesystem_pivot["filesystem pivot"]
+  execution["execution"]
+  DSL --> resolution
+  resolution --> freeze
+  freeze --> filesystem_pivot
+  filesystem_pivot --> execution
 ```
 
 This fits extremely well with your Builder/cache ideas.
@@ -3874,31 +4445,40 @@ This is important.
 
 The hierarchy should be:
 
-```text
-SOURCE OF TRUTH
-
-YAML
-filesystem structure
-shell entry points
-templates
-hooks
-
-        ↓ compile / resolve
-
-CACHE
-
-frozen DSL entry points
-assembled scripts
-generated files
-indexes
+```mermaid
+flowchart TB
+  SOURCE_OF_TRUTH["SOURCE OF TRUTH"]
+  YAML["YAML"]
+  filesystem_structure["filesystem structure"]
+  shell_entry_points["shell entry points"]
+  templates["templates"]
+  hooks["hooks"]
+  compile_resolve["compile / resolve"]
+  CACHE["CACHE"]
+  frozen_DSL_entry_points["frozen DSL entry points"]
+  assembled_scripts["assembled scripts"]
+  generated_files["generated files"]
+  indexes["indexes"]
+  SOURCE_OF_TRUTH --> YAML
+  YAML --> filesystem_structure
+  filesystem_structure --> shell_entry_points
+  shell_entry_points --> templates
+  templates --> hooks
+  hooks --> compile_resolve
+  compile_resolve --> CACHE
+  CACHE --> frozen_DSL_entry_points
+  frozen_DSL_entry_points --> assembled_scripts
+  assembled_scripts --> generated_files
+  generated_files --> indexes
 ```
 
 Never:
 
-```text
-     frozen DSL
-          ↓
-becomes authoritative
+```mermaid
+flowchart TB
+  frozen_DSL["frozen DSL"]
+  becomes_authoritative["becomes authoritative"]
+  frozen_DSL --> becomes_authoritative
 ```
 
 Otherwise incremental rebuilds become dangerous.
@@ -3911,25 +4491,40 @@ The notes make me much more confident that these should remain **secondary proje
 
 Your canonical structure could remain:
 
-```text
-filesystem
-    ├── entities
-    ├── sidecars
-    ├── YAML
-    ├── Markdown
-    ├── source code
-    └── actual files
+```mermaid
+flowchart TB
+  filesystem["filesystem"]
+  entities["entities"]
+  sidecars["sidecars"]
+  YAML["YAML"]
+  Markdown["Markdown"]
+  source_code["source code"]
+  actual_files["actual files"]
+  filesystem --> entities
+  filesystem --> sidecars
+  filesystem --> YAML
+  filesystem --> Markdown
+  filesystem --> source_code
+  filesystem --> actual_files
 ```
 
 Then:
 
-```text
-              ASC canonical representation
-                         │
-          ┌──────────────┼──────────────┐
-          ▼              ▼              ▼
-        Solr          ArangoDB         RAG
-       search          graph          indexes
+```mermaid
+flowchart TB
+  ASC_canonical_representation["ASC canonical representation"]
+  Solr["Solr"]
+  ArangoDB["ArangoDB"]
+  RAG["RAG"]
+  search["search"]
+  graph["graph"]
+  indexes["indexes"]
+  ASC_canonical_representation --> Solr
+  ASC_canonical_representation --> ArangoDB
+  ASC_canonical_representation --> RAG
+  Solr --> search
+  ArangoDB --> graph
+  RAG --> indexes
 ```
 
 The second brain can use all three without making any of them the ontological center.
@@ -3942,24 +4537,26 @@ I would now **not create a separate "knowledge model" inside the Tauri applicati
 
 The temptation would be:
 
-```text
-            SolidJS
-               ↓
-       TypeScript models
-               ↓
-Task / Note / Concept / Project
+```mermaid
+flowchart TB
+  SolidJS["SolidJS"]
+  TypeScript_models["TypeScript models"]
+  Task_Note_Concept_Project["Task / Note / Concept / Project"]
+  SolidJS --> TypeScript_models
+  TypeScript_models --> Task_Note_Concept_Project
 ```
 
 Instead:
 
-```text
-         SolidJS
-            ↓
-ASC entity representation
-            ↓
-    ASC declarations
-            ↓
-       filesystem
+```mermaid
+flowchart TB
+  SolidJS["SolidJS"]
+  ASC_entity_representation["ASC entity representation"]
+  ASC_declarations["ASC declarations"]
+  filesystem["filesystem"]
+  SolidJS --> ASC_entity_representation
+  ASC_entity_representation --> ASC_declarations
+  ASC_declarations --> filesystem
 ```
 
 The UI can cache/normalize data for performance, obviously.
@@ -3986,30 +4583,42 @@ Your UI doesn't need to become a giant component framework.
 
 It can be fundamentally:
 
-```text
-ASC entity
-    ↓
-renderer
-    ↓
-fields
-sidecars
-children
-relations
-actions
+```mermaid
+flowchart TB
+  ASC_entity["ASC entity"]
+  renderer["renderer"]
+  fields["fields"]
+  sidecars["sidecars"]
+  children["children"]
+  relations["relations"]
+  actions["actions"]
+  ASC_entity --> renderer
+  renderer --> fields
+  fields --> sidecars
+  sidecars --> children
+  children --> relations
+  relations --> actions
 ```
 
 And then specialized renderers only where necessary.
 
 For example:
 
-```text
-EntityView
-├── EntityHeader
-├── FieldList
-├── RelationList
-├── SidecarTree
-├── ActionList
-└── NestedEntityView
+```mermaid
+flowchart TB
+  EntityView["EntityView"]
+  EntityHeader["EntityHeader"]
+  FieldList["FieldList"]
+  RelationList["RelationList"]
+  SidecarTree["SidecarTree"]
+  ActionList["ActionList"]
+  NestedEntityView["NestedEntityView"]
+  EntityView --> EntityHeader
+  EntityView --> FieldList
+  EntityView --> RelationList
+  EntityView --> SidecarTree
+  EntityView --> ActionList
+  EntityView --> NestedEntityView
 ```
 
 with:
@@ -4047,29 +4656,38 @@ That could eventually become a very powerful common denominator.
 
 For example:
 
-```text
-atomic
-├── variable
-├── function
-├── file
-├── directory
-├── entity
-├── command
-└── ASC instance
+```mermaid
+flowchart TB
+  atomic["atomic"]
+  variable["variable"]
+  function["function"]
+  file["file"]
+  directory["directory"]
+  entity["entity"]
+  command["command"]
+  ASC_instance["ASC instance"]
+  atomic --> variable
+  atomic --> function
+  atomic --> file
+  atomic --> directory
+  atomic --> entity
+  atomic --> command
+  atomic --> ASC_instance
 ```
 
 Then higher-level structures are compositions:
 
-```text
-  atomic
-     ↓
-   nest
-     ↓
- blueprint
-     ↓
-  project
-     ↓
-environment
+```mermaid
+flowchart TB
+  atomic["atomic"]
+  nest["nest"]
+  blueprint["blueprint"]
+  project["project"]
+  environment["environment"]
+  atomic --> nest
+  nest --> blueprint
+  blueprint --> project
+  project --> environment
 ```
 
 This reinforces the fractal/zoomable aspect.
@@ -4103,54 +4721,89 @@ Don't inject redundant type descriptions into embeddings if the structural metad
 
 With all this taken into account, I'd now draw your ecosystem like this:
 
-```text
-              ┌──────────────────────────┐
-              │      projet-complexe     │
-              │                          │
-              │  Tauri + SolidJS +       │
-              │  Kobalte + custom CSS    │
-              │                          │
-              │  TASK       KNOWLEDGE    │
-              │    \           /         │
-              │      AGENTS              │
-              │         │                │
-              │      visualisation       │
-              └──────────┬───────────────┘
-                         │
-                 ASC DSL / entities
-                         │
-                         ▼
-┌────────────────────────────────────────────────────────┐
-│                       ASC                              │
-│                                                        │
-│ filesystem grammar                                     │
-│ YAML grammar                                           │
-│ entity / able / field / prop / include                 │
-│ DSL                                                    │
-│ entry-point resolution                                 │
-│ hooks                                                  │
-│ sidecars                                               │
-│ nesting                                                │
-│ builder                                                │
-│ threads                                                │
-│ changes                                                │
-│ cache / freeze                                         │
-└────────────────────────┬───────────────────────────────┘
-                         │
-                   concrete environment
-                         │
-                         ▼
-                     asc-stack
-                         │
-      ┌──────────────────┼──────────────────┐
-      ▼                  ▼                  ▼
-   machines           services            tools
-      │                  │                  │
-   Debian             Docker             Docling
-   Windows?           Solr               Tika
-   NAS                ArangoDB           OCR
-   servers            Ollama             agents
-   disks              Nextcloud           ...
+```mermaid
+flowchart TB
+  projet_complexe["projet-complexe"]
+  Tauri_SolidJS["Tauri + SolidJS +"]
+  Kobalte_custom_CSS["Kobalte + custom CSS"]
+  TASK["TASK"]
+  KNOWLEDGE["KNOWLEDGE"]
+  AGENTS["AGENTS"]
+  visualisation["visualisation"]
+  ASC_DSL_entities["ASC DSL / entities"]
+  ASC["ASC"]
+  filesystem_grammar["filesystem grammar"]
+  YAML_grammar["YAML grammar"]
+  entity_able_field_prop_include["entity / able / field / prop / include"]
+  DSL["DSL"]
+  entry_point_resolution["entry-point resolution"]
+  hooks["hooks"]
+  sidecars["sidecars"]
+  nesting["nesting"]
+  builder["builder"]
+  threads["threads"]
+  changes["changes"]
+  cache_freeze["cache / freeze"]
+  concrete_environment["concrete environment"]
+  asc_stack["asc-stack"]
+  machines["machines"]
+  services["services"]
+  tools["tools"]
+  Debian["Debian"]
+  Docker["Docker"]
+  Docling["Docling"]
+  Windows["Windows?"]
+  Solr["Solr"]
+  Tika["Tika"]
+  NAS["NAS"]
+  ArangoDB["ArangoDB"]
+  OCR["OCR"]
+  servers["servers"]
+  Ollama["Ollama"]
+  agents["agents"]
+  disks["disks"]
+  Nextcloud["Nextcloud"]
+  node["..."]
+  projet_complexe --> Tauri_SolidJS
+  projet_complexe --> Kobalte_custom_CSS
+  projet_complexe --> TASK
+  projet_complexe --> KNOWLEDGE
+  projet_complexe --> AGENTS
+  projet_complexe --> visualisation
+  projet_complexe --> ASC_DSL_entities
+  projet_complexe --> ASC
+  projet_complexe --> filesystem_grammar
+  projet_complexe --> YAML_grammar
+  projet_complexe --> entity_able_field_prop_include
+  projet_complexe --> DSL
+  projet_complexe --> entry_point_resolution
+  projet_complexe --> hooks
+  projet_complexe --> sidecars
+  projet_complexe --> nesting
+  projet_complexe --> builder
+  projet_complexe --> threads
+  projet_complexe --> changes
+  projet_complexe --> cache_freeze
+  projet_complexe --> concrete_environment
+  projet_complexe --> asc_stack
+  projet_complexe --> machines
+  projet_complexe --> services
+  projet_complexe --> tools
+  projet_complexe --> Debian
+  projet_complexe --> Docker
+  projet_complexe --> Docling
+  projet_complexe --> Windows
+  projet_complexe --> Solr
+  projet_complexe --> Tika
+  projet_complexe --> NAS
+  projet_complexe --> ArangoDB
+  projet_complexe --> OCR
+  projet_complexe --> servers
+  projet_complexe --> Ollama
+  projet_complexe --> agents
+  projet_complexe --> disks
+  projet_complexe --> Nextcloud
+  projet_complexe --> node
 ```
 
 This is substantially different from the architecture I proposed previously.
@@ -4213,45 +4866,50 @@ The reason is now clearer.
 
 The UI is going to be a major consumer of the semantic invariants established there:
 
-```text
-       naming
-          ↓
-filesystem addressing
-          ↓
-    YAML entities
-          ↓
-   DSL expressions
-          ↓
-    entry points
-          ↓
-        hooks
+```mermaid
+flowchart TB
+  naming["naming"]
+  filesystem_addressing["filesystem addressing"]
+  YAML_entities["YAML entities"]
+  DSL_expressions["DSL expressions"]
+  entry_points["entry points"]
+  hooks["hooks"]
+  naming --> filesystem_addressing
+  filesystem_addressing --> YAML_entities
+  YAML_entities --> DSL_expressions
+  DSL_expressions --> entry_points
+  entry_points --> hooks
 ```
 
 If those move underneath a prematurely built UI, you will end up encoding unstable ASC semantics in TypeScript components.
 
 Instead, the first useful Tauri prototype should probably be almost embarrassingly small:
 
-```text
-┌──────────────────────────────────────────────┐
-│ ASC explorer                                 │
-├──────────────────────────────────────────────┤
-│                                              │
-│ filesystem / entity tree                     │
-│                                              │
-│   machine                                    │
-│    └── project                               │
-│         └── directory                        │
-│              └── file                        │
-│                                              │
-│ selected entity                              │
-│                                              │
-│ fields                                       │
-│ relations                                    │
-│ sidecars                                     │
-│ available actions                            │
-│                                              │
-│ [ execute ASC DSL ]                          │
-└──────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+  ASC_explorer["ASC explorer"]
+  filesystem_entity_tree["filesystem / entity tree"]
+  machine["machine"]
+  project["project"]
+  directory["directory"]
+  file["file"]
+  selected_entity["selected entity"]
+  fields["fields"]
+  relations["relations"]
+  sidecars["sidecars"]
+  available_actions["available actions"]
+  execute_ASC_DSL["[ execute ASC DSL ]"]
+  ASC_explorer --> filesystem_entity_tree
+  filesystem_entity_tree --> machine
+  machine --> project
+  project --> directory
+  directory --> file
+  file --> selected_entity
+  selected_entity --> fields
+  fields --> relations
+  relations --> sidecars
+  sidecars --> available_actions
+  available_actions --> execute_ASC_DSL
 ```
 
 That would validate the architecture without prematurely building the second brain.
@@ -4274,37 +4932,29 @@ After reading your notes, I think the better model is:
 
 And the most important conceptual loop is:
 
-```text
-             DECLARE
-                │
-                ▼
-             YAML/entity
-                │
-                ▼
-              ADDRESS
-                │
-                ▼
-               DSL
-                │
-                ▼
-             ENTRY POINT
-                │
-                ▼
-               HOOK
-                │
-                ▼
-          REAL PROGRAM / FILE
-                │
-                ▼
-             SIDECAR
-                │
-                ▼
-             ENTITY
-                │
-                ▼
-             NEST / ZOOM
-                │
-                └───────────► DECLARE ...
+```mermaid
+flowchart TB
+  DECLARE["DECLARE"]
+  YAML_entity["YAML/entity"]
+  ADDRESS["ADDRESS"]
+  DSL["DSL"]
+  ENTRY_POINT["ENTRY POINT"]
+  HOOK["HOOK"]
+  REAL_PROGRAM_FILE["REAL PROGRAM / FILE"]
+  SIDECAR["SIDECAR"]
+  ENTITY["ENTITY"]
+  NEST_ZOOM["NEST / ZOOM"]
+  DECLARE_2["DECLARE ..."]
+  DECLARE --> YAML_entity
+  YAML_entity --> ADDRESS
+  ADDRESS --> DSL
+  DSL --> ENTRY_POINT
+  ENTRY_POINT --> HOOK
+  HOOK --> REAL_PROGRAM_FILE
+  REAL_PROGRAM_FILE --> SIDECAR
+  SIDECAR --> ENTITY
+  ENTITY --> NEST_ZOOM
+  NEST_ZOOM --> DECLARE_2
 ```
 
 That is much closer to what your notes describe than the more conventional "API + services + knowledge database" architecture I previously suggested.
@@ -4338,20 +4988,21 @@ This matters increasingly as software stops being written exclusively by humans.
 
 The ambition is consequently recursive:
 
-```text
-               name things
-                    ↓
-          make them addressable
-                    ↓
-          make them composable
-                    ↓
-    make their relationships explicit
-                    ↓
-    make their behavior discoverable
-                    ↓
-make the resulting system understandable
-                    ↓
-make it usable by humans and agents alike
+```mermaid
+flowchart TB
+  name_things["name things"]
+  make_them_addressable["make them addressable"]
+  make_them_composable["make them composable"]
+  make_their_relationships_explicit["make their relationships explicit"]
+  make_their_behavior_discoverable["make their behavior discoverable"]
+  make_the_resulting_system_understandable["make the resulting system understandable"]
+  make_it_usable_by_humans_and_agents_alike["make it usable by humans and agents alike"]
+  name_things --> make_them_addressable
+  make_them_addressable --> make_them_composable
+  make_them_composable --> make_their_relationships_explicit
+  make_their_relationships_explicit --> make_their_behavior_discoverable
+  make_their_behavior_discoverable --> make_the_resulting_system_understandable
+  make_the_resulting_system_understandable --> make_it_usable_by_humans_and_agents_alike
 ```
 
 The same principle applies at larger scales. A project can be represented through its files, scripts, dependencies and processes. A machine can be represented through its hardware, operating system, services and connections. A research corpus can be represented through documents, sources, concepts and transformations. An agent can be represented through its capabilities, tools, threads, tasks, changes and outputs.
@@ -4370,18 +5021,19 @@ The long-term goal is therefore deliberately broader than automation:
 
 The important progression is:
 
-```text
-       hard problem of naming
-                 ↓
-         shared vocabulary
-                 ↓
-entry points / namespaces / variants
-                 ↓
-composable computational structures
-                 ↓
-   human + agent discoverability
-                 ↓
-            Second Brain
+```mermaid
+flowchart TB
+  hard_problem_of_naming["hard problem of naming"]
+  shared_vocabulary["shared vocabulary"]
+  entry_points_namespaces_variants["entry points / namespaces / variants"]
+  composable_computational_structures["composable computational structures"]
+  human_agent_discoverability["human + agent discoverability"]
+  Second_Brain["Second Brain"]
+  hard_problem_of_naming --> shared_vocabulary
+  shared_vocabulary --> entry_points_namespaces_variants
+  entry_points_namespaces_variants --> composable_computational_structures
+  composable_computational_structures --> human_agent_discoverability
+  human_agent_discoverability --> Second_Brain
 ```
 
 It also preserves the particularly strong phrase already present in your README:
