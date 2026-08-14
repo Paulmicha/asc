@@ -284,7 +284,9 @@ Five blocks, meant for people inside Luma / Mnémotix, not for a census of Franc
 4. **Maintenance applicative** — who keeps software alive, updates, lock-in.
 5. **Appareils** — what is on the desk, what was replaced, why, repair vs buy.
 
-The interview also asked: daily activities vs “if I could keep only three.” Repair testimonies: local repairers exist; fragility and **software power demand** still drive replacement. Compass: any new environment should be able to answer these five blocks about *itself*. If it cannot say where it is hosted, who maintains it, and which devices it ages, it is spectral.
+Concrete questions already in Annexe 2 that still work as an audit of *any* stack: is the workplace near a backbone? wifi / 4G / RJ45? electricity supplier (mix)? hours to build? how many machines, including those taken home? screens per machine, test devices? GitLab only? how many environments (dev/test/preprod/prod)? deploy frequency? duration of CI tests and load tests? all instances on Amazon, which region? self-hosted machines, specs? expected connections per minute? daily transfer? backup frequency and retention (data lifecycle)? 
+
+The interview also asked: daily activities vs “if I could keep only three.” Repair testimonies: local repairers exist; fragility and **software power demand** still drive replacement. Compass: any new environment should be able to answer these blocks about *itself*. If it cannot say where it is hosted, who maintains it, how often it deploys, how long data is kept, and which devices it ages, it is spectral. Retention is already Fry’s third movement: **closing data** is design.
 
 ### Ecometrics — situated visualisation, not a product
 
@@ -639,6 +641,8 @@ The plan then simplified to three parts (art / survey / fiction) because a full 
 - Licences: open the sensitisation materials, methods, tools, and even this kind of report — not as a brand of virtue, as a way the work can outlive a URL.
 
 Annex “future research” already pointed beyond the internship: more situated cartography, more time for fiction, less faith in page scores. Five years later the missing chapter is generative occupancies.
+
+**A light public door, and a local fragment (still a live problem).** One field suggestion: an ultra-light **public entry** to Weever data, stripped of authoring-UI dependencies, possibly offline for degraded mobile networks. Text is light; media is not. Experiment: local copy of a DB fragment in the browser (`msc.paulmichalet.com/msc-search-index`) — whole DB loaded into device memory (Giammarchi 2021), sync later. Prototype: <2000 tabular rows. Filtering with joins already felt heavy. Tens of thousands of notes/concepts/projects offline would likely be prohibitive on modest hardware. Compass: a “second brain” that indexes everything locally in the client repeats this failure at home scale. **Rarefy what is copied; keep the heavy store on a named machine; do not pretend the browser is a datacentre.** Public read-paths without the authoring giant: still the right diplomat move (Sailcoop crossing, intermittent energy, pillar 4).
 
 ---
 
