@@ -93,5 +93,5 @@ out_path.write_text(html, encoding="utf-8")
 print(f"Wrote {out_path} ({len(html)} bytes)")
 if 'class="mermaid"' in html:
     print("  Mermaid: local asc/vendor/mermaid.esm.min.mjs (relative import)")
-print("  links: as authored (no rewrite)")
+print("  local images: rewritten relative to this HTML")
 PY

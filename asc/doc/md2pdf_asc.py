@@ -11,7 +11,9 @@ Spectral (bundled under fonts/Spectral/) and Source Code Pro
 Mermaid: ```mermaid blocks become live HTML (.mermaid) rendered by the
 local self-contained bundle at asc/vendor/mermaid.esm.min.mjs (IIFE,
 no CDN). Printable HTML is written under data/tmp/ so Mermaid and fonts
-load via relative paths. Markdown hrefs are left as authored.
+load via relative paths. Local <img src> paths are rewritten from the
+markdown file's directory to that print HTML, so images next to the .md
+resolve under file://.
 
 Usage:
   asc/doc/md2pdf_asc.py input.md -o output.pdf
@@ -260,6 +262,35 @@ def print_html_path_for(source_md: Path, project_root: Path) -> Path:
     return project_root / "data" / "tmp" / "doc-print" / f"{safe}.html"
 
 
+_IMG_SRC_RE = re.compile(
+    r'(<img\b[^>]*?\bsrc=)(["\'])([^"\']+)\2',
+    re.IGNORECASE,
+)
+
+
+def rewrite_local_img_srcs(html: str, source_md: Path, html_path: Path) -> str:
+    """Point <img src> at files relative to print HTML, not the .md."""
+    md_dir = source_md.resolve().parent
+    html_dir = html_path.resolve().parent
+
+    def repl(match: re.Match[str]) -> str:
+        prefix, quote, src = match.group(1), match.group(2), match.group(3)
+        if src.startswith(("http://", "https://", "data:", "file:", "#")):
+            return match.group(0)
+        raw = Path(src)
+        target = raw if raw.is_absolute() else (md_dir / src)
+        try:
+            target = target.resolve()
+        except OSError:
+            return match.group(0)
+        if not target.is_file():
+            return match.group(0)
+        rel = Path(os.path.relpath(target, start=html_dir)).as_posix()
+        return f"{prefix}{quote}{rel}{quote}"
+
+    return _IMG_SRC_RE.sub(repl, html)
+
+
 def patch_html_renderer() -> None:
     import md2pdf.html_renderer as hr
 
@@ -289,6 +320,9 @@ def patch_html_renderer() -> None:
             html2 = html2.replace(
                 "</body>", mermaid_boot_script(html_path) + "</body>", 1
             )
+        source_md = _CURRENT_SOURCE_MD
+        if source_md is not None:
+            html2 = rewrite_local_img_srcs(html2, source_md, html_path)
         return html2
 
     hr.markdown_to_html = markdown_to_html
@@ -433,7 +467,7 @@ def main() -> int:
     print(
         f"  (ASC style: {FONT_FAMILY} + {MONO_FONT_FAMILY} + compact 8pt; "
         f"Mermaid local {MERMAID_VENDOR.relative_to(_PROJECT_ROOT)}; "
-        "links as authored)"
+        "local images rewritten for print HTML)"
     )
     try:
         result = convert_markdown_to_pdf_html(

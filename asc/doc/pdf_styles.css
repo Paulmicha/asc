@@ -173,6 +173,12 @@ p {
   margin-bottom: 0;
 }
 
+p + ul,
+p + ol,
+p + dl {
+  margin-top: var(--pico-spacing);
+}
+
 h1,
 h2,
 h3,
@@ -353,6 +359,15 @@ img {
   height: auto;
   border-style: none;
   vertical-align: middle;
+}
+
+/* Seuil pocket page is ~108mm. Book rasters are ~600px at that width;
+   without a cap they stretch across A4 (~196mm content). */
+img[src*="edgar-morin-la-methode"] {
+  max-width: 108mm;
+  height: auto;
+  display: block;
+  margin-inline: auto;
 }
 
 figure {
