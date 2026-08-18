@@ -693,8 +693,12 @@ hook_ms() {
   local dot_arr
   local slash_arr
   local highest_depth=0
-  local most_specific_match=''
   local hook_dry_run_matches=''
+
+  # Dry-run writes this in calling scope (not local). Callers init it:
+  #   most_specific_match=''
+  #   hook_ms 'dry-run' …
+  most_specific_match=''
 
   # Forwards all arguments while forcing the "dry run" (-t) flag.
   hook -t "$@"

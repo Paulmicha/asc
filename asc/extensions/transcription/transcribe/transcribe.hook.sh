@@ -11,7 +11,8 @@
 # Resolves transcribe.py via subject-free dry-run; requires pipx + faster-whisper
 # on the host (software-deps installer is a future plan).
 #
-# @see asc/extensions/transcription/transcribe/transcribe.sh
+# @see asc/extensions/transcription/instance/transcribe.sh
+# @see asc/extensions/transcription/transcribe/file.sh
 # @see asc/extensions/transcription/transcribe/transcribe.py
 #
 

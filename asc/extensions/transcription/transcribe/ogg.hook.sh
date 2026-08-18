@@ -26,7 +26,9 @@ do
   fi
 
   if [[ ! -f "$wav_file" ]]; then
-    scripts/asc/extend/convert/to_wav.sh "$file"
+    export file
+    export wav_file
+    hook_ms -s 'convert' -a 'to_wav' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
   fi
 
   if [[ ! -f "$wav_file" ]]; then
