@@ -1,0 +1,27 @@
+---
+description: In prose, $ is only for ASC conceptual placeholders — not for pivot or tool names
+globs: docs/**/*.md, changelog/**/*.md, README.md, data/**/*.md
+alwaysApply: true
+---
+
+# `$` prefix (documentation only)
+
+In markdown and other prose, a `$` prefix marks an **ASC conceptual placeholder**. It is not a make target, not a pivot name, and not a shell variable (those stay `$HOME`, `$1`, etc. in scripts).
+
+## Allowed
+
+- `$subject` / `$action` (ASC "active" folder)
+- `$subject` / `$object` / `$action` (ASC "active" folder)
+- `$subject-$action` (entry point name or "pivot", used by make and in the DSL)
+- `$subject--$predicate--$object` (describes relations)
+- `$entity`
+- `$field`
+
+## Not allowed
+
+Do not prefix ordinary names (pivots, tools, commands, files):
+
+```text
+❌ `$index` `$extract` `$relate` `$research` `$run-agent`
+✅ index, extract, relate, research, run-agent
+```
