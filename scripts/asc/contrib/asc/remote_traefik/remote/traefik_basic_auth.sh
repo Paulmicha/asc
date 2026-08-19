@@ -26,4 +26,4 @@ fi
 f_remote_check_id "$a_remote_id"
 
 asc/extensions/remote/remote/exec.sh "$a_remote_id" \
-  asc/instance/registry_get.sh 'traefik_dashboard_creds'
+  asc/instance/registry/get.sh 'traefik_dashboard_creds'

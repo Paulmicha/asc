@@ -14,8 +14,8 @@
 # If ASC_DB_MODE is set to 'auto' or 'manual', the first call to this function
 # will generate once the values for these globals.
 # Subsequent calls to this function will then read said values from registry.
-# @see asc/instance/registry_set.sh
-# @see asc/instance/registry_get.sh
+# @see asc/instance/registry/set.sh
+# @see asc/instance/registry/get.sh
 #
 # @param 1 [optional] String : unique DB identifier. Defaults to 'default'.
 #   Important note : DB_ID values are restricted to alphanumerical characters

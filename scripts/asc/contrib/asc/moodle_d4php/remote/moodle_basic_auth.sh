@@ -24,4 +24,4 @@ if [[ -z "$a_remote_id" ]]; then
 fi
 
 asc/extensions/remote/remote/exec.sh "$a_remote_id" \
-  asc/instance/registry_get.sh 'moodle_basic_auth_creds'
+  asc/instance/registry/get.sh 'moodle_basic_auth_creds'

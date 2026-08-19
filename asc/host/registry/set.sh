@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 ##
-# [abstract] Gets host-level registry value.
+# [abstract] Sets host-level registry value.
 #
-# Reads from an abstract host-level storage by given key.
+# Writes to an abstract host-level storage by given key.
 #
 # This script provides an entry point for triggering a specific hook. "Abstract"
 # means that ASC core itself doesn't provide any actual implementation for this
@@ -12,11 +12,10 @@
 # @see asc/extensions/file_registry
 #
 # @example
-#   make host-reg-get my_key
+#   make host-reg-set my_key 'my value'
 #   # Or :
-#   asc/host/registry_get.sh my_key
+#   asc/host/registry/set.sh my_key 'my value'
 #
 
 . asc/bootstrap.sh
-f_host_registry_get "$@"
-echo "$reg_val"
+f_host_registry_set "$@"

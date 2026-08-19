@@ -25,3 +25,8 @@ synonym:
     - integer
   arr:
     - array
+  dir:
+    - directory
+    - folder
+  required:
+    - mandatory

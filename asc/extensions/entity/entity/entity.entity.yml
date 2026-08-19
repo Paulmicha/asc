@@ -1,10 +1,10 @@
 # Primordial ASC entity (*.entity inheritance chain root).
 include: asc.yml
-entity:
 
-  # This allows (cap)abilities whitelists and blacklists (on/off *.able.yml) in
-  # our custom ASC DSL (rules).
-  # TODO : draft yml spec for finer-grained restrictions, compatibility, next-steps, etc.
+# This allows (cap)abilities whitelists and blacklists (on/off *.able.yml) in
+# our custom ASC DSL (rules).
+# TODO : draft yml spec for finer-grained restrictions, compatibility, next-steps, etc.
+entity:
   is: '*'
   access: '*'
   include: '*' # synonym : depends ? inherits ?
@@ -26,20 +26,21 @@ entity:
   # instance scope, host scope, remote scope, etc).
   contract: '*'
 
-  # This allows to enforce which things are mandatory.
-  required:
-    field:
-      type:
-        validate: test-entity[type](p-1)
+# This allows to enforce which things are mandatory.
+required:
+  field:
+    type:
+      validate: test-entity-defines-type(p-1)
 
-  # And / or indicate optional things.
-  optional:
-    prop:
-      - include
-    field:
-      name:
-        default:
-          val: ''
-      bundle:
-        default: '$entity.type'
-        validate: test-entity[bundle](p-1)
+# And / or indicate optional things.
+optional:
+  prop:
+    - entity
+    - include
+  field:
+    name:
+      default:
+        val: ''
+    bundle:
+      default: '$entity.type'
+      validate: test-entity-defines-bundle(p-1)

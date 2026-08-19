@@ -14,7 +14,7 @@
 # @example
 #   make reg-del my_key
 #   # Or :
-#   asc/instance/registry_del.sh my_key
+#   asc/instance/registry/del.sh my_key
 #
 
 . asc/bootstrap.sh

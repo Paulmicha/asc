@@ -1,40 +1,71 @@
 # Agnostic Shell Controller (ASC) 🔤🔠🔡🔢🔣🆒🆓
 
-**Origin:** Forked from [Paulmicha/common-web-tools](https://github.com/Paulmicha/common-web-tools) branch `v2.0.0`, which is this repo’s **`main`**. That line diverged enough to warrant a dedicated project. Git history was rewritten to **ASC** identity (toolkit `asc/`, symbols `ASC_*` / `asc_*`), and the project is licensed under Apache-2.0; sensitive traces were removed.
+ASC is not a program; it is the “glue” between programs. It is a generic, customizable, extensible toolbox for a wide range of **local development** tasks, with the ambition to serve humans and agentic systems alike.
 
-This project attempts to tackle the hard problem of naming things. Its ambition is to set a common, shared vocabulary for anything interacting with the shell somehow, including linux kernel (or OS-level) interactions and beyond.
+It allows to set a common, shared vocabulary for anything interacting with the shell somehow. It provides mechanisms allowing to establish "pivots" that represent actions with varying implementations.
 
-***Let's make words matter*** 📚
+The only "job" of ASC is to serve as a thin layer that :
+
+- **wraps** calls to other CLIs and/or OS-level operations ;
+- **sets** a naming convention that persists despite implementation changes, i.e. the *action* `make transcribe-file -- path/to/file.mp4` will remain identical, even when the program(s) used to do the actual transcribing in a project using ASC do ;
+- allows to provide **adaptations** to a variety of contextual *specificities* such as host types (local, remote), OS (debian, apline, windows, ios), or any other *variants*.
 
 ## Overarching goal
 
-Like the Go (game) but with entry points, env vars, scripts (wrappers, nesters, "regular"), namespaces and variants (hooks).
+Like the Go game, but with (make) entry points, (global) env vars, hooks (variants), wrappers (scripts), metadata (yml), and some generic implementations (opt-in).
 
-If you name things right, projects practically write themselves (by humans and agents alike).
+### Scope
+
+- Thin layer to organize generic (pivot) shell entry points, enforcing a common implementation blueprint for (self-)building by humans and agents alike
+- Simple, minimal, self-explanatory
+- Delegate as much as possible, but still provide usual, optional (opt-in), generic needs as (overridable) "exemplar" implementation blueprints
+- Define things and (implementation) contracts
+- Generate simple ASC code from $slot.able file / folder templates or strings.
+
+### Non-goals ("out of scope"s)
+
+- code refactoring
+- self-organizing abominable all-orchestrating plaform
+- complex nl-related or agent-related stuff should be delegated to nested apps, e.g. :
+  - ontology stuff (prompt engineering)
+  - second-brain stuff (chain of thought, etc)
+- in fact, anything complex is off limits
+
+## PURPOSE
+
+ASC organizes (mostly bash) scripts around conventions so you can swap implementations without rewriting every project’s workflow:
+
+- host-level dependencies / provisioning
+- credentials and registries
+- building / running / stopping / destroying instances (variants per env type)
+- generating local app settings
+- linting / watching / compiling
+- cron / long-running loops
+- automated tests
+- remote two-way sync
+- etc.
+
+## HOW (concepts in brief)
+
+ASC relies on **file structure**, **naming conventions**, and a few primitives:
+
+| Concept | Summary | Deep dive |
+|---------|---------|-----------|
+| **Globals** | Instance env vars from `env.yml` / `global.vars.sh`, written to `.env` + `data/asc/global.vars.sh` | [docs/asc/globals.md](docs/asc/globals.md) |
+| **Bootstrap** | `. asc/bootstrap.sh` → numbered phases; eager `*.inc.sh` vs lazy `*.opt-inc.sh` | [docs/asc/bootstrap.md](docs/asc/bootstrap.md) |
+| **Instance init** | Aggregates globals, optional git hooks, generates make shortcuts | `u_instance_init()` in `asc/instance/instance.inc.sh` |
+| **Actions** | Folders = subjects, files = actions → `data/asc/generated.mk` | [docs/asc/actions-and-make.md](docs/asc/actions-and-make.md) |
+| **Hooks** | File-based events (`*.hook.sh`) with variant combinations | [docs/asc/hooks.md](docs/asc/hooks.md) |
+
+## Example project (demo / case study)
 
 Here is what I am currently building with it (when I have some free time) :
 
-["_Projet Complexe_" 2026 Revival - ASC + Tauri SolidJS Second Brain](data/ideas/2026/08/Projet%20Complexe%202026%20Revival%20(v2)%20-%20ASC,%20Projet%20Complexe%20and%20Projet%20Complexe%20ASC.md)
+["_Projet Complexe_", a "second brain" project incorporating agentic task-oriented and knowledge-oriented implementations](data/ideas/2026/08/Projet%20Complexe%202026%20Revival%20(v2)%20-%20ASC,%20Projet%20Complexe%20and%20Projet%20Complexe%20ASC.pdf)
 
-The PDF version has rendered (mermaid js) diagrams : [PDF](data/ideas/2026/08/Projet%20Complexe%202026%20Revival%20(v2)%20-%20ASC,%20Projet%20Complexe%20and%20Projet%20Complexe%20ASC.pdf)
+See the corresponding [project-specific ASC (stack) repo](https://github.com/Paulmicha/projet-complexe-asc) + [the UI (Tauri app) repo](https://github.com/Paulmicha/projet-complexe).
 
-## Theoretical Ramblings
-
-Currently along the lines of reinterpreting Mihaly Csikszentmihalyi's Flow for agents.
-
-Details (see folder [data/ideas/2026/08](data/ideas/2026/08)) :
-
-- [Reverse Prompting VS Cognitive Load Ratio \(Reinterpreting Mihaly Csikszentmihalyi's Flow for Agents\)](data/ideas/2026/08/Reverse%20Prompting%20VS%20Cognitive%20Load%20Ratio%20\(Reinterpreting%20Mihaly%20Csikszentmihalyi's%20Flow%20for%20Agents\).md)
-- [AI Agents Leverage Points (Places to Intervene in a System) Applicability](data/ideas/2026/08/AI%20Agents%20Leverage%20Points%20(Places%20to%20Intervene%20in%20a%20System)%20Applicability.md)
-- [Reasoning without Probabilistic Inference (symbolic and neural layers)](data/ideas/2026/08/Reasoning%20without%20Probabilistic%20Inference%20(symbolic%20and%20neural%20layers).md)
-- [Would IEML really add tangible value for agents ?](data/ideas/2026/08/Would%20IEML%20really%20add%20tangible%20value%20for%20agents.md)
-- [Four Layers - Ontology (what exists), Semantics (what does it mean), Dynamics (how does it evolve), Execution (change)](data/ideas/2026/08/Four%20Layers%20-%20Ontology%20(what%20exists),%20Semantics%20(what%20does%20it%20mean),%20Dynamics%20(how%20does%20it%20evolve),%20Execution%20(change).md)
-- [Cognitive Institutions - a possible Meta-Framework (Comparing Implementations)](data/ideas/2026/08/Cognitive%20Institutions%20-%20a%20possible%20Meta-Framework%20(Comparing%20Implementations).md)
-- [Jean-Louis Le Moigne - La Modélisation des systèmes complexes](data/ideas/2026/08/Jean-Louis%20Le%20Moigne%20-%20La%20Modélisation%20des%20systèmes%20complexes.md)
-- [Agents of Redirection (Donella Meadows, Alexandre Monnin, Pierre Lévy)](data/ideas/2026/08/Agents%20of%20Redirection%20(Donella%20Meadows,%20Alexandre%20Monnin,%20Pierre%20Lévy).md)
-- [Arthur Lefèvre - Désirs, Conflits & Communication : une approche ludo-narrative du jeu de rôle](data/ideas/2026/08/Arthur%20Lefèvre%20-%20Désirs,%20Conflits%20&%20Communication.md)
-
-### Grosso modo
+### An attempt at reinterpreting Mihaly Csikszentmihalyi's concept of _Flow_ for agents
 
 For humans:
 
@@ -137,66 +168,271 @@ That means regulating:
 
 instead of merely reducing token count.
 
-## Current status
+## Current status of the ASC project
 
 *Massive rewrite* ☢️ to shrink it to bare essentials, rethink things through.
-
-**Here's the current raw TODO / current status :**
 
 Potential collisions in filesystem :
 
 - `$subject` / `$action`
 - `$subject` / `$object` / `$action`
 
-Resolution :
-Agnostic stance.
+Resolution : agnostic stance. In terms of ASC entity representation, `$subject` may or may not choose to implement that extra level.
 
-In terms of ASC entity representation, `$subject` may or may not choose to implement that extra level.
+Implications : change ASC core current files discovery mechanisms to support both.
 
-Implications :
-Change ASC core current files discovery mechanisms to support both.
+1. Finish describing ASC "core" concepts explicitly
+1. ~~Stabilize Naming convention~~
+1. Stabilize hooks
+1. Stabilize DSL
+1. Stabilize Yml
+1. Refactor Bootstrap
+1. Stabilize workflow + git flow
+1. Refactor core + core extensions
+1. Refactor tests (switch to nestable entity)
+1. Complete the Builder
+1. Complete the baseline implementations
+1. Implement agents (for now Cursor to test MVP, then planned : Hermes + ollama + kimi k3 ?)
 
-1. Stabilize Naming convention in doc
-2. Stabilize workflow + git flow in doc
-3. Stabilize hooks in doc
-4. Stabilize DSL in doc
-5. Stabilize Yml in doc
-6. Refactor Bootstrap
-7. Refactor core + core extensions
-8. Refactor tests (switch to nestable entity)
-9. Complete the Builder
-10. Complete the baseline implementations
-11. Implement agents (for now Cursor to test MVP, then planned : Hermes + ollama + kimi k3 ?)
+## Core ASC concepts
 
-Also TODO : drop submodules declarations via `.asc_extensions` because of objects.
+### Genericity (scale)
 
---
+1. Primordial = the unique Yaml file at the top of the Yaml inclusion chain : `yml.yml` (akin to the very first living cell that existed on earth),
+2. Primitives = Yaml files defining "low-level" structural things (like : which root properties the including Yaml files can declare),
+3. Core = "generic" implementations that are systematically relevant across all projects using ASC,
+4. Extensions = namespaced bundles of actions by subjects and/or objects,
+5. Overrides = alterations of implementations provided by core and/or extensions,
+6. Specifics = impementations with low or no potential for reuse outside the current projet ASC is used for.
 
-`$subject` / `$object` / `$action` examples :
+The **primordial** file just defines basic synonyms. They are interchangeable words used across all Yaml files.
 
-- Remote instance restart
-- Remote host ssh
-- Entity relation list
-- Entity field list
-- Entity prop list
+**Primitives** include :
 
---
+- `entity.entity.yml` defining the structure of *entities* (it specifies that every `*.entity.yml` can have the root props `entity`, `required`, `optional`) ;
+- `able.able.yml` defining the structure of *contracts* (*skills* or *capabilities*) ;
+- and perhaps other use cases may warrant interventions on that level in other projects using ASC (the door remains open).
 
-Field vs prop :
+**Core** implementations include :
+
+- low-level
+- opt-in extensions, notably : the entity system
+
+### ASC-bootstrapped context, or just _bootstrap_
+
+This means any shell context that has sourced `asc/bootstrap.sh`. It loads global env vars and bash functions, depending on "auto" - and optionally "leazy" - loaded includes corresponding to the entry point used.
+
+There are 2 kinds of ASC bootstrap contexts :
+
+1. when a project instance is not initialized yet
+1. after initialization has run (usually once in a local project instance), see setup.
+
+### ASC-active dir, or just _active dir_
+
+An "ASC-active dir" is a folder where files following specific naming conventions allow things like :
+
+- auto or lazy loading of bash shell script includes (in ASC-bootstrapped contexts),
+- global env vars definitions,
+- hook implementations (with variants), including yaml files, python scripts, etc.
+
+These folders are automatically discovered during instance init (and setup). They depend on things like :
+
+- which extensions are enabled (using `.gitignore`-like declarations, see `.asc_subjects_ignore` files),
+- which level of genericity the contained implementations have,
+- wether they relate to a `$subject` or an `$object` (by subject)
+
+**List of active dirs** (containing implementations from **most generic** to **most specific**)
+
+1. `./asc`
+1. `./asc/extensions/$extension` (ex: `asc/extensions/compose`)
+1. `./scripts/asc/contrib/asc/$extension` (ex: `scripts/asc/contrib/asc/tesseract`)
+1. `./scripts/asc/contrib/$vendor/$extension` (ex: `scripts/asc/contrib/foobar/baz`)
+1. `./scripts/asc/extend`
+
+### Specificity and Collisions handling
+
+The bottom of this list wins when implementing the same `u_hook_most_specific()`, or even in case of the same `make $subject-$action` entry point pivot :
+
+1. `asc/$subject/$action`
+1. `asc/$subject/$object/$action`
+1. `asc/extensions/$extension/$subject/$action`
+1. `asc/extensions/$extension/$subject/$object/$action`
+1. `scripts/asc/contrib/asc/$extension/$subject/$action`
+1. `scripts/asc/contrib/asc/$extension/$subject/$object/$action`
+1. `scripts/asc/contrib/$vendor/$extension/$subject/$action`
+1. `scripts/asc/contrib/$vendor/$extension/$subject/$object/$action`
+1. `scripts/asc/extend/$subject/$action`
+1. `scripts/asc/extend/$subject/$object/$action`
+
+### (make) _Entry points_ : ASC `$action` script, or just _action_
+
+ASC actions are any shell scripts placed in *active dirs* with a file name :
+
+- using the `*.sh` extension
+- not beginning with a dot
+- not using any double extension
+
+In *active dirs*, there are 2 nesting levels supported for *entry points* (or *actions*) :
+
+- `$subject` / `$action` (ex: `service-start` → `asc/extensions/compose/service/start.sh`)
+- `$subject` / `$object` / `$action` (ex: `host-dependency-install` → `asc/host/dependency/install.sh`)
+
+### (global) _Env vars_ : generated Bash shell readonly constants
+
+TODO
+
+### hooks (variants)
+
+TODO [wip] rewrite properly this :
+
+Triggers an "event" optionally filtered by primitives.
+
+Arguments are all optional, but this function requires at least either
+1 action (-a) OR 1 extension (-e). See explanations below.
+
+In order to "listen" to events, some specific file(s) must use the exact path
+and name corresponding to its arguments. For a detailed list of expected
+output given various inputs :
+
+@see asc/test/asc/hook.test.sh
+
+Primitives are fundamental values dynamically generated during bootstrap :
+
+@see asc/bootstrap.sh
+
+@see f_asc_extend()
+
+Calling this function will source all file includes matched by subject,
+action, prefix, variant, and extension. Every extension defines a base path from
+which additional lookup paths are derived (as well as a corresponding namespace
+for glabals containing their primitives).
+
+Important notes about the 'variants' (-v) argument :
+
+If this function gets called without any 'variant' filter(s), it will
+automatically look for suggestions using INSTANCE_TYPE.
+
+Variants are combinatory. Each variant value must be an existing glabal var
+which will generate the following lookup paths given the call :
+
+$ hook -a 'my_action' -s 'my_subject' -v 'PROVISION_USING INSTANCE_TYPE'
++ the values PROVISION_USING='compose' and INSTANCE_TYPE='dev' :
+
+- asc/my_subject/my_action.hook.sh
+- asc/my_subject/my_action.compose.hook.sh
+- asc/my_subject/my_action.compose.dev.hook.sh
+- asc/my_subject/my_action.dev.hook.sh
+
+@requires the following global variables in calling scope :
+
+- ASC_ACTIONS
+- ASC_SUBJECTS
+- ASC_EXTENSIONS
+
+@uses the following global variables in calling scope if they exist :
+
+- ${EXTENSION_NAMESPACE}_ACTIONS
+- ${EXTENSION_NAMESPACE}_SUBJECTS
+
+NB : the default separator used to concatenate parts in file names is
+the underscore '_', except for variants which use dot '.'.
+
+Dashes '-' are reserved for folder names and to separate "semver" suffixes.
+Semver suffixes can be used in extension folder names and variant values.
+
+Also note that each argument accepts several values by using a space to
+separate them. E.g. :
+
+$ hook -a 'start' -s 'stack service instance app'
+
+TODO Document cache warmup.
+
+@examples
+
+```sh
+# 1. When providing a single action :
+hook -a 'bootstrap'
+# Yields the following lookup paths (ALL includes found are sourced) :
+# (given INSTANCE_TYPE='prod')
+# - asc/<ASC_SUBJECTS>/bootstrap.hook.sh
+# - asc/<ASC_SUBJECTS>/bootstrap.prod.hook.sh
+# - asc/extensions/<ASC_EXTENSIONS>/<EXT_SUBJECTS>/bootstrap.hook.sh
+# - asc/extensions/<ASC_EXTENSIONS>/<EXT_SUBJECTS>/bootstrap.prod.hook.sh
+
+# 2. When providing an action + a filter by subject :
+hook -a 'init' -s 'stack'
+# Yields the following lookup paths (ALL includes found are sourced) :
+# (given INSTANCE_TYPE='prod')
+# - asc/stack/init.hook.sh
+# - asc/stack/init.prod.hook.sh
+# - asc/extensions/<ASC_EXTENSIONS>/stack/init.hook.sh
+# - asc/extensions/<ASC_EXTENSIONS>/stack/init.prod.hook.sh
+
+# 3. When providing an action + a filter by 1 or several subjects + 1 or
+#   several variants filter :
+hook -a 'init' -s 'stack' -v 'HOST_TYPE INSTANCE_TYPE'
+# Yields the following lookup paths (ALL includes found are sourced) :
+# (given INSTANCE_TYPE='dev' and HOST_TYPE='local')
+# - asc/stack/init.hook.sh
+# - asc/stack/init.local.hook.sh
+# - asc/stack/init.local.dev.hook.sh
+# - asc/stack/init.dev.hook.sh
+# - asc/extensions/<ASC_EXTENSIONS>/stack/init.hook.sh
+# - asc/extensions/<ASC_EXTENSIONS>/stack/init.local.hook.sh
+# - asc/extensions/<ASC_EXTENSIONS>/stack/init.local.dev.hook.sh
+# - asc/extensions/<ASC_EXTENSIONS>/stack/init.dev.hook.sh
+
+# 4. Extensions filter :
+hook -e 'nodejs'
+# Yields the following lookup paths (ALL includes found are sourced) :
+# (given INSTANCE_TYPE='prod')
+# - scripts/extensions/nodejs/<EXT_SUBJECTS>/<SUBJECT_ACTIONS>.prod.hook.sh
+
+# 5. Prefixes filter are exclusive by default, which means pure actions are
+#   not included. Ex :
+hook -a 'bootstrap' -p 'pre'
+# Yields the following lookup paths (ALL includes found are sourced) :
+# (given INSTANCE_TYPE='prod')
+# - asc/<ASC_SUBJECTS>/pre_bootstrap.hook.sh
+# - asc/<ASC_SUBJECTS>/pre_bootstrap.prod.hook.sh
+# - asc/extensions/<ASC_EXTENSIONS>/<EXT_SUBJECTS>/pre_bootstrap.hook.sh
+# - asc/extensions/<ASC_EXTENSIONS>/<EXT_SUBJECTS>/pre_bootstrap.prod.hook.sh
+
+# 6. Project root dir additional lookup :
+hook -s 'instance' -a 'env' -c 'yml' -v 'HOST_TYPE INSTANCE_TYPE' -t -r
+# Yields the following lookup paths (not sourcing matches because -t flag) :
+# (given HOST_TYPE='local' and INSTANCE_TYPE='dev')
+# - asc/instance/env.yml
+# - asc/instance/asc.local.yml
+# - asc/instance/asc.local.dev.yml
+# - asc/instance/asc.dev.yml
+# - asc/extensions/<ASC_EXTENSIONS>/instance/env.yml
+# - asc/extensions/<ASC_EXTENSIONS>/instance/asc.local.yml
+# - asc/extensions/<ASC_EXTENSIONS>/instance/asc.local.dev.yml
+# - asc/extensions/<ASC_EXTENSIONS>/instance/asc.dev.yml
+# - env.yml
+# - asc.local.yml
+# - asc.local.dev.yml
+# - asc.dev.yml
+```
+
+### wrappers (scripts), metadata (yml), and some generic implementations (opt-in)
+
+TODO
+
+### Field vs Prop
 
 field = store.able instance values (edit.able)
+
 --vs--
+
 prop = yml "constants" shared by all those entities (inherit.able)
 
---
+*Concrete "prop" example* :
 
-Concrete "prop" example :
+`*.entity.yml` all have `required` and `optional` root-level keys (in yml key:value nestable syntax)
 
-*.entity.yml all have 'required' and 'optional' root-level keys (in yml key:value nest.able syntax)
-
---
-
-Concrete "field" example :
+*Concrete "field" example* :
 
 TODO use remote_host.entity.yml and remote_instance.entity.yml as examples.
 
@@ -207,570 +443,46 @@ a remote instance entity has a parent remote host entity,
 they both have a 'hostname' field,
 which stores (in sidecars or globals or cache or scripts) the value for ASC implementations to use.
 
---
+### ASC domain-specific language : *DSL* syntax
 
-DSL to refactor :
+**Positional arguments**
 
-- Invert `(` and `[`
-- (positional) Argmuments = `a`
-- Options (named arguments) = `o`
-- Boolean options (named options) = `bo`
+- `a` = `$@` (all arguments are forwarded "as is")
+- `p1` = `$1`
+- `p2` = `$2`
+- etc.
 
-`test-is[either](slot.slug[-],slot.slug[_]])`
+**Boolean options** (shrink all `--` to `-` in prefixed syntax)
 
-Becomes
+- `b-oneline` = `--oneline`
+- `bo-y` = `-y` = any boolean option
+- etc.
 
-`test-in(a1,[slug(a-1,-),slug(a-1,_)])`
+**Named options**
 
-Must be filename-safe.
+- `o-max-4` = `--max=4` or `--max 4` or `-m 4`
 
--> DSL args auto convert :
+**Example**
 
-(shrink all `--` to `-` in prefixed syntax)
+In a Yaml file `foobar.entity.yml` specifying a `foobar` entity definition with a `toto` field, the "validate" entry specifies that the `toto` field value must respect either URL slug or snake case formats :
 
-`a` = `$@`
-`a-1` = `$1` (`a-$n`)
-
-`a-1s` = rest of params after 1 shift
-`a-2s` = up to param 2 shift etc.
-
-`bo-oneline` = `--oneline`
-`bo-y` = `-y` = any boolean option
-
-`o-max-4` = `--max=4` or `--max 4` or `-m 4`
-
---
-
-Parsable `stdout` to catch things for prompt ?
-
-Ex :
-
-```html
-Error message, any stdout output... With at the end :
-
-<asc-dsl>
-Dsl ?
-</asc-dsl>
-```
-
-And / or :
-
-```html
-<asc-yml>
+```yml
+# This allows to enforce which things are mandatory.
 required:
-  foobar: <slot/> ?
-optional:
-  foobar: <slot/> ?
-</asc-yml>
+  field:
+    toto:
+      validate: test-in(p1,[slug(p1),slug(p1,_)])
 ```
 
-Those could be templates :
-
-- **string** templates : `u_str_convert_tokens()` (asc utility) TODO rename to just `tpl()` !
-- **file** templates : `*.tpl.html` (hook)
-- or even entire **dir** templates
-
---
-
-Blueprint can be DSL or string template or file template or dir template.
-
---
-
-Rules (TODO asc core extension in progress, like the drupal contrib module) :
-
-example : solidjs ui file tree in "projet complexe" : need to represent "root" vs user file ownership
-
-any "infra" action must be properly configured as sudoers entries first (or other mecanisms)
-
--> some kind of sync pattern could be integrated in ASC core ?
-
-like a type.able entity where the "patterns presets" could be selected, e.g. :
-
-> make a hook for that, make a sidecar for this, prototype, test, recap as a new "change" entry.
-
-All expressable in DSL.
-
---
-
-Sidecar :
-
-Entity = represents something virtual
-Yml = concrete (actual) file sidecar
-
-Compose.yml = concrete (actual) file sidecar of a (nestable) project stack
-
-Any script can be concrete (actual) file sidecar of any action.
-
---
-
-Workflow :
-
-- Centered around change
-- Changelogs are change sidecars
-- Changes must be entities
-
-The `change.entity.yml` is nest.able (up to files and folders granularity)
-
-TODO We must delegate as mush as possible to git.
-TODO Change entities could be pieces of changelogs in prose (*.md), or something more formal ?
-TODO Provide MVP use cases for now.
-
---
-
-Relations :
-
-- `$subject`--`$object`
-- `$subject`--`$predicate`--`$object`
-
-ASC notation examples :
-
-remote-host--foobar
-remote-host--reverse-proxy--state
-
-(presence of "--" means **we are not talking about an entry point** here)
-
-Useful in docs and blueprints only ?
-
-Mapping to complex memory stores (relational db) is out of scope.
-
---
-
-workflow.able idea :
-
-slot.able
-nest.able -> plan
-
-builder = can use temporary asc overrides in tests to test ideas as prototypes !!!!!!
-
-hard rule : all include of entities must be namespaced (not "contract" but "asc.contract" able ...)
-
---
-
-The yml file format used in ASC is a definition of something being
-represented and named (= file name and path).
-
-**"Genericity" scale :**
-
-1. Primordial = akin to the very first living cell that existed on earth.
-2. Primitive = yml files defining the yml file name suffix. Ex: `able.able.yml`
-3. ASC core extensions
-4. ASC contrib extensions
-5. Third-party contrib extensions
-6. Project-specific impementations
-
---
-
-task-oriented VS knowledge-oriented :
-mutual killswitch to implement
-
---
-
-Make vars and functions (synonym : f) sidecar.able entities (so we can get stats, etc) ?
-
-The "data_dir.store.able" sidecar of each shell variable and function written in current project instance is a nest.able structure reproducing its relative location (from project docroot).
-
-Instead of distinct entities, we could just have a common representation for any "atomic" piece of code. We should just **use the blueprint entity** from the "builder" core extension. It expresses the *same* thing.
-
-I think the *Atomic Design Methodology* from Brad Frost makes sense here.
-
-> Atomic design is a methodology composed of five distinct stages working together to create interface design systems in a more deliberate and hierarchical manner. The five stages of atomic design are :
-> 
-> - Atoms
-> - Molecules
-> - Organisms
-> - Templates
-> - Pages
-
-But here in ASC we could just make a single "atomic.able" blueprint entity. The blueprint entity equivalent (nest.able + use.able) objects would be :
-
-- vars (global, scoped, positional_arg, named_arg, local, readonly, exported - NB : vars are nest.able because they can be string templates or make use of other vars or functions - TODO or dsl ?)
-- functions
-- files
-- dirs
-- asc instance
-
-Examples of potential DSL usage in entry points :
-
-- `dsl entity-field-val(type,a-1)` in `asc/extensions/builder/code/var/is.sh.sh`
-- `dsl file-sidecar(a)` in `asc/extensions/builder/blueprint/var/sidecar.sh`
-- `dsl file-sidecar(used-by,a-1)` in `asc/extensions/builder/code/function/used_by.sh.sh`
-- etc.
-
-TODO `dsl()` could be like the `hook()` function, but it likely will need to prepare some variables in calling scope - i.e. :
+That DSL syntax example translates to bash :
 
 ```sh
-# Positional (unnamed) arguments would be simple :
-a="$@"
-a_1="$1"
-a_2="$2"
-a_3="$3"
-a_4="$4"
-a_5="$5"
-a_6="$6"
-a_7="$7"
-a_8="$8"
-a_9="$9"
-
-# TODO Shifted values like a_1s, a_2s (rest of params after 1 shift).
-
-# Named arguments would require some manual work (it depends on scripts,
-# programs used, etc.) - for instance :
-o_s=''
-o_h=''
-bo_y=0
-
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    # With value = "normal" options :
-    -h|--hook) export o_h="$2" ; shift 2 ;;
-    -s|--scope) export o_s="$2" ; shift 2 ;;
-
-    # Without value = boolean options :
-    -y|-yes) export bo_y=1   ; shift 1 ;;
-  esac
-done
+f_str_slug 'foobar'
+f_str_snake 'foobar'
+[[ asc/utils/test/in.sh 'foobar' "$slug_val" "$snake_val" ]] || exit 1
 ```
 
---
-
-Files and folders (synonym : dir) :
-
-They can be entities.
-No need to store unnecessary sidecars.
-
-They could be used to simply target specific paths which may be git-ignored or inside generated (data) dirs, etc.
-
-Real, "concrete" dirs are nest.able themselves, so it is naturally fitting that the dir.entity be nest.able so relative paths - of any subject/action, or any file - are easier to match (by swapping prefixes), e.g. :
-
-- `data/cache/foo/bar` -> "data_dir.store.able" prefixed `foo/bar`
-- `scripts/asc/override/foo/bar` -> overridden `foo/bar`
-
---
-
-Rename "seed" to just "command" (synonym : cmd).
-
-The fundamental idea is this :
-entry points are fixed pivots, and are sidecar.able as pre-compiled commands (cmd).
-
-when you run `make gpu-driver-install` on linux or windows, the command(s) will differ (because implemented as hook variants).
-
---
-
-Seed :
-
-Copy tmp cache dir backup copy
-
-Path-based entry points get "frozen"
-
-TODO freeze.able = data/* sidecar(s) ? E.g. `*.assembled.sh` or `*.compiled.sh`
-TODO cache by path ?
-TODO cache rebuild, reinit, can be incremental ?
-
---
-
-Incremental cache rebuild
-
-Could look like, per entry point :
-
-- get last file modified datetime in e . $subject (or $subject - $object) containing dir
-- compare with current cache rebuild datetime
-- if last file modified datetime is more recent, rebuild that cache path
-- also check var + f use -> TODO perhaps use a relation field on (builder.)blueprint_var.used_by ?
-
-Basically, any impacted "dir branches" must be rebuilt (from the deepest possible "branch" level)
-
-Concrete examples :
-
-- Take the following entry point : `asc/extensions/builder/code/function/used_by.sh.sh`
-- file-sidecar(used-by,a-1)
-- `data/cache/code/function/used-by`
-
-- 
-
---
-
-New hook entry points :
-
-- `hook` (like call_wrap.make.sh)
-- `hook-most-specific` = `hook-ms` (TODO new function to integrate in ASC core)
-- `hook-dry-run` = `hook-dr` (TODO new function to integrate in ASC core)
-
---
-
-It's not what you need.
-It's how you formulate it.
-
-Every problem becomes a (re)formulation problem.
-
-Descriptions of changes must boil down to DSL, up to the file and folder atomic changes (builder can generate files and dirs from blueprints, but code refactoring is delegated to third-party implementations).
-
---
-
-Finally, refactor make so it understands DSL
-
---
-
-Make the entry points "mamespaced" notation facultative (e.g. in yml).
-
-Because it defaults to the implementations automatically resolved based on local asc instance variants.
-
-Prefixing could be a way to specifically inherit something not active in local asc instance.
-
---
-
-Graphical representation metaphor:
-Files are cells (inner parts), "membrane", etc.
-
-Nest.able = zoom.able (TODO graphical bridge for pagination, tree + nest "fractal" navigation)
-
---
-
-Entry points are pointers 
-Sidecar ? Ex symlink
-Freeze.able as cache or seed ?
-
-Slugified args collisions if we use dsl as frozen entrypoints : piling up with integer suffix, with yml to store raw command ?
-
-Frozen entry points of dsl syntax.
-Cache / frozen / entry-points ? Dsl ? Both ?
-
-We could have file paths, like either :
-
-- `entity-field-val(type,a-1).dsl.hook` (no extension because it's not a script : it's just an empty file that needs to exist at this exact path ; a bit like the ".gitkeep" files sometimes used for having git-ignored folders exist in git repos), or :
-- `entity-field-val(type,a-1).dsl.hook.yml` : defines a/o validations
-
-Yml examples of a/o = arg(s) and option(s) validation definitions :
-
-```yml
-a:
-  validation: test-is(a,slug(a))
-```
-
-```yml
-a1:
-  validation: test-in(a-1,[slug(a-1,-),slug(a-1,_)])
-```
-
---
-
-TODO Make some kind of general guideline for all ASC code like *"max 1000 lines per file everywhere"* to try and encourage splitting complex things into smaller pieces ?
-
---
-
-TODO rename "thread" to "process" (synonym : "proc" ?) to better match the reality of the shell mechanisms at play ?
-
-In the context of the Linux shell, the primary difference is that every standard command you run in the shell executes as a separate process, whereas threads are internal execution units within those processes that the shell cannot directly manipulate or pipe together. 
-
-When you type a command like ls or grep, the shell clones itself to create an isolated environment with its own memory. Threads, on the other hand, exist strictly inside a single process to handle lightweight multitasking while sharing that process's memory space.
-
-Latin : procurare (procureur) ?
-// avec concept de délégation ?
-
-Mais en fait non, gardons "thread" car du point de vue d'ASC, on est sur des pivots, et thread ce serait comme des process "owned" + custom managed by ASC, donc l'entité asc "thread" sera une représentation relativement accurate des "process" en shell (asc thread = process managés par, internes et propres à ASC, différents des autres process que d'autres scripts pourraient gérer - une chose n'empêche pas l'autre).
-
---
-
-Blueprint entity is not enough in builder ext.
-
-We need a code entity so blueprints are clearer.
-
-- code/var/$object/$action -> objects = global, local, readonly, exported, etc. ?
-- code/f/$action
-
-All code entities (var + f) have :
-
-- scope
-- used-by
-- complexity ?
-- performance measures sidecars ? (stats ?)
-- implementations ? (log.able, thread.able...)
-- patterns ?
-
---
-
-Template filename syntax
-
-Subfolder name (same structure as tests) = "tpl"
-
-- `$subject` or `$object` / `[action].sh` : repeatable template file (can generate as many files as necessary using the same template)
-- `$subject` / `{subject}.inc.sh`  : results in a single file generated
-
-Ex :
-- `asc/extensions/builder/template/core/[subject]/[action].sh`
-- `asc/extensions/builder/template/core/[subject]/{subject}.inc.sh`
-- `asc/extensions/builder/template/core/[subject]/{subject}.opt-inc.sh`
-- `asc/extensions/builder/template/core/[subject]/[object]/[action].sh`
-- `asc/extensions/builder/template/core/[subject]/[object]/{subject}.inc.sh`
-- `asc/extensions/builder/template/core/[subject]/[object]/{subject}.opt-inc.sh`
-- `asc/extensions/builder/template/core/test/[test_group].sh`
-- `asc/extensions/builder/template/core/test/[test_suite]/[test_case].test.sh`
-- etc.
-
---
-
-Multi-line template files syntax
-
-Ex : `asc/extensions/builder/template/core/[subject]/[action].sh`
-
-```txt
-#!/usr/bin/env bash
-
-##
-# {{ docblock }}
-#
-# @example
-#   {{ examples }}
-#
-
-{{ slot }}
-```
-
-We could have conditions like in : `asc/extensions/builder/template/core/test/[test_suite]/[test_case].test.sh`
-
-```html
-<asc-if not-empty="one_time_setup">
-  The contents here are processed and generated in place, or remove whitespace from opening tag position until first character of the next non-empty line.
-</asc-if>
-```
-
-or even things like :
-
-```html
-<asc-if dsl="test-in(foo,[bar,baz])">
-  ...
-</asc-if>
-...
-<asc-for each="foobar_arr as foobar">
-  ...
-</asc-for>
-...
-<asc-for each="entity-list-last(foobar,10).sidecar(file).path as path">
-  ...
-</asc-for>
-...
-{{ entity-preview(foobar) }}
-...
-```
-
---
-
-General ASC guidelines
-
-- max 1000 lines per script file (split inc and opti-inc files in sub-includes if necessary)
-- In meta-related work, never describe the containing thing - only what it it about. E.g. if you write a note, no need to say : "this is a note" in whatever note metadata there is. It's an unnecessary repitition of something (like a script) that is already provided in the file path itself - all files in ASC being conceptualized as "sidecars" (entity = virtual, file = actual)...
-
---
-
-About `$subject` / `$object` / `$action` path structure :
-
-- `$subject` / `*.hook.*` files are currently supported
-- but not `$subject` / `$object` / `*.hook.*` (by design, for now)
-
-Only `$subject`'s dirs can implement hooks (**not** their `$object`'s sub-dirs).
-
-To recap what `$object` dirs can currently provide :
-
-- `[action].sh` = entry points
-- `{subject}.inc.sh` = functions loaded in every asc-bootstrapped scripts
-- `{subject}.opt-inc.sh` = functions "leazy-loaded" in asc-bootstrapped scripts
-- `[entity].entity.yml` = asc entity definitions
-- `[able].able.yml` = asc entity contract definitions
-
-Basically everything any `$subject` dir can declare, except hooks (only declarable in `$subject`) :
-- `[hook].{file_ext}` = hook implementation template
-- `[hook].{variants}.{file_ext}` = hook variant implementation template
-
---
-
-DSL updates :
-
-TODO Slugs must have entry points so DSL can do things like :
-
-- `slug-url(a)`
-- `slug-snake(a)`
-- `slug-camel(a)`
-
-TODO On top of entry points, also support both `f_foobar` and `f-foobar` notations for function names in DSL.
-
---
-
-TODO Make some kind of general guideline for ASC code like "max 1000 lines per file everywhere" to try and encourage splitting complex things into smaller pieces ?
-
---
-
-Original README below, to be completely rewritten :
-
----
-
-## End goal
-
-- Capabilities first, entities second
-- Sibling UI project in Tauri + SolidJS : a "second-brain" based on [projet-complexe](https://github.com/Paulmicha/projet-complexe) in order to implement a "code refactorer" agent role
-- Offload more tasks to third-party projects where sensible ? Criterias ?
-
-## TL;DR
-
-Clone or copy this repo into your project docroot, then:
-
-```sh
-cp SPECIMEN.env.yml env.yml   # edit as needed
-make setup                    # or: make   → instance init
-```
-
-Deep dives live under [`docs/asc/`](docs/asc/). Extension notes: [`asc/extensions/README.md`](asc/extensions/README.md).
-
-## WHAT
-
-ASC is a scaffolding bash shell CLI for usual (web or general) project tasks — a generic, customizable, extensible toolbox for **local (internal) development**.
-
-ASC is not a program; it is the “glue” between programs. Third-party integration is provided by **extensions** (bundled under `asc/extensions/`, often disabled by default). Core contains utilities for global environment variables, minimal host operations, optional git hooks, log/thread/loop wrappers, and low-level automated tests (`make test-core`).
-
-ASC is **not** meant for production. It helps individual developers or teams keep a common CLI across older and newer projects.
-
-### Scope
-
-- Thin layer to organize generic (pivot) shell entry points, enforcing a common implementation blueprint for (self-)building by humans and agents alike
-- Simple, minimal, self-explanatory
-- Delegate as much as possible, but still provide usual, optional (opt-in), generic needs as (overridable) "exemplar" implementation blueprints
-- Define things and (implementation) contracts
-- Generate simple ASC code from $slot.able file / folder templates or strings.
-
-### Non-goals ("out of scope"s)
-
-- code refactoring
-- self-organizing abominable all-orchestrating plaform
-- complex nl-related or agent-related stuff should be delegated to nested apps, e.g. :
-  - ontology stuff (prompt engineering)
-  - second-brain stuff (chain of thought, etc)
-- in fact, anything complex is off limits
-
-## PURPOSE
-
-ASC organizes (mostly bash) scripts around conventions so you can swap implementations without rewriting every project’s workflow:
-
-- host-level dependencies / provisioning
-- credentials and registries
-- building / running / stopping / destroying instances (variants per env type)
-- generating local app settings
-- linting / watching / compiling
-- cron / long-running loops
-- automated tests
-- remote two-way sync
-- etc.
-
-## HOW (concepts in brief)
-
-ASC relies on **file structure**, **naming conventions**, and a few primitives:
-
-| Concept | Summary | Deep dive |
-|---------|---------|-----------|
-| **Globals** | Instance env vars from `env.yml` / `global.vars.sh`, written to `.env` + `data/asc/global.vars.sh` | [docs/asc/globals.md](docs/asc/globals.md) |
-| **Bootstrap** | `. asc/bootstrap.sh` → numbered phases; eager `*.inc.sh` vs lazy `*.opt-inc.sh` | [docs/asc/bootstrap.md](docs/asc/bootstrap.md) |
-| **Instance init** | Aggregates globals, optional git hooks, generates make shortcuts | `u_instance_init()` in `asc/instance/instance.inc.sh` |
-| **Actions** | Folders = subjects, files = actions → `data/asc/generated.mk` | [docs/asc/actions-and-make.md](docs/asc/actions-and-make.md) |
-| **Hooks** | File-based events (`*.hook.sh`) with variant combinations | [docs/asc/hooks.md](docs/asc/hooks.md) |
-
-Prefer the lowest of five **implementation layers** (data → globals → abstract entry points → core extensions → project extend). See [docs/asc/layers.md](docs/asc/layers.md).
+DSL syntax must remain filename-safe (Linux, Windows, IOS).
 
 ### ASC data types
 
@@ -779,28 +491,23 @@ Prefer the lowest of five **implementation layers** (data → globals → abstra
 - other `*.yml` (ex: remote instances or any entity)
 - encrypted (git) versionned files (cf. `data/crypted`)
 
-### ASC extension points = the containing folders of `$subject`/`$action`.sh scripts
+## Naming convention
 
-- `./asc`
-- `./asc/extensions/$extension`
-- `./asc/extensions/$extension/**/$nested_extension` (via .asc_subjects_ignore)
-- `./scripts/asc/contrib/$extension`
-- `./scripts/asc/contrib/$extension/**/$nested_extension` (via .asc_subjects_ignore)
-- `./scripts/asc/extend`
-- `./scripts/asc/extend/**/$nested_extension` (via .asc_subjects_ignore)
+### File names
 
-### ASC Generic -> Specific scale of actions = entry points = `$subject`/`$action`.sh scripts
+In any ASC-active
 
-Goal :
-The bottom of this list wins when implementing the same `u_hook_most_specific()` :
+- Bash shell includes auto-loaded in ASC-bootstrapped contexts use the double extension `*.inc.sh`
+- Lazy-loaded bash shell includes use the double extension `*.opt-inc.sh`
 
-1. `asc/$subject/$action`
-1. `asc/extensions/$extension/$subject/$action`
-1. `asc/extensions/$extension/**/$nested_extension` (via .asc_subjects_ignore)
-1. `scripts/asc/contrib/$extension/$subject/$action`
-1. `scripts/asc/contrib/$extension/**/$nested_extension` (via .asc_subjects_ignore)
-1. `scripts/asc/extend/$subject/$action`
-1. `scripts/asc/extend/**/$nested_extension` (via .asc_subjects_ignore)
+### Coding style
+
+- Function names are prefixed by `f_` (exceptions: global, hook, hookms, tpl)
+- Variables storing *positional* argument values are prefixed by `p_`
+- Variables storing *options* values are prefixed by `o_`
+- Variables storing *boolean* options are prefixed by `b_`
+
+## Usage / Getting started
 
 ### Prerequisites
 
@@ -811,8 +518,6 @@ The bottom of this list wins when implementing the same `u_hook_most_specific()`
 - [optional] GNU make
 
 Disclaimer: ASC is primarily tested on Debian-based Linux.
-
-## Usage / Getting started
 
 ### Placement
 
@@ -855,14 +560,14 @@ From [`asc/instance/setup.sh`](asc/instance/setup.sh):
 | 1 | `INSTANCE_TYPE` | `dev` |
 | 2 | `HOST_TYPE` | `local` |
 | 3 | `STACK_VERSION` | empty (falls back to global default `v1` on init) |
-| 4 | `PROVISION_USING` | `compose` (note: core global default when undeclared is `asc`) |
+| 4 | `PROVISION_USING` | `asc` |
 
 Examples:
 
 ```sh
 make setup
 make setup prod
-make setup prod remote myproject-2024 lamp
+make setup prod remote myproject-2026 compose
 ```
 
 ## File structure
@@ -962,301 +667,16 @@ changelog/YYYY/MM/DD-<file_name>.md
 
 Ex : `changelog/2026/07/17-implement-new-ollama-subject.md`
 
-Generated (do not hand-edit): `.env`, `data/asc/global.vars.sh`, `data/asc/generated.mk`, `data/asc/cache/*`.
+Generated (do not hand-edit):
 
-## Five implementation layers
-
-| # | Layer | Owns | Examples |
-|---|-------|------|----------|
-| 1 | Data | `data/…`, host files — state only | Examples |
-| 2 | Global ENV vars | readonly globals vs calling-scope mutables | Examples |
-| 3 | Abstract core entry points | wraps / placeholders | Examples |
-| 4 | Core extensions | abstract + minimal concrete | Examples |
-| 5 | Contrib extensions | Shareable / optionally integrable ASC implementations (see LICENSEs) | Examples |
-| 6 | Project (scope-specific) extend | Any ASC implementation specific to the current project / scope | Examples |
-
-Full table, mermaid, and **launch** layer stack (raw → thread → log wrap): [docs/asc/layers.md](docs/asc/layers.md).
-
-## Adapt / Alter / Extend
-
-- Project scripts under `scripts/`
-- Generic reusable extensions as folders in `asc/extensions/`
-- Project-only hooks/globals/actions in `scripts/asc/extend/`
-- Hard replacements via `scripts/asc/override/`
-
-Details: [docs/asc/extensions.md](docs/asc/extensions.md).
-
-### Globals (summary)
-
-On init, globals are written to:
-
-- `.env` — Makefile and other tools
-- `data/asc/global.vars.sh` — sourced every bootstrap (phase 30)
-
-Declare via `global NAME "…"` in `global.vars.sh` files, or YAML in `env.yml` / `.env-local.yml`. List aggregation paths:
-
-```sh
-make globals-lp
-```
-
-Selected core defaults (`asc/env/global.vars.sh`):
-
-```sh
-global PROJECT_DOCROOT "[default]='$PWD' …"
-global STACK_VERSION "[default]=v1 …"
-global INSTANCE_TYPE "[default]=dev …"
-global PROVISION_USING "[default]=asc …"
-global HOST_TYPE "[default]=local …"
-global HOST_OS "$(u_host_os)"
-global ASC_APPS "[default]='site' …"
-global ASC_MAKE_INC "[append]='$(u_asc_extensions_get_makefiles)'"
-global ASC_SYNONYMS "[append]='registry/reg lookup-path/pl logged-thread/lt logged-batch/lb logged-chain/lc logged-sequence/ls logged-loop/ll logged-pipe/lp transcribe-transcribe/transcribe'"
-```
-
-More: [docs/asc/globals.md](docs/asc/globals.md). Secrets stance: [docs/asc/secrets.md](docs/asc/secrets.md).
-
-### Actions (summary)
-
-```sh
-make list-actions
-```
-
-Hardcoded shortcuts ([`asc/make/default.mk`](asc/make/default.mk)): `init` (also default `make`), `init-debug`, `setup`, `hook`, `hook-debug`, `globals-lp`, `debug`.
-
-After init, `data/asc/generated.mk` adds subject/action targets. Typical core shortcuts (instance subject often omitted):
-
-| Name | Script | Shortcut |
-|------|--------|----------|
-| *git write-hooks* | `asc/git/write_hooks.sh` | `make git-write-hooks` |
-| *host provision* | `asc/host/provision.sh` | `make host-provision` |
-| *host registry-\** | `asc/host/registry_*.sh` | `make host-reg-*` |
-| *host vitals* | `asc/host/vitals.sh` | `make host-vitals` |
-| *instance build* | `asc/instance/build.sh` | `make build` |
-| *instance destroy* | `asc/instance/destroy.sh` | `make destroy` |
-| *instance fix-ownership* | `asc/instance/fix_ownership.sh` | `make fix-ownership` |
-| *instance fix-perms* | `asc/instance/fix_perms.sh` | `make fix-perms` |
-| *instance init* | `asc/instance/init.sh` | `make init` / `make` |
-| *instance rebuild* | `asc/instance/rebuild.sh` | `make rebuild` |
-| *instance registry-\** | `asc/instance/registry_*.sh` | `make reg-*` |
-| *instance reinit* | `asc/instance/reinit.sh` | `make reinit` |
-| *instance restart* | `asc/instance/restart.sh` | `make restart` |
-| *instance setup* | `asc/instance/setup.sh` | `make setup` |
-| *instance start / stop* | `asc/instance/start.sh` / `stop.sh` | `make start` / `stop` |
-| *instance chain* | `asc/instance/chain.sh` | `make chain` |
-| *instance parallel / pipe* | `asc/instance/parallel.sh` / `pipe.sh` | `make parallel` / `pipe` |
-| *instance logged-\** | `asc/instance/logged_*.sh` | `make lt` / `lc` / `ls` / `lb` / `lp` / `ll` |
-| *instance switch-stack-version* | `asc/instance/switch_stack_version.sh` | `make switch-stack-version` |
-| *instance uninit* | `asc/instance/uninit.sh` | `make uninit` |
-| *asc upgrade* | `asc/asc/upgrade.sh` | `make asc-upgrade` |
-| *asc cache-clear* | `asc/asc/cache_clear.sh` | `make cc` |
-| *test asc* | `asc/test/core.sh` | `make test-core` |
-
-Logged runners and operators: [docs/asc/observability.md](docs/asc/observability.md), [docs/asc/layers.md](docs/asc/layers.md).
-
-```sh
-make lt e:some-entry
-make lc e:1:step-a e:2:step-b a:arg
-make lb e:job-a e:job-b
-make lp e:stage-a e:stage-b
-make ll e:long-running
-```
-
-After changing `ASC_SYNONYMS`: `make reinit`.
-
-### Automatic includes (summary)
-
-| Pattern | When |
-|---------|------|
-| `$subject/$subject.inc.sh` / `$ext/$ext.inc.sh` | Eager → `ASC_INC` (phase 60) |
-| `$subject/$subject.opt-inc.sh` | Lazy when any action in that subject is the caller |
-| `$subject/$action.opt-inc.sh` | Lazy for that action (also seedable into hook cache) |
-
-More: [docs/asc/bootstrap.md](docs/asc/bootstrap.md).
-
-### Hooks (summary)
-
-```sh
-make hook-debug a:start
-make hook-debug s:instance a:start v:STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE
-```
-
-`PROVISION_USING=compose` and `docker-compose` both expand in lookups (dual-compat). Specificity and filters: [docs/asc/hooks.md](docs/asc/hooks.md).
-
-Example:
-
-```sh
-hook -s 'app instance' \
-  -a 'fs_perms_set' \
-  -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'
-```
-
-Default `fs_perms_set` only touches ASC-managed paths (`./data`, `./asc`, `./scripts/asc`, `./.git`, plus a small whitelist of root files such as `env.yml` / `Makefile`).
-
-### Extensions (summary)
-
-Enable/disable via ignore files (see above). Catalog of bundled folders:
-
-| Name | Default on? | Submodules | Description |
-|------|:-----------:|:-----------|-------------|
-| `agent` | | | Plan subject stubs (`plan-iterate`, `plan-review`) |
-| `apache` | | | Apache VHost helpers (classic LAMP, non-compose) |
-| `apt` | ✔ | | Host apt `dependency-*` hooks (stubs) |
-| `arangodb` | | | Alias / image tag defaults |
-| `builder` | | | Templates / blueprints / prototypes stubs ([docs/asc/builder.md](docs/asc/builder.md)) |
-| `cognition` | | | `observe-*` / `recognize-*` / `categorize-*` / `compare-*` stubs |
-| `compose` | | | Docker Compose start/stop/build/destroy (`DC_MODE`, stack helpers) |
-| `crontab` | | | Host crontab sync helpers |
-| `db` | | | Abstract DB hooks |
-| `docker` | | `nested_docker` | Nested docker list/connect/exec stubs |
-| `drupalwt` | | | Drupal tasks ([extension README](asc/extensions/drupalwt/README.md)) |
-| `drupalwt_d4d` | | | Drupal + compose / docker4drupal-oriented stack |
-| `drush` | | | Drush aliases / hooks |
-| `entity` | | | Entity model stubs (`has-*`, `is-*`, field) |
-| `file_registry` | ✔ | | Default file-based registry (instance / host) |
-| `git_crypt` | | | Opt-in encryption hooks (stub) |
-| `agent` | | | LLM abstracts (`agent-start`, …) |
-| `hardware` | | `nested_hardware` | Hardware entity stubs |
-| `hosts_file` | | | `/etc/hosts` helpers |
-| `interaction` | | | Interactive prompt helpers |
-| `link` | ✔ | | `linkable` entity type |
-| `memory` | | | Storage / store stubs |
-| `moodle_d4php` | | | Moodle + docker4php-oriented stack |
-| `mysql` | | | MySQL implementations of `db` |
-| `nested_asc` | | | Nested instance list/exec ([docs/asc/nested-asc.md](docs/asc/nested-asc.md)) |
-| `nested_git` | | | Nested git / `subgit` wrap (`nested-git` synonym) |
-| `nested_host` | | | Nested host list/connect/exec stubs |
-| `node` | | | Aliases / default port |
-| `ollama` | | | Default hooks for `agent-*` via Ollama |
-| `pgsql` | | | Postgres implementations of `db` |
-| `remote` | | | SSH sync utilities |
-| `remote_asc` | | | Remote ASC helpers |
-| `remote_db` | | | DB dump sync via `db` + `remote` |
-| `remote_traefik` | | | Traefik / Let’s Encrypt defaults |
-| `rules` | | | Rule stubs |
-| `software` | | `nested_software` | Host package / provision hooks |
-| `taxonomy` | | | Term / vocabulary entity stubs |
-| `transcription` | | | `transcribe` / `transcribe-all` |
-| `views` | | | View stubs |
-
-Default-on assumes the stock core ignore list (everything listed there is off; `apt`, `file_registry`, and `link` are usually the exceptions). Nested subjects under an extension (Submodules column) can also be ignored via that extension’s `.asc_subjects_ignore`. Project overrides win. More: [docs/asc/extensions.md](docs/asc/extensions.md), [`asc/extensions/README.md`](asc/extensions/README.md).
-
-## Automated tests
-
-```sh
-make test-core
-```
-
-Single orchestration hook: `test` / `asc`. Core cases under `asc/test/asc/*.test.sh`; extensions and `scripts/asc/extend` can append via `test/asc.hook.sh`. Per-case make targets are generated into `data/asc/generated.mk` on `reinit` (registry: `data/asc/cache/test-cases.sh`).
-
-Full guide: [docs/asc/testing.md](docs/asc/testing.md).
-
-## Docs index
-
-1. [documentation (3 types only, as far as ASC is concerned)](docs/asc/documentation.md)
-    1. [ideas](docs/asc/documentation.md#ideas)
-    1. [changelogs](docs/asc/documentation.md#changelogs)
-    1. [living docs](docs/asc/documentation.md#living)
-1. [organization](docs/asc/organization.md)
-    1. [globals](docs/asc/organization.md#globals)
-    1. [hosts](docs/asc/organization.md#hosts)
-    1. [instances](docs/asc/organization.md#instances)
-    1. [humans vs agents (ownership ?)](docs/asc/organization.md#humans-vs-agents-ownership)
-    1. [subjects](docs/asc/organization.md#subjects)
-    1. [actions](docs/asc/organization.md#actions)
-    1. [hooks](docs/asc/organization.md#hooks)
-    1. [variants](docs/asc/organization.md#variants)
-    1. [bootstrap : inc, opt-inc](docs/asc/organization.md#bootstrap-inc-opt-inc)
-    1. [make shortcuts](docs/asc/organization.md#make-shortcuts)
-    1. [(re)init : cache, state](docs/asc/organization.md#re-init-cache-state)
-1. [wrappers](docs/asc/wrappers.md)
-    1. [batch (synonym : parallel)](docs/asc/wrappers.md#batch-synonym-parallel)
-    1. [chain (synonym : sequence)](docs/asc/wrappers.md#chain-synonym-sequence)
-    1. [cronjob (TODO or just use "raw" thread wrapper instead ?)](docs/asc/wrappers.md#cronjob-todo-or-just-use-raw-thread-wrapper-instead)
-    1. [loop (TODO synonyms : deamon ? background task ? background job ? always-on ?)](docs/asc/wrappers.md#loop-todo-synonyms-deamon-background-task-background-job-always-on)
-    1. [nested](docs/asc/wrappers.md#nested)
-    1. [pipe](docs/asc/wrappers.md#pipe)
-    1. [remote](docs/asc/wrappers.md#remote)
-    1. [rule (conditional and/or nested combinations)](docs/asc/wrappers.md#rule-conditional-and-or-nested-combinations)
-    1. [sequence](docs/asc/wrappers.md#sequence)
-    1. [stream ?](docs/asc/wrappers.md#stream)
-    1. [thread](docs/asc/wrappers.md#thread)
-    1. [tunnel](docs/asc/wrappers.md#tunnel)
-    1. [vpn](docs/asc/wrappers.md#vpn)
-    1. [curl](docs/asc/wrappers.md#curl)
-    1. [$protocol ? (http, etc)](docs/asc/wrappers.md#protocol)
-1. [entities](docs/asc/entities.md)
-    1. [represents ? (why it exists)](docs/asc/entities.md#represents-why-it-exists)
-    1. [definition (scope ?)](docs/asc/entities.md#definition-scope)
-    1. [capabilities](docs/asc/entities.md#capabilities)
-    1. [field vs prop](docs/asc/entities.md#field-vs-prop)
-    1. [sidecar](docs/asc/entities.md#sidecar)
-    1. [relationships](docs/asc/entities.md#relationships)
-    1. [compatibility, applicability ? (protocols, etc)](docs/asc/entities.md#compatibility-applicability-protocols-etc)
-    1. [yml includes (synonym : inheritance)](docs/asc/entities.md#yml-includes)
-    1. [change / workflow](docs/asc/entities.md#change--workflow)
-1. [yml structure](docs/asc/yml-structure.md)
-    1. [scope vs filename-DSL](docs/asc/yml-structure.md#scope-vs-filename-dsl)
-    1. [file kinds](docs/asc/yml-structure.md#file-kinds)
-    1. [props vs fields in bodies](docs/asc/yml-structure.md#props-vs-fields-in-bodies)
-    1. [state able (git draft)](docs/asc/yml-structure.md#state-able-git-draft)
-    1. [subject inventory](docs/asc/yml-structure.md#subject-inventory)
-    1. [repo entity (git draft)](docs/asc/yml-structure.md#repo-entity-git-draft)
-    1. [primordial meta (Wave B draft)](docs/asc/yml-structure.md#primordial-meta-wave-b-draft)
-    1. [open / living](docs/asc/yml-structure.md#open--living)
-1. [builder](docs/asc/builder.md)
-    1. [documenting (~ minimal OKF ? dedicated core extension ?)](docs/asc/builder.md#documenting-minimal-okf-dedicated-core-extension)
-    1. [blueprints](docs/asc/builder.md#blueprints)
-    1. [atomic blueprint objects](docs/asc/builder.md#atomic-blueprint-objects)
-    1. [slots](docs/asc/builder.md#slots)
-    1. [templates](docs/asc/builder.md#templates)
-    1. [self-building (chain.able, nest.able, rule.able codegen for humans and agents)](docs/asc/builder.md#self-building-chain-able-nest-able-rule-able-codegen-for-humans-and-agents)
-1. [performance optimization](docs/asc/performance-optimization.md)
-    1. [status and scope](docs/asc/performance-optimization.md#status-and-scope)
-    1. [measure first](docs/asc/performance-optimization.md#measure-first)
-    1. [file-tree growth (builder and make entry points)](docs/asc/performance-optimization.md#file-tree-growth-builder-and-make-entry-points)
-    1. [RAM-backed filesystems (tmpfs / ramfs)](docs/asc/performance-optimization.md#ram-backed-filesystems-tmpfs--ramfs)
-    1. [syncing RAM workspaces to durable disk](docs/asc/performance-optimization.md#syncing-ram-workspaces-to-durable-disk)
-    1. [content and path search (ripgrep, fd, find)](docs/asc/performance-optimization.md#content-and-path-search-ripgrep-fd-find)
-    1. [nested instances on one host](docs/asc/performance-optimization.md#nested-instances-on-one-host)
-    1. [preferred leverage order](docs/asc/performance-optimization.md#preferred-leverage-order)
-    1. [open tasks](docs/asc/performance-optimization.md#open-tasks)
-1. [testing](docs/asc/testing.md)
-    1. [1. Conventions (layers)](docs/asc/usage.md)
-    1. [1. asc/vendor/shunit2 dependency](docs/asc/usage.md)
-    1. [1. TODO new browser asc core extension, with playwright as default implementation in core as well ?](docs/asc/usage.md)
-1. [usage](docs/asc/usage.md)
-    1. [start](docs/asc/usage.md#start)
-    1. [extend](docs/asc/usage.md#extend)
-    1. [customize](docs/asc/usage.md#customize)
-    1. [adapt](docs/asc/usage.md#adapt)
-    1. [contribute](docs/asc/usage.md#contribute)
-1. [shell usage](docs/asc/shell-usage.md)
-    1. [stdin / stdout / stderr](docs/asc/shell-usage.md#stdin--stdout--stderr)
-    1. [sourcing](docs/asc/shell-usage.md#sourcing)
-    1. [argument forwarding](docs/asc/shell-usage.md#argument-forwarding)
-    1. [shell options](docs/asc/shell-usage.md#shell-options)
-    1. [Bash strict mode (`set -euo pipefail`)](docs/asc/shell-usage.md#bash-strict-mode-set--euo-pipefail)
-    1. [scope](docs/asc/shell-usage.md#scope)
-    1. [walk arrays](docs/asc/shell-usage.md#walk-arrays)
-    1. [Bash requirement / dash & ash](docs/asc/shell-usage.md#bash-requirement--dash--ash)
-    1. [step by step](docs/asc/shell-usage.md#step-by-step)
-    1. [symbol prefixes (f_ / e_ / o_ / p_ / b_ / hookms)](docs/asc/shell-usage.md#symbol-prefixes-f_--e_--o_--p_--b_--hookms)
-    1. [filename-DSL examples](docs/asc/shell-usage.md#filename-dsl-examples)
-    1. [proposed DSL redesign (README)](docs/asc/shell-usage.md#proposed-dsl-redesign-readme)
-    1. [parsable stdout (asc-dsl / asc-yml)](docs/asc/shell-usage.md#parsable-stdout-asc-dsl--asc-yml)
-
-Deep-dive index: [`docs/asc/README.md`](docs/asc/README.md).
-
-## Roadmap
-
-- Bash strict mode for all ASC (once refactored)
-- Reduce bashisms / improve POSIX compatibility where practical ~ less reliant on bash (support any posix shell ?), make the shell scripts themselves "variant.able" via hooks...
-- Windows support via tests in (nested) vm ?
-- macOS-specific errors ?
+- `.env`
+- `data/asc/global.vars.sh`
+- `data/asc/generated.mk`
+- `data/asc/cache/*`
 
 ## Contributors
 
-Project name, ideas & "rock n rôle" : [arhkaos](https://github.com/arhkaos)
+Project name, ideas & "rock'n'rôle" : [arhkaos](https://github.com/arhkaos)
 
 ## License
 

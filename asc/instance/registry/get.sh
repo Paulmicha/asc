@@ -14,7 +14,7 @@
 # @example
 #   make reg-get my_key
 #   # Or :
-#   asc/instance/registry_get.sh my_key
+#   asc/instance/registry/get.sh my_key
 #
 
 . asc/bootstrap.sh

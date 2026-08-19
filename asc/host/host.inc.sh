@@ -144,8 +144,8 @@ f_host_os() {
   fi
 
   # Prevent unexpected characters.
-  os=$(f_str_slug "$os")
-  version=$(f_str_slug "$version" '\.')
+  f_str_slug "$os" '-' 'os'
+  f_str_slug "$version" '.' 'version'
 
   # Prevent '-gnu-linux' in OS name.
   os=${os/-gnu-linux/""}

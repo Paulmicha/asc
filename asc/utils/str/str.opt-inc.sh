@@ -579,52 +579,109 @@ f_str_random() {
 }
 
 ##
-# Generates a slug from string.
+# Maps one input character to a lowercase ASCII slug letter (or empty).
 #
-# Accepts an additional parameter to specify the replacement character.
-# See https://gist.github.com/oneohthree/f528c7ae1e701ad990e6
+# Pure bash — no fork, no pipe. Drops ~ and ^ (iconv//TRANSLIT parity).
+# Latin-1 accents fold to ASCII; unmapped non-ASCII yields empty (separator).
 #
-# @param 1 String : the string to convert.
-# @param 2 [optional] String : the replacement character.
+# @sets transliterated_char folded letter, or empty when the char should not appear in output.
 #
-# @example
-#   SLUG=$(f_str_slug "A string with non-standard characters and accents. éàù!îôï. Test out!")
-#   echo "$SLUG" # Result : "a-string-with-non-standard-characters-and-accents-eau-ioi-test-out"
-#
-# @example with different custom separator :
-#   # WARNING : regex special characters need escaping.
-#   SLUG_DOT=$(f_str_slug "second test .. 456.2" '\.')
-#   echo "$SLUG" # Result : "second.test.456.2"
-#
-f_str_slug() {
-  local a_str="$1"
-  local a_sep="$2"
+f_transliterate_char() {
+  local c="$1"
 
-  local sep='-'
-  if [[ -n "$a_sep" ]]; then
-    sep="$a_sep"
-  fi
+  transliterated_char=''
 
-  echo "$a_str" \
-    | iconv -t ascii//TRANSLIT \
-    | sed -r s/[~\^]+//g \
-    | sed -r s/[^a-zA-Z0-9]+/"$sep"/g \
-    | sed -r s/^"$sep"+\|"$sep"+$//g \
-    | tr A-Z a-z
+  case "$c" in
+    ~|^) return 0 ;;
+    [0-9] | [a-z]) transliterated_char="$c" ;;
+    [A-Z]) transliterated_char="${c,,}" ;;
+    é | è | ê | ë | É | È | Ê | Ë) transliterated_char='e' ;;
+    à | á | â | ã | ä | å | À | Á | Â | Ã | Ä | Å) transliterated_char='a' ;;
+    ù | ú | û | ü | Ù | Ú | Û | Ü) transliterated_char='u' ;;
+    ì | í | î | ï | Ì | Í | Î | Ï) transliterated_char='i' ;;
+    ò | ó | ô | ö | Ò | Ó | Ô | Ö) transliterated_char='o' ;;
+    ñ | Ñ) transliterated_char='n' ;;
+    ç | Ç) transliterated_char='c' ;;
+    ý | ÿ | Ý) transliterated_char='y' ;;
+    æ) transliterated_char='ae' ;;
+    Æ) transliterated_char='ae' ;;
+    œ) transliterated_char='oe' ;;
+    Œ) transliterated_char='oe' ;;
+    ß) transliterated_char='ss' ;;
+  esac
 }
 
 ##
-# Generates a slug from string - variant using underscores instead of dashes.
+# Generates a slug from string.
+#
+# Lightweight pure-bash implementation: one char loop, no pipe, no subshell.
+# Optional separator (default '-'). Writes result via printf -v.
+#
+# See https://gist.github.com/oneohthree/f528c7ae1e701ad990e6 (original pipeline).
+#
+# @param 1 String : the string to convert.
+# @param 2 [optional] String : separator inserted between alphanumeric runs.
+#   Defaults to '-' (dash).
+# @param 3 [optional] String : output variable name in calling scope.
+#   Defaults to 'slug_val'.
+#
+# @example
+#   f_str_slug "A string with non-standard characters and accents. éàù!îôï. Test out!"
+#   echo "$slug_val" # "a-string-with-non-standard-characters-and-accents-eau-ioi-test-out"
+#
+# @example with different custom separator :
+#   f_str_slug "second test .. 456.2" '.' 'slug_dot'
+#   echo "$slug_dot" # "second.test.456.2"
+#
+f_str_slug() {
+  local a_str="$1"
+  local a_sep="${2:--}"
+  local a_output_var_name="${3:-slug_val}"
+  local result=''
+  local pending_sep=0
+  local i c
+
+  f_str_sanitize_var_name "$a_output_var_name" 'a_output_var_name'
+
+  for ((i = 0; i < ${#a_str}; i++)); do
+    c="${a_str:i:1}"
+
+    case "$c" in
+      '~' | '^') continue ;;
+    esac
+
+    f_transliterate_char "$c"
+
+    if [[ -n "$transliterated_char" ]]; then
+      result+="$transliterated_char"
+      pending_sep=0
+    elif [[ -n "$a_sep" && -n "$result" && pending_sep -eq 0 ]]; then
+      result+="$a_sep"
+      pending_sep=1
+    fi
+  done
+
+  if [[ -n "$a_sep" && -n "$result" ]]; then
+    while [[ "$result" == "$a_sep"* ]]; do
+      result="${result#"$a_sep"}"
+    done
+    while [[ "$result" == *"$a_sep" ]]; do
+      result="${result%"$a_sep"}"
+    done
+  fi
+
+  printf -v "$a_output_var_name" '%s' "$result"
+}
+
+##
+# Generates a "snake case" slug from string.
+#
+# f_str_slug() variant using underscores instead of dashes.
 #
 # @see f_str_slug()
 #
-f_str_slug_u() {
-  echo "${1}" \
-    | iconv -t ascii//TRANSLIT \
-    | sed -r s/[~\^]+//g \
-    | sed -r s/[^a-zA-Z0-9]+/_/g \
-    | sed -r s/^_+\|_+$//g \
-    | tr A-Z a-z
+f_str_snake() {
+  f_str_slug "$1" '_' "${2:-snake_val}"
 }
 
 ##

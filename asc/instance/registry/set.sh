@@ -14,7 +14,7 @@
 # @example
 #   make reg-set my_key 'my value'
 #   # Or :
-#   asc/instance/registry_set.sh my_key 'my value'
+#   asc/instance/registry/set.sh my_key 'my value'
 #
 
 . asc/bootstrap.sh
