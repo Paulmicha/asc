@@ -31,7 +31,7 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
   - second-brain stuff (chain of thought, etc)
 - in fact, anything complex is off limits
 
-## PURPOSE
+## Purpose
 
 ASC organizes (mostly bash) scripts around conventions so you can swap implementations without rewriting every project’s workflow:
 
@@ -45,17 +45,17 @@ ASC organizes (mostly bash) scripts around conventions so you can swap implement
 - remote two-way sync
 - etc.
 
-## HOW (concepts in brief)
+## How (concepts in brief)
 
-ASC relies on **file structure**, **naming conventions**, and a few primitives:
+ASC borrows some designs present in the [Drupal™](https://drupal.org) project originally transposed in a minimal fashion for devops-related tasks. But instead of being a Php "CMF" application, it is far less broad in scope and relies on **file structure**, **naming conventions**, and a few primitives:
 
-| Concept | Summary | Deep dive |
-|---------|---------|-----------|
-| **Globals** | Instance env vars from `env.yml` / `global.vars.sh`, written to `.env` + `data/asc/global.vars.sh` | [docs/asc/globals.md](docs/asc/globals.md) |
-| **Bootstrap** | `. asc/bootstrap.sh` → numbered phases; eager `*.inc.sh` vs lazy `*.opt-inc.sh` | [docs/asc/bootstrap.md](docs/asc/bootstrap.md) |
-| **Instance init** | Aggregates globals, optional git hooks, generates make shortcuts | `u_instance_init()` in `asc/instance/instance.inc.sh` |
-| **Actions** | Folders = subjects, files = actions → `data/asc/generated.mk` | [docs/asc/actions-and-make.md](docs/asc/actions-and-make.md) |
-| **Hooks** | File-based events (`*.hook.sh`) with variant combinations | [docs/asc/hooks.md](docs/asc/hooks.md) |
+| Concept | Summary |
+|---------|---------|
+| **Globals** | Instance env vars from `env.yml` / `global.vars.sh`, written to `.env` + `data/asc/global.vars.sh` |
+| **Bootstrap** | `. asc/bootstrap.sh` ; eager `*.inc.sh` vs lazy `*.opt-inc.sh` |
+| **Instance init** | Aggregates globals, optional git hooks, generates make shortcuts |
+| **Actions** | Folders = subjects, files = actions → `data/asc/generated.mk` |
+| **Hooks** | File-based events (e.g. `*.hook.sh`) with variant combinations |
 
 ## Example project (demo / case study)
 
@@ -63,9 +63,14 @@ Here is what I am currently building with it (when I have some free time) :
 
 ["_Projet Complexe_", a "second brain" project incorporating agentic task-oriented and knowledge-oriented implementations](data/ideas/2026/08/Projet%20Complexe%202026%20Revival%20(v2)%20-%20ASC,%20Projet%20Complexe%20and%20Projet%20Complexe%20ASC.pdf)
 
-See the corresponding [project-specific ASC (stack) repo](https://github.com/Paulmicha/projet-complexe-asc) + [the UI (Tauri app) repo](https://github.com/Paulmicha/projet-complexe).
+See :
 
-### An attempt at reinterpreting Mihaly Csikszentmihalyi's concept of _Flow_ for agents
+- the corresponding [project-specific ASC (stack) repo](https://github.com/Paulmicha/projet-complexe-asc)
+- and [the UI (Tauri app) repo](https://github.com/Paulmicha/projet-complexe)
+
+Here's a few words to tease this representative ASC use case :
+
+### ASC demo : "_Projet Complexe_" as an attempt at reinterpreting Mihaly Csikszentmihalyi's concept of _Flow_ for agents
 
 For humans:
 
@@ -168,6 +173,8 @@ That means regulating:
 
 instead of merely reducing token count.
 
+Enough teasing "_Projet Complexe_", back to ASC - the generic base upon which all of this work rests :
+
 ## Current status of the ASC project
 
 *Massive rewrite* ☢️ to shrink it to bare essentials, rethink things through.
@@ -181,67 +188,71 @@ Resolution : agnostic stance. In terms of ASC entity representation, `$subject` 
 
 Implications : change ASC core current files discovery mechanisms to support both.
 
-1. Finish describing ASC "core" concepts explicitly
-1. ~~Stabilize Naming convention~~
-1. Stabilize hooks
-1. Stabilize DSL
-1. Stabilize Yml
-1. Refactor Bootstrap
-1. Stabilize workflow + git flow
-1. Refactor core + core extensions
-1. Refactor tests (switch to nestable entity)
-1. Complete the Builder
-1. Complete the baseline implementations
-1. Implement agents (for now Cursor to test MVP, then planned : Hermes + ollama + kimi k3 ?)
+1. [ ] Finish describing ASC "core" concepts explicitly
+1. [x] ~~Stabilize Naming convention~~
+1. [ ] Stabilize hooks
+1. [ ] Stabilize DSL
+1. [ ] Stabilize Yml
+1. [ ] Refactor Bootstrap
+1. [ ] Stabilize workflow + git flow
+1. [ ] Refactor core + core extensions
+1. [ ] Refactor tests (switch to nestable entity)
+1. [ ] Complete the Builder
+1. [ ] Complete the baseline implementations
+1. [ ] Implement agents (for now : Ollama and Cursor to test MVP)
 
 ## Core ASC concepts
 
 ### Genericity (scale)
 
-1. Primordial = the unique Yaml file at the top of the Yaml inclusion chain : `yml.yml` (akin to the very first living cell that existed on earth),
-2. Primitives = Yaml files defining "low-level" structural things (like : which root properties the including Yaml files can declare),
-3. Core = "generic" implementations that are systematically relevant across all projects using ASC,
-4. Extensions = namespaced bundles of actions by subjects and/or objects,
-5. Overrides = alterations of implementations provided by core and/or extensions,
-6. Specifics = impementations with low or no potential for reuse outside the current projet ASC is used for.
+1. **Primordial** = the unique Yaml file at the top of the Yaml inclusion chain : `yml.yml` (akin to the very first living cell that existed on earth),
+2. **Primitives** = Yaml files defining "low-level" structural stuff (like : which root properties the including Yaml files can use to specify things),
+3. **Core** = "generic" implementations that are systematically relevant across all projects using ASC (some of which - the core extensions themselves - are opt-in),
+4. **Extensions** = namespaced bundles of actions by subjects and/or objects (including contrib, as in the Drupal ecosystem),
+5. **Overrides** = alterations of implementations provided by core and/or extensions,
+6. **Specifics** = impementations with low or no potential for reuse outside the current projet ASC is used for.
 
 The **primordial** file just defines basic synonyms. They are interchangeable words used across all Yaml files.
 
 **Primitives** include :
 
-- `entity.entity.yml` defining the structure of *entities* (it specifies that every `*.entity.yml` can have the root props `entity`, `required`, `optional`) ;
-- `able.able.yml` defining the structure of *contracts* (*skills* or *capabilities*) ;
+- `entity.entity.yml` defining the structure of *entities* (i.e. it specifies, for instance, that every `*.entity.yml` can have the root props `entity`, `required`, `optional`) ;
+- `able.able.yml` defining the structure of *contracts* (= *skills* or *capabilities*) ;
 - and perhaps other use cases may warrant interventions on that level in other projects using ASC (the door remains open).
 
 **Core** implementations include :
 
-- low-level
-- opt-in extensions, notably : the entity system
+- Whatever ASC needs to work the way it does (low-level implementations like globals, shell scripts auto includes, hooks implementations discovery and conflicts resolution, instance and host-related implementations, etc.),
+- Wrappers around common shell utilities (threads, logs, cronjobs, etc.),
+- Minimal shell-based tests (using `asc/vendor/shunit2`),
+- Generic utilities (a few basic shell scripting utilities - arrays, strings, filesystem-related, ssh-related, templating-related, git-related, yml-related - see `asc/vendor/bash-yaml`, etc.),
+- A few opt-in extensions, notably :
 
-### ASC-bootstrapped context, or just _bootstrap_
+### Bootstrap (ASC-bootstrapped context)
 
-This means any shell context that has sourced `asc/bootstrap.sh`. It loads global env vars and bash functions, depending on "auto" - and optionally "leazy" - loaded includes corresponding to the entry point used.
+A *bootstrapped* context is any shell context that has sourced `asc/bootstrap.sh`. It loads global env vars and bash functions, depending on "auto" (or "eager") - and optionally "leazy" - loaded includes corresponding to the entry point used.
 
-There are 2 kinds of ASC bootstrap contexts :
+There are 2 kinds of bootstrapped contexts :
 
-1. when a project instance is not initialized yet
-1. after initialization has run (usually once in a local project instance), see setup.
+1. when a project instance is not initialized yet,
+1. and after initialization has run (usually once in a local project instance) : see *setup*.
 
-### ASC-active dir, or just _active dir_
+### ASC-active dir
 
-An "ASC-active dir" is a folder where files following specific naming conventions allow things like :
+An *active dir* is a folder where files following specific naming conventions allow things like :
 
-- auto or lazy loading of bash shell script includes (in ASC-bootstrapped contexts),
+- auto (eager) or lazy loading of bash shell script includes (in ASC-bootstrapped contexts),
 - global env vars definitions,
 - hook implementations (with variants), including yaml files, python scripts, etc.
 
-These folders are automatically discovered during instance init (and setup). They depend on things like :
+These folders are automatically discovered during instance init (and setup). The implementations they contain depend on things like :
 
-- which extensions are enabled (using `.gitignore`-like declarations, see `.asc_subjects_ignore` files),
-- which level of genericity the contained implementations have,
-- wether they relate to a `$subject` or an `$object` (by subject)
+- which **extensions** are enabled (using `.gitignore`-like declarations, see `.asc_subjects_ignore` files),
+- which **global env vars values** are set,
+- which **level of genericity** the contained implementations have (this determines conflicted "winners"),
+- and wether they relate to a `$subject` or an `$object` (by subject) given the **entry point** used.
 
-**List of active dirs** (containing implementations from **most generic** to **most specific**)
+**List of active dirs** (containing implementations from **most generic** to **most specific**) :
 
 1. `./asc`
 1. `./asc/extensions/$extension` (ex: `asc/extensions/compose`)
@@ -249,9 +260,9 @@ These folders are automatically discovered during instance init (and setup). The
 1. `./scripts/asc/contrib/$vendor/$extension` (ex: `scripts/asc/contrib/foobar/baz`)
 1. `./scripts/asc/extend`
 
-### Specificity and Collisions handling
+### Specificity and collisions handling
 
-The bottom of this list wins when implementing the same `u_hook_most_specific()`, or even in case of the same `make $subject-$action` entry point pivot :
+The bottom of this list wins when implementing the same `hook_ms()` (i.e. the "most-specific" variant of a hook call that only matches a single file instead of potentially many files), or even in case of the same `make $subject-$action` entry point pivot :
 
 1. `asc/$subject/$action`
 1. `asc/$subject/$object/$action`
@@ -281,7 +292,7 @@ In *active dirs*, there are 2 nesting levels supported for *entry points* (or *a
 
 TODO
 
-### hooks (variants)
+### Hooks (variants)
 
 TODO [wip] rewrite properly this :
 
