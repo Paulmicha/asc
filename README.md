@@ -47,7 +47,7 @@ ASC organizes (mostly bash) scripts around conventions so you can swap implement
 
 ## How (concepts in brief)
 
-ASC borrows some designs present in the [Drupal™](https://drupal.org) project. Those were originally transposed in a minimal fashion for devops-related tasks in Bash, but ASC is far less broad in scope and relies on **filesystem structure** and **naming conventions**. The crux of it is essentially :
+ASC borrows some designs present in Git and in the [Drupal™](https://drupal.org) project. Those were originally transposed in a minimal fashion for devops-related tasks in Bash, but ASC is far less broad in scope and relies on **filesystem structure** and **naming conventions**. The crux of it is essentially :
 
 | Concept | Summary |
 |---------|---------|
