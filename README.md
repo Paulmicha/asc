@@ -441,28 +441,48 @@ which stores (in sidecars or globals or cache or scripts) the value for ASC impl
 
 ### ASC domain-specific language : *DSL* syntax
 
-**Positional arguments**
+#### Entry points
+
+As in `make`. Ex : `make start`, `make service-rebuild`, etc.
+
+#### Arguments
+
+**Positional arguments :**
 
 - `a` = `$@` (all arguments are forwarded "as is")
 - `p1` = `$1`
 - `p2` = `$2`
 - etc.
 
-**Boolean options** (shrink all `--` to `-` in prefixed syntax)
+**Boolean options :** (shrink all `--` to `-` in prefixed syntax)
 
 - `b-oneline` = `--oneline`
 - `bo-y` = `-y` = any boolean option
 - etc.
 
-**Named options**
+**Named options :**
 
 - `o-max-4` = `--max=4` or `--max 4` or `-m 4`
 
-**Any bash var mapping in hook calling scope**
+#### Variables
+
+**Any bash var in (hook) calling scope :**
+
+Using the `v-` prefix :
 
 - `v-input_file_path` = whatever value the `$input_file_path` bash variable has in a `hook()` calling scope.
 
-**Example :**
+#### Functions
+
+**Any bash function :**
+
+Using `[]` enclosure :
+
+- `[f_db_clear(foobar)]` = calls `f_db_clear('foobar')`
+- `[f_db_clear(v-DB_NAME)]` = calls `f_db_clear("$DB_NAME")`
+
+
+#### "Normal" DSL example
 
 ```text
 transcribe-file(path/to/file.mp4)
@@ -474,7 +494,7 @@ triggers the following call :
 asc/extensions/transcription/transcribe/file.sh path/to/file.mp4
 ```
 
-**Example use in Yaml :**
+#### DSL in Yaml
 
 In a Yaml file `foobar.entity.yml` specifying a `foobar` entity definition with a `toto` field, the "validate" entry specifies that the `toto` field value must respect either URL slug or snake case formats :
 
