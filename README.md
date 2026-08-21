@@ -293,31 +293,21 @@ In *active dirs*, there are 2 nesting levels supported for *entry points* (or *a
 
 ### (global) _Env vars_ : generated Bash shell readonly constants
 
-TODO
+TODO [wip]
 
 ### Hooks (variants)
 
-TODO [wip] rewrite properly this :
+TODO [wip]
 
 Triggers an "event" optionally filtered by primitives.
 
-Arguments are all optional, but this function requires at least either
-1 action (-a) OR 1 extension (-e). See explanations below.
+Arguments are all optional, but the `hook()` function requires at least **1 action** (-a).
 
 In order to "listen" to events, some specific file(s) must use the exact path
-and name corresponding to its arguments. For a detailed list of expected
-output given various inputs :
+and name corresponding to its arguments.
 
-@see asc/test/asc/hook.test.sh
-
-Primitives are fundamental values dynamically generated during bootstrap :
-
-@see asc/bootstrap.sh
-
-@see f_asc_extend()
-
-Calling this function will source all file includes matched by subject,
-action, prefix, variant, and extension. Every extension defines a base path from
+Calling `hook()` will source all file includes matched by subject,
+action, prefix, variant. Every extension defines a base path from
 which additional lookup paths are derived (as well as a corresponding namespace
 for glabals containing their primitives).
 
@@ -326,40 +316,32 @@ Important notes about the 'variants' (-v) argument :
 If this function gets called without any 'variant' filter(s), it will
 automatically look for suggestions using INSTANCE_TYPE.
 
-Variants are combinatory. Each variant value must be an existing glabal var
-which will generate the following lookup paths given the call :
+Variants are **combinatory**. They can be *any bash variable* present in the calling scope.
 
-$ hook -a 'my_action' -s 'my_subject' -v 'PROVISION_USING INSTANCE_TYPE'
-+ the values PROVISION_USING='compose' and INSTANCE_TYPE='dev' :
+For example, when `PROVISION_USING='compose'` and `INSTANCE_TYPE='dev'`, calling :
 
-- asc/my_subject/my_action.hook.sh
-- asc/my_subject/my_action.compose.hook.sh
-- asc/my_subject/my_action.compose.dev.hook.sh
-- asc/my_subject/my_action.dev.hook.sh
+```sh
+hook -a 'my_action' -s 'my_subject' -v 'PROVISION_USING INSTANCE_TYPE'
+```
+... will source all of the following bash script files (any that exists) :
 
-@requires the following global variables in calling scope :
+- `asc/my_subject/my_action.hook.sh`
+- `asc/my_subject/my_action.compose.hook.sh`
+- `asc/my_subject/my_action.compose.dev.hook.sh`
+- `asc/my_subject/my_action.dev.hook.sh`
 
-- ASC_ACTIONS
-- ASC_SUBJECTS
-- ASC_EXTENSIONS
-
-@uses the following global variables in calling scope if they exist :
-
-- ${EXTENSION_NAMESPACE}_ACTIONS
-- ${EXTENSION_NAMESPACE}_SUBJECTS
-
-NB : the default separator used to concatenate parts in file names is
-the underscore '_', except for variants which use dot '.'.
-
-Dashes '-' are reserved for folder names and to separate "semver" suffixes.
 Semver suffixes can be used in extension folder names and variant values.
+
+TODO [wip] example here for that.
 
 Also note that each argument accepts several values by using a space to
 separate them. E.g. :
 
-$ hook -a 'start' -s 'stack service instance app'
+```sh
+hook -a 'start' -s 'stack service instance app'
+```
 
-TODO Document cache warmup.
+TODO [wip] Document cache warmup.
 
 @examples
 
@@ -476,27 +458,48 @@ which stores (in sidecars or globals or cache or scripts) the value for ASC impl
 
 - `o-max-4` = `--max=4` or `--max 4` or `-m 4`
 
-**Example**
+**Any bash var mapping in hook calling scope**
+
+- `v-input_file_path` = whatever value the `$input_file_path` bash variable has in a `hook()` calling scope.
+
+**Example :**
+
+```text
+transcribe-file(path/to/file.mp4)
+```
+
+triggers the following call :
+
+```sh
+asc/extensions/transcription/transcribe/file.sh path/to/file.mp4
+```
+
+**Example use in Yaml :**
 
 In a Yaml file `foobar.entity.yml` specifying a `foobar` entity definition with a `toto` field, the "validate" entry specifies that the `toto` field value must respect either URL slug or snake case formats :
 
 ```yml
-# This allows to enforce which things are mandatory.
 required:
   field:
     toto:
-      validate: test-in(p1,[slug(p1),slug(p1,_)])
+      validate: test-in(p1,slug(p1),snake(p1))
 ```
 
-That DSL syntax example translates to bash :
+That DSL syntax example translates to :
 
 ```sh
-f_str_slug 'foobar'
-f_str_snake 'foobar'
-[[ asc/utils/test/in.sh 'foobar' "$slug_val" "$snake_val" ]] || exit 1
+[[ asc/utils/test/in.sh 'foo-bar' "$(asc/instance/slug.sh 'foo-bar')" "$(asc/instance/snake.sh 'foo-bar')" ]] || exit 1
+# where 'foo-bar' would be the entity "toto" field value declared in its *.entity.yml specification.
+# TODO [wip] during entity validation ?
 ```
 
-DSL syntax must remain filename-safe (Linux, Windows, IOS).
+NB : any DSL starting with `test-*` translates to e.g. `[[ */test/*.sh ]] || exit 1` for convenience.
+
+DSL syntax must remain filename-safe (Linux, Windows, IOS), so we could have files implementing hooks like :
+
+```text
+*/$subject/transcribe-file(v-input_file_path).pre-index.hook.sh
+```
 
 ### ASC data types
 
