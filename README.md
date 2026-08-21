@@ -478,9 +478,13 @@ Using the `v-` prefix :
 
 Using `[]` enclosure :
 
-- `[f_db_clear(foobar)]` = calls `f_db_clear('foobar')`
-- `[f_db_clear(v-DB_NAME)]` = calls `f_db_clear("$DB_NAME")`
+- `[echo(a)]` = calls `echo "$@"`
+- `[f_db_clear(foobar)]` = calls `f_db_clear 'foobar'`
+- `[f_db_clear(v-DB_NAME)]` = calls `f_db_clear "$DB_NAME"`
 
+#### TODO [wip] Wrapping ? Piping ?
+
+- `[echo(v-baz)]--grep(foobar)` = calls `echo "$baz" | grep 'foobar'` ?
 
 #### "Normal" DSL example
 
