@@ -14,26 +14,26 @@ The only "job" of ASC is to serve as a thin layer that :
 
 Like the Go game, but with (make) entry points, (global) env vars, hooks (variants), wrappers (scripts), metadata (yml), and some generic implementations (opt-in).
 
+***Let's make words matter*** 📚
+
 ### Scope
 
 - Thin layer to organize generic (pivot) shell entry points, enforcing a common implementation blueprint for (self-)building by humans and agents alike
 - Simple, minimal, self-explanatory
 - Delegate as much as possible, but still provide usual, optional (opt-in), generic needs as (overridable) "exemplar" implementation blueprints
 - Define things and (implementation) contracts
-- Generate simple ASC code from $slot.able file / folder templates or strings.
+- Generate simple ASC code from folder or string templates (i.e. `asc/extensions/builder`).
 
 ### Non-goals ("out of scope"s)
 
 - code refactoring
 - self-organizing abominable all-orchestrating plaform
-- complex nl-related or agent-related stuff should be delegated to nested apps, e.g. :
-  - ontology stuff (prompt engineering)
-  - second-brain stuff (chain of thought, etc)
+- complex NL-related or agent-related stuff should be delegated to dedicated project instances
 - in fact, anything complex is off limits
 
 ## Purpose
 
-ASC organizes (mostly bash) scripts around conventions so you can swap implementations without rewriting every project’s workflow:
+ASC organizes (mostly bash) scripts around conventions so you can swap implementations without rewriting every project’s workflow :
 
 - host-level dependencies / provisioning
 - credentials and registries
@@ -47,7 +47,7 @@ ASC organizes (mostly bash) scripts around conventions so you can swap implement
 
 ## How (concepts in brief)
 
-ASC borrows some designs present in the [Drupal™](https://drupal.org) project originally transposed in a minimal fashion for devops-related tasks. But instead of being a Php "CMF" application, it is far less broad in scope and relies on **file structure**, **naming conventions**, and a few primitives:
+ASC borrows some designs present in the [Drupal™](https://drupal.org) project. Those were originally transposed in a minimal fashion for devops-related tasks in Bash, but ASC is far less broad in scope and relies on **filesystem structure** and **naming conventions**. The crux of it is essentially :
 
 | Concept | Summary |
 |---------|---------|
@@ -56,6 +56,8 @@ ASC borrows some designs present in the [Drupal™](https://drupal.org) project 
 | **Instance init** | Aggregates globals, optional git hooks, generates make shortcuts |
 | **Actions** | Folders = subjects, files = actions → `data/asc/generated.mk` |
 | **Hooks** | File-based events (e.g. `*.hook.sh`) with variant combinations |
+
+The rest of this README contains a bit more details, hopefully enough to decide wether it fits whatever reason have led your eyes here :)
 
 ## Example project (demo / case study)
 
@@ -227,10 +229,11 @@ The **primordial** file just defines basic synonyms. They are interchangeable wo
 - Minimal shell-based tests (using `asc/vendor/shunit2`),
 - Generic utilities (a few basic shell scripting utilities - arrays, strings, filesystem-related, ssh-related, templating-related, git-related, yml-related - see `asc/vendor/bash-yaml`, etc.),
 - A few opt-in extensions, notably :
+    - TODO
 
 ### Bootstrap (ASC-bootstrapped context)
 
-A *bootstrapped* context is any shell context that has sourced `asc/bootstrap.sh`. It loads global env vars and bash functions, depending on "auto" (or "eager") - and optionally "leazy" - loaded includes corresponding to the entry point used.
+A *bootstrapped* context is any shell context that has sourced `asc/bootstrap.sh`. It loads global env vars and bash functions, depending on "auto" (= "eager") - and optionally "leazy" - loaded includes corresponding to the entry point used.
 
 There are 2 kinds of bootstrapped contexts :
 
@@ -241,7 +244,7 @@ There are 2 kinds of bootstrapped contexts :
 
 An *active dir* is a folder where files following specific naming conventions allow things like :
 
-- auto (eager) or lazy loading of bash shell script includes (in ASC-bootstrapped contexts),
+- auto (= eager) or lazy loading of bash shell script includes (in ASC-bootstrapped contexts),
 - global env vars definitions,
 - hook implementations (with variants), including yaml files, python scripts, etc.
 
@@ -250,7 +253,7 @@ These folders are automatically discovered during instance init (and setup). The
 - which **extensions** are enabled (using `.gitignore`-like declarations, see `.asc_subjects_ignore` files),
 - which **global env vars values** are set,
 - which **level of genericity** the contained implementations have (this determines conflicted "winners"),
-- and wether they relate to a `$subject` or an `$object` (by subject) given the **entry point** used.
+- and wether they relate to a `$subject` or an `$object` (by subject) given the **entry point** (= `$action`) used.
 
 **List of active dirs** (containing implementations from **most generic** to **most specific**) :
 
@@ -262,7 +265,7 @@ These folders are automatically discovered during instance init (and setup). The
 
 ### Specificity and collisions handling
 
-The bottom of this list wins when implementing the same `hook_ms()` (i.e. the "most-specific" variant of a hook call that only matches a single file instead of potentially many files), or even in case of the same `make $subject-$action` entry point pivot :
+The bottom of this list wins when implementing the same `hook_ms()` (i.e. the "most-specific" variant of a hook call that only matches a single file instead of potentially many files), or even in case of a `make $subject-$action` entry point pivot that could potentially have more than one corresponding script :
 
 1. `asc/$subject/$action`
 1. `asc/$subject/$object/$action`
@@ -275,7 +278,7 @@ The bottom of this list wins when implementing the same `hook_ms()` (i.e. the "m
 1. `scripts/asc/extend/$subject/$action`
 1. `scripts/asc/extend/$subject/$object/$action`
 
-### (make) _Entry points_ : ASC `$action` script, or just _action_
+### (make) _Entry points_ are `$action` scripts (or just _actions_)
 
 ASC actions are any shell scripts placed in *active dirs* with a file name :
 
