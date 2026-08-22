@@ -449,7 +449,7 @@ As in `make`. Ex : `make start`, `make service-rebuild`, etc.
 
 **Positional arguments :**
 
-- `a` = `$@` (all arguments are forwarded "as is")
+- `@` = `$@` (all arguments are forwarded "as is")
 - `p1` = `$1`
 - `p2` = `$2`
 - etc.
@@ -457,12 +457,13 @@ As in `make`. Ex : `make start`, `make service-rebuild`, etc.
 **Boolean options :** (shrink all `--` to `-` in prefixed syntax)
 
 - `b-oneline` = `--oneline`
-- `bo-y` = `-y` = any boolean option
-- etc.
+- `b-y` = `-y` = any boolean option
+- `b-@` = all boolean options are forwarded - and ONLY boolean options (TODO [wip] Yagni ?)
 
 **Named options :**
 
-- `o-max-4` = `--max=4` or `--max 4` or `-m 4`
+- `o-max-4` = `--max=4` or `--max 4` or `-m 4` (TODO [wip] How to distinguish ?)
+- `o-@` = all named options are forwarded - and ONLY named options (TODO [wip] Yagni ?)
 
 #### Variables
 
@@ -470,11 +471,13 @@ As in `make`. Ex : `make start`, `make service-rebuild`, etc.
 
 Using the `v-` prefix :
 
-- `v-input_file_path` = whatever value the `$input_file_path` bash variable has in a `hook()` calling scope.
+- `v-input_file_path` = whatever value the `$input_file_path` bash variable has e.g. in a `hook()` calling scope.
+
+This is useful for the example mentionned below : `*/$subject/transcribe-file(v-input_file_path).pre-index.hook.sh`
 
 #### Functions
 
-**Any bash function :**
+**Any (whitelisted) bash function :**
 
 Using `[]` enclosure :
 
@@ -482,9 +485,42 @@ Using `[]` enclosure :
 - `[f_db_clear(foobar)]` = calls `f_db_clear 'foobar'`
 - `[f_db_clear(v-DB_NAME)]` = calls `f_db_clear "$DB_NAME"`
 
-#### TODO [wip] Wrapping ? Piping ?
+TODO [wip] use subshell for nested cases like : `[f_db_clear(slug(p1))]` -> `f_db_clear "$(slug 'foobar')"` ?
 
-- `[echo(v-baz)]--grep(foobar)` = calls `echo "$baz" | grep 'foobar'` ?
+#### Piping
+
+- `[echo(v-baz)]+grep(foobar)` = calls `echo "$baz" | grep 'foobar'`
+
+#### Chaining
+
+- `[echo(v-baz)];echo(foobar)` = calls `echo "$baz" ; echo 'foobar'`
+
+#### Redirecting
+
+- `[echo(v-baz)]--v-output_file_path` = calls `echo "$baz" > "$output_file_path"`
+- `[echo(v-baz)]---v-output_file_path` = calls `echo "$baz" >> "$output_file_path"`
+
+#### Iterations (= loops, foreach, for ... in)
+
+Loop on **array items** :
+
+- `[[echo(v-item)]v-foobar_arr]` yields :
+
+```sh
+for item in "${foobar_arr[@]}"; do
+  echo "$item"
+done
+```
+
+Loop on **output lines** (or on anything that can go inside `[]`) :
+
+- `[[echo(v-item)]myfunc]` yields :
+
+```sh
+while read -r item; do
+  echo "$item"
+done < <(myfunc)
+```
 
 #### "Normal" DSL example
 
