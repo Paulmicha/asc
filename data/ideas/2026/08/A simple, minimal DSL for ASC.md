@@ -4,26 +4,28 @@
 
 **Date:** 2026-08-22  
 **Status:** conversation capture / design instrument (not a spec, not an implementation plan)  
-**Context:** README § “ASC domain-specific language : *DSL* syntax”; Revival v4 (`Projet Complexe 2026 Revival (v4) - ASC, Projet Complexe and Projet Complexe ASC.md`); competing punctuation in `docs/asc/shell-usage.md` vs `changelog/2026/07/24-filename-dsl.md`.  
+**Context:** README § “ASC domain-specific language : *DSL* syntax” is the **only source of truth** for this syntax (the README is the only doc written entirely by the author). Revival v4 (`Projet Complexe 2026 Revival (v4) - ASC, Projet Complexe and Projet Complexe ASC.md`) for the agent / tool-boundary cut.  
 **Origin:** Cursor chat, 2026-08-22. Written out in full so the thread can be resumed from this file.
 
 This note exists because the README DSL looks small enough to “just teach a model,” and that idea is easy to over-build — or to under-build, by skipping the one cheap piece that makes everything else safe.
 
 The useful question is not only “is a small model possible?” It is:
 
-> Which job is neural (authoring DSL from natural language) and which job is symbolic (parsing, compiling, rejecting invalid or dangerous strings) — and which of those belongs in ASC core, which is a Fallback for tiny local models, and which should wait until the grammar is frozen?
+> Which job is neural (authoring DSL from natural language) and which job is symbolic (parsing, compiling, rejecting invalid or dangerous strings) — and which of those belongs in ASC core, which is a Fallback for tiny local models, and which should wait until the README’s own remaining TODOs are closed?
 
 ---
 
 # 0. What the README DSL actually is
 
-The syntax under specification (README, still marked **Stabilize DSL** unchecked) is a compact, **filename-safe** combinator language. It is meant to address argv the way `make` addresses entry points, and to appear in YAML `validate:` fields and in hook filenames such as:
+The syntax in the README is a compact, **filename-safe** combinator language. It is meant to address argv the way `make` addresses entry points, and to appear in YAML `validate:` fields and in hook filenames such as:
 
 ```text
 */$subject/transcribe-file(v-input_file_path).pre-index.hook.sh
 ```
 
-## 0.1 Surface (README proposal)
+The rewrite checklist still has **Stabilize DSL** unchecked. That means “write the PEG / runtime that matches this README,” not “the README is one proposal among others.” The README *is* the language. A few lines inside it are still marked `TODO [wip]` (see §0.2); those are holes *in* the SoT, to be closed *in* the README.
+
+## 0.1 Surface
 
 **Entry points** (as in `make`):
 
@@ -39,23 +41,23 @@ The syntax under specification (README, still marked **Stabilize DSL** unchecked
 
 - `b-oneline` = `--oneline`
 - `b-y` = `-y`
-- `b-@` = all boolean options forwarded (TODO, possibly YAGNI)
+- `b-@` = all boolean options forwarded (TODO [wip] YAGNI?)
 
 **Named options:**
 
-- `o-max-4` = `--max=4` or `--max 4` or `-m 4` (TODO: how to distinguish)
-- `o-@` = all named options forwarded (TODO, possibly YAGNI)
+- `o-max-4` = `--max=4` or `--max 4` or `-m 4` (TODO [wip] how to distinguish)
+- `o-@` = all named options forwarded (TODO [wip] YAGNI?)
 
 **Variables** (any bash var in hook calling scope), `v-` prefix:
 
 - `v-input_file_path` = `$input_file_path` in a `hook()` calling scope
 
-**Functions** (whitelisted bash functions), `[]` enclosure in the README invert:
+**Functions** (whitelisted bash functions), `[]` enclosure:
 
 - `[echo(a)]` = `echo "$@"`
 - `[f_db_clear(foobar)]` = `f_db_clear 'foobar'`
 - `[f_db_clear(v-DB_NAME)]` = `f_db_clear "$DB_NAME"`
-- Nested / subshell TODO: `[f_db_clear(slug(p1))]` → `f_db_clear "$(slug 'foobar')"` ?
+- Nested / subshell TODO [wip]: `[f_db_clear(slug(p1))]` → `f_db_clear "$(slug 'foobar')"` ?
 
 **Chaining:**
 
@@ -105,29 +107,16 @@ Any DSL starting with `test-*` is meant to compile to `[[ */test/*.sh ]] || exit
 
 This is a **tiny combinator language**: entry points, a handful of prefixes (`p1` / `b-` / `o-` / `v-`), and a handful of operators (`;` `;;` `-;-` `+` `++` `--` `---`, loops). That smallness is what makes both a parser and a small model *possible*. It is also what makes a neural interpreter the wrong default.
 
-## 0.2 The grammar is not frozen
+## 0.2 Open lines still inside the README
 
-Two punctuations currently compete (`docs/asc/shell-usage.md` § proposed DSL redesign):
+Not a second syntax. These are the README’s own unfinished edges:
 
-| Locked (filename-DSL plan) | Proposed (README invert) |
-|---|---|
-| `()` = wrap, `[]` = args | invert `(` and `[` |
-| positional → `a` / `a-1` / `a_*` | same (already locked in naming plans) |
-| boolean → `b-*` / `b_` | boolean → `bo-*` / `bo_` (README sketch) |
+- `b-@` / `o-@` — YAGNI?
+- `o-max-4` — `--max=4` vs `--max 4` vs `-m 4`
+- nested calls — subshell or not (`[f_db_clear(slug(p1))]`)
+- when YAML `validate:` runs (during entity validation?)
 
-Locked-plan example vs README invert:
-
-```text
-# locked plan shape (positional token a-1)
-test-is[either](slot.slug[-],slot.slug[_])
-
-# proposed punctuation invert (still review)
-test-in(a1,[slug(a-1,-),slug(a-1,_)])
-```
-
-There is **no parser yet**. Docs say: do not implement until the proposal is accepted or rejected in a dated changelog. README current-status still has “Stabilize DSL” unchecked.
-
-A model trained on the README examples would **lock a proposal that living docs still mark as unaccepted**. That is the first hard constraint on any “small model” work.
+A PEG should encode the README as written. Those TODOs stay explicit holes until they are decided **in the README**. There is no parser yet; “Stabilize DSL” is the work of matching this surface in code.
 
 ---
 
@@ -161,19 +150,19 @@ v4 §5.3 mutually exclusive:
 
 > JSON Schema as *projection* vs DSL as the provider’s function-call language for frontier models — fights the ecosystem; split the Fallback for tiny local models only.
 
-So: technically possible; classified as **research / Fallback**; refused as identity; YAML `able` stays source of truth; JSON Schema is the projection frontier models already know how to emit.
+So: technically possible; classified as **research / Fallback**; refused as identity; YAML `able` stays source of truth for contracts; JSON Schema is the projection frontier models already know how to emit. The **DSL text** itself is specified only in the README.
 
 ## 1.2 Two constraints before any training is worth it
 
-1. **The grammar is not frozen** (see §0.2). You cannot usefully train on a moving README.
-2. **“Learn the syntax” is the wrong job for weights.** Syntax is a parser (PEG / GBNF / recursive descent). The useful model job is **intent → valid DSL**, or **repair**, *under* that grammar.
+1. **Close or encode the README’s `[wip]` holes** (§0.2) before baking them into weights. A LoRA that guesses `o-max-4`’s meaning is inventing SoT.
+2. **“Learn the syntax” is the wrong job for weights.** Syntax is a parser (PEG / GBNF / recursive descent) of the README. The useful model job is **intent → valid DSL**, or **repair**, *under* that grammar.
 
 If the goal is “a small model that speaks ASC,” the cheap order is:
 
-1. Freeze **one** grammar.
+1. Write a PEG that matches the README surface (and leaves §0.2 as explicit open productions until the README closes them).
 2. Generate synthetic pairs from it (enumerate valid trees → captions).
 3. **Constrained decode** (llama.cpp GBNF / Outlines) so a 1–7B local model *cannot* emit invalid DSL.
-4. LoRA only later, and only on that frozen grammar, if evals show few-shot + constraints are not enough.
+4. LoRA only later, and only on that grammar, if evals show few-shot + constraints are not enough.
 
 Fine-tune as v1 is what v4 / Yu & Yao refused: it is a *project*, not a toggle. Raschka’s “train a local reasoner” door stays **late**, not day one.
 
@@ -197,7 +186,7 @@ The “too simple for a compiler” read is half-right: nobody wants LLVM.
 
 A compiler for this DSL is a short recursive-descent or PEG: tokenize prefixes, nested `()` / `[]`, then `;` `;;` `+` `++`. On the order of **100–300 lines**. That is cheaper than gathering LoRA data, and it is the only thing that can **reject** `rm -rf` dressed up as DSL.
 
-Revival v4 needs that gate: YAML `able` is canonical; the model never invents the tool surface; the model never sees `make hook`.
+Revival v4 needs that gate: YAML `able` is canonical for contracts; the model never invents the tool surface; the model never sees `make hook`.
 
 ## 2.2 What a tiny model still cannot do without a parser
 
@@ -210,7 +199,7 @@ A tiny model that “knows the syntax” still emits **strings**. Without a pars
 - produce training data that is *known* valid
 - score a model (exact match after parse, not BLEU on the string)
 
-LoRA without a grammar is training on a moving README proposal. LoRA without a verifier is training a model whose mistakes execute.
+LoRA without a parser is training a model whose mistakes execute. LoRA that fills README `[wip]` holes in the weights is a second, unofficial SoT.
 
 The parser is also how you *get* C’s dataset: enumerate valid trees → English / French / Portuguese captions → LoRA pairs. And how you *score* C: parse, then exact-match the AST (or the compiled bash), not token overlap.
 
@@ -222,9 +211,9 @@ Skip LoRA at first. A 1–3B instruct model + a GBNF/Outlines grammar that **is 
 
 | | What it is | Cost | When it wins |
 |---|---|---|---|
-| **1. PEG only** | DSL → bash; humans / YAML write DSL | An evening after the grammar is frozen | Hook names, `validate:`, make. **Needed anyway.** |
+| **1. PEG only** | DSL → bash; humans / YAML write DSL | An evening once the PEG matches the README | Hook names, `validate:`, make. **Needed anyway.** |
 | **2. PEG + constrained decode** (recommended path toward “small model”) | Existing tiny LLM may only emit valid DSL; parser executes | Grammar + a few dozen gold NL→DSL pairs | Local models with no JSON tool calling (v4 Fallback). No training run. |
-| **3. LoRA on top of 2** | Specialist 0.5–1B authors DSL from fr/en/pt | Dataset + evals + **frozen** grammar first | Only if 2’s error rate on combinators (pipes, loops) is actually bad. |
+| **3. LoRA on top of 2** | Specialist 0.5–1B authors DSL from fr/en/pt | Dataset + evals + PEG that matches the README | Only if 2’s error rate on combinators (pipes, loops) is actually bad. |
 
 **Do not start at 3. Do not skip 1.**
 
@@ -236,7 +225,7 @@ Size 2 is C’s *benefit* (natural language in, valid DSL out) without C’s *co
 
 | Job | Right tool | Failure mode if you use the other |
 |---|---|---|
-| DSL → bash / argv / hook path | PEG, recursive descent, GBNF used as *spec* | Model hallucinates operators; unsafe strings run |
+| DSL → bash / argv / hook path | PEG, recursive descent, GBNF used as *spec* of the README | Model hallucinates operators; unsafe strings run |
 | NL / intent → DSL | Small instruct model, optionally LoRA | Parser cannot guess what the human meant |
 | Model → tool call (frontier) | JSON Schema projection of `able.yml` | Fighting every provider SDK; v4 refuse |
 | Model → tool call (tiny local, no native tools) | Constrained mini-format, possibly DSL-like, parsed in `post_llm` | Making that the protocol you show Claude |
@@ -253,8 +242,9 @@ Constrained decoding sits in the middle: the weights propose; the grammar forbid
 
 Keep:
 
-- YAML `entity` / `able` as source of truth.
-- JSON Schema / MCP `tools/list` / TypeBox as **projections**.
+- README as the **only** specification of DSL text.
+- YAML `entity` / `able` as source of truth for **contracts**.
+- JSON Schema / MCP `tools/list` / TypeBox as **projections** of those contracts.
 - DSL as ASC **addressing and validation** (argv, filenames, `validate:`).
 - `pre_llm` / `post_llm` as the harness wrap.
 - Tools as allowlisted entry points.
@@ -266,11 +256,11 @@ Refuse:
 - Teaching frontier models a private DSL as native function-call language.
 - Fine-tune as v1 / as identity.
 - Python/TS `@tool` registries that bypass YAML.
-- A second grammar living only inside a LoRA (the README invert vs filename-DSL fight, encoded in weights).
+- A LoRA (or any other doc) as a second specification of the syntax.
 
 Do not close:
 
-- A later LoRA on a **frozen** grammar for a personal termbase / local authoring model (Yu & Yao: LoRA is a later door).
+- A later LoRA on the README grammar for a personal termbase / local authoring model (Yu & Yao: LoRA is a later door).
 - A later local reasoner (Raschka) — unrelated to *this* DSL, do not conflate.
 
 The ASC-shaped gap in v4 §4.2 remains small: `llm` entry point + hooks; `able.yml` → JSON Schema; dispatcher from tool name → allowlisted entry point; traces. A specialist DSL-authoring model is **not** that gap. It is an optional Implementation of “the tiny local model requested a tool,” behind `post_llm`.
@@ -281,13 +271,13 @@ The ASC-shaped gap in v4 §4.2 remains small: `llm` entry point + hooks; `able.y
 
 Not an implementation plan. A resume checklist.
 
-1. **Accept or reject** the README punctuation invert in a dated changelog. One grammar.
-2. Write that grammar as PEG (or equivalent) + gold examples from README + filename-DSL plan, including reject cases (`rm`, unquoted redirects, unknown entry points).
-3. Compile DSL → bash / argv; use it for `validate:` and for hook-stem checks. This is size 1. It unblocks ASC rewrite item “Stabilize DSL.”
+1. Treat the README DSL section as the grammar. Close or explicitly keep the `[wip]` lines *in the README* (`b-@` / `o-@`, `o-max-4` form, nested subshell, when `validate:` runs).
+2. Write a PEG (or equivalent) + gold examples taken from that README section, including reject cases (`rm`, unquoted redirects, unknown entry points).
+3. Compile DSL → bash / argv; use it for `validate:` and for hook-stem checks. This is size 1. It is what “Stabilize DSL” on the rewrite checklist means.
 4. Generate GBNF from the same grammar. Few-shot a local 1–3B. Eval on held-out NL→DSL pairs. This is size 2.
 5. Only if size 2 fails on combinators: synthetic dataset from the parser, then LoRA (size 3). Eval = AST exact match + allowlist violations = 0.
 
-Until step 1, any model work trains on a dispute.
+Until step 1’s `[wip]` holes are either closed in the README or marked as out-of-scope for the parser, a LoRA that fills them is inventing SoT.
 
 ---
 
@@ -308,9 +298,6 @@ Until that is answered, default to size 1 (parser) for ASC core, and treat size 
 
 # 7. Pointers
 
-- README § DSL: `/home/paul/Documents/asc/README.md` (from “ASC domain-specific language”).
-- Competing punctuation: `docs/asc/shell-usage.md` § filename-DSL examples, § proposed DSL redesign.
-- Filename-DSL plan SoT: `changelog/2026/07/24-filename-dsl.md`.
-- Earlier (superseded) punctuation sketch: `data/ideas/2026/07/23/dsl.md`.
+- README § DSL (SoT): `/home/paul/Documents/asc/README.md`, from “ASC domain-specific language : *DSL* syntax”.
 - Revival v4, especially §0.4 refuse list, §1.1–1.3, §4.3 “DSL instead of JSON”, §5.3 mutually exclusive row on JSON Schema vs DSL-at-the-provider.
 - Related: Yu & Yao (language system, LoRA as later door); Raschka (train a reasoner: late door, not this DSL); Moslem & Kelleher `2603.04445` (routing/cascade, not a specialist syntax model as identity).
