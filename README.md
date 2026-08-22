@@ -504,6 +504,10 @@ TODO [wip] use subshell for nested cases like : `[f_db_clear(slug(p1))]` -> `f_d
 
 - `[echo(v-baz)]+grep(foobar)` = calls `echo "$baz" | grep 'foobar'`
 
+#### Conditional execution
+
+- `[echo(v-baz)]++[exit(1)]` = calls `echo "$baz" || exit 1`
+
 #### Redirecting
 
 - `[echo(v-baz)]--v-output_file_path` = calls `echo "$baz" > "$output_file_path"`
