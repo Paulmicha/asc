@@ -443,7 +443,11 @@ which stores (in sidecars or globals or cache or scripts) the value for ASC impl
 
 #### Entry points
 
-As in `make`. Ex : `make start`, `make service-rebuild`, etc.
+As in `make`. Ex :
+
+- `start` = `make start` = `asc/instance/start.sh`
+- `service-rebuild` = `make service-rebuild` = `asc/extensions/compose/service/rebuild.sh`
+- etc.
 
 #### Arguments
 
