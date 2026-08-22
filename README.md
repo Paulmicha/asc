@@ -491,13 +491,18 @@ Using `[]` enclosure :
 
 TODO [wip] use subshell for nested cases like : `[f_db_clear(slug(p1))]` -> `f_db_clear "$(slug 'foobar')"` ?
 
-#### Piping
-
-- `[echo(v-baz)]+grep(foobar)` = calls `echo "$baz" | grep 'foobar'`
-
 #### Chaining
 
 - `[echo(v-baz)];echo(foobar)` = calls `echo "$baz" ; echo 'foobar'`
+- `[echo(v-baz)];;echo(foobar)` = calls `echo "$baz" && echo 'foobar'`
+
+#### Parallel
+
+- `[echo(v-baz)]-;-echo(foobar)` = calls `echo "$baz" & echo 'foobar' ; wait`
+
+#### Piping
+
+- `[echo(v-baz)]+grep(foobar)` = calls `echo "$baz" | grep 'foobar'`
 
 #### Redirecting
 
