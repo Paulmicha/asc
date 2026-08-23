@@ -451,6 +451,15 @@ As in `make`. Ex :
 
 #### Arguments
 
+Arguments are specified using `()` and are separated by `,` :
+
+- `test-in(foobar,bar,baz)` -> `asc/utils/test/in.sh 'foobar' 'bar' 'baz'`
+
+Special characters are usually forbidden, but the DSL supports the following custom substitutions :
+
+- if you need to pass the wildcard character `*`, use `%` in the DSL syntax
+- Same for `**` : use `%%`
+
 **Positional arguments :**
 
 - `@` = `$@` (all arguments are forwarded "as is")
@@ -462,12 +471,12 @@ As in `make`. Ex :
 
 - `b-oneline` = `--oneline`
 - `b-y` = `-y` = any boolean option
-- `b-@` = all boolean options are forwarded - and ONLY boolean options (TODO [wip] Yagni ?)
+- `b-@` = all boolean options are forwarded - and ONLY boolean options
 
 **Named options :**
 
 - `o-max-4` = `--max=4` or `--max 4` or `-m 4` (TODO [wip] How to distinguish ?)
-- `o-@` = all named options are forwarded - and ONLY named options (TODO [wip] Yagni ?)
+- `o-@` = all named options are forwarded - and ONLY named options
 
 #### Variables
 
@@ -489,7 +498,11 @@ Using `[]` enclosure :
 - `[f_db_clear(foobar)]` = calls `f_db_clear 'foobar'`
 - `[f_db_clear(v-DB_NAME)]` = calls `f_db_clear "$DB_NAME"`
 
-TODO [wip] use subshell for nested cases like : `[f_db_clear(slug(p1))]` -> `f_db_clear "$(slug 'foobar')"` ?
+The DSL uses subshells for nested cases like `[f_db_clear([slug(p1)])]` :
+
+```sh
+f_db_clear "$(slug 'foobar')"
+```
 
 #### Chaining
 
