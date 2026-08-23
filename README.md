@@ -293,16 +293,16 @@ These folders are automatically discovered during instance init (and setup). The
 
 The bottom of this list wins when implementing the same `hook_ms()` (i.e. the "most-specific" variant of a hook call that only matches a single file instead of potentially many files), or even in case of a `make $subject-$action` entry point pivot that could potentially have more than one corresponding script :
 
-1. `asc/$subject/$action`
-1. `asc/$subject/$object/$action`
-1. `asc/extensions/$extension/$subject/$action`
-1. `asc/extensions/$extension/$subject/$object/$action`
-1. `scripts/asc/contrib/asc/$extension/$subject/$action`
-1. `scripts/asc/contrib/asc/$extension/$subject/$object/$action`
-1. `scripts/asc/contrib/$vendor/$extension/$subject/$action`
-1. `scripts/asc/contrib/$vendor/$extension/$subject/$object/$action`
-1. `scripts/asc/extend/$subject/$action`
-1. `scripts/asc/extend/$subject/$object/$action`
+1. `asc/$subject/*.hook.sh` / `asc/$subject/$action.sh`
+1. `asc/$subject/$object/$action.sh`
+1. `asc/extensions/$extension/$subject/*.hook.sh` / `asc/extensions/$extension/$subject/$action.sh`
+1. `asc/extensions/$extension/$subject/$object/$action.sh`
+1. `scripts/asc/contrib/asc/$extension/$subject/*.hook.sh` / `scripts/asc/contrib/asc/$extension/$subject/$action.sh`
+1. `scripts/asc/contrib/asc/$extension/$subject/$object/$action.sh`
+1. `scripts/asc/contrib/$vendor/$extension/$subject/*.hook.sh` / `scripts/asc/contrib/$vendor/$extension/$subject/$action.sh`
+1. `scripts/asc/contrib/$vendor/$extension/$subject/$object/$action.sh`
+1. `scripts/asc/extend/$subject/*.hook.sh` / `scripts/asc/extend/$subject/$action.sh`
+1. `scripts/asc/extend/$subject/$object/$action.sh`
 
 ### (make) _Entry points_ are `$action` scripts (or just _actions_)
 
