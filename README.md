@@ -331,19 +331,100 @@ They aren't the same thing as variables only used inside the scope of a bash fun
 On init, *globals* are written to:
 
 - `.env` — Makefile and other tools (like Docker compose)
-- `data/cwt/global.vars.sh` — sourced every bootstrap
-
-| Concern | Detail |
-|---------|--------|
-| Declare | `global NAME "…"` in `global.vars.sh`, or YAML in `env.yml` / `.env-local.yml` |
-| Aggregate | `u_global_aggregate` — core → enabled extensions → project YAML → extend |
-| Write | `.env` (Make/tools) + `data/asc/global.vars.sh` (sourced every bootstrap phase 30) |
-| List paths | `make globals-lp` |
-| Skip load | `ASC_BS_SKIP_GLOBALS=1` |
-
-Selected core defaults (see `asc/env/global.vars.sh`): `PROJECT_DOCROOT`, `STACK_VERSION`, `INSTANCE_TYPE`, `PROVISION_USING`, `HOST_TYPE`, `HOST_OS`, `ASC_APPS`, `ASC_MAKE_INC`, `ASC_SYNONYMS`, …
+- `data/asc/global.vars.sh` — sourced every bootstrap
 
 Mutables (`DB_*`, `REMOTE_INSTANCE_*`, …) are **not** written by `u_global_write`; hooks/loaders set them mid-run.
+
+#### Declaring _env vars_
+
+There are 2 ways to customize or add globals :
+
+1. by editing `env.yml` configuration files. Various names can be used to allow overrides between different project instances, and the YAML syntax is then transformed into globals declarations (and/or `f_instance_init()` arguments override). You can see an example file in this repo's docroot : `SPECIMEN.env.yml`, which you can rename to `env.yml` (or `.env-local.yml`) to quickly get started.
+1. by providing `global.vars.sh` file(s) in active dirs.
+
+The `.env.yml` method is meant for simple declarations, while `global.vars.sh` allow things like deferred and/or conditional assignments, dynamic values, and plain bash scripting.
+
+Here's the list of `env.yml` variants lookup paths available for specifying overrides if needed :
+
+```text
+env.$INSTANCE_TYPE.yml
+env.$STACK_VERSION.yml
+env.$HOST_TYPE.$INSTANCE_TYPE.yml
+env.$STACK_VERSION.$HOST_TYPE.yml
+env.$STACK_VERSION.$INSTANCE_TYPE.yml
+env.$STACK_VERSION.$HOST_TYPE.$INSTANCE_TYPE.yml
+```
+
+If all you need is a constant, the following syntax will not prompt for user input in terminal during *instance init* :
+
+```sh
+global MY_CONSTANT_VALUE "the value"
+```
+
+The same declaration using the `env.yml` method can be done in the following *strictly equivalent* ways :
+
+```yaml
+my:
+  constant:
+    value: the value
+```
+
+```yaml
+my_constant:
+  value: the value
+```
+
+```yaml
+my_constant_value: the value
+```
+
+And if you need to always prompt for input during *instance init* (when the `-y` flag is not set), use only the 1st argument :
+
+```sh
+global MUST_INPUT_ON_INIT
+```
+
+See `asc/utilities/global.sh` for details about the `global()` function, but we'll mention here one of its most commonly useful feature : the ability to append values on each call with the same var name, which will be separated by a space (and can be placed in different files because they will share the same namespace during *instance init*), e.g. :
+
+```sh
+global VALUES_WILL_CONCAT "[append]=path/to/file-1.txt"
+global VALUES_WILL_CONCAT "[append]=path/to/file-2.txt"
+global VALUES_WILL_CONCAT "[append]=path/to/file-3.txt"
+global VALUES_WILL_CONCAT "[append]='(if value has space or special characters, use enclosing single quotes)'"
+
+# Example usage elsewhere, once "instance init" has run :
+for value in $VALUES_WILL_CONCAT; do
+  echo "$value"
+done
+```
+
+To show where the declarations can be placed in order to get picked up for aggregation - and in which order - during *instance init* in current project instance, you can use the following convenience command :
+
+```sh
+make globals-lp
+# Or :
+asc/env/global_lookup_paths.make.sh
+```
+
+Note that if the above helper is run **after** *instance init*, more variants will appear for `env.yml` files, as the lookup paths themselves may depend on things like enabled extensions and env vars values.
+
+The declarations found in `env.yml` take precedence over `global.vars.sh`, as they get loaded last during the aggregation process.
+
+#### Git-ignored, "private" _env vars_
+
+If you need local, "private" values that must NOT be checked out in any git repo, the following file can be used : `.env-local.yml`
+
+If needed, the available lookup paths are the same as for the `env.yml` file :
+
+```txt
+.env-local.$HOST_TYPE.yml
+.env-local.$INSTANCE_TYPE.yml
+.env-local.$STACK_VERSION.yml
+.env-local.$HOST_TYPE.$INSTANCE_TYPE.yml
+.env-local.$STACK_VERSION.$HOST_TYPE.yml
+.env-local.$STACK_VERSION.$INSTANCE_TYPE.yml
+.env-local.$STACK_VERSION.$HOST_TYPE.$INSTANCE_TYPE.yml
+```
 
 ### Hooks (variants)
 
@@ -354,14 +435,14 @@ Variants are **combinatory**. They can be *any bash variable* present in the cal
 For example, when `PROVISION_USING='compose'` and `INSTANCE_TYPE='dev'`, calling :
 
 ```sh
-hook -a 'my_action' -s 'my_subject' -v 'PROVISION_USING INSTANCE_TYPE'
+hook -s 'my_subject' -a 'my_action' -v 'PROVISION_USING INSTANCE_TYPE'
 ```
-... will source all of the following bash script files (any that exists) in any active dir :
+... will source all of the following bash script files (any that exists) in any active dir, noted `*` :
 
-- `my_subject/my_action.hook.sh`
-- `my_subject/my_action.compose.hook.sh`
-- `my_subject/my_action.compose.dev.hook.sh`
-- `my_subject/my_action.dev.hook.sh`
+- `*/my_subject/my_action.hook.sh`
+- `*/my_subject/my_action.compose.hook.sh`
+- `*/my_subject/my_action.compose.dev.hook.sh`
+- `*/my_subject/my_action.dev.hook.sh`
 
 The paths above are all relative to active dirs.
 
@@ -372,85 +453,80 @@ TODO [wip] example here for that.
 Also note that each argument (except *prefix*) accepts several values by using a space to separate them. E.g. :
 
 ```sh
-hook -a 'start' -s 'stack service instance app'
+hook -s 'stack service instance app' -a 'start'
 ```
 
 NB : there is a cache warmup that runs after every "instance init" action, where a bunch of hooks get dry-run in order to pre-generate some usual hook calls in cache. See `asc/instance/post_init.hook.sh`
 
-Here are a few examples. All paths are relative to active dirs.
+Here are a few examples. All paths are relative to active dirs, noted `*` below :
 
 ```sh
 # 1. Providing a single action :
 # (given INSTANCE_TYPE='prod')
 hook -a 'bootstrap'
 # Yields the following lookup paths (ALL includes found are sourced) :
-# - asc/$subject/bootstrap.hook.sh
-# - asc/$subject/bootstrap.prod.hook.sh
-# - asc/extensions/$extension/$subject/bootstrap.hook.sh
-# - asc/extensions/$extension/$subject/bootstrap.prod.hook.sh
+# - */$subject/bootstrap.hook.sh
+# - */$subject/bootstrap.prod.hook.sh
 
 # 2. When providing an action + a filter by subject :
-hook -a 'init' -s 'stack'
-# Yields the following lookup paths (ALL includes found are sourced) :
 # (given INSTANCE_TYPE='prod')
-# - asc/stack/init.hook.sh
-# - asc/stack/init.prod.hook.sh
-# - asc/extensions/$extension/stack/init.hook.sh
-# - asc/extensions/$extension/stack/init.prod.hook.sh
-
-# 3. When providing an action + a filter by 1 or several subjects + 1 or
-#   several variants filter :
-hook -a 'init' -s 'stack' -v 'HOST_TYPE INSTANCE_TYPE'
+hook -s 'stack' -a 'init'
 # Yields the following lookup paths (ALL includes found are sourced) :
+# - */stack/init.hook.sh
+# - */stack/init.prod.hook.sh
+
+# 3. When providing an action + a filter by 1 or several subjects + 1 or several
+# variants filter :
 # (given INSTANCE_TYPE='dev' and HOST_TYPE='local')
-# - asc/stack/init.hook.sh
-# - asc/stack/init.local.hook.sh
-# - asc/stack/init.local.dev.hook.sh
-# - asc/stack/init.dev.hook.sh
-# - asc/extensions/$extension/stack/init.hook.sh
-# - asc/extensions/$extension/stack/init.local.hook.sh
-# - asc/extensions/$extension/stack/init.local.dev.hook.sh
-# - asc/extensions/$extension/stack/init.dev.hook.sh
-
-# 4. Extensions filter :
-hook -e 'nodejs'
+hook -s 'stack' -a 'init' -v 'HOST_TYPE INSTANCE_TYPE'
 # Yields the following lookup paths (ALL includes found are sourced) :
-# (given INSTANCE_TYPE='prod')
-# - scripts/extensions/nodejs/$subject/<SUBJECT_ACTIONS>.prod.hook.sh
+# - */stack/init.hook.sh
+# - */stack/init.local.hook.sh
+# - */stack/init.local.dev.hook.sh
+# - */stack/init.dev.hook.sh
 
-# 5. Prefixes filter are exclusive by default, which means pure actions are
+# 4. Extensions filter (-e) :
+# (given INSTANCE_TYPE='prod')
+hook -e 'foobar' -a 'toto'
+# Yields the following lookup paths (ALL includes found are sourced) :
+# - asc/extensions/foobar/$subject/toto.hook.sh
+# - asc/extensions/foobar/$subject/toto.prod.hook.sh
+# - scripts/extensions/asc/foobar/$subject/toto.hook.sh
+# - scripts/extensions/asc/foobar/$subject/toto.prod.hook.sh
+# - scripts/extensions/contrib/foobar/$subject/toto.hook.sh
+# - scripts/extensions/contrib/foobar/$subject/toto.prod.hook.sh
+
+# 5. Prefixes filter (-p) are exclusive by default, which means pure actions are
 #   not included. Ex :
+# (given INSTANCE_TYPE='prod')
 hook -a 'bootstrap' -p 'pre'
 # Yields the following lookup paths (ALL includes found are sourced) :
-# (given INSTANCE_TYPE='prod')
-# - asc/$subject/pre_bootstrap.hook.sh
-# - asc/$subject/pre_bootstrap.prod.hook.sh
-# - asc/extensions/$extension/$subject/pre_bootstrap.hook.sh
-# - asc/extensions/$extension/$subject/pre_bootstrap.prod.hook.sh
+# - */$subject/pre_bootstrap.hook.sh
+# - */$subject/pre_bootstrap.prod.hook.sh
 
-# 6. Project root dir additional lookup :
+# 6. Project root dir additional lookup (-r) :
+# (given HOST_TYPE='local' and INSTANCE_TYPE='dev')
 hook -s 'instance' -a 'env' -c 'yml' -v 'HOST_TYPE INSTANCE_TYPE' -t -r
 # Yields the following lookup paths (not sourcing matches because -t flag) :
-# (given HOST_TYPE='local' and INSTANCE_TYPE='dev')
-# - asc/instance/env.yml
-# - asc/instance/asc.local.yml
-# - asc/instance/asc.local.dev.yml
-# - asc/instance/asc.dev.yml
-# - asc/extensions/$extension/instance/env.yml
-# - asc/extensions/$extension/instance/asc.local.yml
-# - asc/extensions/$extension/instance/asc.local.dev.yml
-# - asc/extensions/$extension/instance/asc.dev.yml
+# - */instance/env.yml
+# - */instance/asc.local.yml
+# - */instance/asc.local.dev.yml
+# - */instance/asc.dev.yml
 # - env.yml
 # - asc.local.yml
 # - asc.local.dev.yml
 # - asc.dev.yml
 ```
 
-### wrappers (scripts), metadata (yml), and some generic implementations (opt-in)
+### Wrappers (wrapper scripts)
 
 TODO
 
-### Field vs Prop
+### Yaml entity declaration
+
+TODO
+
+#### Field vs Prop
 
 field = store.able instance values (edit.able)
 
