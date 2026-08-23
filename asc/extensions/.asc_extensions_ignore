@@ -1,11 +1,8 @@
 agent
-apk
 apt
-cognition
 compose
 crontab
 db
-git_crypt
 hardware
 hosts_file
 interaction
@@ -16,10 +13,6 @@ nested_instance
 remote
 remote_db
 remote_instance
-role
 rules
 software
-taxonomy
-transcription
-views
 workflow

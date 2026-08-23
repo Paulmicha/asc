@@ -192,8 +192,8 @@ Implications : change ASC core current files discovery mechanisms to support bot
 
 1. [ ] Finish describing ASC "core" concepts explicitly
 1. [x] ~~Stabilize Naming convention~~
-1. [ ] Stabilize hooks
-1. [ ] Stabilize DSL
+1. [x] ~~Stabilize hooks~~
+1. [x] ~~Stabilize DSL~~
 1. [ ] Stabilize Yml
 1. [ ] Refactor Bootstrap
 1. [ ] Stabilize workflow + git flow
@@ -204,6 +204,17 @@ Implications : change ASC core current files discovery mechanisms to support bot
 1. [ ] Implement agents (for now : Ollama and Cursor to test MVP)
 
 ## Core ASC concepts
+
+### General notes
+
+Unless explicitly stated, everything always **must** run from `$PROJECT_DOCROOT`, which is the folder where every project instance using ASC is installed locally (on the host used to work on - or run - the project).
+
+In this README, the `$` prefix always means the following :
+
+- `$subject` : any *active dir* folder representing an ASC *subject*.
+- `$object` subfolders are almost identical, but they only support `$action` scripts (**not** hook implementations).
+- `$action` are (Bash) shell script files placed in *active dirs* or `$object` subfolders.
+- `$extension` are folders containing *active dirs* representing **enabled** extensions only.
 
 ### Genericity (scale)
 
@@ -228,8 +239,23 @@ The **primordial** file just defines basic synonyms. They are interchangeable wo
 - Wrappers around common shell utilities (threads, logs, cronjobs, etc.),
 - Minimal shell-based tests (using `asc/vendor/shunit2`),
 - Generic utilities (a few basic shell scripting utilities - arrays, strings, filesystem-related, ssh-related, templating-related, git-related, yml-related - see `asc/vendor/bash-yaml`, etc.),
-- A few opt-in extensions, notably :
-    - TODO
+- A few opt-in extensions :
+    - `asc/extensions/agent` : wraps and chains LLMs prompts (with pre- and post- process hooks), and provides generic abstractions to manage things like `SKILL.md` (see [pi](https://github.com/earendil-works/pi)) / `CLAUDE.md` / Cursor rules
+    - `asc/extensions/apt` : default Debian-based Linux host-level dependencies operations
+    - `asc/extensions/builder` : minimalist ASC "clean" code generator
+    - `asc/extensions/compose` : default Docker compose - related implementations
+    - `asc/extensions/crontab` : default crontab-related implementations
+    - `asc/extensions/db` : generic abstract placeholders (hooks) for database-related operations
+    - `asc/extensions/entity` : things like remote instances, databases, etc. all share some amount of expectations in terms of operations, prerequisites, etc. That's what the "entity" extension attempts to provide : a standard way to specify such things (in Yaml) in all projects using ASC.
+    - `asc/extensions/file_registry` : minimalist local file-based key/value store (supports host-level and instance-level scopes)
+    - `asc/extensions/interaction` : generic abstract placeholders (hooks) for interaction-related operations (like triggering input devices actions - e.g. mouse, keyboard, touch events, etc.)
+    - `asc/extensions/memory` : generic abstract placeholders (hooks) for memory-related operations (like : find out if and where something is stored, using which storage, etc.)
+    - `asc/extensions/nested_git`, `nested_host`, `nested_instance` : default implementations related to sub-git work trees (nested git clones), virtual machines (nested hosts), or even nested ASC project instances
+    - `asc/extensions/remote` : default implementations related to remote communication (ssh, etc)
+    - `asc/extensions/remote_instance` : implementations related to remote ASC project instances
+    - `asc/extensions/rules` : generic abstract placeholders (hooks) for implementing conditionally executed actions based on occurring events (known as reactive or ECA rules)
+    - `asc/extensions/software` : default implementations for managing software - usually dependencies, i.e. : updates, configuration, (un)installation, etc.
+    - `asc/extensions/workflow` : default implementations for streamlining work processes, kinda like a minimalist and simpler implementation of [superpowers](https://github.com/obra/superpowers) for projects using ASC (complements the `rules` extension)
 
 ### Bootstrap (ASC-bootstrapped context)
 
@@ -291,30 +317,37 @@ In *active dirs*, there are 2 nesting levels supported for *entry points* (or *a
 - `$subject` / `$action` (ex: `service-start` → `asc/extensions/compose/service/start.sh`)
 - `$subject` / `$object` / `$action` (ex: `host-dependency-install` → `asc/host/dependency/install.sh`)
 
-### (global) _Env vars_ : generated Bash shell readonly constants
+Note that `$object` dirs do not support hook implementations. They are a convenience extra nesting level for grouping *actions* only, otherwise the possible lookup paths list for hooks could get too big.
 
-TODO [wip]
+### Environment variables (*env vars*)
+
+_Env vars_ are (Bash) shell variables containing values that are either :
+
+1. **readonly globals** declared using the `global` bash function that ASC provides, see `asc/asc/global.inc.sh` (generated readonly *constants*) ;
+1. or **calling-scope mutables** - as in any "normal" shell script.
+
+They aren't the same thing as variables only used inside the scope of a bash function. In these cases, they must be declared as `local` variables, and they must follow the naming conventions detailed below.
+
+On init, *globals* are written to:
+
+- `.env` — Makefile and other tools (like Docker compose)
+- `data/cwt/global.vars.sh` — sourced every bootstrap
+
+| Concern | Detail |
+|---------|--------|
+| Declare | `global NAME "…"` in `global.vars.sh`, or YAML in `env.yml` / `.env-local.yml` |
+| Aggregate | `u_global_aggregate` — core → enabled extensions → project YAML → extend |
+| Write | `.env` (Make/tools) + `data/asc/global.vars.sh` (sourced every bootstrap phase 30) |
+| List paths | `make globals-lp` |
+| Skip load | `ASC_BS_SKIP_GLOBALS=1` |
+
+Selected core defaults (see `asc/env/global.vars.sh`): `PROJECT_DOCROOT`, `STACK_VERSION`, `INSTANCE_TYPE`, `PROVISION_USING`, `HOST_TYPE`, `HOST_OS`, `ASC_APPS`, `ASC_MAKE_INC`, `ASC_SYNONYMS`, …
+
+Mutables (`DB_*`, `REMOTE_INSTANCE_*`, …) are **not** written by `u_global_write`; hooks/loaders set them mid-run.
 
 ### Hooks (variants)
 
-TODO [wip]
-
-Triggers an "event" optionally filtered by primitives.
-
-Arguments are all optional, but the `hook()` function requires at least **1 action** (-a).
-
-In order to "listen" to events, some specific file(s) must use the exact path
-and name corresponding to its arguments.
-
-Calling `hook()` will source all file includes matched by subject,
-action, prefix, variant. Every extension defines a base path from
-which additional lookup paths are derived (as well as a corresponding namespace
-for glabals containing their primitives).
-
-Important notes about the 'variants' (-v) argument :
-
-If this function gets called without any 'variant' filter(s), it will
-automatically look for suggestions using INSTANCE_TYPE.
+The `hook` function triggers an "event", optionally filtered by **subject(s)**, **action(s)**, **prefix**, and **variant(s)**. It will source all file located in active dirs that match its arguments.
 
 Variants are **combinatory**. They can be *any bash variable* present in the calling scope.
 
@@ -323,37 +356,38 @@ For example, when `PROVISION_USING='compose'` and `INSTANCE_TYPE='dev'`, calling
 ```sh
 hook -a 'my_action' -s 'my_subject' -v 'PROVISION_USING INSTANCE_TYPE'
 ```
-... will source all of the following bash script files (any that exists) :
+... will source all of the following bash script files (any that exists) in any active dir :
 
-- `asc/my_subject/my_action.hook.sh`
-- `asc/my_subject/my_action.compose.hook.sh`
-- `asc/my_subject/my_action.compose.dev.hook.sh`
-- `asc/my_subject/my_action.dev.hook.sh`
+- `my_subject/my_action.hook.sh`
+- `my_subject/my_action.compose.hook.sh`
+- `my_subject/my_action.compose.dev.hook.sh`
+- `my_subject/my_action.dev.hook.sh`
 
-Semver suffixes can be used in extension folder names and variant values.
+The paths above are all relative to active dirs.
+
+**Semver** suffixes can be used in extension folder names and variant values.
 
 TODO [wip] example here for that.
 
-Also note that each argument accepts several values by using a space to
-separate them. E.g. :
+Also note that each argument (except *prefix*) accepts several values by using a space to separate them. E.g. :
 
 ```sh
 hook -a 'start' -s 'stack service instance app'
 ```
 
-TODO [wip] Document cache warmup.
+NB : there is a cache warmup that runs after every "instance init" action, where a bunch of hooks get dry-run in order to pre-generate some usual hook calls in cache. See `asc/instance/post_init.hook.sh`
 
-@examples
+Here are a few examples. All paths are relative to active dirs.
 
 ```sh
-# 1. When providing a single action :
+# 1. Providing a single action :
+# (given INSTANCE_TYPE='prod')
 hook -a 'bootstrap'
 # Yields the following lookup paths (ALL includes found are sourced) :
-# (given INSTANCE_TYPE='prod')
-# - asc/<ASC_SUBJECTS>/bootstrap.hook.sh
-# - asc/<ASC_SUBJECTS>/bootstrap.prod.hook.sh
-# - asc/extensions/<ASC_EXTENSIONS>/<EXT_SUBJECTS>/bootstrap.hook.sh
-# - asc/extensions/<ASC_EXTENSIONS>/<EXT_SUBJECTS>/bootstrap.prod.hook.sh
+# - asc/$subject/bootstrap.hook.sh
+# - asc/$subject/bootstrap.prod.hook.sh
+# - asc/extensions/$extension/$subject/bootstrap.hook.sh
+# - asc/extensions/$extension/$subject/bootstrap.prod.hook.sh
 
 # 2. When providing an action + a filter by subject :
 hook -a 'init' -s 'stack'
@@ -361,8 +395,8 @@ hook -a 'init' -s 'stack'
 # (given INSTANCE_TYPE='prod')
 # - asc/stack/init.hook.sh
 # - asc/stack/init.prod.hook.sh
-# - asc/extensions/<ASC_EXTENSIONS>/stack/init.hook.sh
-# - asc/extensions/<ASC_EXTENSIONS>/stack/init.prod.hook.sh
+# - asc/extensions/$extension/stack/init.hook.sh
+# - asc/extensions/$extension/stack/init.prod.hook.sh
 
 # 3. When providing an action + a filter by 1 or several subjects + 1 or
 #   several variants filter :
@@ -373,26 +407,26 @@ hook -a 'init' -s 'stack' -v 'HOST_TYPE INSTANCE_TYPE'
 # - asc/stack/init.local.hook.sh
 # - asc/stack/init.local.dev.hook.sh
 # - asc/stack/init.dev.hook.sh
-# - asc/extensions/<ASC_EXTENSIONS>/stack/init.hook.sh
-# - asc/extensions/<ASC_EXTENSIONS>/stack/init.local.hook.sh
-# - asc/extensions/<ASC_EXTENSIONS>/stack/init.local.dev.hook.sh
-# - asc/extensions/<ASC_EXTENSIONS>/stack/init.dev.hook.sh
+# - asc/extensions/$extension/stack/init.hook.sh
+# - asc/extensions/$extension/stack/init.local.hook.sh
+# - asc/extensions/$extension/stack/init.local.dev.hook.sh
+# - asc/extensions/$extension/stack/init.dev.hook.sh
 
 # 4. Extensions filter :
 hook -e 'nodejs'
 # Yields the following lookup paths (ALL includes found are sourced) :
 # (given INSTANCE_TYPE='prod')
-# - scripts/extensions/nodejs/<EXT_SUBJECTS>/<SUBJECT_ACTIONS>.prod.hook.sh
+# - scripts/extensions/nodejs/$subject/<SUBJECT_ACTIONS>.prod.hook.sh
 
 # 5. Prefixes filter are exclusive by default, which means pure actions are
 #   not included. Ex :
 hook -a 'bootstrap' -p 'pre'
 # Yields the following lookup paths (ALL includes found are sourced) :
 # (given INSTANCE_TYPE='prod')
-# - asc/<ASC_SUBJECTS>/pre_bootstrap.hook.sh
-# - asc/<ASC_SUBJECTS>/pre_bootstrap.prod.hook.sh
-# - asc/extensions/<ASC_EXTENSIONS>/<EXT_SUBJECTS>/pre_bootstrap.hook.sh
-# - asc/extensions/<ASC_EXTENSIONS>/<EXT_SUBJECTS>/pre_bootstrap.prod.hook.sh
+# - asc/$subject/pre_bootstrap.hook.sh
+# - asc/$subject/pre_bootstrap.prod.hook.sh
+# - asc/extensions/$extension/$subject/pre_bootstrap.hook.sh
+# - asc/extensions/$extension/$subject/pre_bootstrap.prod.hook.sh
 
 # 6. Project root dir additional lookup :
 hook -s 'instance' -a 'env' -c 'yml' -v 'HOST_TYPE INSTANCE_TYPE' -t -r
@@ -402,10 +436,10 @@ hook -s 'instance' -a 'env' -c 'yml' -v 'HOST_TYPE INSTANCE_TYPE' -t -r
 # - asc/instance/asc.local.yml
 # - asc/instance/asc.local.dev.yml
 # - asc/instance/asc.dev.yml
-# - asc/extensions/<ASC_EXTENSIONS>/instance/env.yml
-# - asc/extensions/<ASC_EXTENSIONS>/instance/asc.local.yml
-# - asc/extensions/<ASC_EXTENSIONS>/instance/asc.local.dev.yml
-# - asc/extensions/<ASC_EXTENSIONS>/instance/asc.dev.yml
+# - asc/extensions/$extension/instance/env.yml
+# - asc/extensions/$extension/instance/asc.local.yml
+# - asc/extensions/$extension/instance/asc.local.dev.yml
+# - asc/extensions/$extension/instance/asc.dev.yml
 # - env.yml
 # - asc.local.yml
 # - asc.local.dev.yml
@@ -575,9 +609,10 @@ That DSL syntax example translates to :
 
 ```sh
 [[ asc/utils/test/in.sh 'foo-bar' "$(asc/instance/slug.sh 'foo-bar')" "$(asc/instance/snake.sh 'foo-bar')" ]] || exit 1
-# where 'foo-bar' would be the entity "toto" field value declared in its *.entity.yml specification.
-# TODO [wip] during entity validation ?
+# ... where 'foo-bar' would be the entity "toto" field value declared in its "*.entity.yml" specification file.
 ```
+
+This is used during basic validations, such as tiny automated tests automatically executed upon initializing newly added entity declarations in a local project instance.
 
 NB : any DSL starting with `test-*` translates to e.g. `[[ */test/*.sh ]] || exit 1` for convenience.
 
