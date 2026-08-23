@@ -2,10 +2,10 @@
 
 ## Small model vs compiler vs constrained decode
 
-**Date:** 2026-08-22 (glossary and phrase unpacking added 2026-08-23)  
+**Date:** 2026-08-22 (glossary 2026-08-23; BLEU + README progress 2026-08-23)  
 **Status:** conversation capture / design instrument (not a spec, not an implementation plan)  
 **Context:** README § “ASC domain-specific language : *DSL* syntax” is the **only source of truth** for this syntax (the README is the only doc written entirely by the author). Revival v4 (`Projet Complexe 2026 Revival (v4) - ASC, Projet Complexe and Projet Complexe ASC.md`) for the agent / tool-boundary cut.  
-**Origin:** Cursor chat, 2026-08-22. Written out in full so the thread can be resumed from this file. Terms: **§8**. Unpacked phrases: **§2.2**, **§6**.
+**Origin:** Cursor chat, 2026-08-22. Written out in full so the thread can be resumed from this file. Terms: **§8** (BLEU: **§8.7**). Unpacked phrases: **§2.2**, **§6**. README checklist as of 2026-08-23: **§0.3**.
 
 This note exists because the README DSL looks small enough to “just teach a model,” and that idea is easy to over-build — or to under-build, by skipping the one cheap piece that makes everything else safe.
 
@@ -25,16 +25,25 @@ The syntax in the README is a compact, **filename-safe** combinator language. It
 */$subject/transcribe-file(v-input_file_path).pre-index.hook.sh
 ```
 
-The rewrite checklist still has **Stabilize DSL** unchecked. That means “write the parser / runtime that matches this README,” not “the README is one proposal among others.” The README *is* the language. A few lines inside it are still marked `TODO [wip]` (see §0.2); those are holes *in* the SoT, to be closed *in* the README.
+As of 2026-08-23 the rewrite checklist marks **Stabilize DSL** as done (same pass as naming and hooks). That means the *README text* of the language is accepted, not that a compiler already lives in the repo. There is still no parser in the tree. “Stabilize DSL” on the checklist is **spec freeze**; size 1 in this note is still **code**. One line inside the spec is still `TODO [wip]` (see §0.2).
 
 “Parser” here is an ordinary program: it reads a DSL string and either rejects it or turns it into a tree (then into bash / argv). **PEG** and **recursive descent** are two ways to *write* that program (see §8.1). They are not a second language besides the README.
 
-## 0.1 Surface
+## 0.1 Surface (README as of 2026-08-23)
 
 **Entry points** (as in `make`):
 
 - `start` = `make start` = `asc/instance/start.sh`
 - `service-rebuild` = `make service-rebuild` = `asc/extensions/compose/service/rebuild.sh`
+
+**Arguments** use `()` and are separated by `,`:
+
+- `test-in(foobar,bar,baz)` → `asc/utils/test/in.sh 'foobar' 'bar' 'baz'`
+
+Special characters are normally forbidden. Filename-safe substitutions:
+
+- `*` in a value → write `%` in the DSL
+- `**` → write `%%`
 
 **Positional arguments:**
 
@@ -45,12 +54,12 @@ The rewrite checklist still has **Stabilize DSL** unchecked. That means “write
 
 - `b-oneline` = `--oneline`
 - `b-y` = `-y`
-- `b-@` = all boolean options forwarded (TODO [wip] YAGNI?)
+- `b-@` = all boolean options forwarded, and *only* boolean options (no longer marked YAGNI)
 
 **Named options:**
 
-- `o-max-4` = `--max=4` or `--max 4` or `-m 4` (TODO [wip] how to distinguish)
-- `o-@` = all named options forwarded (TODO [wip] YAGNI?)
+- `o-max-4` = `--max=4` or `--max 4` or `-m 4` (still `TODO [wip]`: how to distinguish those three spellings)
+- `o-@` = all named options forwarded, and *only* named options (no longer marked YAGNI)
 
 **Variables** (any bash var in hook calling scope), `v-` prefix:
 
@@ -61,7 +70,12 @@ The rewrite checklist still has **Stabilize DSL** unchecked. That means “write
 - `[echo(a)]` = `echo "$@"`
 - `[f_db_clear(foobar)]` = `f_db_clear 'foobar'`
 - `[f_db_clear(v-DB_NAME)]` = `f_db_clear "$DB_NAME"`
-- Nested / subshell TODO [wip]: `[f_db_clear(slug(p1))]` → `f_db_clear "$(slug 'foobar')"` ?
+
+Nested calls are **decided**: the DSL uses a subshell. `[f_db_clear([slug(p1)])]` compiles to:
+
+```sh
+f_db_clear "$(slug 'foobar')"
+```
 
 **Chaining:**
 
@@ -109,18 +123,39 @@ required:
 
 Any DSL starting with `test-*` is meant to compile to `[[ */test/*.sh ]] || exit 1`.
 
+**When `validate:` runs** is now stated in the README (no longer a TODO): during basic validations such as the small automated tests that run when initializing newly added entity declarations in a local project instance.
+
 This is a **tiny combinator language**: entry points, a handful of prefixes (`p1` / `b-` / `o-` / `v-`), and a handful of operators (`;` `;;` `-;-` `+` `++` `--` `---`, loops). That smallness is what makes both a parser and a small model *possible*. It is also what makes a neural interpreter the wrong default.
 
-## 0.2 Open lines still inside the README
+## 0.2 What is still open in the README
 
-Not a second syntax. These are the README’s own unfinished edges:
+Not a second syntax. After the 2026-08-23 pass, one hole remains marked `TODO [wip]`:
 
-- `b-@` / `o-@` — YAGNI?
-- `o-max-4` — `--max=4` vs `--max 4` vs `-m 4`
-- nested calls — subshell or not (`[f_db_clear(slug(p1))]`)
-- when YAML `validate:` runs (during entity validation?)
+- `o-max-4` — `--max=4` vs `--max 4` vs `-m 4` (how a parser should pick among those argv forms)
 
-The parser should encode the README as written. Those TODOs stay explicit holes until they are decided **in the README**. There is no parser yet; “Stabilize DSL” is the work of matching this surface in code.
+Closed in the README (do not treat as open in this note):
+
+- `b-@` / `o-@` — specified as “forward only that class of options”
+- nested calls — subshell, with inner `[]`
+- when YAML `validate:` runs — init-time basic validations / tiny automated tests on new entity declarations
+- argument punctuation — `()` and `,`; `%` / `%%` for `*` / `**`
+
+A parser should encode the README as written, including that remaining `o-max-4` hole as an explicit open production until it is decided **in the README**. Spec freeze ≠ compiler: there is still no parser in the repo.
+
+## 0.3 README rewrite progress (2026-08-23)
+
+Taken from README § “Current state of the ASC project”. Checked items are the author’s spec/checklist, not proof that the corresponding runtime is finished.
+
+| Checklist item | README | Meaning for this note |
+|---|---|---|
+| Finish describing ASC “core” concepts explicitly | open | Out of scope here except that YAML / entity text is still in flux |
+| Stabilize Naming convention | **done** | `$subject` / `$object` / `$action` / `$extension` prefixes as in the README |
+| Stabilize hooks | **done** | combinatory variants, filters, `hook_ms()` vs many-file hooks — harness, not DSL text |
+| Stabilize DSL | **done** | this README surface (§0.1) is SoT; compiler still to write |
+| Stabilize Yml | open | `validate:` *when* is stated; entity YAML shape is not frozen |
+| Refactor Bootstrap … Implement agents | open | later |
+
+So: the language you would parse is the §0.1 surface. Size 1 in §2.4 is still the next *code* step. Do not wait for “Stabilize DSL” on the checklist; that box is already ticked.
 
 ---
 
@@ -158,12 +193,12 @@ So: technically possible; classified as **research / Fallback**; refused as iden
 
 ## 1.2 Two constraints before any training is worth it
 
-1. **Close or encode the README’s `[wip]` holes** (§0.2) before baking them into a model’s weights. A LoRA adapter that guesses `o-max-4`’s meaning is inventing SoT (see §8.4).
+1. **Encode the remaining README `[wip]` hole** (`o-max-4` spellings, §0.2) before baking a choice into a model’s weights. A LoRA adapter that guesses which argv form `o-max-4` is inventing SoT (see §8.4).
 2. **“Learn the syntax” is the wrong job for weights.** Syntax is a parser of the README (§8.1). The useful model job is **intent → valid DSL**, or **repair**, *under* that grammar.
 
 If the goal is “a small model that speaks ASC,” the cheap order is:
 
-1. Write a parser (PEG or recursive descent, §8.1) that matches the README surface (and leaves §0.2 as explicit open productions until the README closes them).
+1. Write a parser (PEG or recursive descent, §8.1) that matches the README surface (and leaves `o-max-4` as an explicit open production until the README closes it).
 2. Generate synthetic pairs from it (enumerate valid trees → captions — unpacked in §2.2).
 3. **Constrained decode** (§8.2–8.3) so a 1–7B local model *cannot* emit invalid DSL.
 4. LoRA only later, and only on that grammar, if evals show few-shot + constraints are not enough.
@@ -201,9 +236,9 @@ A tiny model that “knows the syntax” still emits **strings**. Without a pars
 - enforce an allowlist of entry points
 - compile to bash deterministically
 - produce training data that is *known* valid
-- score a model (exact match after parse, not BLEU on the string — see below)
+- score a model (exact match after parse, not BLEU on the string — see below and §8.7)
 
-LoRA without a parser is training a model whose mistakes execute. LoRA that fills README `[wip]` holes in the weights is a second, unofficial SoT.
+LoRA without a parser is training a model whose mistakes execute. LoRA that fills the remaining README `[wip]` hole (`o-max-4`) in the weights is a second, unofficial SoT.
 
 ### How the parser produces training data and scores the model
 
@@ -221,7 +256,7 @@ natural language  →  that exact DSL string
 
 is one **LoRA pair** (§8.4): the input you would show the model, and the output you want. “Gathering LoRA data” here mostly means *running that generator*, plus a small hand-written **gold** set (§8.5) you trust more than the synthetic bulk.
 
-**Job 2 — score without BLEU.** After the model answers, do **not** ask “how many words overlap the reference?” That metric is **BLEU**: it was built for translation, and it rewards looking similar. Two problems for a DSL:
+**Job 2 — score without BLEU.** After the model answers, do **not** ask “how many words overlap the reference?” That metric is **BLEU** (explained in §8.7): a 2002 *machine-translation* score. It counts overlapping word chunks between a candidate and a human reference. It was never a compiler. Two problems for a DSL:
 
 - `transcribe-file(a.mp4)` vs `transcribe-file(b.mp4)` look similar and score well, but they are different programs.
 - `transcribe-file(a.mp4` (missing `)`) looks almost right and can still score decently, but it is illegal and must not run.
@@ -296,13 +331,13 @@ The ASC-shaped gap in v4 §4.2 remains small: `llm` entry point + hooks; `able.y
 
 Not an implementation plan. A resume checklist.
 
-1. Treat the README DSL section as the grammar. Close or explicitly keep the `[wip]` lines *in the README* (`b-@` / `o-@`, `o-max-4` form, nested subshell, when `validate:` runs).
+1. Treat the README DSL section as the grammar (surface in §0.1). The checklist box “Stabilize DSL” is already ticked; remaining README work is only `o-max-4`’s argv spellings (close it *in the README* or mark it out of scope for the parser).
 2. Write a parser (PEG or recursive descent, §8.1) + gold examples taken from that README section, including reject cases (`rm`, unquoted redirects, unknown entry points).
-3. Compile DSL → bash / argv; use it for `validate:` and for hook-stem checks. This is size 1. It is what “Stabilize DSL” on the rewrite checklist means.
-4. Generate a GBNF (or Outlines) grammar from the same rules (§8.3). Few-shot a local 1–3B. Eval on held-out NL→DSL pairs. This is size 2.
+3. Compile DSL → bash / argv; use it for `validate:` (init-time entity tests, as the README now states) and for hook-stem checks. This is size 1. It is the *code* that the frozen spec still lacks.
+4. Generate a GBNF (or Outlines) grammar from the same rules (§8.3). Few-shot a local 1–3B. Eval on held-out NL→DSL pairs with parse + exact tree match, not BLEU (§8.7). This is size 2.
 5. Only if size 2 fails on combinators: synthetic dataset from the parser, then LoRA (size 3). Eval = AST exact match + allowlist violations = 0.
 
-Until step 1’s `[wip]` holes are either closed in the README or marked as out-of-scope for the parser, a LoRA that fills them is inventing SoT.
+Until `o-max-4` is either closed in the README or marked as out-of-scope for the parser, a LoRA that picks `--max=4` vs `-m 4` is inventing SoT.
 
 ---
 
@@ -483,7 +518,7 @@ A **pair** is one NL utterance and the DSL you consider correct for it.
 
 “A few dozen gold NL→DSL pairs” in size 2 is that small hand-checked set — enough to prompt and score, not enough to train a specialist. Size 3 is when you add thousands of synthetic pairs *and still* score on gold (and on combinator cases, if you care about those).
 
-Gold is **not** BLEU. BLEU would compare word overlap. Gold + parse compares trees.
+Gold is **not** BLEU. BLEU would compare word overlap (§8.7). Gold + parse compares trees.
 
 ## 8.6 One-line map back to A / B / C
 
@@ -496,3 +531,24 @@ Gold is **not** BLEU. BLEU would compare word overlap. Gold + parse compares tre
 | LoRA / LoRA pairs / gathering data | Size 3: **train** a specialist, using parser-minted + gold pairs |
 
 Order stays: README → parser → (optional) constrained decode → (optional, later) LoRA.
+
+## 8.7 BLEU
+
+**BLEU** (Bilingual Evaluation Understudy; Papineni et al., 2002) is an automatic score for **machine translation**. You have a candidate sentence from a model and one or more human reference translations. BLEU counts how many short word sequences (*n-grams*: 1-word, 2-word, … up to usually 4) appear in both, then applies a penalty if the candidate is much shorter than the reference. The result is a number, typically 0–1 or 0–100. Higher means “more of the same chunks as the reference.”
+
+It is **not** a parser. It does not know whether a string is legal DSL, bash, or French. It does not know that `p1` and `$1` mean the same thing after compile. It only sees tokens on a page.
+
+People mention BLEU in this note because it is the default-ish number NLP papers used to paste under “the model is good.” For **authoring a language you will execute**, that number is the wrong instrument:
+
+| If you use BLEU | What happens |
+|---|---|
+| Two programs that differ by one path | High score (almost the same words) — **false pass** |
+| Missing `)` or a typo in an operator | Still a decent score — **false pass**, then it fails to parse or runs wrong |
+| Different spacing / equivalent tree | Lower score — **false fail** |
+| Completely wrong entry point with similar leftover punctuation | Unpredictable — still not “did it compile to the intended argv?” |
+
+**What to use instead:** parse the model output. Reject if the parser fails. If it succeeds, compare the **tree** (or the compiled argv/bash) to the gold tree. That is exact match after parse (§2.2 job 2). Optional extras: allowlist of entry points; identical compiled argv.
+
+You will still see BLEU (and cousins: ROUGE, chrF, BERTScore) in papers about “LLM writes code.” For ASC they are at best a smoke test that the model emitted *something* DSL-shaped. They are not an acceptance test.
+
+**Tiny numeric intuition (not a real eval):** suppose gold is `transcribe-file(a.mp4)` and the model emits `transcribe-file(b.mp4)`. A 1-gram BLEU-like overlap is high (`transcribe-file`, `(`, `.mp4`, `)`). A parser-based score is 0 if you require the same path. That is the whole argument.
