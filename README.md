@@ -277,17 +277,23 @@ An *active dir* is a folder where files following specific naming conventions al
 These folders are automatically discovered during instance init (and setup). The implementations they contain depend on things like :
 
 - which **extensions** are enabled (using `.gitignore`-like declarations, see `.asc_subjects_ignore` files),
-- which **global env vars values** are set,
+- which **env vars values** are set,
 - which **level of genericity** the contained implementations have (this determines conflicted "winners"),
 - and wether they relate to a `$subject` or an `$object` (by subject) given the **entry point** (= `$action`) used.
 
 **List of active dirs** (containing implementations from **most generic** to **most specific**) :
 
-1. `./asc`
-1. `./asc/extensions/$extension` (ex: `asc/extensions/compose`)
-1. `./scripts/asc/contrib/asc/$extension` (ex: `scripts/asc/contrib/asc/tesseract`)
-1. `./scripts/asc/contrib/$vendor/$extension` (ex: `scripts/asc/contrib/foobar/baz`)
-1. `./scripts/asc/extend`
+1. `./asc/$subject`
+1. `./asc/extensions/$extension/$subject` (ex: `asc/extensions/compose/service`)
+1. `./scripts/asc/contrib/asc/$extension/$subject` (ex: `scripts/asc/contrib/asc/tesseract/recognize`)
+1. `./scripts/asc/contrib/$vendor/$extension/$subject`
+1. `./scripts/asc/extend/$subject`
+
+So :
+
+> an *active dir* is any `$subject` dir (either in ASC core or in **enabled** extensions).
+
+NB : and an additional `$object` subdir may be used for regrouping actions (see _actions_).
 
 ### Specificity and collisions handling
 
@@ -304,7 +310,7 @@ The bottom of this list wins when implementing the same `hook_ms()` (i.e. the "m
 1. `scripts/asc/extend/$subject/*.hook.sh` / `scripts/asc/extend/$subject/$action.sh`
 1. `scripts/asc/extend/$subject/$object/$action.sh`
 
-### (make) _Entry points_ are `$action` scripts (or just _actions_)
+### Actions = (make) _Entry points_
 
 ASC actions are any shell scripts placed in *active dirs* with a file name :
 
@@ -312,7 +318,7 @@ ASC actions are any shell scripts placed in *active dirs* with a file name :
 - not beginning with a dot
 - not using any double extension
 
-In *active dirs*, there are 2 nesting levels supported for *entry points* (or *actions*) :
+There are 2 nesting levels supported for *entry points* (or *actions*) :
 
 - `$subject` / `$action` (ex: `service-start` → `asc/extensions/compose/service/start.sh`)
 - `$subject` / `$object` / `$action` (ex: `host-dependency-install` → `asc/host/dependency/install.sh`)
@@ -342,7 +348,7 @@ There are 2 ways to customize or add globals :
 1. by editing `env.yml` configuration files. Various names can be used to allow overrides between different project instances, and the YAML syntax is then transformed into globals declarations (and/or `f_instance_init()` arguments override). You can see an example file in this repo's docroot : `SPECIMEN.env.yml`, which you can rename to `env.yml` (or `.env-local.yml`) to quickly get started.
 1. by providing `global.vars.sh` file(s) in active dirs.
 
-The `.env.yml` method is meant for simple declarations, while `global.vars.sh` allow things like deferred and/or conditional assignments, dynamic values, and plain bash scripting.
+The `env.yml` method is meant for simple declarations, while `global.vars.sh` allow things like deferred and/or conditional assignments, dynamic values, and plain bash scripting.
 
 Here's the list of `env.yml` variants lookup paths available for specifying overrides if needed :
 
@@ -354,6 +360,17 @@ env.$STACK_VERSION.$HOST_TYPE.yml
 env.$STACK_VERSION.$INSTANCE_TYPE.yml
 env.$STACK_VERSION.$HOST_TYPE.$INSTANCE_TYPE.yml
 ```
+
+In the list above, in case of collision, the last file "wins". Ex :
+
+- `env.yml` declares `STACK_VERSION='foobar-2025'`
+- `env.local.dev.yml` declares STACK_VERSION='foobar-2026'
+
+Result : any "local dev" project instance gets the `foobar-2026` stack. The rest (e.g. remote instances, or prod local instances, etc.) still stay on the `foobar-2025` stack.
+
+#### Interactive terminal prompts during (instance) init
+
+By default, when "instance init" runs (= `make init` = `asc/instance/init.sh`, also called during `reinit`), if the `-y` flag is not used, every global will trigger a terminal prompt (i.e. `read`) in order to manually input or confirm the default value.
 
 If all you need is a constant, the following syntax will not prompt for user input in terminal during *instance init* :
 
