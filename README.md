@@ -225,13 +225,19 @@ In this README, the `$` prefix always means the following :
 5. **Overrides** = alterations of implementations provided by core and/or extensions,
 6. **Specifics** = impementations with low or no potential for reuse outside the current projet ASC is used for.
 
+#### Primordial
+
 The **primordial** file just defines basic synonyms. They are interchangeable words used across all Yaml files.
+
+#### Primitives
 
 **Primitives** include :
 
 - `entity.entity.yml` defining the structure of *entities* (i.e. it specifies, for instance, that every `*.entity.yml` can have the root props `entity`, `required`, `optional`) ;
 - `able.able.yml` defining the structure of *contracts* (= *skills* or *capabilities*) ;
 - and perhaps other use cases may warrant interventions on that level in other projects using ASC (the door remains open).
+
+#### Core
 
 **Core** implementations include :
 
@@ -257,20 +263,77 @@ The **primordial** file just defines basic synonyms. They are interchangeable wo
     - `asc/extensions/software` : default implementations for managing software - usually dependencies, i.e. : updates, configuration, (un)installation, etc.
     - `asc/extensions/workflow` : default implementations for streamlining work processes, kinda like a minimalist and simpler implementation of [superpowers](https://github.com/obra/superpowers) for projects using ASC (complements the `rules` extension)
 
+### Extension
+
+An **extension** is any folder in the following list (from **most generic** to **most specific**) :
+
+1. `./asc/extensions`
+1. `./scripts/asc/contrib/asc`
+1. `./scripts/asc/contrib/$vendor`
+
+The default extensions provided by the main ASC repo are all *disabled* by default, except for `asc/extensions/file_registry`.
+
+#### Enabling and disabling extensions
+
+> Create or edit `scripts/asc/override/.asc_extensions_ignore`.
+
+Like the `.asc_subjects_ignore` files, it are essentially acts like a `.gitignore` files for the ASC discovery mechanism. See :
+
+- `scripts/asc/contrib/.asc_extensions_ignore` for the ASC core extensions disabled by default,
+- and `scripts/asc/contrib/.asc_extensions_ignore` for the ASC contrib extensions disabled by default.
+
+### Overrides
+
+In ASC, during *bootstrap* (see below), any Bash shell script include can be swapped by your own altered copy if needed.
+
+If the "counterpart" of a given script exists in the folder `scripts/asc/override`, it will be used instead of the original file.
+
+This allows to replace any includes or hook implementations.
+
+Example : if we want to override `asc/git/init.hook.sh` - effectively *bypassing* the existing default implementation provided by the ASC main repo, we'll create the following file :
+
+`scripts/asc/override/git/init.hook.sh`
+
+The matching is done by by replacing the leading `asc/` in filepaths with `scripts/asc/override/`. It works for extensions too.
+
+Here's another example to illustrate overriding a Bash shell script include :
+
+- `asc/extensions/docker-compose/docker-compose.inc.sh` → `scripts/asc/override/extensions/docker-compose/docker-compose.inc.sh`
+
+### Project-specific implementations
+
+They are custom *active dirs* placed in `./scripts/asc/extend` to be implemented per project. This is where anything that isn't generic and/or isn't meant for public release must live.
+
 ### Bootstrap (ASC-bootstrapped context)
 
-A *bootstrapped* context is any shell context that has sourced `asc/bootstrap.sh`. It loads global env vars and bash functions, depending on "auto" (= "eager") - and optionally "leazy" - loaded includes corresponding to the entry point used.
+A *bootstrapped* context is any shell context that has sourced `asc/bootstrap.sh`.
+
+Sourcing the ASC bootstrap file loads *env vars* and Bash functions in the current *shell scope*, depending on "auto" (= "eager" = files using the `*.inc.sh` double extension), or "lazy" (= files using the `*.opt-inc.sh` double extension) loading of Bash shell script includes *corresponding to the entry point used*.
 
 There are 2 kinds of bootstrapped contexts :
 
-1. when a project instance is not initialized yet,
-1. and after initialization has run (usually once in a local project instance) : see *setup*.
+1. when a project instance is not initialized yet (i.e. before `make init` = `asc/instance/init.sh`, also called during `reinit` and/or `setup` has run),
+1. and after initialization has run (usually once in a local project instance).
 
-### ASC-active dir
+See *Usage / Getting started* for *(re)init* and/or *setup* details.
+
+### Extension Point
+
+An **extension point** (noted "ext.point" in the *File structure* section) designates folders containing *active dir(s)* (see below). It's possible to exclude some sub-folders from the detection mechanism (during *(re)init*) using `.asc_subjects_ignore` files, which are essentially `.gitignore` files for ASC discovery.
+
+**List of extension points** (containing implementations from **most generic** to **most specific**) :
+
+1. `./asc`
+1. `./asc/extensions/$extension` (ex: `asc/extensions/compose`)
+1. `./scripts/asc/contrib/asc/$extension` (ex: `scripts/asc/contrib/asc/tesseract`)
+1. `./scripts/asc/contrib/$vendor/$extension`
+1. `./scripts/asc/extend`
+
+### Active Dir
 
 An *active dir* is a folder where files following specific naming conventions allow things like :
 
-- auto (= eager) or lazy loading of bash shell script includes (in ASC-bootstrapped contexts),
+- auto (= eager = files using the `*.inc.sh` double extension), or lazy (= files using the `*.opt-inc.sh` double extension) loading of bash shell script includes in ASC-bootstrapped contexts,
 - global env vars definitions,
 - hook implementations (with variants), including yaml files, python scripts, etc.
 
@@ -283,7 +346,7 @@ These folders are automatically discovered during instance init (and setup). The
 
 **List of active dirs** (containing implementations from **most generic** to **most specific**) :
 
-1. `./asc/$subject`
+1. `./asc/$subject` (ex: `asc/host`)
 1. `./asc/extensions/$extension/$subject` (ex: `asc/extensions/compose/service`)
 1. `./scripts/asc/contrib/asc/$extension/$subject` (ex: `scripts/asc/contrib/asc/tesseract/recognize`)
 1. `./scripts/asc/contrib/$vendor/$extension/$subject`
@@ -320,7 +383,7 @@ ASC actions are any shell scripts placed in *active dirs* with a file name :
 
 There are 2 nesting levels supported for *entry points* (or *actions*) :
 
-- `$subject` / `$action` (ex: `service-start` → `asc/extensions/compose/service/start.sh`)
+- `$subject` / `$action` (ex: `service-run` → `asc/extensions/compose/service/run.sh`)
 - `$subject` / `$object` / `$action` (ex: `host-dependency-install` → `asc/host/dependency/install.sh`)
 
 Note that `$object` dirs do not support hook implementations. They are a convenience extra nesting level for grouping *actions* only, otherwise the possible lookup paths list for hooks could get too big.
@@ -364,7 +427,7 @@ env.$STACK_VERSION.$HOST_TYPE.$INSTANCE_TYPE.yml
 In the list above, in case of collision, the last file "wins". Ex :
 
 - `env.yml` declares `STACK_VERSION='foobar-2025'`
-- `env.local.dev.yml` declares STACK_VERSION='foobar-2026'
+- `env.local.dev.yml` declares `STACK_VERSION='foobar-2026'`
 
 Result : any "local dev" project instance gets the `foobar-2026` stack. The rest (e.g. remote instances, or prod local instances, etc.) still stay on the `foobar-2025` stack.
 
@@ -534,6 +597,10 @@ hook -s 'instance' -a 'env' -c 'yml' -v 'HOST_TYPE INSTANCE_TYPE' -t -r
 # - asc.local.dev.yml
 # - asc.dev.yml
 ```
+
+### Tests
+
+TODO
 
 ### Wrappers (wrapper scripts)
 
@@ -801,6 +868,47 @@ make setup prod
 make setup prod remote myproject-2026 compose
 ```
 
+### Project stack "lifecycle" entry points
+
+This applies to projects using ASC with Docker compose (or any tool(s) sharing the same kind of mechanics).
+
+When we modify anything in the project stack declaration in the currently active STACK_VERSION with services already running, e.g. typically :
+
+- `scripts/cwt/extend/stack/compose.foobar-2026.yml`
+- `scripts/cwt/extend/stack/compose.override.foobar-2026.local.dev.yml`
+
+... then we have to :
+
+```sh
+# Shortcut for Reinit + Restart :
+make rere
+# Or :
+cwt/instance/rere.sh
+```
+
+If we did **not** touch any *env var* value, this will suffice :
+
+```sh
+make compose-update
+# Or :
+cwt/extensions/docker-compose/compose/update.sh
+```
+
+In both cases, this will re-generate the (git-ignored) files in PROJECT_DOCROOT that `docker compose` will use :
+
+- `compose.yml`
+- `compose.override.yml`
+
+... and restart the whole stack immediately.
+
+Finally, if on or more custom `Dockerfile` was modified, then the `rebuild` action is required for those changes to take effect (to be run *after* `reinit` if some env var(s) were modified as well) :
+
+```sh
+make rebuild
+# Or :
+cwt/instance/rebuild.sh
+```
+
 ## File structure
 
 ```txt
@@ -821,7 +929,7 @@ make setup prod remote myproject-2026 compose
   │   ├── instance/           ← lifecycle + logged runners + chain/pipe
   │   ├── log/,sidecar/,loop/,thread/ ← core ASC wrappers
   │   ├── make/               ← default.mk + call_wrap
-  │   ├── test/               ← shunit2 low-level suite
+  │   ├── test/               ← shunit2 low-level tests suite
   │   ├── utilities/          ← internal libraries
   │   ├── vendor/             ← shunit2, bash-yaml
   │   ├── .asc_subjects_ignore  ← [$subject/$action ext.point] blacklisted subfolder(s)

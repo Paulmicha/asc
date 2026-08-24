@@ -3,4 +3,4 @@ wrap:
     prop:
       wrapper:
         validate:
-          - test-file-exists(p-1)
+          - test-file-exists(p1)
