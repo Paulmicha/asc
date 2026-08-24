@@ -9,6 +9,7 @@
 # @requires https://github.com/rbutinar/md2pdf-mermaid
 # Styled via asc/doc/md2pdf_asc.py + pdf_styles.css (Spectral, compact 8pt).
 # Mermaid: local asc/vendor/mermaid.esm.min.mjs (offline).
+# KaTeX: local asc/vendor/katex/ (CSS + JS + auto-render, offline).
 #
 # @param n [optional] String : any additional named option.
 #   --force (flag) : Force re-compiling already compiled pdfs. By default, only
@@ -107,6 +108,11 @@ fi
 
 if [[ ! -f "asc/vendor/mermaid.esm.min.mjs" ]]; then
   echo "Local Mermaid not found: asc/vendor/mermaid.esm.min.mjs"
+  exit 1
+fi
+
+if [[ ! -f "asc/vendor/katex/katex.min.js" ]]; then
+  echo "Local KaTeX not found: asc/vendor/katex/"
   exit 1
 fi
 

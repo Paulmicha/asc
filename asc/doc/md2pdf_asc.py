@@ -10,10 +10,12 @@ Spectral (bundled under fonts/Spectral/) and Source Code Pro
 
 Mermaid: ```mermaid blocks become live HTML (.mermaid) rendered by the
 local self-contained bundle at asc/vendor/mermaid.esm.min.mjs (IIFE,
-no CDN). Printable HTML is written under data/tmp/ so Mermaid and fonts
-load via relative paths. Local <img src> paths are rewritten from the
-markdown file's directory to that print HTML, so images next to the .md
-resolve under file://.
+no CDN). KaTeX: $...$ / $$...$$ in the HTML are typeset by the local
+bundle at asc/vendor/katex/ (CSS + JS + auto-render, no CDN). Printable
+HTML is written under data/tmp/ so Mermaid, KaTeX, and fonts load via
+relative paths. Local <img src> paths are rewritten from the markdown
+file's directory to that print HTML, so images next to the .md resolve
+under file://.
 
 Usage:
   asc/doc/md2pdf_asc.py input.md -o output.pdf
@@ -38,6 +40,8 @@ FONT_FAMILY = "Spectral"
 MONO_FONT_FAMILY = "Source Code Pro"
 MONO_FONT_FILE = FONTS_DIR / "SourceCodePro-Powerline-Awesome-Regular.ttf"
 MERMAID_VENDOR = ASC_DIR / "vendor" / "mermaid.esm.min.mjs"
+KATEX_VENDOR = ASC_DIR / "vendor" / "katex"
+KATEX_FILES = ("katex.min.css", "katex.min.js", "auto-render.min.js")
 # Match pdf_styles.css --asc-font-size. Mermaid sequence diagrams ignore
 # themeVariables.fontSize for actors (hardcoded 16px) unless sequence.*FontSize
 # is set — those options expect a px number, not pt.
@@ -152,6 +156,26 @@ def require_mermaid_vendor() -> Path:
     return MERMAID_VENDOR
 
 
+def require_katex_vendor() -> Path:
+    missing = [name for name in KATEX_FILES if not (KATEX_VENDOR / name).is_file()]
+    if missing or not (KATEX_VENDOR / "fonts").is_dir():
+        print(
+            f"ERROR: local KaTeX not found under {KATEX_VENDOR}\n"
+            "Expected katex.min.css, katex.min.js, auto-render.min.js, and fonts/",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return KATEX_VENDOR
+
+
+_KATEX_DELIM_RE = re.compile(r"\$\$[\s\S]+?\$\$|\$(?:\\.|[^$\n])+?\$")
+
+
+def html_has_katex(html: str) -> bool:
+    """True when HTML still contains $...$ or $$...$$ math delimiters."""
+    return bool(_KATEX_DELIM_RE.search(html))
+
+
 def mermaid_boot_script(html_path: Path) -> str:
     """Classic script boot (IIFE vendor) — works with file:// relative src."""
     mermaid_path = require_mermaid_vendor()
@@ -209,6 +233,41 @@ def mermaid_boot_script(html_path: Path) -> str:
       console.error('Mermaid render failed', err);
       window.__ascMermaidDone = true;
     }});
+  }})();
+</script>
+"""
+
+
+def katex_boot_script(html_path: Path) -> str:
+    """Local KaTeX auto-render — works with file:// relative src."""
+    katex_dir = require_katex_vendor()
+    css_rel = rel_url(html_path, katex_dir / "katex.min.css")
+    js_rel = rel_url(html_path, katex_dir / "katex.min.js")
+    auto_rel = rel_url(html_path, katex_dir / "auto-render.min.js")
+    return f"""<link rel="stylesheet" href="{css_rel}">
+<script src="{js_rel}"></script>
+<script src="{auto_rel}"></script>
+<script>
+  (function () {{
+    function ascRunKatex() {{
+      try {{
+        renderMathInElement(document.body, {{
+          delimiters: [
+            {{left: '$$', right: '$$', display: true}},
+            {{left: '$', right: '$', display: false}}
+          ],
+          throwOnError: false
+        }});
+      }} catch (err) {{
+        console.error('KaTeX render failed', err);
+      }}
+      window.__ascKatexDone = true;
+    }}
+    if (window.__ascMermaidReady) {{
+      window.__ascMermaidReady.then(ascRunKatex).catch(ascRunKatex);
+    }} else {{
+      ascRunKatex();
+    }}
   }})();
 </script>
 """
@@ -314,12 +373,15 @@ def patch_html_renderer() -> None:
         )
         if n != 1:
             raise RuntimeError("Failed to replace md2pdf embedded <style> block")
+        boot = ""
         if enable_mermaid and 'class="mermaid"' in html2:
+            boot += mermaid_boot_script(html_path)
+        if html_has_katex(html2):
+            boot += katex_boot_script(html_path)
+        if boot:
             if "</body>" not in html2:
-                raise RuntimeError("HTML missing </body>; cannot inject Mermaid")
-            html2 = html2.replace(
-                "</body>", mermaid_boot_script(html_path) + "</body>", 1
-            )
+                raise RuntimeError("HTML missing </body>; cannot inject scripts")
+            html2 = html2.replace("</body>", boot + "</body>", 1)
         source_md = _CURRENT_SOURCE_MD
         if source_md is not None:
             html2 = rewrite_local_img_srcs(html2, source_md, html_path)
@@ -367,6 +429,7 @@ def patch_html_renderer() -> None:
             }
 
             has_mermaid = 'class="mermaid"' in html_content
+            has_katex = "auto-render.min.js" in html_content
             # Playwright requires a URL; derived from project-local HTML only.
             goto_url = html_path.resolve().as_uri()
 
@@ -387,7 +450,13 @@ def patch_html_renderer() -> None:
                         }""",
                         timeout=60000,
                     )
-                else:
+                if has_katex:
+                    await page.wait_for_function(
+                        """() => window.__ascKatexDone === true
+                          || document.querySelector('.katex') !== null""",
+                        timeout=60000,
+                    )
+                elif not has_mermaid:
                     await page.wait_for_load_state("networkidle")
                 await page.pdf(**pdf_options)
                 await browser.close()
@@ -446,6 +515,7 @@ def main() -> int:
         return 1
 
     require_mermaid_vendor()
+    require_katex_vendor()
 
     if Path.home().joinpath(".cache/ms-playwright").is_dir():
         os.environ.setdefault(
@@ -467,6 +537,7 @@ def main() -> int:
     print(
         f"  (ASC style: {FONT_FAMILY} + {MONO_FONT_FAMILY} + compact 8pt; "
         f"Mermaid local {MERMAID_VENDOR.relative_to(_PROJECT_ROOT)}; "
+        f"KaTeX local {KATEX_VENDOR.relative_to(_PROJECT_ROOT)}; "
         "local images rewritten for print HTML)"
     )
     try:
