@@ -31,6 +31,67 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
 - complex NL-related or agent-related stuff should be delegated to dedicated project instances
 - in fact, anything complex is off limits
 
+## Table of contents
+
+- [Purpose](#purpose)
+- [How (concepts in brief)](#how-concepts-in-brief)
+- [Example project (demo / case study)](#example-project-demo-case-study)
+  - [ASC demo : "_Projet Complexe_" as an attempt at reinterpreting Mihaly Csikszentmihalyi's concept of _Flow_ for agents](#asc-demo-projet-complexe-as-an-attempt-at-reinterpreting-mihaly-csikszentmihalyis-concept-of-flow-for-agents)
+  - [An agent is under-challenged when it has excessive unused capacity relative to the problem](#an-agent-is-under-challenged-when-it-has-excessive-unused-capacity-relative-to-the-problem)
+  - [The opposite regime is far more interesting](#the-opposite-regime-is-far-more-interesting)
+  - [Prompt engineering is really challenge regulation](#prompt-engineering-is-really-challenge-regulation)
+- [Current status of the ASC project](#current-status-of-the-asc-project)
+- [Core ASC concepts](#core-asc-concepts)
+  - [General notes](#general-notes)
+  - [Genericity (scale)](#genericity-scale)
+    - [Primordial](#primordial)
+    - [Primitives](#primitives)
+    - [Core](#core)
+    - [Extension](#extension)
+      - [Enabling and disabling extensions](#enabling-and-disabling-extensions)
+    - [Overrides](#overrides)
+    - [Project-specific implementations](#project-specific-implementations)
+  - [Bootstrap (ASC-bootstrapped context)](#bootstrap-asc-bootstrapped-context)
+  - [Extension Point](#extension-point)
+  - [Active Dir](#active-dir)
+  - [Specificity and collisions handling](#specificity-and-collisions-handling)
+  - [Actions = (make) _Entry points_](#actions-make-entry-points)
+  - [Environment variables (*env vars*)](#environment-variables-env-vars)
+    - [Declaring _env vars_](#declaring-env-vars)
+    - [Interactive terminal prompts during (instance) init](#interactive-terminal-prompts-during-instance-init)
+    - [Git-ignored, "private" _globals_](#git-ignored-private-globals)
+  - [Hooks (variants)](#hooks-variants)
+  - [Tests](#tests)
+  - [Wrappers](#wrappers)
+  - [Yaml entity declaration](#yaml-entity-declaration)
+    - [Field vs Prop](#field-vs-prop)
+  - [ASC domain-specific language : *DSL* syntax](#asc-domain-specific-language-dsl-syntax)
+    - [Entry points](#entry-points)
+    - [Arguments](#arguments)
+    - [Variables](#variables)
+    - [Functions](#functions)
+    - [Chaining](#chaining)
+    - [Parallel](#parallel)
+    - [Piping](#piping)
+    - [Conditional execution](#conditional-execution)
+    - [Redirecting](#redirecting)
+    - [Iterations (= loops, foreach, for ... in)](#iterations-loops-foreach-for-in)
+    - ["Normal" DSL example](#normal-dsl-example)
+    - [DSL in Yaml](#dsl-in-yaml)
+  - [ASC data types](#asc-data-types)
+- [Naming convention](#naming-convention)
+  - [File names](#file-names)
+  - [Coding style](#coding-style)
+- [Usage / Getting started](#usage-getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Placement](#placement)
+  - [Step by step](#step-by-step)
+  - [Setup parameters](#setup-parameters)
+  - [Project stack "lifecycle" entry points](#project-stack-lifecycle-entry-points)
+- [File structure](#file-structure)
+- [Contributors](#contributors)
+- [License](#license)
+
 ## Purpose
 
 ASC organizes (mostly bash) scripts around conventions so you can swap implementations without rewriting every project’s workflow :
@@ -263,7 +324,7 @@ The **primordial** file just defines basic synonyms. They are interchangeable wo
     - `asc/extensions/software` : default implementations for managing software - usually dependencies, i.e. : updates, configuration, (un)installation, etc.
     - `asc/extensions/workflow` : default implementations for streamlining work processes, kinda like a minimalist and simpler implementation of [superpowers](https://github.com/obra/superpowers) for projects using ASC (complements the `rules` extension)
 
-### Extension
+#### Extension
 
 An **extension** is any folder in the following list (from **most generic** to **most specific**) :
 
@@ -273,7 +334,7 @@ An **extension** is any folder in the following list (from **most generic** to *
 
 The default extensions provided by the main ASC repo are all *disabled* by default, except for `asc/extensions/file_registry`.
 
-#### Enabling and disabling extensions
+##### Enabling and disabling extensions
 
 > Create or edit `scripts/asc/override/.asc_extensions_ignore`.
 
@@ -282,7 +343,7 @@ Like the `.asc_subjects_ignore` files, it are essentially acts like a `.gitignor
 - `scripts/asc/contrib/.asc_extensions_ignore` for the ASC core extensions disabled by default,
 - and `scripts/asc/contrib/.asc_extensions_ignore` for the ASC contrib extensions disabled by default.
 
-### Overrides
+#### Overrides
 
 In ASC, during *bootstrap* (see below), any Bash shell script include can be swapped by your own altered copy if needed.
 
@@ -300,7 +361,7 @@ Here's another example to illustrate overriding a Bash shell script include :
 
 - `asc/extensions/docker-compose/docker-compose.inc.sh` → `scripts/asc/override/extensions/docker-compose/docker-compose.inc.sh`
 
-### Project-specific implementations
+#### Project-specific implementations
 
 They are custom *active dirs* placed in `./scripts/asc/extend` to be implemented per project. This is where anything that isn't generic and/or isn't meant for public release must live.
 
@@ -490,11 +551,11 @@ Note that if the above helper is run **after** *instance init*, more variants wi
 
 The declarations found in `env.yml` take precedence over `global.vars.sh`, as they get loaded last during the aggregation process.
 
-#### Git-ignored, "private" _env vars_
+#### Git-ignored, "private" _globals_
 
-If you need local, "private" values that must NOT be checked out in any git repo, the following file can be used : `.env-local.yml`
+If you need local, "private" *readonly* values that must NOT be checked out in any git repo, the following file can be used : `.env-local.yml` (same as `env.yml` but with a single dot prefix).
 
-If needed, the available lookup paths are the same as for the `env.yml` file :
+If needed, additional lookup paths are available in order to override values in the same way as for the `env.yml` file :
 
 ```txt
 .env-local.$HOST_TYPE.yml
