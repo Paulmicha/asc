@@ -602,7 +602,7 @@ hook -s 'instance' -a 'env' -c 'yml' -v 'HOST_TYPE INSTANCE_TYPE' -t -r
 
 TODO
 
-### Wrappers (wrapper scripts)
+### Wrappers
 
 TODO
 
@@ -634,6 +634,13 @@ they both have a 'hostname' field,
 which stores (in sidecars or globals or cache or scripts) the value for ASC implementations to use.
 
 ### ASC domain-specific language : *DSL* syntax
+
+This is more of a convenience shortcut to simplified ASC implementations. It allows things like :
+
+- Custom LLMs "harness" (see `asc/extensions/agent`)
+- One-liner entity field values validation
+- Basic pre-processing tests
+- Faster prototypes to evaluate, compare, measure implementation ideas
 
 #### Entry points
 
