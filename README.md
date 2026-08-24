@@ -1051,6 +1051,7 @@ cwt/instance/rebuild.sh
   ├── .env-local.yml          ← [optional, git-ignored] secret ENV vars (hardcoded)
   ├── .env-local.foobar.yml   ← [optional, git-ignored] conditional (hook-based) secret ENV vars (hardcoded)
   ├── env.yml                 ← this project instance global env vars declaration
+  ├── env.foobar.yml          ← [optional] conditional (hook-based) global env vars declaration
   ├── SPECIMEN.env.yml        ← copy to env.yml
   ├── SPECIMEN.remote_instances.yml  ← [optional] copy to remote_instances.yml
   └── ...
