@@ -13,7 +13,9 @@ local self-contained bundle at asc/vendor/mermaid.esm.min.mjs (IIFE,
 no CDN). KaTeX: $...$ / $$...$$ in the HTML are typeset by the local
 bundle at asc/vendor/katex/ (CSS + JS + auto-render, no CDN). Printable
 HTML is written under data/tmp/ so Mermaid, KaTeX, and fonts load via
-relative paths. Local <img src> paths are rewritten from the markdown
+relative paths. Math spans are stashed before Markdown conversion so
+underscores in TeX (e.g. ``$\\mathcal{D}_{\\mathrm{train}}$``) are not eaten
+by emphasis. Local <img src> paths are rewritten from the markdown
 file's directory to that print HTML, so images next to the .md resolve
 under file://.
 
@@ -169,11 +171,41 @@ def require_katex_vendor() -> Path:
 
 
 _KATEX_DELIM_RE = re.compile(r"\$\$[\s\S]+?\$\$|\$(?:\\.|[^$\n])+?\$")
+_KATEX_DISPLAY_RE = re.compile(r"\$\$[\s\S]+?\$\$")
+_KATEX_INLINE_RE = re.compile(r"(?<!\$)\$(?!\$)(?:\\.|[^$\n])+?\$(?!\$)")
+_FENCED_CODE_RE = re.compile(r"(```[\s\S]*?```)")
 
 
 def html_has_katex(html: str) -> bool:
     """True when HTML still contains $...$ or $$...$$ math delimiters."""
     return bool(_KATEX_DELIM_RE.search(html))
+
+
+def protect_katex_math(markdown_text: str) -> tuple[str, list[str]]:
+    """Stash $...$ / $$...$$ so Markdown emphasis cannot eat TeX underscores."""
+    placeholders: list[str] = []
+
+    def stash(match: re.Match[str]) -> str:
+        placeholders.append(match.group(0))
+        return f"<!--ASC_MATH_{len(placeholders) - 1}-->"
+
+    parts = _FENCED_CODE_RE.split(markdown_text)
+    out: list[str] = []
+    for i, part in enumerate(parts):
+        if i % 2 == 1:
+            out.append(part)
+            continue
+        part = _KATEX_DISPLAY_RE.sub(stash, part)
+        part = _KATEX_INLINE_RE.sub(stash, part)
+        out.append(part)
+    return "".join(out), placeholders
+
+
+def restore_katex_math(html: str, placeholders: list[str]) -> str:
+    """Put stashed math back into HTML for KaTeX auto-render."""
+    for i, math in enumerate(placeholders):
+        html = html.replace(f"<!--ASC_MATH_{i}-->", html_lib.escape(math))
+    return html
 
 
 def mermaid_boot_script(html_path: Path) -> str:
@@ -359,7 +391,10 @@ def patch_html_renderer() -> None:
 
     def markdown_to_html(markdown_text: str, title: str = "Document",
                          enable_mermaid: bool = True) -> str:
-        html = orig(markdown_text, title=title, enable_mermaid=enable_mermaid)
+        # Protect math before Python-Markdown turns _…_ into <em>.
+        protected, katex_placeholders = protect_katex_math(markdown_text)
+        html = orig(protected, title=title, enable_mermaid=enable_mermaid)
+        html = restore_katex_math(html, katex_placeholders)
         html_path = _PRINT_HTML_PATH
         if html_path is None:
             raise RuntimeError("Internal error: print HTML path not set")
