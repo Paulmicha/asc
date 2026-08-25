@@ -174,6 +174,10 @@ _KATEX_DELIM_RE = re.compile(r"\$\$[\s\S]+?\$\$|\$(?:\\.|[^$\n])+?\$")
 _KATEX_DISPLAY_RE = re.compile(r"\$\$[\s\S]+?\$\$")
 _KATEX_INLINE_RE = re.compile(r"(?<!\$)\$(?!\$)(?:\\.|[^$\n])+?\$(?!\$)")
 _FENCED_CODE_RE = re.compile(r"(```[\s\S]*?```)")
+# Plain-text tokens (not HTML comments): Markdown treats comments as block HTML
+# and pulls them out of <p>, which drops mid-sentence math like $x$ / $H$.
+_KATEX_PLACEHOLDER_FMT = "@@ASC_MATH_{i}@@"
+_KATEX_PLACEHOLDER_RE = re.compile(r"@@ASC_MATH_(\d+)@@")
 
 
 def html_has_katex(html: str) -> bool:
@@ -182,12 +186,21 @@ def html_has_katex(html: str) -> bool:
 
 
 def protect_katex_math(markdown_text: str) -> tuple[str, list[str]]:
-    """Stash $...$ / $$...$$ so Markdown emphasis cannot eat TeX underscores."""
+    """Stash $...$ / $$...$$ so Markdown emphasis cannot eat TeX underscores.
+
+    Display math is wrapped in a <div> so it is not left inside a <p> (KaTeX
+    display mode is block-level; block-in-<p> breaks Chromium PDF layout).
+    """
     placeholders: list[str] = []
 
-    def stash(match: re.Match[str]) -> str:
+    def stash_inline(match: re.Match[str]) -> str:
         placeholders.append(match.group(0))
-        return f"<!--ASC_MATH_{len(placeholders) - 1}-->"
+        return _KATEX_PLACEHOLDER_FMT.format(i=len(placeholders) - 1)
+
+    def stash_display(match: re.Match[str]) -> str:
+        placeholders.append(match.group(0))
+        tok = _KATEX_PLACEHOLDER_FMT.format(i=len(placeholders) - 1)
+        return f'\n\n<div class="asc-math-display">{tok}</div>\n\n'
 
     parts = _FENCED_CODE_RE.split(markdown_text)
     out: list[str] = []
@@ -195,17 +208,22 @@ def protect_katex_math(markdown_text: str) -> tuple[str, list[str]]:
         if i % 2 == 1:
             out.append(part)
             continue
-        part = _KATEX_DISPLAY_RE.sub(stash, part)
-        part = _KATEX_INLINE_RE.sub(stash, part)
+        part = _KATEX_DISPLAY_RE.sub(stash_display, part)
+        part = _KATEX_INLINE_RE.sub(stash_inline, part)
         out.append(part)
     return "".join(out), placeholders
 
 
 def restore_katex_math(html: str, placeholders: list[str]) -> str:
     """Put stashed math back into HTML for KaTeX auto-render."""
-    for i, math in enumerate(placeholders):
-        html = html.replace(f"<!--ASC_MATH_{i}-->", html_lib.escape(math))
-    return html
+
+    def repl(match: re.Match[str]) -> str:
+        idx = int(match.group(1))
+        if 0 <= idx < len(placeholders):
+            return html_lib.escape(placeholders[idx])
+        return match.group(0)
+
+    return _KATEX_PLACEHOLDER_RE.sub(repl, html)
 
 
 def mermaid_boot_script(html_path: Path) -> str:
@@ -277,10 +295,75 @@ def katex_boot_script(html_path: Path) -> str:
     js_rel = rel_url(html_path, katex_dir / "katex.min.js")
     auto_rel = rel_url(html_path, katex_dir / "auto-render.min.js")
     return f"""<link rel="stylesheet" href="{css_rel}">
+<style>
+  /*
+   * Chromium PDF: KaTeX strut/vlist nesting inflates line boxes when .katex
+   * stays display:inline. Atomic inline-block keeps baseline math in-flow.
+   */
+  .katex {{
+    display: inline-block !important;
+    vertical-align: baseline;
+    line-height: 1;
+    font-size: 1.05em;
+    text-indent: 0;
+    white-space: nowrap;
+  }}
+  .katex-display {{
+    display: block !important;
+    margin: 0.55em 0;
+    text-align: center;
+    white-space: normal;
+  }}
+  .asc-math-display {{
+    margin: 0.55em 0;
+    text-align: center;
+  }}
+  .asc-math-display .katex-display {{
+    margin: 0;
+  }}
+  /* Hidden MathML still pollutes Chromium's PDF text layer / copy-paste. */
+  .katex .katex-mathml {{
+    display: none !important;
+  }}
+</style>
 <script src="{js_rel}"></script>
 <script src="{auto_rel}"></script>
 <script>
   (function () {{
+    function ascFinishKatex() {{
+      document.querySelectorAll('.katex-mathml').forEach(function (el) {{
+        el.remove();
+      }});
+      /* auto-render wraps .katex in a bare <span>; unwrap so inline-block applies. */
+      document.querySelectorAll('.katex').forEach(function (el) {{
+        var isDisplay = el.classList.contains('katex-display')
+          || (el.parentElement && el.parentElement.classList.contains('katex-display'));
+        if (!isDisplay) {{
+          el.style.display = 'inline-block';
+          el.style.verticalAlign = 'baseline';
+          el.style.lineHeight = '1';
+          el.style.whiteSpace = 'nowrap';
+        }}
+        var parent = el.parentElement;
+        if (
+          parent
+          && parent.tagName === 'SPAN'
+          && !parent.className
+          && parent.childElementCount === 1
+          && parent.childNodes.length === 1
+        ) {{
+          parent.replaceWith(el);
+        }}
+      }});
+      var ready = (document.fonts && document.fonts.ready)
+        ? document.fonts.ready
+        : Promise.resolve();
+      ready.then(function () {{
+        window.__ascKatexDone = true;
+      }}).catch(function () {{
+        window.__ascKatexDone = true;
+      }});
+    }}
     function ascRunKatex() {{
       try {{
         renderMathInElement(document.body, {{
@@ -288,12 +371,13 @@ def katex_boot_script(html_path: Path) -> str:
             {{left: '$$', right: '$$', display: true}},
             {{left: '$', right: '$', display: false}}
           ],
-          throwOnError: false
+          throwOnError: false,
+          output: 'html'
         }});
       }} catch (err) {{
         console.error('KaTeX render failed', err);
       }}
-      window.__ascKatexDone = true;
+      ascFinishKatex();
     }}
     if (window.__ascMermaidReady) {{
       window.__ascMermaidReady.then(ascRunKatex).catch(ascRunKatex);
@@ -487,9 +571,16 @@ def patch_html_renderer() -> None:
                     )
                 if has_katex:
                     await page.wait_for_function(
-                        """() => window.__ascKatexDone === true
-                          || document.querySelector('.katex') !== null""",
+                        """() => window.__ascKatexDone === true""",
                         timeout=60000,
+                    )
+                    # Ensure KaTeX webfonts are applied before print.
+                    await page.evaluate(
+                        """async () => {
+                          if (document.fonts && document.fonts.ready) {
+                            await document.fonts.ready;
+                          }
+                        }"""
                     )
                 elif not has_mermaid:
                     await page.wait_for_load_state("networkidle")
