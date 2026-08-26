@@ -238,6 +238,11 @@ instead of merely reducing token count.
 
 Enough teasing "_Projet Complexe_", back to ASC - the generic base upon which all of this work rests :
 
+### Overlap with existing projects
+
+- [google-research/envharness](https://github.com/google-research/envharness) and [arXiv:2608.19880](https://arxiv.org/abs/2608.19880) : EnvHarness is the closest published operationalization of “keep the agent in the flow band by reshaping the world, not the weights.” It does that for frozen training benchmarks. Projet Complexe wants the same control idea for a living second brain, with ASC as generic glue. [Analysis here](data/ideas/2026/08/Overlap%20with%20EnvHarness.md) + [pdf](data/ideas/2026/08/Overlap%20with%20EnvHarness.pdf).
+- [Yaxin9Luo/AutoDesign](https://github.com/Yaxin9Luo/AutoDesign), [arXiv:2608.13560](https://arxiv.org/abs/2608.13560), [autodesign.designanything.ai](https://autodesign.designanything.ai/) Same week as EnvHarness (20 Aug 2026): two papers, two sides of the same “harness, not weights” claim. EnvHarness wraps a frozen *environment*. AutoDesign evolves the *agent* harness around a frozen *model*. Projet Complexe sits between them: named computational glue (ASC), packing and composition (Projet Complexe ASC), a living knowledge world (Projet Complexe). [Analysis here](data/ideas/2026/08/Overlap%20with%20AutoDesign%20-%20Meta%20Harness%20Optimization%20for%20Long-Horizon%20Agentic%20Design.md) + [pdf](data/ideas/2026/08/Overlap%20with%20AutoDesign%20-%20Meta%20Harness%20Optimization%20for%20Long-Horizon%20Agentic%20Design.pdf).
+
 ## Current status of the ASC project
 
 *Massive rewrite* ☢️ to shrink it to bare essentials, rethink things through.
