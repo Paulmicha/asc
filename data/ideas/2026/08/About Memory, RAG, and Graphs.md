@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-27  
 **Status:** recap / design instrument (not a spec, not an implementation plan)  
-**Reads:** four prior Cursor chats (all recovered; one UUID was wrong — see §1.1); Revival v2–v4; Projet Complexe notes 14 / 17 / 18; EnvHarness and AutoDesign overlaps; NLP recap; AI agents literature review; CLR / reverse prompting; Four Layers; Cognitive Institutions; Long, *AI-Supervisor*, arXiv:2603.24402v2  
+**Reads:** four prior Cursor chats (all recovered; one UUID was wrong — see §1.1); [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) and its memory / skills / architecture docs (2026); Revival v2–v4; Projet Complexe notes 14 / 17 / 18; EnvHarness and AutoDesign overlaps; NLP recap; AI agents literature review; CLR / reverse prompting; Four Layers; Cognitive Institutions; Long, *AI-Supervisor*, arXiv:2603.24402v2  
 **Books (paraphrase only):** Labaschin & Wallace *Managing Memory for AI Agents*; Norman *Agentic RAG Systems*; Devlin *Building LLM Agents with RAG, Knowledge Graphs, and Reflection*; Magda *Just Use Postgres*; Stewart & Huang *Agentic AI Data Architectures*; Kleppmann & Riccomini *Designing Data-Intensive Applications* (2nd ed.); Gazit & Ghaffari *Mastering NLP*; Grootendorst/Alammar via the agents review; Bhagwat; Berryman; Kar; Lanham  
 **Hardware this note is written against:** Debian 13 laptop — Intel i7-8750H (6C/12T), 32 GB RAM (~16 GB available under load), GTX 1050 Mobile 4 GB Pascal (driver 580 / CUDA 13), 32 GB swap, NVMe ~884 GB with hundreds of GB free. Overflow: dedicated remote server (16 GB RAM), not the brain.
 
@@ -25,10 +25,10 @@ The four chats, read together, say the same thing v3 already decided, and they a
 
 | Source | What it actually adds |
 |---|---|
-| [Codegraph project comparison](7cad74c7-606b-48c1-b38d-db6a05743d4c) | Code graphs are a **sidecar**, not the knowledge plane. Steal **CodeGraph** (Rust + SQLite + MCP, no LLM to index). Do **not** make Memgraph/Qdrant the second brain. Do **not** make Tencent’s hub the memory OS. |
-| [EnvHarness then AutoDesign](fbc9ea42-b3db-4938-9e5e-b70bcb5dcf6b) | Skill lives in the **harness**, not the weights. Wrap the world (EnvHarness). Freeze the model, evolve packing/tools with a gate (AutoDesign). HITL remains the only commit of Claims. |
-| [FreeToken installation issue](e93874b2-b3a1-4a03-979c-b138f28f3a44) | This GPU is **not** a local-frontier box. Stay Ollama / llama.cpp. Short context. Overflow is remote and metered, not a Pascal miracle. |
-| [AI-Supervisor PDF summary](969f7e68-b53b-42c3-aee0-5dc456d46eee) | Persistent **Research World Model** with uncertainty on edges, not a stateless paper pipeline. Steal persistence + `proposed`/`accepted`. Refuse unsupervised “AI professor,” multi-agent consensus as truth, and a dedicated lab graph product. (Wrong UUID `1ef63e72-…` pointed here.) |
+| Codegraph projects comparison | Code graphs are a **sidecar**, not the knowledge plane. Steal **CodeGraph** (Rust + SQLite + MCP, no LLM to index). Do **not** make Memgraph/Qdrant the second brain. Do **not** make Tencent’s hub the memory OS. |
+| EnvHarness then AutoDesign | Skill lives in the **harness**, not the weights. Wrap the world (EnvHarness). Freeze the model, evolve packing/tools with a gate (AutoDesign). HITL remains the only commit of Claims. |
+| AI-Supervisor summary | Persistent **Research World Model** with uncertainty on edges, not a stateless paper pipeline. Steal persistence + `proposed`/`accepted`. Refuse unsupervised “AI professor,” multi-agent consensus as truth, and a dedicated lab graph product. (Wrong UUID `1ef63e72-…` pointed here.) |
+| [Hermes Agent](https://github.com/NousResearch/hermes-agent) (this note, §2) | Best *harness packing* in the wild for chat+skills: bounded MEMORY.md, FTS5 on sessions, progressive skill disclosure. **Not** a research-world graph and **not** the control plane. Steal retrieve-on-demand for traces. Refuse WhatsApp-as-host, agent-written Claims, and `~/.hermes` as the second brain. |
 
 **Ideal stack for Projet Complexe on this computer**, least performance budget for maximum retrieval quality:
 
@@ -70,15 +70,74 @@ flowchart TB
   OUT -->|"HITL"| PG
 ```
 
+## Jargon notes
+
+Terms as this note uses them. Industry synonyms are listed so they do not get imported as identity.
+
+| Term | Alternative notations, synonyms | Definition | Examples, use cases |
+|---|---|---|---|
+| Context | Working set; prompt contents; “what the model can see this turn” | Everything currently in the model’s input (instructions, tools, retrieved spans, scratch). Not the archive and not memory. Overloaded also as project files (`AGENTS.md`) and Honcho’s injected “context.” | A packed `run-agent` prompt; Hermes system-prompt snapshot; AutoDesign’s design context `c`. |
+| Model window | Context window; `num_ctx`; context length | Hard token budget of one inference call. Retrieval quality is how you spend this budget, not how you enlarge it. | Local default 2k–4k on this 1050; a 128k API is not a reason to stuff OCR. |
+| Skill | Agent Skills; [agentskills.io](https://agentskills.io); `SKILL.md`; procedure brief | A markdown procedure the agent may load on demand (when to use, steps, pitfalls). Not a Claim, not a tool, not MCP. v4: skill folders are not a second OS. | Hermes `/learn` and `skill_view`; Cursor/Claude skill files; here: YAML `able` + git, not `~/.hermes/skills` as SoR. |
+| Model Context Protocol | MCP | JSON-RPC plug so a **host** (Cursor, Claude, Hermes) can list/call tools from a **server**. Transport only. Does not store knowledge. | CodeGraph MCP when Cursor is host; refuse “memory MCP” as the store; ASC entry points when ASC is host. |
+| Harness | Surround; `H` in AutoDesign; agent loop + tools + packing | Everything *around* frozen weights: prompts, tools, validators, packing, killswitch. Skill accumulates here, not in fine-tunes. | EnvHarness Contract; `pre_llm` / `post_llm`; Hermes AIAgent + MEMORY.md + FTS5. |
+| Retrieval | Recall; search; fetch | Choosing *which* stored items enter the window. Lexical, vector, graph walk, or grep. Still not knowledge. | Meilisearch top-k; `session_search`; accepted-neighbour walk. |
+| RAG | Retrieval-augmented generation; classic RAG | Retrieve then generate from the packed hits. Grounding, not intelligence. Graph RAG and agentic RAG are variants of *how* you retrieve. | Magda’s movie-plot prototype; `research` packing pointers + short spans. |
+| Packing | Context engineering; token packer; governor | Select, compress, order, and budget what enters the window (lost-in-the-middle). The memory *controller*, not the memory. | CLR band; Hermes frozen MEMORY.md + on-demand FTS; OpenViking L0→L2 read. |
+| Loop | Agent loop; inner/outer loop; graph of loops | Repeated plan → act → observe. Inner: one Task. Outer: evolve the harness (gated). A “graph of loops” is several loops with vetoes/anchors, not a knowledge graph. | AutoDesign designer–critic; Hermes background review; killswitch as the outer veto. |
+| Control plane | Orchestrator; “who may start engines” | The layer that starts, stops, and authorizes computation. Not the GUI, not WhatsApp, not MCP. | ASC / Projet Complexe ASC over Compose; Tauri is a thin view; refuse messenger-as-host. |
+| Claim | Accepted belief; typed assertion | An inspectable statement the household is willing to stand on: provenance, confidence, `valid_at`. Only HITL (or an explicit consensus rule) promotes a proposal to a Claim. | “This PDF says X (quote, page)”; not a Mem0 factoid; not MEMORY.md. |
+| Edges and nodes | Vertices and relations; graph elements | Nodes are entities (Claim, Note, symbol, gap). Edges are typed links between them. An edge can be `proposed` or `accepted`. | Postgres `accepted_links`; CodeGraph call edges; Long’s `U=0`/`U=1`. |
+| Conceptual graph | Personal graph; interpretive graph | The *meaning* graph (what relates to what, with types and uncertainty). Not required to be one database. Projected from tables, files, and indexes. | Claims–Links–Gaps in Postgres; drawn in the Tauri graph pane. |
+| Knowledge graph | KG; property graph | Industry name for nodes+edges, often with an LLM filling triplets. Useful as a *projection*; fatal as unsupervised truth. | Neo4j/Memgraph/Arango products; Hindsight’s KG plugin; refuse auto-commit of triplets. |
+| Research World Graph | Field graph; living map of a domain | The graph-shaped view of a research world: papers, methods, modules, benchmarks, gaps, limitations. Same object as RWM when stored as nodes/edges. | Long’s KG growing 7→13→19; here: tiny SQL tables, not Memgraph. |
+| Research World Model | RWM | Long’s persistent, cross-project map agents read/write, with uncertainty on edges — as opposed to a stateless “write the paper” pipeline. | AI-Supervisor; steal flags + persistence; refuse the mill and Qwen-72B as default. |
+| Semantic knowledge of the world | Semantic memory (CoALA); world facts | Stable-enough knowledge *about things*, distinct from “what happened in chat” and from “how to do X.” In products this is often quietly replaced by embeddings. | Claims + canonical passages + accepted links; **not** Hermes MEMORY.md (~1.3k tokens of preferences). |
+| CoALA | Cognitive Architectures for Language Agents (Sumers et al.) | A 2023 map of agent memory: **working** (the window) plus long-term **episodic**, **semantic**, **procedural**, and **parametric** (weights). Grootendorst and Labaschin reuse this cut. Labels to steal; stores (Redis, Mem0, vector DBs) to refuse. | §5.2 mapping table; Hermes session / MEMORY.md / SKILL.md ≈ working+episodic / preferences / procedural — they under-build semantic. |
+| Link graph (Karpathy-style) | LLM wiki; compilation-at-ingest | Notes compiled into a small linked wiki at ingest time, instead of retrieving raw chunks every query. A *generated* graph of pages, not the conceptual graph. | Karpathy 2026 gist; Tencent “Wiki” asset; adapt as optional compiled Notes, never as SoR. |
+| ACL | Access-control list | Who may read/write which objects. In this note, a warning: vendor hubs sell ACLs as “memory OS.” | TencentDB Agent Memory team permissions; Postgres roles (model worker ≠ superuser). |
+| System of record | SoR; source of truth for identity | The store whose ids other projections rebuild from. Files remain SoR for *bytes*; Postgres for metadata/claims/jobs. Indexes are derived. | Canonical PDF on disk; Claim row in Postgres; Meilisearch rebuildable. |
+| Episodic recall | Session search; “did we discuss X” | Finding *past events* (turns, traces), not world facts. Cheap when it is FTS over raw messages; expensive when it is an LLM summary of the past. | Hermes `session_search`; FTS on `run-agent` traces; not Claims. |
+| Always-on memory | System-prompt memory; MEMORY.md; profile block | The tiny set injected every turn. Must be bounded or it eats the window. Preferences and constraints, not the archive. | Hermes 2,200+1,375 chars; a frozen preference table at `run-agent` start. |
+| Lexical memory | Full-text; BM25; FTS; Meilisearch; `tsvector` | Recall by words, typos, quotes, names — no embedder required. First retrieval step on this laptop. | Meilisearch for the corpus; FTS5/`tsvector` for traces; ripgrep for this repo. |
+| Procedure | Procedural memory; hook; pivot implementation; skill | How to do a recurring job. Lives in git/YAML (here) or `SKILL.md` (Hermes). Promoted by human commit, not by a silent review. | `extract` hook; Hermes progressive `skill_view`; AutoDesign one-component patch. |
+| Source tree(s) | Working copy; repo; codebase | Directories of *code* (and maybe notes) on disk, as opposed to the PDF/ebook corpus. | ASC git tree; a project under `~/Documents/`; CodeGraph indexes these, not the book HDD. |
+| Session | Conversation; thread; `run-agent` invocation | One bounded interaction with lineage (compressions, parent ids). Not the knowledge plane. | Hermes `state.db` session; a Tauri research thread; CLI one-shot. |
+| Session scratch | Working memory; scratchpad | Ephemeral notes inside one session. Discarded after the call except as traces. | Plan bullets in the window; not MEMORY.md; not a Claim. |
+| Triage | Router; cheap classifier; request-level policy | Decide *before* packing: code vs knowledge vs episode, local vs remote, retrieve vs refuse. | Gazit two-level router; Hermes hybrid skill selector; `if episode-shaped: FTS traces`. |
+| Distillation | L0→L3; consolidation; background review | Compress raw traces into denser objects. Only the last layer may become knowledge, and only through HITL. | Tencent L0–L3; Hermes post-turn review; nightly job that *proposes* Claims. |
+| Extract-once canonical text | Canonical extract; contracted extract | One bounded job writes plain text + metadata from a file; all indexes fan out from that. Opposite of re-parsing and of `/learn` replacing the book. | Docling/pdftotext → file on NVMe → Postgres row → Meilisearch. |
+| Progressive disclosure | LOD; L0/L1/L2; skill levels | Show names first, bodies on demand, full passages last. Packing applied to procedures and to graph zoom. | Hermes `skills_list` → `skill_view`; OpenViking abstract→full; note 18 LOD 0–4. |
+| Stateless pipelines | One-shot agents; “AI scientist” scripts | Generate from a prompt, forget the field. No lasting map, no uncertainty, no cross-project links. | AI Scientist / Agent Laboratory as Long criticizes them; a chat with no traces. |
+| Remote overflow | Metered cascade; LAN/cloud fallback | When local 1.5B–3B + indexes are not enough, call a remote model under quota — not FreeToken on Pascal. | Hard reasoning; fr/en/pt when local retrieve is weak; dedi for OCR/ASR batches. |
+| Frozen environment | EnvHarness wrap; untouched verifier | Do not rewrite the world or the human checker; wrap `reset`/`step` (or `pre_llm`/`post_llm`) to regulate difficulty. | EnvHarness Stage/Contract/Chain; packing as Contract over a living second brain. |
+| Frozen system-prompt block | Prefix-stable snapshot; prompt stability | Memory on disk may change mid-session; the injected prefix does not, so the cache stays warm. | Hermes MEMORY.md loaded once per session; steal for preference blocks here. |
+| Prompt-injection scan | Untrusted-text filter | Regex/heuristics that block “ignore previous instructions” (and kin) in files injected into the prompt. A habit, not a killswitch. | Hermes scan of `AGENTS.md` / MEMORY.md; still review files you did not author. |
+| Lossy middle-turn compression | Context compressor; stacked summaries | Drop or summarize old turns to fit the window. Fast; destroys early negations and citations (Labaschin). Compress *chat*; retrieve *corpus* from indexes. | Hermes `context_compressor`; `/compress`; not a substitute for Meilisearch. |
+| CLR | Cognitive Load Ratio; Flow band for agents | Task complexity vs effective capacity (retrieval, tools, packing, window). Regulate the band; do not buy a bigger model first. | Reverse-prompting note; 1.7B + excellent retrieve vs stuffed 70B. |
+| MoE, OLMoE | Mixture of Experts; tiny-MoE demo | Architecture that routes tokens to expert subnets. FreeToken-class MoE offload wants RTX 30+ and lots of RAM. OLMoE is a small demo, not quality on a 1050. | Refuse FreeToken here; stay dense 1.5B–3B Q4/Q5. |
+| FTS5 | SQLite FTS5; full-text virtual table | SQLite’s built-in full-text index (BM25-ish, tokenizers for CJK/trigram). Hermes uses it on **messages**. Not Meilisearch for PDFs. | `state.db` `session_search` ~20 ms; optional trace sidecar; prefer Postgres `tsvector` if traces already live there. |
+| CJK | Chinese / Japanese / Korean; `cjk_unicode61` tokenizer | Scripts that do not split words on spaces the way English FTS expects. A default word tokenizer under-indexes them; you need a language-aware analyzer (or a dedicated CJK tokenizer). | Hermes `messages_fts_cjk`; Meilisearch fr/en/pt analyzers are the same *kind* of problem — this corpus is multilingual; English-only FTS has failed (Winteringham). |
+| Trigram | n-gram (n=3); `trigram` tokenizer; pg_trgm | Index of overlapping 3-character slices. Finds substrings and typos without a word dictionary. Complements word FTS: good for CJK, codes, and “I remember a fragment.” | Hermes `messages_fts_trigram`; Postgres `pg_trgm` / Meilisearch typo-tolerance; not a substitute for a named embedder. |
+| HITL | Human-in-the-loop; accept/reject | A human is the commit device for knowledge (and for harness patches). Consensus of LLMs is not HITL. | Claim accept; `write_approval` **on**; AutoDesign train/dev gate analogue. |
+| WAL | Write-ahead log | SQLite/Postgres journal so readers can proceed while one writer appends. Hermes documents WAL *contention* when CLI + gateway + worktrees share one `state.db`. | Why sessions-in-SQLite works until several writers; why knowledge SoR is Postgres. |
+
 ---
 
-# 1. The four chats
+# 1. Existing tooling review
 
-Cite prior chats as `[title](uuid)` without `.jsonl`. Transcripts live under Cursor’s agent-transcripts; this note is the durable recap.
+Quick analysis of:
 
-## 1.1 [AI-Supervisor PDF summary](969f7e68-b53b-42c3-aee0-5dc456d46eee)
+- AI-Supervisor
+- Code graph
+- Code graph RAG
+- TencentDB Agent Memory
+- EnvHarness
+- AutoDesign
 
-**ID correction:** the UUID `1ef63e72-5552-45cd-b418-0ebfcfbec772` was not on disk. The matching chat is this one, under the projet-complexe workspace: user asked to summarize `/home/paul/Downloads/2603.24402v2.pdf` (Long, *AI-Supervisor: Autonomous AI Research Supervision via a Persistent Research World Model*, arXiv:2603.24402v2). Revival v3 already listed the paper; this chat is the close reading.
+## 1.1 AI-Supervisor
+
+*AI-Supervisor: Autonomous AI Research Supervision via a Persistent Research World Model*, arXiv:2603. Revival v3 already listed the paper.
 
 ### What the paper actually claims
 
@@ -121,7 +180,7 @@ This is the missing fourth argument next to CodeGraph and Tencent: **a living gr
 
 v3 §9.7 already had this steal/adapt/refuse table. The chat does not reopen it. It *grounds* it: the PDF is the temptation; the household stack is the refusal of the mill and the theft of the flags.
 
-## 1.2 [Codegraph project comparison](7cad74c7-606b-48c1-b38d-db6a05743d4c) — 2026-08-27
+## 1.2 Code graph projects comparison
 
 Question: differences between [colbymchenry/codegraph](https://github.com/colbymchenry/codegraph) and [vitali87/code-graph-rag](https://github.com/vitali87/code-graph-rag), then [TencentCloud/TencentDB-Agent-Memory](https://github.com/TencentCloud/TencentDB-Agent-Memory).
 
@@ -163,7 +222,7 @@ Tencent’s four assets (paraphrase of their README, not a product to install):
 
 Revival v4 already said: code-graph-rag’s MCP is the correct use of MCP (neighbor host). This chat adds: **on a GTX 1050 + 32 GB box, do not also pay for Memgraph.**
 
-## 1.3 [EnvHarness then AutoDesign](fbc9ea42-b3db-4938-9e5e-b70bcb5dcf6b) — 2026-08-24
+## 1.3 EnvHarness, AutoDesign
 
 Already written in durable form:
 
@@ -178,19 +237,166 @@ Same week, two sides of “harness, not weights.”
 
 **What this means for memory and RAG:** packing *is* the Contract. Retrieval *is* observation rewrite. The token governor *is* the difficulty band (CLR). Evolving “memory” by letting an agent rewrite hooks every night is AutoDesign’s outer loop **without** their train/dev gate and without HITL — refuse. Nightly consolidation that *proposes* packs, skills, or Claims, with a human accept, is the adapted outer loop.
 
-## 1.4 [FreeToken evaluation](e93874b2-b3a1-4a03-979c-b138f28f3a44) — 2026-08-27
+---
 
-FreeToken is a large-MoE local-offload path aimed at RTX 30+ with lots of RAM. This machine: driver and CUDA look fine; **Pascal 4 GB is not**.
+# 2. Hermes Agent (Nous Research) — comparison
 
-Stay **Ollama / llama.cpp**. Tiny MoE (OLMoE) is a demo, not quality. Best local: **1.5B–3B dense Q4/Q5**, `num_ctx` 2k–4k. Suggested pulls from that chat: `qwen3:1.7b` (default), `phi4-mini` (math, tight), `llama3.2:3b`, `qwen2.5-coder:1.5b` / `:3b`. Skip the already-installed ~4.7 GB `qwen2.5-coder:latest` and ~15 GB `devstral-small-2` **on the GPU**. Overflow = remote metered, not FreeToken.
+**Source:** [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) (MIT), docs at [hermes-agent.nousresearch.com/docs](https://hermes-agent.nousresearch.com/docs/). Read 2026-08-27 against this note’s themes (agentic memory, RAG, graphs, local indexes), not as a product review. The Social Media literature review already *saved* the repo and said it is **not a pivot**. That still holds. This section is the close comparison the four chats did not include.
 
-**What this means for RAG:** you cannot “fix retrieval” by stuffing more tokens into a local 70B. You fix it by **not stuffing**. CLR already said a 7B with excellent retrieve beats a stuffed 70B; here even 7B-on-GPU is painful. Default: **excellent retrieve + tiny GPU model**, optional 7B on CPU for overnight jobs, remote for gravity.
+“Research agent” in their marketing is easy to misread. In the README, **research-ready** means *batch trajectory generation* to train the next tool-calling model — Nous’s lab interest — plus a named profile you can create empty (`hermes profile create research --no-skills`). It is **not** Long’s Research World Model, not Graph RAG over a personal corpus, and not ASC `research`. It is a **general agent harness** (CLI / TUI / messaging gateway) that happens to be unusually serious about *bounded* memory and *on-demand* recall.
 
-Current Ollama list on this machine at time of writing: those two oversized blobs. They are a RAM tax even when idle if loaded. Treat them as *optional CPU experiments*, not as the default backend.
+Hermes also migrates from OpenClaw (`hermes claw migrate`). v4 already refused WhatsApp/OpenClaw as the control plane. Hermes is the same gravitational class: a better-built always-on chat OS. Steal the memory *mechanics*. Do not steal the host.
+
+## 2.1 What they actually built
+
+```mermaid
+flowchart TB
+  EP["CLI / TUI / gateway / ACP / cron"] --> LOOP["AIAgent loop"]
+  LOOP --> SP["System prompt: frozen snapshot<br/>SOUL + AGENTS.md + MEMORY.md + USER.md"]
+  LOOP --> TOOLS["70+ tools · 28 toolsets · MCP optional"]
+  LOOP --> COMP["Lossy compress of middle turns"]
+  SP --> MD["MEMORY.md 2200 chars<br/>USER.md 1375 chars"]
+  LOOP --> FTS["state.db SQLite WAL + FTS5<br/>session_search"]
+  LOOP --> SK["SKILL.md progressive disclosure<br/>L0 list → L1 body → L2 references"]
+  LOOP --> REV["Background review<br/>write memory / patch skills"]
+  REV -.->|"optional plugin, one at a time"| EXT["Honcho · OpenViking · Mem0 · …"]
+```
+
+| Layer | Hermes implementation | Capacity / cost |
+|---|---|---|
+| Working | Current conversation + frozen system-prompt block | Whatever the model window is; they compress the *middle* |
+| Semantic-lite (always on) | `MEMORY.md` + `USER.md` in `~/.hermes/memories/`, injected once per session | **~1,300 tokens total** (2,200 + 1,375 chars). Hard fail on overflow; agent must consolidate in-turn |
+| Episodic | Every CLI/gateway turn in SQLite `state.db`, FTS5 (+ trigram / CJK tokenizers) | Unlimited history. Query ~20 ms. Hits are **raw messages**, not LLM summaries |
+| Procedural | `SKILL.md` under `~/.hermes/skills/`, agentskills.io | Names in the prompt; bodies loaded with `skill_view` |
+| Optional “deeper memory” | Exactly **one** external provider — see §2.6 | Graphs, embeddings, dialectic user-modeling — **plugins**, not the core |
+| Knowledge-from-books | `/learn` authors a *knowledge-base skill*: thin `SKILL.md` + `references/` per chapter, loaded on demand | Distillation, not extract-once canonical text |
+
+Design principles they state (paraphrase): **prompt stability** (memory writes hit disk immediately but do *not* mutate the system prompt mid-session — prefix cache); **retrieve on demand** instead of stuffing months of chat; **one agent per home directory** (two writers compound each other’s MEMORY.md).
+
+Session search vs memory, in their own cut: memory is the tiny always-on set; FTS5 is “did we discuss X last week?” That split is the most stealable object in the product.
+
+## 2.2 What they are *not*
+
+| Tempting reading | Reality |
+|---|---|
+| Hermes is the second brain | It remembers *you and the chat*. It does not model Claims, evidence, `valid_at`, or KnowledgeGaps |
+| FTS5 is Meilisearch for the archive | FTS5 is over **messages**, not PDFs/notes/OCR |
+| `/learn` is RAG | It distills a book into skill files. Progressive disclosure is packing. It is not provenance-preserving extract |
+| External providers make it Graph RAG | Almost never. §2.6: Honcho is a profile; Mem0 is facts+vectors; only Hindsight leans KG. Optional, one at a time, often cloud |
+| “Research-ready” = AI-Supervisor | Trajectories for *training*. Different paper, different job |
+| Skills folder = Projet Complexe ASC | v4: skill folders are not a second OS. YAML `able` remains canonical here |
+
+They are closer to **Tencent’s chat + skills** (with better token hygiene) than to Long’s living field-graph or to CodeGraph.
+
+## 2.3 Side-by-side
+
+| Dimension | Hermes | Projet Complexe (this note) |
+|---|---|---|
+| Product | Always-on agent you talk to (CLI, Telegram, Discord, Slack, WhatsApp, Signal, …) | Thin Tauri + CLI over ASC; interpretation lives in Claims |
+| SoR | `~/.hermes/` markdown + SQLite sessions | Files + **Postgres** |
+| Always-on “memory” | ~1.3k tokens of agent-curated notes | Not a stuffed prompt. Preferences can be a small file; knowledge is indexes |
+| Episodic recall | FTS5 `session_search` | `run-agent` traces in Postgres; lexical via Meilisearch/`tsvector` |
+| Corpus RAG | File tools + web tools + `/learn` skills; optional Mem0/OpenViking | extract → Meilisearch → selected pgvector → accepted walk |
+| Conceptual graph | Plugin (if you pick Honcho/OpenViking) | Postgres `accepted_links`, HITL |
+| Code graph | ripgrep-class file tools | CodeGraph SQLite sidecar |
+| Uncertainty | Not first-class on edges | `proposed` / `accepted` / KnowledgeGap |
+| Learning loop | Post-turn background review writes memory/skills; `write_approval` **off** by default | AutoDesign-shaped outer loop; HITL **on** for Claims |
+| Tools | 70+ registered, MCP optional, 7 terminal backends | Allowlisted ASC entry points; MCP adapter |
+| Local model | Any provider; Nous Portal as convenience | 1.5B–3B Ollama default; remote metered |
+| Control plane | Gateway + messengers | Refuse messenger-as-host (v4). Dedi is overflow, not WhatsApp |
+| SQLite | Correct for **sessions** (they already hit WAL contention with CLI+gateway+worktrees) | Correct for CodeGraph + UI chrome. Wrong as knowledge SoR |
+
+## 2.4 Steal / adapt / refuse
+
+**Steal — this is real packing discipline.**
+
+- **Hard bound on always-on memory.** 2,200 characters is a feature. Labaschin’s stacked summaries and Tencent’s L3-without-HITL both fail by growing. Hermes fails *closed* (tool error, consolidate now). A Projet Complexe packer should similarly refuse to inject unbounded “memory.”
+- **Frozen snapshot at session start.** Mid-session writes persist, but the prefix stays stable. Pair with CLR: do not reshuffle the working set every tool call.
+- **FTS5 on episodic traces, raw hits, no summarizer in the retrieve path.** Cheapest high-quality “what did we say about X” on this laptop. ~20 ms, no GPU, no embedder. This is the lexical-first lesson applied to *chat*, which Meilisearch applies to the *corpus*.
+- **Progressive disclosure for procedures** (list → body → reference file). Same shape as LOD 0–4 in note 18. Skills should not all land in the system prompt.
+- **session_search vs memory.** Always-on facts ≠ searchable history. Do not collapse them (Mem0-as-everything, Tencent hub).
+- **One writer per store.** Their warning about two agents sharing `HERMES_HOME` is Kleppmann: do not run split-brain authors on the same derived memory.
+
+**Adapt — same shape, different SoR and gate.**
+
+- Three layers (session / persistent / skill) map to working / episodic / procedural. **Semantic knowledge of the world** is the layer they under-build (a 2,200-char file + optional Mem0). That layer here is Claims + canonical files + Meilisearch.
+- `/learn` → knowledge-base skill is the right *token* idea (index + on-demand chapters) and the wrong *epistemic* idea if it replaces the book. Adapt as extract-once + Meilisearch document + optional compiled Note. The library stays a library.
+- `write_approval` exists but defaults **off**. Flip the default for anything that could become a Claim. Background review = distillation job (Tencent L0–L3), cheaper auxiliary model optional — **not** every turn on this 1050, and not silent.
+- OpenViking’s L0/L1/L2 tiered read (~100 → ~2k → full) is packing. Do not add OpenViking as a daemon; the packer already has this job over Postgres ids.
+- Hybrid skill selector (rules → patterns → FTS5) is Gazit triage for *procedures*. Cheap classifier before packing, already in the NLP recap.
+- SQLite FTS5 for traces could be a **sidecar** (like CodeGraph). Prefer Postgres `tsvector` on the same SoR if traces already live there — one less file, one less WAL fight.
+- Prompt-injection scan on MEMORY.md / AGENTS.md: steal the *habit* (untrusted text is not a tool argument). Do not treat regex scanners as the killswitch.
+
+**Refuse — identity collisions.**
+
+- Hermes (or OpenClaw, or the gateway) as Projet Complexe, as ASC, or as the Tauri backend.
+- WhatsApp / Telegram / Discord as the place Tasks are born (v4; Social Media review on Moltbot).
+- Agent-curated MEMORY.md as the research world. 8–15 bullet points are preferences, not a field map. Long’s RWM and this stack’s Claims are the other job.
+- Mem0 / Honcho Cloud / Nous Portal as memory SoR (Labaschin lock-in).
+- Default-on background writes into “who you are.”
+- `SKILL.md` catalogs as a second OS; 70+ tools as the product surface; computer-use as default.
+- Lossy middle-turn compression as a substitute for packing from indexes (Labaschin: summaries drop negations). Compress *chat*; retrieve *corpus* from Meilisearch.
+- Using Hermes’s SQLite success as an argument for SQLite-as-app-DB. They use SQLite because the product *is* sessions. The second brain *is* documents, claims, and jobs — Magda’s Postgres case.
+
+## 2.5 On this laptop
+
+Hermes as an optional **neighbor** (like Cursor, like CodeGraph MCP) is plausible: one CLI, FTS5, small memory files, your existing API keys. Hermes as an always-on gateway + browser backend + Honcho dialectic every other turn is a RAM and quota tax the 1050 and the 16 GB “available” do not have.
+
+Do **not** run Hermes Compose-class extras (Mem0 OSS + Qdrant, OpenViking server, Honcho) next to Postgres + Meilisearch + Ollama. That is the same zoo this note already refused.
+
+If a mechanic is worth copying into Projet Complexe ASC, copy the **mechanic**, not the home directory:
+
+```text
+traces → FTS (Postgres tsvector or a tiny FTS5 sidecar)
+preferences → bounded file or a small table, frozen at run-agent start
+procedures → YAML able / git, progressive disclosure into the packer
+corpus → extract + Meilisearch + selected pgvector + accepted walk
+claims → HITL only
+```
+
+That is Hermes’s packing lesson sitting on v3’s engines, without becoming a chat OS.
+
+## 2.6 Deeper memory providers (Hermes plugins)
+
+Hermes’s core is MEMORY.md + FTS5 + skills. **Deeper memory** is an optional plugin: exactly **one** of these at a time, additive, never replacing the two markdown files. They prefetch before a turn, sync after, and add vendor tools. That is Labaschin’s product category (hosted or boutique memory) hanging off a serious harness.
+
+Hermes’s own docs also mention **Memori** as a later ninth cloud plugin. It is the same category (structured cloud recall). Not tabulated below.
+
+None of these is the Projet Complexe knowledge plane. Use the table to see *which job* each vendor actually sells, so the zoo is not mistaken for Graph RAG, RWM, or Meilisearch.
+
+| Provider | What it actually is | How it differs from the others | Typical use (in Hermes) | Store / cost | On this laptop / for PC |
+|---|---|---|---|---|---|
+| **Honcho** ([plastic-labs](https://github.com/plastic-labs/honcho)) | **User-modeling** service: peers, dialectic LLM passes, session summary, “conclusions.” Models *who you are to this agent*, not your PDF corpus. | Not a document index. Extra LLM calls on a cadence (`dialecticCadence`). Multi-profile = multiple AI peers, one human peer. | Cross-session “what does this user expect”; multi-agent alignment; gateway identity mapping. | Cloud or self-host; `honcho-ai` | **Refuse as SoR.** Dialectic every other turn is a quota tax. Steal nothing but “user profile ≠ knowledge graph.” |
+| **OpenViking** (Volcengine / ByteDance, AGPL-3.0) | **Hierarchical context DB** with filesystem-like `viking://` paths, auto-extract into six categories (profile, preferences, entities, events, cases, patterns). | Closest to “browse a knowledge tree.” Tiered read is packing, not a conceptual graph. Needs a **running server**. | Self-hosted “memory files” you can browse; ingest URLs/docs into the tree. | Self-hosted; free software | **Adapt L0 (~100 tok) → L1 (~2k) → L2 (full)** as packer LOD. **Refuse the daemon** next to Postgres+Meilisearch. AGPL is a license cliff if you embed it. |
+| **Mem0** | **Fact extractor + vector search.** An LLM writes memories; you search/update/delete by id. Modes: Mem0 Cloud, Docker dashboard, or OSS in-process (LLM + Qdrant or pgvector). | Hands-off extraction (the temptation Labaschin named). Dedup and optional rerank. No typed Claims, no `valid_at`. | “Remember facts from chat without curating MEMORY.md.” | Cloud paid / OSS free | **Refuse as architecture** (already in the agents review). OSS+Qdrant is the zoo. If anything, pgvector-on-selected-chunks is the same *technique* without the product. |
+| **Hindsight** (Vectorize) | **KG + entity resolution + multi-strategy recall**, plus `hindsight_reflect` (LLM synthesis across memories). Auto-retains full turns including tool calls. | The only plugin whose unique pitch is *cross-memory reflection*. Local mode = **embedded PostgreSQL**. | “Graphy” recall of people/things mentioned in chat; synthesis questions. | Cloud or local PG | **Refuse reflect-as-truth** (another generator). Local PG is ironic: PC already wants Postgres — for Claims, not for a second memory bank. Steal entity-resolution as a *later* extract worker, HITL. |
+| **Holographic** | **Local SQLite fact store**: FTS5 + trust scores + optional **HRR** (holographic reduced representations: compositional vector algebra, NumPy). Tools: probe/reason/contradict + helpful/unhelpful feedback. | No extra server. Unique: `contradict` and asymmetric trust (+0.05 / −0.10). HRR is a 1990s binding trick, not Graph RAG. | Local-only Hermes users who want facts with a trust knob and no SaaS. | `$HERMES_HOME/memory_store.db`; free | **Least-bad plugin** if someone insisted on running Hermes memory extras here (no daemon). For PC: steal **trust + contradict → `proposed`/`accepted`**, not HRR, not a second SQLite brain. |
+| **RetainDB** | **Cloud memory API**: hybrid Vector+BM25+rerank, seven memory types, delta compression, file ingest. | Team SaaS with a file locker bolted on. “Best for teams already on RetainDB.” | Shops that already pay for that stack. | Cloud, ~$20/month | **Refuse.** Duplicate of hybrid search you can do with Meilisearch+pgvector. Metered lock-in. |
+| **ByteRover** | **CLI knowledge tree** (`brv`): fuzzy text then LLM-driven search; optional cloud sync. Extracts insights **before** Hermes compresses the window (so compression does not drop them). | Portable local tree + SOC2 cloud option. Pre-compression extract is a *timing* trick, not a new memory type. | Developers who want a `brv` folder they can copy; save-before-compress. | Local default; cloud optional | **Adapt the timing:** distill traces *before* lossy `/compress`. **Refuse** another tree beside git+Postgres. `curl \| sh` CLI is not ASC. |
+| **Supermemory** | **Semantic memory + profile + session graph ingest** (`/v4/conversations`). “Context fencing” strips recalled memories from captured turns so they are not re-ingested (pollution loop). Multi-container tags per profile. | Graph API at session end, not a conceptual graph you edit. Fencing is the interesting mechanic. | Profile facts on a cadence; hybrid search over memories vs documents. | Cloud or `npx supermemory local` | **Steal fencing** (do not embed retrieved spans back into episodic traces). **Refuse** the graph API as RWM. Local Node server is another daemon. |
+
+**How they cluster** (so the eight names collapse to four jobs):
+
+```text
+User modeling ............. Honcho
+Fact/vector memory ........ Mem0, RetainDB, Supermemory (cloud-ish)
+Tree / tiered packing ..... OpenViking, ByteRover
+Local facts + scores ...... Holographic
+Chat KG + reflect ......... Hindsight
+```
+
+**Differences that matter here**
+
+- **Corpus vs chat.** OpenViking `viking_add_resource` and RetainDB file tools ingest *documents*. The others are mostly *conversation* memory. Projet Complexe’s corpus job is extract-once, not a plugin ingest.
+- **Graph vs search vs profile.** Only Hindsight (and Supermemory’s session ingest) lean “graph.” Honcho is a profile. Mem0/RetainDB are search. Calling any of them Graph RAG is a category error.
+- **Who writes.** Mem0, OpenViking, Hindsight, Supermemory auto-extract. Holographic defaults `auto_extract: false`. Hermes core MEMORY.md is agent-curated with a character cap. PC wants **HITL before semantic**.
+- **Always-on tax.** Honcho dialectic, Hindsight auto-recall, Supermemory auto-capture all spend tokens *every turn*. That fights CLR on a 2k–4k local window.
+
+**Verdict for Projet Complexe:** do not enable any of these as the second brain. Copy three mechanics at most — **tiered read** (OpenViking), **save-before-compress** (ByteRover), **fence retrieved text out of traces** (Supermemory) — onto Postgres + Meilisearch + the packer. If a future Hermes *neighbor* install needs one plugin on this laptop, **Holographic** is the only one that does not add a daemon or a cloud SoR; it still must not own Claims.
 
 ---
 
-# 2. Binding architecture (do not reopen)
+# 3. Binding architecture (do not reopen)
 
 From Revival v3 (engine list) and v4 (hooks, tools, MCP). This note does not reopen the three-project cut.
 
@@ -221,7 +427,7 @@ Note 17 still describes Solr / Tika / Arango as *examples*. v3 rewrote the engin
 
 ---
 
-# 3. This laptop’s performance budget
+# 4. This laptop’s performance budget
 
 Numbers from the machine on 2026-08-27, not from a brochure.
 
@@ -249,9 +455,9 @@ Cap Compose: `mem_limit` on Postgres and Meilisearch. `shared_buffers` 256 MB cl
 
 ---
 
-# 4. What “memory” is (and is not)
+# 5. What “memory” is (and is not)
 
-## 4.1 The industry collapse
+## 5.1 The industry collapse
 
 Labaschin & Wallace are the honest field report: agents retrieve **nondeterministically**; hosted “memory” is lock-in; Redis/Mem0/LangGraph are worked examples, not a survey. Grootendorst follows CoALA: working / episodic / semantic / procedural / parametric.
 
@@ -264,11 +470,12 @@ The 2025–2026 product move is to sell **one** of these as the product:
 | Memory MCP | Whatever the server embeds | Transport pretending to be a store (v4) |
 | Tencent-style hub | Chat + skills + wiki + code graph | Four types smashed into one ACL surface |
 | GraphRAG community reports | LLM summaries of clusters | Generated Notes at best; not the UI home; not truth |
+| Hermes MEMORY.md as knowledge | ~1.3k tokens of agent notes + FTS5 on chat | Excellent *packing*; empty as a research world (see §2) |
 | Fine-tune the notes into a 7B | Weights | Notes change; weights do not like to; cannot export across providers |
 
 **Steal the labels. Refuse the stores.**
 
-## 4.2 Mapping onto this stack
+## 5.2 Mapping onto this stack
 
 | CoALA / Labaschin label | Here | Store | Promotion |
 |---|---|---|---|
@@ -279,11 +486,13 @@ The 2025–2026 product move is to sell **one** of these as the product:
 | Parametric | Model weights | Ollama / remote | Frozen by default (AutoDesign) |
 | Sensory | OCR / ASR / images | Canonical files; opt-in jobs | Cost cliff; not a default memory type |
 
+Hermes’s three-layer cut (session FTS5 / MEMORY.md / SKILL.md) maps cleanly onto working+episodic / a *preference file* / procedural. It does **not** map onto semantic. That is why it can look like “the memory product” while still leaving Claims, gaps, and the corpus unsolved. Use it as a packing lesson (§2), not as the mapping above.
+
 Tencent’s L0–L3 distillation is **interesting as a process**, toxic as a product. L0 = raw transcript. L1 = extractives. L2 = structured facts. L3 = durable Claims. Only L3 may enter the knowledge plane, and only through HITL. Nightly consolidation (Meadows delays), not every-turn embed.
 
 Karpathy-style LLM wiki: compilation-at-ingest versus RAG. **Adapt** as: extract once to canonical text; optional compiled notes; never replace the files with a wiki service.
 
-## 4.3 Packing is not memory
+## 5.3 Packing is not memory
 
 Berryman / Grootendorst / CLR: the window is a scarce working set. FIFO and stacked summaries destroy early constraints. Semantic cache helps repeated **single-shot** corpus questions and breaks in multiturn (Labaschin).
 
@@ -293,9 +502,9 @@ Gazit/Ghaffari (NLP recap): **cheap triage before packing**. Classify → pack �
 
 ---
 
-# 5. RAG, Graph RAG, code-graph RAG
+# 6. RAG, Graph RAG, code-graph RAG
 
-## 5.1 Classic RAG (still necessary, still insufficient)
+## 6.1 Classic RAG (still necessary, still insufficient)
 
 Norman (*Agentic RAG Systems*) and Devlin: RAG is grounding, not intelligence. Production RAG is hybrid, evaluated, chunked on purpose, with a refusal path when retrieval is weak.
 
@@ -318,7 +527,7 @@ Magda chapter 8 is the *minimum* loop: embed selected rows, cosine search, promp
 
 Agentic RAG (Norman): the model may *issue* another retrieve. Steal as an allowlisted `search-knowledge` loop with a step cap. Refuse unbounded “search until bored.”
 
-## 5.2 Graph RAG (Microsoft-style and after)
+## 6.2 Graph RAG (Microsoft-style and after)
 
 Note 18 already defined it: turn *your* corpus into an explicit graph, retrieve a **bounded subgraph** or a **community summary**, not only similar paragraphs. It is still retrieval. It is not ASC. It is not the knowledge model.
 
@@ -340,9 +549,9 @@ State of the art in 2025–2026 (paraphrase, not a shopping list):
 | Code | Symbols, calls, impact | CodeGraph SQLite |
 | Microsoft-style GraphRAG communities | Optional batch Notes on *your* corpus | Job, not a daemon |
 
-Tencent’s wiki+chat+skills+codegraph hub is the collapse of all three plus procedures. Long’s mill is the collapse of the first into unsupervised agents. Both are refusals. The useful remainder is: **persist the research world, flag uncertainty, do not auto-commit.**
+Tencent’s wiki+chat+skills+codegraph hub is the collapse of all three plus procedures. Long’s mill is the collapse of the first into unsupervised agents. Hermes is the collapse of *chat + skills + optional plugin-graph* into a messenger-shaped OS. All three are refusals as identity. The useful remainder from Hermes is packing, not a fourth graph.
 
-## 5.3 Code-graph RAG is a different graph
+## 6.3 Code-graph RAG is a different graph
 
 Mixing “Graph RAG” with “code graph” is how you get Memgraph as the second brain.
 
@@ -359,7 +568,7 @@ Ripgrep remains cheaper than any graph for “where is this string.” The code 
 
 ---
 
-# 6. Local indexes (what to run, what to skip)
+# 7. Local indexes (what to run, what to skip)
 
 | Index | Role | Day one on this laptop? | Why |
 |---|---|---|---|
@@ -369,6 +578,7 @@ Ripgrep remains cheaper than any graph for “where is this string.” The code 
 | Postgres `tsvector` | Fallback FTS | **Yes, as fallback** | Progressive enhancement if Meilisearch is down |
 | pgvector | Selected semantic projection | **Yes, selected** | Named spaces; HNSW; CPU embed |
 | CodeGraph SQLite | Code symbols/calls | **Yes, sidecar** | No extra server |
+| FTS on `run-agent` traces | Episodic “did we discuss X” | **Yes, on Postgres** | Hermes’s FTS5 lesson; `tsvector` (or a tiny sidecar), not a second brain |
 | Solr | Old note-17 lexical | **No** | JVM; other local project instances already have it in their stack; Meilisearch replaced it |
 | Qdrant / Chroma / FAISS-as-identity | Vector boutique | **No** | pgvector is enough at this scale |
 | Memgraph / Neo4j | Code or property graph server | **No** | RAM + ops; CodeGraph covers code |
@@ -384,9 +594,9 @@ Ripgrep remains cheaper than any graph for “where is this string.” The code 
 
 ---
 
-# 7. Databases: why Postgres, why not the zoo
+# 8. Databases: why Postgres, why not the zoo
 
-## 7.1 Postgres as system of record (Magda, adapted)
+## 8.1 Postgres as system of record (Magda, adapted)
 
 Magda’s slogan is a pressure-release against a specialised store per feature, not a religion that deletes Meilisearch or the filesystem.
 
@@ -402,7 +612,7 @@ Stewart & Huang (*Agentic AI Data Architectures*): distributed SQL as the unific
 
 Kleppmann (DDIA 2e): indexes are **derived data**. If Meilisearch dies, you rebuild from Postgres + files. If SQLite-in-Tauri is treated as SoR, you have a second brain that cannot be queried from the CLI, cannot be jobbed on dedi, and cannot be snapshotted cleanly. Local-first is **files + Postgres**, not “the GUI owns a sqlite file the agents cannot see.”
 
-## 7.2 Arango, later
+## 8.2 Arango, later
 
 v2/note 17 put Arango in the default picture because one engine can do docs + graph + search. v3 moved graph to Postgres because:
 
@@ -412,19 +622,21 @@ v2/note 17 put Arango in the default picture because one engine can do docs + gr
 
 Revisit Arango (or another graph engine) **only if** hop-2/hop-3 accepted walks on real data are slow or awkward in SQL. That is an Implementation swap behind `relate`. The conceptual graph does not move.
 
-## 7.3 SQLite: two legitimate uses, one trap
+## 8.3 SQLite: two legitimate uses, one trap
 
 | Use | Verdict |
 |---|---|
 | CodeGraph `.codegraph/` | **Yes.** Process-local code index; rebuildable from source. |
 | Tauri settings, address-bar drafts, UI cache | **Yes.** Chrome, not knowledge. |
+| Hermes-style `state.db` for *this product’s* Claims | **No.** They are right to use SQLite for *their* sessions. That is not an argument to make SQLite the knowledge SoR (they already document WAL contention with several writers). |
+| Optional FTS sidecar for traces only | **Maybe**, if Postgres `tsvector` on traces is worse in practice. Same trap as CodeGraph: sidecar, rebuildable, not SoR. |
 | App database for Claims / corpus / jobs | **No.** Breaks CLI=GUI, dedi overflow, Compose projections, Magda’s “land in Postgres.” |
 | LiteFS / Turso as cloud SQLite | **No** as identity. Local-first is not “SQLite in the region.” |
 | Embedded Postgres (PGlite, etc.) | **Later Fallback** if Compose is too heavy on a *smaller* machine. Not the first shape: PCA is already Compose-shaped so laptop and dedi rhyme. |
 
 Tauri can *talk* to Postgres on `127.0.0.1` through the Rust side or through ASC. The webview still must not open DB sockets (note 17). That constraint is unchanged.
 
-## 7.4 Compose vs “built into the Tauri binary”
+## 8.4 Compose vs “built into the Tauri binary”
 
 | | Docker Compose (PCA) | Everything in the Tauri app |
 |---|---|---|
@@ -441,7 +653,7 @@ Do not put Solr, Arango, Memgraph, Qdrant, Redis-as-memory, or a second MySQL in
 
 ---
 
-# 8. Harness, MCP, local vs remote tools
+# 9. Harness, MCP, local vs remote tools
 
 v4 already answered the original “drop MCP, use DSL” question: **local tools are ASC entry points; MCP is a plug for neighbor hosts.**
 
@@ -457,17 +669,20 @@ This chat cluster adds hardware teeth:
 | Remote MCP (GitHub, cloud DBs) | Optional, allowlisted, metered | Adapter, not vocabulary |
 
 EnvHarness Contract = `pre_llm` / `post_llm` + allowlist + packed observations.  
-AutoDesign outer loop = gated updates to packs/hooks, HITL, one component at a time.
+AutoDesign outer loop = gated updates to packs/hooks, HITL, one component at a time.  
+Hermes background review = the same outer loop **with the gate off by default**. Steal the split (always-on bound vs on-demand FTS). Do not steal silent writes.
+
+Hermes as a **neighbor process** (optional CLI, like Cursor) is compatible with “MCP when Cursor is host.” Hermes as gateway/WhatsApp is not.
 
 **Remote overflow:** Moslem & Kelleher routing (v3) + Gazit triage. Local default. Remote when stakes, language, or retrieval confidence demand it. Not when the 1050 is sad — the 1050 is *always* sad; design for that.
 
 ---
 
-# 9. Ideal implementation (opinionated)
+# 10. Ideal implementation (opinionated)
 
 This is inspiration for Projet Complexe, not a spec. Names below are ordinary pivots, not `$` placeholders.
 
-## 9.1 Data plane
+## 10.1 Data plane
 
 1. **Bytes stay on disk.** PDFs, notes, code, media. Nextcloud books stay a library.
 2. **extract** writes canonical text + a contract-shaped record (Sanderson: producer/consumer; quarantine bad parses). Docling / pdftotext / OCR / ASR as Implementations. No Tika identity. GROBID only for bibliographic when DOI lookup fails (v3).
@@ -476,39 +691,40 @@ This is inspiration for Projet Complexe, not a spec. Names below are ordinary pi
 5. **pgvector** only for chunks that survived a selection policy (not every OCR line).
 6. **CodeGraph** on programming working copies only. `.codegraph/` gitignored. MCP attached to Cursor, not to the knowledge UI.
 
-## 9.2 Query plane (packer)
+## 10.2 Query plane (packer)
 
 ```text
 triage (cheap: heuristics / tiny classifier)
   → if code-shaped: ripgrep then CodeGraph
+  → if episode-shaped: FTS on traces (Hermes session_search lesson)
   → if knowledge-shaped: Meilisearch top-k
        → optional vector on that candidate set
        → hop-limited accepted walk
-  → pack to num_ctx (2k–4k local default)
+  → pack to num_ctx (2k–4k local default; freeze preference block like Hermes MEMORY.md)
   → generate
   → post_llm: citations inert, proposals not Claims
 ```
 
 Eval: Winteringham — retrieval that only works in English has failed. Measure recall@k **on this corpus**, hybrid vs lexical-only. Do not trust RAGAS as ontology.
 
-## 9.3 Memory plane
+## 10.3 Memory plane
 
-- Session scratch in the harness (working).
-- Traces in Postgres (episodic).
-- Distillation job: L0→L3 **proposals**, human accept (semantic).
-- Research world: links persist across sessions with `proposed`/`accepted` (Long, adapted). Gaps stay objects when retrieve is weak.
-- Procedures in git (procedural).
+- Session scratch in the harness (working). Frozen preference block at start (Hermes snapshot), not a growing dump.
+- Traces in Postgres with FTS (episodic). Raw hits, not stacked summaries.
+- Distillation job: L0→L3 **proposals**, human accept (semantic). Hermes review with `write_approval` **on**, and not every turn.
+- Research world: links persist across sessions with `proposed`/`accepted` (Long, adapted). Gaps stay objects when retrieve is weak. Hermes MEMORY.md is not this layer.
+- Procedures in git (procedural), progressive disclosure into the packer (Hermes L0/L1/L2).
 - No every-turn embed. No Redis TTL as forgetting of personal knowledge. Forgetting is a HITL policy, not a cache eviction.
-- No unsupervised consensus loop that writes the graph. Persistence ≠ a paper mill.
+- No unsupervised consensus loop that writes the graph. Persistence ≠ a paper mill. Persistence ≠ a chat OS.
 
-## 9.4 Process plane
+## 10.4 Process plane
 
 - Compose up/down via ASC, not via the Solid view.
 - Indexing is a job with a progress event the UI may watch (note 17 IPC).
 - Heavy jobs: nice/ionice locally, or ssh to dedi.
 - Killswitch: Task ↔ research (v2–v4).
 
-## 9.5 What “done enough” looks like for a first Tauri slice
+## 10.5 What “done enough” looks like for a first Tauri slice
 
 Not GraphRAG. Not a memory hub. Not 70B.
 
@@ -516,7 +732,7 @@ A search box that hits Meilisearch, a claim pane that hits Postgres, a graph pan
 
 ---
 
-# 10. Steal / adapt / refuse (master table)
+# 11. Steal / adapt / refuse (master table)
 
 | Item | Move | Why |
 |---|---|---|
@@ -544,6 +760,13 @@ A search box that hits Meilisearch, a claim pane that hits Postgres, a graph pan
 | Long `U=0`/`U=1` as the only epistemology | **Adapt** | `proposed`/`accepted` + `valid_at` + provenance |
 | Long consensus / 72B lab / paper mill | **Refuse** | HITL is consensus; 1050 is not Qwen-72B |
 | AI-Supervisor as a Compose service | **Refuse** | v3 already; this chat confirms the temptation |
+| Hermes bounded MEMORY.md + frozen snapshot | **Steal** | Packing; prefix stability |
+| Hermes FTS5 on sessions (raw hits) | **Steal** | On-demand episodic recall; no GPU |
+| Hermes progressive skill disclosure | **Steal** | LOD for procedures |
+| Hermes `/learn` as knowledge SoR | **Adapt** | Token shape; extract-once + Meilisearch here |
+| Hermes `write_approval` default off | **Refuse** | HITL on for Claims |
+| Hermes / OpenClaw gateway as host | **Refuse** | v4; messenger is not ASC |
+| Honcho / Mem0 / OpenViking as PC memory | **Refuse** | Plugin zoo; Labaschin lock-in |
 | Wikipedia in the graph | **Refuse** | Library / QID pointers |
 | MCP as vocabulary | **Refuse** | v4 |
 | MCP as CodeGraph plug for Cursor | **Steal** | Neighbor host |
@@ -555,7 +778,7 @@ A search box that hits Meilisearch, a claim pane that hits Postgres, a graph pan
 
 ---
 
-# 11. Open tasks (not this note)
+# 12. Open tasks (not this note)
 
 1. Name the embedder Environment (model card, multilingual, CPU batch).
 2. Compose file with memory caps; document “do not run other local project stacks with Solr at the same time.”
@@ -564,5 +787,6 @@ A search box that hits Meilisearch, a claim pane that hits Postgres, a graph pan
 5. Eval set: fr/en/pt questions against a slice of the personal corpus — lexical vs hybrid.
 6. Decide whether overnight 7B-CPU is worth the RAM vs remote overflow (quota, not GPU).
 7. Unload or stop shipping `devstral-small-2` / 4.7 GB coder as default Ollama models on this GPU.
+8. If episodic search is weak in practice: add FTS on traces (Postgres `tsvector` first; Hermes-style FTS5 sidecar only if measured). Do not install Hermes as the control plane to get that feature.
 
-None of these reopen Postgres-vs-Arango as a religious war. They implement v3 on *this* box, with CodeGraph instead of Memgraph, Long’s uncertainty flags instead of an AI-Supervisor lab, and a model small enough to leave RAM for the indexes that actually make it smart.
+None of these reopen Postgres-vs-Arango as a religious war. They implement v3 on *this* box, with CodeGraph instead of Memgraph, Long’s uncertainty flags instead of an AI-Supervisor lab, Hermes packing instead of a chat OS, and a model small enough to leave RAM for the indexes that actually make it smart.
