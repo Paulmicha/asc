@@ -213,7 +213,7 @@ flowchart LR
 
 Modest hardware is not a reason to close the frontier-model door. It is a reason to make **routing and cascading** first-class (paper `2603.04445`): a local 7B for routine packing and research; escalate only when the Task demands it. Cloud remains a metered overflow, never the SoR.
 
-## 2.1 Consolidated table (every file on the two shelves)
+## 2.1 Consolidated table
 
 Columns: **interesting** = what is not just another “build an agent” chapter. **For Projet Complexe** = how it bears on the ambition above (keep / adapt / do not let this become identity). Duplicate files of the same work are one row.
 
