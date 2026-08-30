@@ -187,9 +187,7 @@ Humans get bored.
 
 LLMs ramble.
 
-### The opposite regime is far more interesting
-
-The effective complexity exceeds the available cognitive resources.
+### The opposite regime is when complexity exceeds the available cognitive resources
 
 Examples:
 
@@ -650,18 +648,18 @@ hook -a 'bootstrap' -p 'pre'
 # - */$subject/pre_bootstrap.hook.sh
 # - */$subject/pre_bootstrap.prod.hook.sh
 
-# 6. Project root dir additional lookup (-r) :
+# 6. Project root dir additional lookup (-r) with custom extension filter (-c) :
 # (given HOST_TYPE='local' and INSTANCE_TYPE='dev')
 hook -s 'instance' -a 'env' -c 'yml' -v 'HOST_TYPE INSTANCE_TYPE' -t -r
 # Yields the following lookup paths (not sourcing matches because -t flag) :
 # - */instance/env.yml
-# - */instance/asc.local.yml
-# - */instance/asc.local.dev.yml
-# - */instance/asc.dev.yml
+# - */instance/env.local.yml
+# - */instance/env.local.dev.yml
+# - */instance/env.dev.yml
 # - env.yml
-# - asc.local.yml
-# - asc.local.dev.yml
-# - asc.dev.yml
+# - env.local.yml
+# - env.local.dev.yml
+# - env.dev.yml
 ```
 
 ### Tests
@@ -877,6 +875,8 @@ In any ASC-active
 - Variables storing *positional* argument values are prefixed by `p_`
 - Variables storing *options* values are prefixed by `o_`
 - Variables storing *boolean* options are prefixed by `b_`
+- Variables storing *arrays* use the `_arr` suffix
+- Variables storing *associative arrays* use the `_dict` suffix
 
 ## Usage / Getting started
 
