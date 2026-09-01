@@ -670,9 +670,9 @@ TODO
 
 TODO
 
-### Yaml entity declaration
+### Entities
 
-TODO
+TODO Yaml entity declaration
 
 #### Field vs Prop
 
