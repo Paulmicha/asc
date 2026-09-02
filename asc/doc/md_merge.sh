@@ -15,6 +15,9 @@
 # which is the name of the folder. Ex : folder "path/to/The Title of the Folder"
 # -> main title prepended : "# The Title of the Folder"
 #
+# Right after that title, a "## Table of contents" lists every ATX heading from
+# the merged body (fence-aware), as markdown links with GitHub-style anchors.
+#
 # Between source files: blank line, thematic break (---), blank line.
 #
 # @param n [optional] String : named options.
@@ -142,11 +145,72 @@ u_md_bump_headings() {
   '
 }
 
+# Emit "level<TAB>title" for each ATX heading outside fences (already-bumped body).
+u_md_list_headings() {
+  awk '
+    BEGIN { in_fence = 0 }
+    {
+      if ($0 ~ /^[ \t]{0,3}(```|~~~)/) {
+        in_fence = !in_fence
+        next
+      }
+      if (!in_fence && $0 ~ /^#+([ \t]|$)/) {
+        level = 0
+        rest = $0
+        while (substr(rest, 1, 1) == "#") {
+          level++
+          rest = substr(rest, 2)
+        }
+        sub(/^[ \t]+/, "", rest)
+        sub(/[ \t]+#*[ \t]*$/, "", rest)
+        if (rest != "") {
+          print level "\t" rest
+        }
+      }
+    }
+  '
+}
+
+# GitHub-ish slug for markdown TOC anchors.
+u_md_slug() {
+  printf '%s' "$1" \
+    | tr '[:upper:]' '[:lower:]' \
+    | sed -e 's/[^[:alnum:][:space:]-]//g' -e 's/[[:space:]]\+/-/g' -e 's/-\+/-/g' -e 's/^-//' -e 's/-$//'
+}
+
+u_md_write_toc() {
+  local level title slug indent i base_slug
+  declare -A slug_count=()
+
+  printf '## Table of contents\n\n'
+
+  while IFS=$'\t' read -r level title; do
+    [[ -n "$level" && -n "$title" ]] || continue
+    base_slug="$(u_md_slug "$title")"
+    [[ -n "$base_slug" ]] || continue
+    if [[ -n "${slug_count[$base_slug]+x}" ]]; then
+      slug_count[$base_slug]=$((slug_count[$base_slug] + 1))
+      slug="${base_slug}-${slug_count[$base_slug]}"
+    else
+      slug_count[$base_slug]=0
+      slug="$base_slug"
+    fi
+    # Body headings are typically ##+ under the folder H1.
+    indent=$((level > 2 ? level - 2 : 0))
+    for ((i = 0; i < indent; i++)); do
+      printf '  '
+    done
+    printf -- '- [%s](#%s)\n' "$title" "$slug"
+  done
+
+  printf '\n'
+}
+
+tmp_body="$(mktemp --tmpdir="$out_dir" ".${out_base}.body.XXXXXX")"
 tmp_out="$(mktemp --tmpdir="$out_dir" ".${out_base}.XXXXXX")"
-trap 'rm -f -- "$tmp_out"' EXIT
+trap 'rm -f -- "$tmp_body" "$tmp_out"' EXIT
 
 {
-  printf '# %s\n\n' "$folder_base"
   n=${#src_files[@]}
   for ((i = 0; i < n; i++)); do
     u_md_bump_headings < "${src_files[$i]}"
@@ -154,9 +218,16 @@ trap 'rm -f -- "$tmp_out"' EXIT
       printf '\n---\n\n'
     fi
   done
+} >"$tmp_body"
+
+{
+  printf '# %s\n\n' "$folder_base"
+  u_md_list_headings <"$tmp_body" | u_md_write_toc
+  cat -- "$tmp_body"
 } >"$tmp_out"
 
 mv -f -- "$tmp_out" "$p_out"
 trap - EXIT
+rm -f -- "$tmp_body"
 
 echo "Merged ${#src_files[@]} file(s) -> $p_out"
