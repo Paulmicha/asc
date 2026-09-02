@@ -116,32 +116,10 @@ if [[ ! -f "asc/vendor/katex/katex.min.js" ]]; then
   exit 1
 fi
 
-# True if path is under data/ideas or docs (relative or absolute).
-doc_under_export_roots() {
-  local p="$1" abs
-  p="${p#./}"
-  p="${p%/}"
-  case "$p" in
-    data/ideas|data/ideas/*|docs|docs/*) return 0 ;;
-  esac
-  if [[ -e "$p" ]]; then
-    if [[ -d "$p" ]]; then
-      abs="$(cd "$p" && pwd)"
-    else
-      abs="$(cd "$(dirname "$p")" && pwd)/$(basename "$p")"
-    fi
-    case "$abs" in
-      "$PWD/data/ideas"|"$PWD/data/ideas/"*|"$PWD/docs"|"$PWD/docs/"*) return 0 ;;
-    esac
-  fi
-  return 1
-}
-
 doc_is_exportable_md() {
   local p_md="$1"
   [[ -f "$p_md" ]] || return 1
   [[ "${p_md##*.}" == 'md' ]] || return 1
-  doc_under_export_roots "$p_md"
 }
 
 doc_md_to_pdf() {
@@ -188,10 +166,6 @@ if [[ -n "$p_target" ]]; then
   p_target="${p_target#./}"
   p_target="${p_target%/}"
   if [[ -d "$p_target" ]]; then
-    if ! doc_under_export_roots "$p_target"; then
-      echo "Expected a folder under data/ideas/ or docs/: $p_target"
-      exit 1
-    fi
     doc_pdf_export_tree "$p_target" || exit $?
   elif [[ -f "$p_target" ]]; then
     if ! doc_is_exportable_md "$p_target"; then
