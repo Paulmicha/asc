@@ -33,13 +33,17 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
 
 ## Table of contents
 
+- [Overarching goal](#overarching-goal)
+  - [Scope](#scope)
+  - [Non-goals ("out of scope"s)](#non-goals-out-of-scopes)
 - [Purpose](#purpose)
 - [How (concepts in brief)](#how-concepts-in-brief)
 - [Example project (demo / case study)](#example-project-demo-case-study)
   - [ASC demo : "_Projet Complexe_" as an attempt at reinterpreting Mihaly Csikszentmihalyi's concept of _Flow_ for agents](#asc-demo-projet-complexe-as-an-attempt-at-reinterpreting-mihaly-csikszentmihalyis-concept-of-flow-for-agents)
   - [An agent is under-challenged when it has excessive unused capacity relative to the problem](#an-agent-is-under-challenged-when-it-has-excessive-unused-capacity-relative-to-the-problem)
-  - [The opposite regime is far more interesting](#the-opposite-regime-is-far-more-interesting)
+  - [The opposite regime is when complexity exceeds the available cognitive resources](#the-opposite-regime-is-when-complexity-exceeds-the-available-cognitive-resources)
   - [Prompt engineering is really challenge regulation](#prompt-engineering-is-really-challenge-regulation)
+  - [Overlap with existing projects](#overlap-with-existing-projects)
 - [Current status of the ASC project](#current-status-of-the-asc-project)
 - [Core ASC concepts](#core-asc-concepts)
   - [General notes](#general-notes)
@@ -60,11 +64,14 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
     - [Declaring _env vars_](#declaring-env-vars)
     - [Interactive terminal prompts during (instance) init](#interactive-terminal-prompts-during-instance-init)
     - [Git-ignored, "private" _globals_](#git-ignored-private-globals)
-  - [Hooks (variants)](#hooks-variants)
-  - [Tests](#tests)
+  - [Hooks (and variants)](#hooks-and-variants)
   - [Wrappers](#wrappers)
-  - [Yaml entity declaration](#yaml-entity-declaration)
+  - [Entities](#entities)
+    - [Definition and storage](#definition-and-storage)
+    - [Structure and combination](#structure-and-combination)
     - [Field vs Prop](#field-vs-prop)
+    - [Contracts (capabilities)](#contracts-capabilities)
+  - [Tests](#tests)
   - [ASC domain-specific language : *DSL* syntax](#asc-domain-specific-language-dsl-syntax)
     - [Entry points](#entry-points)
     - [Arguments](#arguments)
@@ -78,8 +85,19 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
     - [Iterations (= loops, foreach, for ... in)](#iterations-loops-foreach-for-in)
     - ["Normal" DSL example](#normal-dsl-example)
     - [DSL in Yaml](#dsl-in-yaml)
-  - [ASC data types](#asc-data-types)
+  - [Data dirs](#data-dirs)
+    - [ASC cache : `data/asc/cache`](#dataasccache)
+    - [Default file-based entity storage : `data/asc/entities`](#dataascentities)
+    - [Logs : `data/logs`](#datalogs)
+    - [Private files : `data/private`](#dataprivate)
+    - [Prompts local archive : `data/prompts`](#dataprompts)
+    - [Test results : `data/test-results`](#datatest-results)
+    - [Temporary files : `data/tmp`](#datatmp)
+    - [Default file-based agent skills storage : `data/skills`](#dataskills)
 - [Workflow](#workflow)
+  - [(re)Search](#research)
+  - [Ideas](#ideas)
+  - [Change(log)s](#changelogs)
 - [Naming convention](#naming-convention)
   - [File names](#file-names)
   - [Coding style](#coding-style)
@@ -684,7 +702,15 @@ Yields (from least to most specific) :
 
 ### Wrappers
 
-TODO
+TODO examples / decide what asc core provides :
+
+1. logged-*
+1. thread ("asc-monitored" generic command execution ?)
+1. batch (synonym : parallel)
+1. chain (synonym : sequence)
+1. pipe
+1. nested (e.g. remote, ssh tunnel, vpn, p2p ?)
+1. stream ?
 
 ### Entities
 
@@ -728,9 +754,46 @@ a remote instance entity has a parent remote host entity,
 they both have a 'hostname' field,
 which stores (in sidecars or globals or cache or scripts) the value for ASC implementations to use.
 
-### Tests
+#### Contracts (capabilities)
 
 TODO
+
+### Tests
+
+TODO rewrite / adapt this :
+
+#### Organization
+
+ASC tests are integrated in levels :
+
+- entry point (level 0)
+- test batch (level 1)
+- test suite (level 2)
+- test case (level 3)
+- assertions (level 4)
+
+For example, the "integration" tests would have :
+- entry point (asc action = level 0) : `make test-integration` Or : @scripts/asc/extend/test/integration.sh
+- @scripts/asc/extend/test/integration.sh includes 1 batch (level 1) = 1 call to `u_test_batch_exec()`
+- with 3 suites (level 2) from the @scripts/asc/extend/test/integration dir
+
+At the suite level, for example : @scripts/asc/extend/test/integration/site_api.test.sh , each test case (level 3) is a function whose name starts with "test_", so in our example : `test_site_api_connectivity()`.
+
+The assertions (assertEquals, assertTrue, etc. = level 4) are functions provided by @asc/vendor/shunit2/shunit2
+
+#### Pre and post test suite execution (shunit2) functions
+
+Test suites can implement the following special functions picked up by shunit2 :
+
+```sh
+oneTimeSetUp() {
+  # This runs ONCE before any test starts.
+}
+
+oneTimeTearDown() {
+  # Only when teardown is needed (purge, cleanup). Omit if empty.
+}
+```
 
 ### ASC domain-specific language : *DSL* syntax
 
@@ -892,35 +955,46 @@ DSL syntax must remain filename-safe (Linux, Windows, IOS), so we could have fil
 
 Files placed in `data/*` are usually writeable and specific to a single ASC project instance. They are meant for ASC core, contrib and/or custom implementations.
 
-#### `data/asc/cache`
+#### ASC cache : `data/asc/cache`
 
 TODO
 
-#### `data/asc/entities`
+#### Default file-based entity storage : `data/asc/entities`
 
 TODO
 
-#### `data/logs`
+##### Queue entities : `data/asc/entities/queue`
 
 TODO
 
-#### `data/private`
+##### Thread entities : `data/asc/entities/thread`
 
 TODO
 
-#### `data/prompts`
+#### Logs : `data/logs`
 
 TODO
 
-#### `data/test-results`
+- `logged-*` prefix ? (logged-thread, logged-batch...)
+- stdout / stderr / both ?
+
+#### Private files : `data/private`
 
 TODO
 
-#### `data/tmp`
+#### Prompts local archive : `data/prompts`
 
 TODO
 
-#### `data/skills`
+#### Test results : `data/test-results`
+
+TODO
+
+#### Temporary files : `data/tmp`
+
+TODO
+
+#### Default file-based agent skills storage : `data/skills`
 
 TODO
 
@@ -1027,8 +1101,8 @@ This applies to projects using ASC with Docker compose (or any tool(s) sharing t
 
 When we modify anything in the project stack declaration in the currently active STACK_VERSION with services already running, e.g. typically :
 
-- `scripts/cwt/extend/stack/compose.foobar-2026.yml`
-- `scripts/cwt/extend/stack/compose.override.foobar-2026.local.dev.yml`
+- `scripts/asc/extend/stack/compose.foobar-2026.yml`
+- `scripts/asc/extend/stack/compose.override.foobar-2026.local.dev.yml`
 
 ... then we have to :
 
@@ -1036,7 +1110,7 @@ When we modify anything in the project stack declaration in the currently active
 # Shortcut for Reinit + Restart :
 make rere
 # Or :
-cwt/instance/rere.sh
+asc/instance/rere.sh
 ```
 
 If we did **not** touch any *env var* value, this will suffice :
@@ -1044,7 +1118,7 @@ If we did **not** touch any *env var* value, this will suffice :
 ```sh
 make compose-update
 # Or :
-cwt/extensions/docker-compose/compose/update.sh
+asc/extensions/docker-compose/compose/update.sh
 ```
 
 In both cases, this will re-generate the (git-ignored) files in PROJECT_DOCROOT that `docker compose` will use :
@@ -1059,7 +1133,7 @@ Finally, if on or more custom `Dockerfile` was modified, then the `rebuild` acti
 ```sh
 make rebuild
 # Or :
-cwt/instance/rebuild.sh
+asc/instance/rebuild.sh
 ```
 
 ## File structure
