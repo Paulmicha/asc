@@ -79,6 +79,7 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
     - ["Normal" DSL example](#normal-dsl-example)
     - [DSL in Yaml](#dsl-in-yaml)
   - [ASC data types](#asc-data-types)
+- [Workflow](#workflow)
 - [Naming convention](#naming-convention)
   - [File names](#file-names)
   - [Coding style](#coding-style)
@@ -673,7 +674,7 @@ toto=foobar-1.2.3
 make hook-debug s:stack a:service_add v:toto
 ```
 
-Yields :
+Yields (from least to most specific) :
 
 - `*/stack/service_add.hook.sh`
 - `*/stack/service_add.foobar.hook.sh`
@@ -681,17 +682,28 @@ Yields :
 - `*/stack/service_add.foobar-1.2.hook.sh`
 - `*/stack/service_add.foobar-1.2.3.hook.sh`
 
-### Tests
-
-TODO
-
 ### Wrappers
 
 TODO
 
 ### Entities
 
-TODO Yaml entity declaration
+Entities are a concept borrowed from content management applications like Drupal™. In the context of ASC projects, they are *manipulable representations of objects* that are *structured* and *combinable*.
+
+In order to explicitly describe how they work and how to use them, we'll take the following objects as examples throughout the explanations below :
+
+- **Host** : represents a local or remote device where a human or agent works (i.e. a laptop, a server, any device usually - but not obligatorily - connected to a network),
+- *(project)* **Instance** : represents a single application, workspace, or any bundle of one or more softwares ; usually an ASC project instance (with or without a stack composed by one or more services).
+
+#### Definition and storage
+
+Entities are defined using a single Yaml file. These declarations can reside in any ASC active dir following the double extension naming convention `*.entity.yml`. Their instances can be stored in file sidecars (placed in `data/asc/entities` by default).
+
+TODO other storage support ? e.g. databases (sqlite, postgres, arangodb, etc.)
+
+#### Structure and combination
+
+TODO
 
 #### Field vs Prop
 
@@ -715,6 +727,10 @@ They must allow to do things like :
 a remote instance entity has a parent remote host entity,
 they both have a 'hostname' field,
 which stores (in sidecars or globals or cache or scripts) the value for ASC implementations to use.
+
+### Tests
+
+TODO
 
 ### ASC domain-specific language : *DSL* syntax
 
@@ -872,12 +888,57 @@ DSL syntax must remain filename-safe (Linux, Windows, IOS), so we could have fil
 */$subject/transcribe-file(v-input_file_path).pre-index.hook.sh
 ```
 
-### ASC data types
+### Data dirs
 
-- globals (`readonly` or mutable, may be secret + TODO encrypted ?)
-- cache or sidecars (ex: logs) or media or test artifacts in `data/*` dirs
-- other `*.yml` (ex: remote instances or any entity)
-- encrypted (git) versionned files (cf. `data/crypted`)
+Files placed in `data/*` are usually writeable and specific to a single ASC project instance. They are meant for ASC core, contrib and/or custom implementations.
+
+#### `data/asc/cache`
+
+TODO
+
+#### `data/asc/entities`
+
+TODO
+
+#### `data/logs`
+
+TODO
+
+#### `data/private`
+
+TODO
+
+#### `data/prompts`
+
+TODO
+
+#### `data/test-results`
+
+TODO
+
+#### `data/tmp`
+
+TODO
+
+#### `data/skills`
+
+TODO
+
+## Workflow
+
+ASC provides a minimal, customizable and extensible workflow meant to be implementable by either humans or agents.
+
+### (re)Search
+
+TODO
+
+### Ideas
+
+TODO
+
+### Change(log)s
+
+TODO
 
 ## Naming convention
 
