@@ -70,6 +70,7 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
     - [Definition and storage](#definition-and-storage)
     - [Structure and combination](#structure-and-combination)
     - [Field vs Prop](#field-vs-prop)
+    - [Linking vs Nesting](#linking-vs-nesting)
     - [Contracts (capabilities)](#contracts-capabilities)
   - [Tests](#tests)
     - [Organization](#organization)
@@ -757,6 +758,10 @@ They must allow to do things like :
 a remote instance entity has a parent remote host entity,
 they both have a 'hostname' field,
 which stores (in sidecars or globals or cache or scripts) the value for ASC implementations to use.
+
+#### Linking VS Nesting
+
+TODO
 
 #### Contracts (capabilities)
 
