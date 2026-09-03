@@ -343,7 +343,7 @@ The default extensions provided by the main ASC repo are all *disabled* by defau
 
 Like the `.asc_subjects_ignore` files, it are essentially acts like a `.gitignore` files for the ASC discovery mechanism. See :
 
-- `scripts/asc/contrib/.asc_extensions_ignore` for the ASC core extensions disabled by default,
+- `asc/extensions/.asc_extensions_ignore` for the ASC core extensions disabled by default,
 - and `scripts/asc/contrib/.asc_extensions_ignore` for the ASC contrib extensions disabled by default.
 
 #### Overrides
@@ -354,11 +354,9 @@ If the "counterpart" of a given script exists in the folder `scripts/asc/overrid
 
 This allows to replace any includes or hook implementations.
 
-Example : if we want to override `asc/git/init.hook.sh` - effectively *bypassing* the existing default implementation provided by the ASC main repo, we'll create the following file :
+Example : if we want to override `asc/git/init.hook.sh` - effectively *bypassing* the existing default implementation provided by the ASC main repo, we'll create the following file : `scripts/asc/override/git/init.hook.sh`.
 
-`scripts/asc/override/git/init.hook.sh`
-
-The matching is done by by replacing the leading `asc/` in filepaths with `scripts/asc/override/`. It works for extensions too.
+The matching is done by by replacing the leading `asc/` or `scripts/asc/contrib/` in filepaths with `scripts/asc/override/`. It works on extensions too.
 
 Here's another example to illustrate overriding a Bash shell script include :
 
@@ -420,7 +418,7 @@ So :
 
 > an *active dir* is any `$subject` dir (either in ASC core or in **enabled** extensions).
 
-NB : and an additional `$object` subdir may be used for regrouping actions (see _actions_).
+NB : an additional `$object` subdir may be used for regrouping actions (see _actions_).
 
 ### Specificity and collisions handling
 
@@ -493,7 +491,17 @@ In the list above, in case of collision, the last file "wins". Ex :
 - `env.yml` declares `STACK_VERSION='foobar-2025'`
 - `env.local.dev.yml` declares `STACK_VERSION='foobar-2026'`
 
-Result : any "local dev" project instance gets the `foobar-2026` stack. The rest (e.g. remote instances, or prod local instances, etc.) still stay on the `foobar-2025` stack.
+Result : any "local dev" project instance gets the `foobar-2026` stack. The rest (e.g. `remote` instances, or `prod` local instances, etc.) still stay on the `foobar-2025` stack 😎.
+
+Switching between stack versions has its own little convenience script, usually followed by an "instance rebuild" action :
+
+```sh
+make switch-stack-version 'foobar-2025'
+make rebuild
+# Or :
+asc/instance/switch_stack_version.sh 'foobar-2025'
+asc/instance/rebuild.sh
+```
 
 #### Interactive terminal prompts during (instance) init
 
@@ -570,7 +578,7 @@ If needed, additional lookup paths are available in order to override values in 
 .env-local.$STACK_VERSION.$HOST_TYPE.$INSTANCE_TYPE.yml
 ```
 
-### Hooks (variants)
+### Hooks (and variants)
 
 The `hook` function triggers an "event", optionally filtered by **subject(s)**, **action(s)**, **prefix**, and **variant(s)**. It will source all file located in active dirs that match its arguments.
 
@@ -589,10 +597,6 @@ hook -s 'my_subject' -a 'my_action' -v 'PROVISION_USING INSTANCE_TYPE'
 - `*/my_subject/my_action.dev.hook.sh`
 
 The paths above are all relative to active dirs.
-
-**Semver** suffixes can be used in extension folder names and variant values.
-
-TODO [wip] example here for that.
 
 Also note that each argument (except *prefix*) accepts several values by using a space to separate them. E.g. :
 
@@ -661,6 +665,21 @@ hook -s 'instance' -a 'env' -c 'yml' -v 'HOST_TYPE INSTANCE_TYPE' -t -r
 # - env.local.dev.yml
 # - env.dev.yml
 ```
+
+Finally, **semver** suffixes will automatically produce "regressive" lookup paths, for example :
+
+```sh
+toto=foobar-1.2.3
+make hook-debug s:stack a:service_add v:toto
+```
+
+Yields :
+
+- `*/stack/service_add.hook.sh`
+- `*/stack/service_add.foobar.hook.sh`
+- `*/stack/service_add.foobar-1.hook.sh`
+- `*/stack/service_add.foobar-1.2.hook.sh`
+- `*/stack/service_add.foobar-1.2.3.hook.sh`
 
 ### Tests
 
