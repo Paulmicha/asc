@@ -13,7 +13,7 @@
 # Returns 0 if $1 is a whitelisted schedule preset token.
 #
 f_cron_preset_is_valid() {
-  local a_preset="$1"
+  local p_preset="$1"
 
   local n
   local unit
@@ -23,13 +23,13 @@ f_cron_preset_is_valid() {
   # Whitelisted N values for every-* / Nx-per-* presets.
   local cron_preset_ns='1 2 3 4 5 10 15 20 30 45'
 
-  if [[ "$a_preset" =~ ^every-([0-9]+)([mhd])$ ]]; then
+  if [[ "$p_preset" =~ ^every-([0-9]+)([mhd])$ ]]; then
     n="${BASH_REMATCH[1]}"
     case " $cron_preset_ns " in *" $n "*) return 0;; esac
     return 1
   fi
 
-  if [[ "$a_preset" =~ ^at-([0-9]{2})h(00|15|30|45)$ ]]; then
+  if [[ "$p_preset" =~ ^at-([0-9]{2})h(00|15|30|45)$ ]]; then
     hh="${BASH_REMATCH[1]}"
     if [[ "$hh" -ge 0 && "$hh" -le 23 ]]; then
       return 0
@@ -37,7 +37,7 @@ f_cron_preset_is_valid() {
     return 1
   fi
 
-  if [[ "$a_preset" =~ ^([0-9]+)x-per-([mhd])$ ]]; then
+  if [[ "$p_preset" =~ ^([0-9]+)x-per-([mhd])$ ]]; then
     n="${BASH_REMATCH[1]}"
     case " $cron_preset_ns " in *" $n "*) return 0;; esac
     return 1
@@ -58,9 +58,9 @@ f_cron_preset_is_valid() {
 # @param 3 [optional] Number : index among peers sharing cadence (for spacing)
 #
 f_cron_preset_compile() {
-  local a_preset_token="$1"
-  local a_entry="${2:-}"
-  local a_idx="${3:-0}"
+  local p_preset_token="$1"
+  local p_entry="${2:-}"
+  local p_idx="${3:-0}"
   local n
   local unit
   local hh
@@ -73,33 +73,33 @@ f_cron_preset_compile() {
   cron_schedules_arr=()
   cron_subminute=''
 
-  if [[ "$a_preset_token" =~ ^every-([0-9]+)([mhd])$ ]]; then
+  if [[ "$p_preset_token" =~ ^every-([0-9]+)([mhd])$ ]]; then
     n="${BASH_REMATCH[1]}"
     unit="${BASH_REMATCH[2]}"
-    phase=$((a_idx % n))
+    phase=$((p_idx % n))
     case "$unit" in
       m)
-        if [[ $a_idx -eq 0 ]]; then
+        if [[ $p_idx -eq 0 ]]; then
           cron_schedules_arr+=("*/${n} * * * *")
         else
           # Stagger same-cadence peers within the every-N window when possible.
-          phase=$((a_idx % n))
+          phase=$((p_idx % n))
           cron_schedules_arr+=("${phase}-59/${n} * * * *")
         fi
         ;;
       h)
-        if [[ $a_idx -eq 0 ]]; then
+        if [[ $p_idx -eq 0 ]]; then
           cron_schedules_arr+=("0 */${n} * * *")
         else
-          phase=$((a_idx % 60))
+          phase=$((p_idx % 60))
           cron_schedules_arr+=("${phase} */${n} * * *")
         fi
         ;;
       d)
-        if [[ $a_idx -eq 0 ]]; then
+        if [[ $p_idx -eq 0 ]]; then
           cron_schedules_arr+=("0 0 */${n} * *")
         else
-          phase=$((a_idx % 24))
+          phase=$((p_idx % 24))
           cron_schedules_arr+=("0 ${phase} */${n} * *")
         fi
         ;;
@@ -107,7 +107,7 @@ f_cron_preset_compile() {
     return 0
   fi
 
-  if [[ "$a_preset_token" =~ ^at-([0-9]{2})h(00|15|30|45)$ ]]; then
+  if [[ "$p_preset_token" =~ ^at-([0-9]{2})h(00|15|30|45)$ ]]; then
     hh="${BASH_REMATCH[1]}"
     mm="${BASH_REMATCH[2]}"
     # Strip leading zeros for cron hour (keep numeric).
@@ -117,7 +117,7 @@ f_cron_preset_compile() {
     return 0
   fi
 
-  if [[ "$a_preset_token" =~ ^([0-9]+)x-per-([mhd])$ ]]; then
+  if [[ "$p_preset_token" =~ ^([0-9]+)x-per-([mhd])$ ]]; then
     n="${BASH_REMATCH[1]}"
     unit="${BASH_REMATCH[2]}"
     case "$unit" in
@@ -134,7 +134,7 @@ f_cron_preset_compile() {
         if [[ $span -lt 1 ]]; then
           span=1
         fi
-        phase=$((a_idx % span))
+        phase=$((p_idx % span))
         for ((i = 0; i < n; i++)); do
           slot=$((i * span + phase))
           if [[ $slot -ge 60 ]]; then
@@ -148,7 +148,7 @@ f_cron_preset_compile() {
         if [[ $span -lt 1 ]]; then
           span=1
         fi
-        phase=$((a_idx % span))
+        phase=$((p_idx % span))
         for ((i = 0; i < n; i++)); do
           slot=$((i * span + phase))
           if [[ $slot -ge 24 ]]; then
@@ -171,17 +171,17 @@ f_cron_preset_compile() {
 # @param 2 [optional] String : output var name (default: cron_scalar).
 #
 f_cron_scalar() {
-  local a_value="$1"
-  local a_output_var_name="${2:-cron_scalar}"
+  local p_value="$1"
+  local p_output_var_name="${2:-cron_scalar}"
 
-  a_value="${a_value#\"}"
-  a_value="${a_value%\"}"
-  a_value="${a_value#\'}"
-  a_value="${a_value%\'}"
-  a_value="${a_value%"${a_value##*[![:space:]]}"}"
-  a_value="${a_value#"${a_value%%[![:space:]]*}"}"
+  p_value="${p_value#\"}"
+  p_value="${p_value%\"}"
+  p_value="${p_value#\'}"
+  p_value="${p_value%\'}"
+  p_value="${p_value%"${p_value##*[![:space:]]}"}"
+  p_value="${p_value#"${p_value%%[![:space:]]*}"}"
 
-  printf -v "$a_output_var_name" '%s' "$a_value"
+  printf -v "$p_output_var_name" '%s' "$p_value"
 }
 
 ##
@@ -439,8 +439,8 @@ EOF
 # Load one generated cron entry script into the environment.
 #
 f_cron_entry_load() {
-  local a_entry="$1"
-  local f="data/asc/cron/${a_entry}.sh"
+  local p_entry="$1"
+  local f="data/asc/cron/${p_entry}.sh"
 
   if [[ ! -f "$f" ]]; then
     return 1
@@ -454,16 +454,16 @@ f_cron_entry_load() {
 # Human duration (10s / 2m) → seconds.
 #
 f_cron_delay_seconds() {
-  local a_duration="$1"
+  local p_duration="$1"
 
-  if [[ "$a_duration" =~ ^([0-9]+)s$ ]]; then
+  if [[ "$p_duration" =~ ^([0-9]+)s$ ]]; then
     echo "${BASH_REMATCH[1]}"
-  elif [[ "$a_duration" =~ ^([0-9]+)m$ ]]; then
+  elif [[ "$p_duration" =~ ^([0-9]+)m$ ]]; then
     echo $((BASH_REMATCH[1] * 60))
-  elif [[ "$a_duration" =~ ^([0-9]+)h$ ]]; then
+  elif [[ "$p_duration" =~ ^([0-9]+)h$ ]]; then
     echo $((BASH_REMATCH[1] * 3600))
-  elif [[ "$a_duration" =~ ^[0-9]+$ ]]; then
-    echo "$a_duration"
+  elif [[ "$p_duration" =~ ^[0-9]+$ ]]; then
+    echo "$p_duration"
   else
     echo 10
   fi
@@ -475,8 +475,8 @@ f_cron_delay_seconds() {
 # @param 1 [optional] String : output var name (default: cron_project_marker).
 #
 f_cron_project_marker() {
-  local a_output_var_name="${1:-cron_project_marker}"
-  printf -v "$a_output_var_name" '%s' "${PROJECT_DOCROOT:-$PWD}"
+  local p_output_var_name="${1:-cron_project_marker}"
+  printf -v "$p_output_var_name" '%s' "${PROJECT_DOCROOT:-$PWD}"
 }
 
 ##
@@ -600,7 +600,7 @@ f_cron_sync() {
 # Remove one entry's lines from managed block (keep others).
 #
 f_cron_stop_entry() {
-  local a_entry="${1#e:}"
+  local p_entry="${1#e:}"
   local f
   local body=''
   local chunk
@@ -612,26 +612,26 @@ f_cron_stop_entry() {
     # shellcheck disable=SC1090
     . "$f"
     [[ "${ASC_CRON_ENABLED}" == 'true' ]] || continue
-    [[ "$ASC_CRON_ENTRY" == "$a_entry" ]] && continue
+    [[ "$ASC_CRON_ENTRY" == "$p_entry" ]] && continue
     chunk="$(f_cron_entry_crontab_lines)"
     [[ -n "$chunk" ]] && body+="${chunk}"$'\n'
   done
 
   f_cron_crontab_write_block "$(printf '%s' "$body")"
-  echo "Stopped cron host lines for '$a_entry'."
+  echo "Stopped cron host lines for '$p_entry'."
 }
 
 ##
 # Ensure one entry's lines are installed (full rewrite of enabled set including it).
 #
 f_cron_start_entry() {
-  local a_entry="${1#e:}"
+  local p_entry="${1#e:}"
 
-  if ! f_cron_entry_load "$a_entry"; then
-    echo >&2 "Unknown cron entry: $a_entry"
+  if ! f_cron_entry_load "$p_entry"; then
+    echo >&2 "Unknown cron entry: $p_entry"
     return 1
   fi
 
   f_cron_sync
-  echo "Started/synced cron including '$a_entry'."
+  echo "Started/synced cron including '$p_entry'."
 }

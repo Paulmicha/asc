@@ -16,7 +16,7 @@
 #   of the folder passed as 1st arg).
 #
 # Exports the following "namespaced" global variables, effectively initializing
-# all primitives required by hooks - e.g. given a_namespace='ASC' (default value
+# all primitives required by hooks - e.g. given p_namespace='ASC' (default value
 # of 2nd argument) :
 # @export ASC_SUBJECTS (See 1)
 # @export ASC_ACTIONS (See 2)
@@ -52,28 +52,28 @@
 #
 # 4. The 'ASC_INC' values are a simple list of files to be sourced in
 #   asc/bootstrap.sh scope directly. They are meant to contain bash functions
-#   organized by subject. E.g. given subject = git : "$a_path/git/git.inc.sh".
+#   organized by subject. E.g. given subject = git : "$p_path/git/git.inc.sh".
 #   For convenience, any file matching the scripts/asc/*.inc.sh pattern will
 #   also be added. This gives a place to put some custom project-specific
 #   functions that would not necessarily be pertinent in a subject dir.
 #
 f_asc_extend() {
-  local a_path="$1"
-  local a_namespace="$2"
+  local p_path="$1"
+  local p_namespace="$2"
 
-  if [[ -z "$a_path" ]]; then
-    a_path='asc'
+  if [[ -z "$p_path" ]]; then
+    p_path='asc'
   fi
 
-  # Namespace defaults to the "$a_path" sanitized folder name (uppercase).
-  if [[ -z "$a_namespace" ]]; then
-    f_asc_extension_namespace "${a_path##*/}" 'a_namespace'
+  # Namespace defaults to the "$p_path" sanitized folder name (uppercase).
+  if [[ -z "$p_namespace" ]]; then
+    f_asc_extension_namespace "${p_path##*/}" 'p_namespace'
   fi
 
   # Always reinit as empty strings on every call to f_asc_extend().
   # @see asc/test/asc/hook.test.sh
-  export "${a_namespace}_SUBJECTS"=''
-  export "${a_namespace}_ACTIONS"=''
+  export "${p_namespace}_SUBJECTS"=''
+  export "${p_namespace}_ACTIONS"=''
 
   # "Reusable" local var name.
   # @see f_asc_primitive_values()
@@ -81,7 +81,7 @@ f_asc_extend() {
 
   # Agregate subjects.
   primitive_values=''
-  f_asc_primitive_values 'subjects' "$a_path"
+  f_asc_primitive_values 'subjects' "$p_path"
   local subjects_list="$primitive_values"
 
   # Agregate remaining primitives.
@@ -92,10 +92,10 @@ f_asc_extend() {
   for subject in $subjects_list; do
 
     # Build up exported subjects list.
-    export "${a_namespace}_SUBJECTS"+="$subject "
+    export "${p_namespace}_SUBJECTS"+="$subject "
 
     # Build up exported generic includes list (by subject).
-    inc="$a_path/$subject/${subject}.inc.sh"
+    inc="$p_path/$subject/${subject}.inc.sh"
     if [[ -f "$inc" ]]; then
       # NB : this must not be namespaced, otherwise extensions' includes wouldn't
       # be loaded during bootstrap.
@@ -103,24 +103,24 @@ f_asc_extend() {
     fi
 
     primitive_values=''
-    f_asc_primitive_values 'actions' "$a_path/$subject"
+    f_asc_primitive_values 'actions' "$p_path/$subject"
     actions_list="$primitive_values"
 
     for action in $actions_list; do
       # Build up exported actions list (by subject).
-      export "${a_namespace}_ACTIONS"+="${subject}/$action "
+      export "${p_namespace}_ACTIONS"+="${subject}/$action "
     done
   done
 
   # Debug.
-  # local subjects_var="${a_namespace}_SUBJECTS"
+  # local subjects_var="${p_namespace}_SUBJECTS"
   # echo "$subjects_var = '${!subjects_var}'"
-  # local actions_var="${a_namespace}_ACTIONS"
+  # local actions_var="${p_namespace}_ACTIONS"
   # echo "$actions_var = '${!actions_var}'"
 
   # If extensions are detected, loop through each of them to aggregate namespaced
   # primitives + restrict this to ASC namespace only.
-  if [[ "$a_namespace" == 'ASC' ]]; then
+  if [[ "$p_namespace" == 'ASC' ]]; then
     export ASC_EXTENSIONS
     f_asc_extensions
 
@@ -142,8 +142,8 @@ ASC_ACTIONS='$ASC_ACTIONS'
 ASC_EXTENSIONS='$ASC_EXTENSIONS'
 "
   else
-    local prefixed_subjects_var="${a_namespace}_SUBJECTS"
-    local prefixed_actions_var="${a_namespace}_ACTIONS"
+    local prefixed_subjects_var="${p_namespace}_SUBJECTS"
+    local prefixed_actions_var="${p_namespace}_ACTIONS"
     asc_primitives_cache_str+="
 $prefixed_subjects_var='${!prefixed_subjects_var}'
 $prefixed_actions_var='${!prefixed_actions_var}'
@@ -288,12 +288,12 @@ f_asc_extension_path() {
 #   echo "$primitive_values"
 #
 f_asc_primitive_values() {
-  local a_primitive="$1"
-  local a_path="$2"
-  local a_action="$3"
+  local p_primitive="$1"
+  local p_path="$2"
+  local p_action="$3"
 
-  if [[ -z "$a_path" ]]; then
-    a_path='asc'
+  if [[ -z "$p_path" ]]; then
+    p_path='asc'
   fi
 
   local dotfile
@@ -305,9 +305,9 @@ f_asc_primitive_values() {
   # (per subject) - its values are simply added if both exist.
   local dn
   local dotfile_names='asc'
-  # case "$a_primitive" in variants|prefixes)
-  if [[ -n "$a_action" ]]; then
-    dotfile_names+=" asc_$a_action"
+  # case "$p_primitive" in variants|prefixes)
+  if [[ -n "$p_action" ]]; then
+    dotfile_names+=" asc_$p_action"
   fi
   # esac
 
@@ -315,7 +315,7 @@ f_asc_primitive_values() {
   local ignored_values_arr=()
   local ignored_val
   for dn in $dotfile_names; do
-    dotfile="$a_path/.${dn}_${a_primitive}_ignore"
+    dotfile="$p_path/.${dn}_${p_primitive}_ignore"
     if [[ -f "$dotfile" ]]; then
       f_fs_get_file_contents "$dotfile" 'dotfile_contents'
       if [[ -n "$dotfile_contents" ]]; then
@@ -329,7 +329,7 @@ f_asc_primitive_values() {
   # Look for the dotfile that will override all default values.
   local proceed=1
   for dn in $dotfile_names; do
-    dotfile="$a_path/.${dn}_${a_primitive}"
+    dotfile="$p_path/.${dn}_${p_primitive}"
     if [[ -f "$dotfile" ]]; then
       proceed=0
       f_fs_get_file_contents "$dotfile" 'dotfile_contents'
@@ -342,13 +342,13 @@ f_asc_primitive_values() {
   # Provide dynamic default values.
   if [[ $proceed -eq 1 ]]; then
     local dyn_values
-    case "$a_primitive" in
+    case "$p_primitive" in
       subjects)
-        f_fs_dir_list "$a_path"
+        f_fs_dir_list "$p_path"
         dyn_values=$dir_list
       ;;
       actions)
-        f_fs_file_list "$a_path"
+        f_fs_file_list "$p_path"
         dyn_values=$file_list
       ;;
     esac
@@ -370,7 +370,7 @@ f_asc_primitive_values() {
 
       # Actions need to remove *.sh extension + ignore files using any double
       # extension pattern.
-      if [[ "$a_primitive" == 'actions' ]]; then
+      if [[ "$p_primitive" == 'actions' ]]; then
         v="${v%%.sh}"
         f_str_split1 'v_dots_arr' "$v" '.'
 
@@ -385,7 +385,7 @@ f_asc_primitive_values() {
 
   # Look for the dotfile that provides additional values + add them if it exists.
   for dn in $dotfile_names; do
-    dotfile="$a_path/.${dn}_${a_primitive}_append"
+    dotfile="$p_path/.${dn}_${p_primitive}_append"
     if [[ -f "$dotfile" ]]; then
       f_fs_get_file_contents "$dotfile" 'dotfile_contents'
       if [[ -n "$dotfile_contents" ]]; then
@@ -419,19 +419,19 @@ f_asc_primitive_values() {
 #   done
 #
 f_asc_extension_namespace() {
-  local a_ext="$1"
-  local a_asc_ext_ns_var_name="$2"
+  local p_ext="$1"
+  local p_asc_ext_ns_var_name="$2"
   local asc_ext_ns_result
 
-  if [[ -z "$a_asc_ext_ns_var_name" ]]; then
-    a_asc_ext_ns_var_name='extension_namespace'
+  if [[ -z "$p_asc_ext_ns_var_name" ]]; then
+    p_asc_ext_ns_var_name='extension_namespace'
   fi
 
-  asc_ext_ns_result="${a_ext##*/}"
+  asc_ext_ns_result="${p_ext##*/}"
   f_str_sanitize_var_name "$asc_ext_ns_result" 'asc_ext_ns_result'
   f_str_uppercase "$asc_ext_ns_result" 'asc_ext_ns_result'
 
-  printf -v "$a_asc_ext_ns_var_name" '%s' "$asc_ext_ns_result"
+  printf -v "$p_asc_ext_ns_var_name" '%s' "$asc_ext_ns_result"
 }
 
 ##
@@ -448,21 +448,21 @@ f_asc_extension_namespace() {
 #   done
 #
 f_asc_namespace_has_subject() {
-  local a_extension_path="$1"
-  local a_subject="$2"
+  local p_extension_path="$1"
+  local p_subject="$2"
 
   local extension_subjects
   local extension_subjects_var
   local extension_namespace
 
-  f_asc_extension_namespace "$a_extension_path"
+  f_asc_extension_namespace "$p_extension_path"
   extension_subjects_var="${extension_namespace}_SUBJECTS"
   extension_subjects="${!extension_subjects_var}"
 
   if [[ -n "$extension_subjects" ]]; then
     local s
     for s in $extension_subjects; do
-      case "$a_subject" in "$s")
+      case "$p_subject" in "$s")
         return
       esac
     done

@@ -469,12 +469,12 @@ CACHE
 #
 f_hook_build_lookup_by_subject() {
   local o_subject="$1"
-  local a_suffix_override="$2"
+  local p_suffix_override="$2"
 
   local bp
 
-  local a_path
-  local a_parts_arr
+  local p_path
+  local p_parts_arr
   local a
 
   local x_prim
@@ -494,8 +494,8 @@ f_hook_build_lookup_by_subject() {
   # double-extension pattern "*.hook.sh". This can be altered when using the
   # custom filter argument (-c).
   local suffix='hook.sh'
-  if [[ -n "$a_suffix_override" ]]; then
-    suffix="$a_suffix_override"
+  if [[ -n "$p_suffix_override" ]]; then
+    suffix="$p_suffix_override"
   fi
 
   for bp in "${base_paths_arr[@]}"; do
@@ -505,18 +505,18 @@ f_hook_build_lookup_by_subject() {
       continue
     fi
 
-    for a_path in $actions; do
+    for p_path in $actions; do
 
       # Ignore actions not "belonging" to current subject.
-      case "$a_path" in "$o_subject"*)
+      case "$p_path" in "$o_subject"*)
 
         # First, add "pure" actions suggestions - unless excluded (see prefixes).
         if [[ -z "$o_prefixes_filter" ]]; then
-          lookup_paths_arr+=("$bp/${a_path}.${suffix}")
+          lookup_paths_arr+=("$bp/${p_path}.${suffix}")
         fi
 
-        f_str_split1 'a_parts_arr' "$a_path" '/'
-        a="${a_parts_arr[1]}"
+        f_str_split1 'p_parts_arr' "$p_path" '/'
+        a="${p_parts_arr[1]}"
 
         # Then add "prefixed" actions suggestions.
         for x_val in $prefixes; do
@@ -571,7 +571,7 @@ f_hook_build_lookup_by_subject() {
 #
 f_hook_build_project_root_dir_lookup() {
   local o_action="$1"
-  local a_suffix_override="$2"
+  local p_suffix_override="$2"
 
   local a
 
@@ -595,8 +595,8 @@ f_hook_build_project_root_dir_lookup() {
   # double-extension pattern "*.hook.sh". This can be altered when using the
   # custom filter argument (-c).
   local suffix='hook.sh'
-  if [[ -n "$a_suffix_override" ]]; then
-    suffix="$a_suffix_override"
+  if [[ -n "$p_suffix_override" ]]; then
+    suffix="$p_suffix_override"
   fi
 
   # First, add "pure" actions suggestions - unless excluded (see prefixes).
@@ -761,15 +761,15 @@ hook_ms() {
 # Dual-compat: compose and docker-compose resolve to both.
 #
 f_provision_using_lookup_values() {
-  local a_provision_using="${1:-${PROVISION_USING:-}}"
+  local p_provision_using="${1:-${PROVISION_USING:-}}"
 
-  case "$a_provision_using" in
+  case "$p_provision_using" in
     compose|docker-compose)
       printf '%s' 'compose docker-compose'
       ;;
     *)
-      if [[ -n "$a_provision_using" ]]; then
-        printf '%s' "$a_provision_using"
+      if [[ -n "$p_provision_using" ]]; then
+        printf '%s' "$p_provision_using"
       fi
       ;;
   esac
@@ -781,23 +781,23 @@ f_provision_using_lookup_values() {
 # Expands PROVISION_USING via f_provision_using_lookup_values().
 #
 f_hook_variant_values_add() {
-  local a_v_prim="$1"
-  local a_v_val="$2"
-  local a_v_values_var_name="$3"
-  local current="${!a_v_values_var_name}"
+  local p_v_prim="$1"
+  local p_v_val="$2"
+  local p_v_values_var_name="$3"
+  local current="${!p_v_values_var_name}"
   local alias_val
 
-  if [[ "$a_v_prim" == 'PROVISION_USING' ]]; then
-    for alias_val in $(f_provision_using_lookup_values "$a_v_val"); do
+  if [[ "$p_v_prim" == 'PROVISION_USING' ]]; then
+    for alias_val in $(f_provision_using_lookup_values "$p_v_val"); do
       if [[ "$current" != *"$alias_val"* ]]; then
         current+="$alias_val "
       fi
     done
-  elif [[ -n "$a_v_val" ]] && [[ "$current" != *"$a_v_val"* ]]; then
-    current+="$a_v_val "
+  elif [[ -n "$p_v_val" ]] && [[ "$current" != *"$p_v_val"* ]]; then
+    current+="$p_v_val "
   fi
 
-  printf -v "$a_v_values_var_name" '%s' "$current"
+  printf -v "$p_v_values_var_name" '%s' "$current"
 }
 
 ##
@@ -816,8 +816,8 @@ f_hook_variant_values_add() {
 # @see changelog/2026/07/16-asc-include-splitting-hook-mapped-deps.md
 #
 f_hook_opt_inc_append_candidates() {
-  local a_hook_path="$1"
-  local -n a_out_arr_nameref="$2" # Bash 4.3 +
+  local p_hook_path="$1"
+  local -n p_out_arr_nameref="$2" # Bash 4.3 +
 
   local dir
   local base
@@ -827,20 +827,20 @@ f_hook_opt_inc_append_candidates() {
   local existing
   local found
 
-  if [[ -z "$a_hook_path" ]]; then
+  if [[ -z "$p_hook_path" ]]; then
     return 0
   fi
 
-  base="${a_hook_path##*/}"
+  base="${p_hook_path##*/}"
 
   case "$base" in
     *.hook.sh) ;;
     *) return 0 ;;
   esac
 
-  dir="${a_hook_path%/*}"
+  dir="${p_hook_path%/*}"
 
-  if [[ "$dir" == "$a_hook_path" ]]; then
+  if [[ "$dir" == "$p_hook_path" ]]; then
     dir='.'
   fi
 
@@ -858,7 +858,7 @@ f_hook_opt_inc_append_candidates() {
 
     found=0
 
-    for existing in "${a_out_arr_nameref[@]}"; do
+    for existing in "${p_out_arr_nameref[@]}"; do
       if [[ "$existing" == "$candidate" ]]; then
         found=1
         break
@@ -869,7 +869,7 @@ f_hook_opt_inc_append_candidates() {
       continue
     fi
 
-    a_out_arr_nameref+=("$candidate")
+    p_out_arr_nameref+=("$candidate")
   done
 }
 
@@ -884,14 +884,14 @@ f_hook_opt_inc_append_candidates() {
 # @see f_autoload_override()
 #
 f_hook_resolve_source_path() {
-  local a_path="$1"
-  local a_output_var_name="${2:-hook_resolve_source_path}"
-  local override="${a_path/asc/scripts/overrides}"
+  local p_path="$1"
+  local p_output_var_name="${2:-hook_resolve_source_path}"
+  local override="${p_path/asc/scripts/overrides}"
 
   if [[ -f "$override" ]]; then
-    printf -v "$a_output_var_name" '%s' "$override"
+    printf -v "$p_output_var_name" '%s' "$override"
   else
-    printf -v "$a_output_var_name" '%s' "$a_path"
+    printf -v "$p_output_var_name" '%s' "$p_path"
   fi
 }
 
@@ -904,12 +904,12 @@ f_hook_resolve_source_path() {
 # @see hook_ms()
 #
 f_hook_source_opt_incs_for_path() {
-  local a_hook_path="$1"
+  local p_hook_path="$1"
   local opt_incs_arr=()
   local oi
   local src
 
-  f_hook_opt_inc_append_candidates "$a_hook_path" opt_incs_arr
+  f_hook_opt_inc_append_candidates "$p_hook_path" opt_incs_arr
 
   for oi in "${opt_incs_arr[@]}"; do
     f_hook_resolve_source_path "$oi" 'src'

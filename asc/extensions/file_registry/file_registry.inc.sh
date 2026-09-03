@@ -37,16 +37,16 @@
 #   echo "$reg_file_path" # <- Idem (see example above).
 #
 f_file_registry_get_path() {
-  local a_key="$1"
-  local a_namespace="$2"
+  local p_key="$1"
+  local p_namespace="$2"
   local slug
 
-  f_str_sanitize "$a_key" '-' 'slug'
+  f_str_sanitize "$p_key" '-' 'slug'
   reg_file_path="data/asc/registry"
 
-  if [[ -n "$a_namespace" ]]; then
+  if [[ -n "$p_namespace" ]]; then
     local namespace
-    f_str_sanitize_var_name "$a_namespace" 'namespace'
+    f_str_sanitize_var_name "$p_namespace" 'namespace'
     reg_file_path="${FILE_REGISTRY_HOST_LEVEL_PATH:=/opt/asc-registry}/$namespace"
   fi
 

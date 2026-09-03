@@ -77,25 +77,25 @@ f_make_check_args() {
 # @var [default] task
 #
 f_make_task_name() {
-  local a_str="$1"
-  local a_itn_var_name="$2"
+  local p_str="$1"
+  local p_itn_var_name="$2"
 
-  if [[ -z "$a_itn_var_name" ]]; then
-    a_itn_var_name='task'
+  if [[ -z "$p_itn_var_name" ]]; then
+    p_itn_var_name='task'
   fi
 
-  f_str_sanitize "$a_str" '-' 'a_str' '[^a-zA-Z0-9]'
+  f_str_sanitize "$p_str" '-' 'p_str' '[^a-zA-Z0-9]'
 
   if [[ -n "$ASC_SYNONYMS" ]]; then
     local search_replace_pattern=''
 
     for search_replace_pattern in $ASC_SYNONYMS; do
       f_str_sanitize "$search_replace_pattern" '' 'search_replace_pattern' '[^a-zA-Z0-9\/\-_]'
-      eval "a_str=\"\${a_str//$search_replace_pattern}\""
+      eval "p_str=\"\${p_str//$search_replace_pattern}\""
     done
   fi
 
-  printf -v "$a_itn_var_name" '%s' "$a_str"
+  printf -v "$p_itn_var_name" '%s' "$p_str"
 }
 
 ##
@@ -135,13 +135,13 @@ f_make_list_entry_points() {
   # Important note : the arrays 'make_entries_arr' and 'real_scripts_arr' must have the
   # exact same order and size.
   local task
-  local sa_pair
+  local sp_pair
   local ext_path
 
   # No need to check for collisions in ASC core (we know there aren't any).
-  for sa_pair in $ASC_ACTIONS; do
+  for sp_pair in $ASC_ACTIONS; do
     task=''
-    f_make_task_name "$sa_pair"
+    f_make_task_name "$sp_pair"
 
     # The 'instance' subject is a special case : we remove it to explicitly make
     # it the default subject. All actions belonging to the 'instance' subject
@@ -158,7 +158,7 @@ f_make_list_entry_points() {
     esac
 
     make_entries_arr+=("$task")
-    real_scripts_arr+=("asc/$sa_pair.sh")
+    real_scripts_arr+=("asc/$sp_pair.sh")
   done
 
   # We need the custom 'extend' scripts folder to have priority for avoiding
@@ -181,9 +181,9 @@ f_make_list_entry_points() {
     if [[ -n "$extension_actions" ]]; then
       # Extensions' subject-action pairs must yield unique tasks -> check for
       # collisions.
-      for sa_pair in $extension_actions; do
+      for sp_pair in $extension_actions; do
         task=''
-        f_make_task_name "$sa_pair"
+        f_make_task_name "$sp_pair"
 
         case "$task" in instance-*)
           task="${task#*instance-}"
@@ -198,8 +198,8 @@ f_make_list_entry_points() {
         ext_path=''
         f_asc_extension_path "$extension"
         # TODO [minor] Figure out why this can produce duplicate entries.
-        # real_scripts_arr+=("$ext_path/$extension/$sa_pair.sh")
-        f_array_add_once "$ext_path/$extension/$sa_pair.sh" real_scripts_arr
+        # real_scripts_arr+=("$ext_path/$extension/$sp_pair.sh")
+        f_array_add_once "$ext_path/$extension/$sp_pair.sh" real_scripts_arr
       done
     fi
   done
@@ -370,27 +370,27 @@ f_make_list_hardcoded() {
 # @see asc/make/call_wrap.make.sh
 #
 f_make_unescape() {
-  local a_arg="$1"
-  local a_var_name="$2"
+  local p_arg="$1"
+  local p_var_name="$2"
 
-  if [[ -z "$a_var_name" ]]; then
-    a_var_name='unescaped_arg'
+  if [[ -z "$p_var_name" ]]; then
+    p_var_name='unescaped_arg'
   fi
 
-  unescaped_arg="$a_arg"
+  unescaped_arg="$p_arg"
 
-  case "$a_arg" in *'\$'*)
+  case "$p_arg" in *'\$'*)
     unescaped_arg="${unescaped_arg//'\$'/'$'}"
   esac
 
-  case "$a_arg" in *'∓'*)
+  case "$p_arg" in *'∓'*)
     unescaped_arg="${unescaped_arg//'∓'/'='}"
   esac
 
   # Debug
-  # echo "u_make_unescape $a_var_name = $unescaped_arg"
+  # echo "u_make_unescape $p_var_name = $unescaped_arg"
 
-  printf -v "$a_var_name" '%s' "$unescaped_arg"
+  printf -v "$p_var_name" '%s' "$unescaped_arg"
 }
 
 ##

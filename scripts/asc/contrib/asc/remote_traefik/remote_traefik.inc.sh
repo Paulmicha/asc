@@ -13,7 +13,7 @@
 # Generates local Acme config file for Let's Encrypt.
 #
 # To list matches & check which one will be used (the most specific) :
-# $ a_site='my_site_id'
+# $ p_site='my_site_id'
 #   hook_ms 'dry-run' \
 #     -s 'stack' \
 #     -a 'traefik' \

@@ -22,9 +22,9 @@
 # @param 2 [optional] Number : max depth (default 8).
 #
 f_thread_proc_tree() {
-  local a_pid="$1"
-  local a_max="${2:-8}"
-  local cur="$a_pid"
+  local p_pid="$1"
+  local p_max="${2:-8}"
+  local cur="$p_pid"
   local depth=0
   local ppid
   local comm
@@ -32,7 +32,7 @@ f_thread_proc_tree() {
 
   thread_tree_arr=()
 
-  while [[ -n "$cur" && "$cur" -gt 0 && $depth -lt $a_max ]]; do
+  while [[ -n "$cur" && "$cur" -gt 0 && $depth -lt $p_max ]]; do
     if [[ ! -r "/proc/$cur/stat" ]]; then
       break
     fi
@@ -69,15 +69,15 @@ f_thread_proc_tree() {
 #   exit_code ended_ms output attempt max_attempts lock_mode trigger needs_interactive
 #
 f_thread_yml_write() {
-  local a_entry="$1"
-  local a_yml
+  local p_entry="$1"
+  local p_yml
   local y_keys
   declare -A y_sc_dict=()
 
-  a_yml="data/threads/${a_entry}.yml"
+  p_yml="data/threads/${p_entry}.yml"
   mkdir -p data/threads
 
-  y_sc_dict[entry]="${ASC_THREAD_ENTRY:-${thread_entry:-$a_entry}}"
+  y_sc_dict[entry]="${ASC_THREAD_ENTRY:-${thread_entry:-$p_entry}}"
   y_sc_dict[owner]="${ASC_THREAD_OWNER:-${thread_owner:-$(f_print_current_user)}}"
   y_sc_dict[uid]="${ASC_THREAD_UID:-${thread_uid:-$(id -u)}}"
   y_sc_dict[euid]="${ASC_THREAD_EUID:-${thread_euid:-${EUID:-$(id -u)}}}"
@@ -109,13 +109,13 @@ f_thread_yml_write() {
   fi
 
   if [[ ${#thread_tree_arr[@]} -gt 0 ]]; then
-    f_yaml_write "$a_yml" y_sc_dict y_keys tree thread_tree_arr
+    f_yaml_write "$p_yml" y_sc_dict y_keys tree thread_tree_arr
   else
-    f_yaml_write "$a_yml" y_sc_dict y_keys
+    f_yaml_write "$p_yml" y_sc_dict y_keys
   fi
 
   # Host sibling index (no-op when ASC_MONITORING / ASC_HOST_THREAD_MONITOR off).
-  f_thread_host_publish "$a_entry"
+  f_thread_host_publish "$p_entry"
 }
 
 ##
@@ -128,17 +128,17 @@ f_thread_yml_write() {
 #   echo "$thread_pid $thread_status"
 #
 f_thread_yml_load() {
-  local a_entry="$1"
-  local a_yml="data/threads/${a_entry}.yml"
+  local p_entry="$1"
+  local p_yml="data/threads/${p_entry}.yml"
 
-  if [[ ! -f "$a_yml" ]]; then
+  if [[ ! -f "$p_yml" ]]; then
     return 1
   fi
 
   # bash-yaml uses += for lists; clear before reload.
   unset thread_tree_arr
 
-  eval "$(f_yaml_parse "$a_yml" 'thread_')"
+  eval "$(f_yaml_parse "$p_yml" 'thread_')"
   f_thread_yml_strip_quotes
 }
 
@@ -149,9 +149,9 @@ f_thread_yml_load() {
 # Strips yaml-parser quote artifacts before rewrite.
 #
 f_thread_yml_mark_stale() {
-  local a_entry="${thread_entry:-}"
+  local p_entry="${thread_entry:-}"
 
-  if [[ -z "$a_entry" ]]; then
+  if [[ -z "$p_entry" ]]; then
     return 1
   fi
 
@@ -183,7 +183,7 @@ f_thread_yml_mark_stale() {
     ASC_THREAD_TREE="$(printf '%s\n' "${thread_tree_arr[@]}")"
   fi
 
-  f_thread_yml_write "$a_entry"
+  f_thread_yml_write "$p_entry"
 }
 
 ##
@@ -221,14 +221,14 @@ f_thread_yml_strip_quotes() {
 # @param 1 Number : exit code of the wrapped script.
 #
 f_thread_supervisor_exit() {
-  local a_rc="$1"
+  local p_rc="$1"
 
   ASC_THREAD_STATUS='exited'
-  ASC_THREAD_EXIT_CODE="$a_rc"
+  ASC_THREAD_EXIT_CODE="$p_rc"
   ASC_THREAD_ENDED_MS="$(date +%Y-%m-%dT%H:%M:%S.%3N)"
 
   # Common "needs TTY / interactive input" signals.
-  case "$a_rc" in
+  case "$p_rc" in
     75|126|130)
       ASC_THREAD_NEEDS_INTERACTIVE='true'
       ;;
@@ -250,14 +250,14 @@ f_thread_supervisor_exit() {
 # Chown path to invoking human when sudoing (S1).
 #
 f_thread_chown_human() {
-  local a_path="$1"
+  local p_path="$1"
 
-  if [[ ! -e "$a_path" ]]; then
+  if [[ ! -e "$p_path" ]]; then
     return 0
   fi
 
   if [[ -n "${SUDO_USER:-}" ]]; then
-    chown "$SUDO_USER:" "$a_path" 2>/dev/null || true
+    chown "$SUDO_USER:" "$p_path" 2>/dev/null || true
   fi
 }
 
@@ -265,14 +265,14 @@ f_thread_chown_human() {
 # Pile-up check: return 0 if safe to start, 1 if should skip (already running).
 #
 f_thread_pileup_should_skip() {
-  local a_entry="$1"
-  local yml="data/threads/${a_entry}.yml"
+  local p_entry="$1"
+  local yml="data/threads/${p_entry}.yml"
 
   if [[ ! -f "$yml" ]]; then
     return 1
   fi
 
-  if ! f_thread_yml_load "$a_entry"; then
+  if ! f_thread_yml_load "$p_entry"; then
     return 1
   fi
 
@@ -292,15 +292,15 @@ f_thread_pileup_should_skip() {
 # Uses fd 9. Returns 0 on lock acquired, 1 on skip.
 #
 f_thread_lock_acquire() {
-  local a_entry="$1"
-  local a_mode="${2:-skip}"
-  local lock="data/threads/${a_entry}.lock"
+  local p_entry="$1"
+  local p_mode="${2:-skip}"
+  local lock="data/threads/${p_entry}.lock"
 
   mkdir -p data/threads
   eval "exec 9>\"$lock\""
   f_thread_chown_human "$lock"
 
-  case "$a_mode" in
+  case "$p_mode" in
     wait)
       flock 9 || return 1
       ;;
@@ -348,20 +348,20 @@ f_thread_delay_seconds() {
 #   echo "$thread_output_mtime_ms"
 #
 f_thread_output_mtime_ms() {
-  local a_file="$1"
-  local a_var_name="$2"
+  local p_file="$1"
+  local p_var_name="$2"
 
-  if [[ -z "$a_var_name" ]]; then
-    a_var_name='thread_output_mtime_ms'
+  if [[ -z "$p_var_name" ]]; then
+    p_var_name='thread_output_mtime_ms'
   fi
 
-  if [[ ! -f "$a_file" ]]; then
-    printf -v "$a_var_name" '%s' ''
+  if [[ ! -f "$p_file" ]]; then
+    printf -v "$p_var_name" '%s' ''
     return 1
   fi
 
-  printf -v "$a_var_name" '%s' \
-    "$(date -r "$a_file" '+%Y-%m-%dT%H:%M:%S.%3N' 2>/dev/null || true)"
+  printf -v "$p_var_name" '%s' \
+    "$(date -r "$p_file" '+%Y-%m-%dT%H:%M:%S.%3N' 2>/dev/null || true)"
 }
 
 ##
@@ -398,14 +398,14 @@ f_thread_host_monitor_enabled() {
 # @param 1 String : make entry name.
 #
 f_thread_host_publish() {
-  local a_entry="$1"
+  local p_entry="$1"
   local docroot
   local slug
   local host_file
   local y_keys
   declare -A y_sc_dict=()
 
-  if [[ -z "$a_entry" ]]; then
+  if [[ -z "$p_entry" ]]; then
     return 1
   fi
 
@@ -417,12 +417,12 @@ f_thread_host_publish() {
   f_thread_host_index_dir
   mkdir -p "$thread_host_index_dir"
 
-  slug="$(printf '%s\n' "${docroot}::${a_entry}" | sha256sum | awk '{print $1}')"
+  slug="$(printf '%s\n' "${docroot}::${p_entry}" | sha256sum | awk '{print $1}')"
   slug="${slug:0:16}"
   host_file="${thread_host_index_dir}/${slug}.yml"
 
   y_sc_dict[docroot]="$docroot"
-  y_sc_dict[entry]="${ASC_THREAD_ENTRY:-$a_entry}"
+  y_sc_dict[entry]="${ASC_THREAD_ENTRY:-$p_entry}"
   y_sc_dict[pid]="${ASC_THREAD_PID:-${thread_pid:-}}"
   y_sc_dict[status]="${ASC_THREAD_STATUS:-${thread_status:-}}"
   y_sc_dict[owner]="${ASC_THREAD_OWNER:-${thread_owner:-}}"
@@ -446,17 +446,17 @@ f_thread_host_publish() {
 # Appends one printf-%q encoded arg to thread_entry_args_arr[idx] (or stage args).
 #
 f_thread_args_append() {
-  local a_arr_name="$1"
-  local a_idx="$2"
-  local a_val="$3"
+  local p_arr_name="$1"
+  local p_idx="$2"
+  local p_val="$3"
   local enc
-  local -n _u_ta_ref_arr_nameref="$a_arr_name"
+  local -n _u_tp_ref_arr_nameref="$p_arr_name"
 
-  printf -v enc '%q' "$a_val"
-  if [[ -n "${_u_ta_ref_arr_nameref[$a_idx]}" ]]; then
-    _u_ta_ref_arr_nameref[$a_idx]+=" $enc"
+  printf -v enc '%q' "$p_val"
+  if [[ -n "${_u_tp_ref_arr_nameref[$p_idx]}" ]]; then
+    _u_tp_ref_arr_nameref[$p_idx]+=" $enc"
   else
-    _u_ta_ref_arr_nameref[$a_idx]="$enc"
+    _u_tp_ref_arr_nameref[$p_idx]="$enc"
   fi
 }
 
@@ -467,8 +467,8 @@ f_thread_args_append() {
 # @param 2 String : printf-%q encoded args (may be empty).
 #
 f_thread_run_make_step() {
-  local a_entry="$1"
-  local a_encoded="$2"
+  local p_entry="$1"
+  local p_encoded="$2"
   local -a args_arr=()
   local found=0
   local e=''
@@ -481,23 +481,23 @@ f_thread_run_make_step() {
     real_scripts_arr=()
     . data/asc/cache/make.sh
     for e in "${make_entries_arr[@]}"; do
-      if [[ "$e" == "$a_entry" ]]; then
+      if [[ "$e" == "$p_entry" ]]; then
         found=1
         break
       fi
     done
     if [[ $found -ne 1 ]]; then
-      echo >&2 "Error: unknown make entry '$a_entry'."
+      echo >&2 "Error: unknown make entry '$p_entry'."
       return 127
     fi
   fi
 
-  if [[ -n "$a_encoded" ]]; then
+  if [[ -n "$p_encoded" ]]; then
     # shellcheck disable=SC2086
-    eval "args_arr=($a_encoded)"
+    eval "args_arr=($p_encoded)"
   fi
 
-  make "$a_entry" "${args_arr[@]}"
+  make "$p_entry" "${args_arr[@]}"
 }
 
 ##

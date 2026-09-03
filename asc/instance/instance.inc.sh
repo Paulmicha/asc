@@ -51,29 +51,29 @@ f_instance_init() {
   local app=''
 
   # Absolute path to project docroot.
-  local a_ascii_project_docroot=''
+  local p_ascii_project_docroot=''
 
   # Stack version allows stack upgrades (e.g. switching compose files_arr).
-  local a_ascii_stack_version=''
+  local p_ascii_stack_version=''
 
   # Space-separated list of "apps" of components (e.g. 'site api cas').
-  local a_ascii_apps=''
+  local p_ascii_apps=''
 
   # Host type usually is 'local' or 'remote'.
-  local a_ascii_host_type=''
+  local p_ascii_host_type=''
 
   # Instance type usually is 'dev' or 'prod'.
-  local a_ascii_instance_type=''
+  local p_ascii_instance_type=''
 
   # Some variants may play on the provisionning tool, if any (i.e. docker
   # compose).
-  local a_ascii_provision_using=''
+  local p_ascii_provision_using=''
 
   # Flag to bypass interactive terminal prompts (input and/or confirmation).
-  local a_ascii_yes=0
+  local p_ascii_yes=0
 
   # Flag to test the aggregation process without writing anything.
-  local a_ascii_dry_run=0
+  local p_ascii_dry_run=0
 
   # Reads values optionally provided in YAML files placed in PROJECT_DOCROOT.
   # - yaml_parsed_sp_init contains a subset of vars - the default values,
@@ -106,56 +106,56 @@ f_instance_init() {
       # for the globals aggregation process (e.g. values depending on instance
       # type - dev, prod, or dependening on stack version, etc).
       if [[ -n "$YAML_PROJECT_DOCROOT" ]]; then
-        a_ascii_project_docroot="$YAML_PROJECT_DOCROOT"
+        p_ascii_project_docroot="$YAML_PROJECT_DOCROOT"
       fi
 
       if [[ -n "$YAML_STACK_VERSION" ]]; then
-        a_ascii_stack_version="$YAML_STACK_VERSION"
+        p_ascii_stack_version="$YAML_STACK_VERSION"
       fi
 
       if [[ -n "$YAML_ASC_APPS" ]]; then
-        a_ascii_apps="$YAML_ASC_APPS"
+        p_ascii_apps="$YAML_ASC_APPS"
       fi
 
       if [[ -n "$YAML_HOST_TYPE" ]]; then
-        a_ascii_host_type="$YAML_HOST_TYPE"
+        p_ascii_host_type="$YAML_HOST_TYPE"
       fi
 
       if [[ -n "$YAML_INSTANCE_TYPE" ]]; then
-        a_ascii_instance_type="$YAML_INSTANCE_TYPE"
+        p_ascii_instance_type="$YAML_INSTANCE_TYPE"
       fi
 
       if [[ -n "$YAML_PROVISION_USING" ]]; then
-        a_ascii_provision_using="$YAML_PROVISION_USING"
+        p_ascii_provision_using="$YAML_PROVISION_USING"
       fi
     fi
   fi
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -o) a_ascii_project_docroot="$2"; shift 2;;
-      -s) a_ascii_stack_version="$2"; shift 2;;
-      -a) a_ascii_apps="$2"; shift 2;;
-      -h) a_ascii_host_type="$2"; shift 2;;
-      -t) a_ascii_instance_type="$2"; shift 2;;
-      -p) a_ascii_provision_using="$2"; shift 2;;
-      -y) a_ascii_yes=1; shift 1;;
-      -r) a_ascii_dry_run=1; shift 1;;
+      -o) p_ascii_project_docroot="$2"; shift 2;;
+      -s) p_ascii_stack_version="$2"; shift 2;;
+      -a) p_ascii_apps="$2"; shift 2;;
+      -h) p_ascii_host_type="$2"; shift 2;;
+      -t) p_ascii_instance_type="$2"; shift 2;;
+      -p) p_ascii_provision_using="$2"; shift 2;;
+      -y) p_ascii_yes=1; shift 1;;
+      -r) p_ascii_dry_run=1; shift 1;;
       -*) echo "Error in $BASH_SOURCE line $LINENO: unknown option: $1" >&2; return;;
       *) echo "Notice in $BASH_SOURCE line $LINENO: unsupported unnamed argument: $1" >&2; shift 1;;
     esac
   done
 
-  if [[ -n "$a_ascii_project_docroot" ]]; then
-    PROJECT_DOCROOT="$a_ascii_project_docroot"
+  if [[ -n "$p_ascii_project_docroot" ]]; then
+    PROJECT_DOCROOT="$p_ascii_project_docroot"
   fi
 
-  if [[ -n "$a_ascii_stack_version" ]]; then
-    STACK_VERSION="$a_ascii_stack_version"
+  if [[ -n "$p_ascii_stack_version" ]]; then
+    STACK_VERSION="$p_ascii_stack_version"
   fi
 
-  if [[ -n "$a_ascii_apps" ]]; then
-    ASC_APPS="$a_ascii_apps"
+  if [[ -n "$p_ascii_apps" ]]; then
+    ASC_APPS="$p_ascii_apps"
 
     # for app in $ASC_APPS; do
     #   # "YAML_${app}_DOCROOT"
@@ -167,16 +167,16 @@ f_instance_init() {
     # done
   fi
 
-  if [[ -n "$a_ascii_host_type" ]]; then
-    HOST_TYPE="$a_ascii_host_type"
+  if [[ -n "$p_ascii_host_type" ]]; then
+    HOST_TYPE="$p_ascii_host_type"
   fi
 
-  if [[ -n "$a_ascii_instance_type" ]]; then
-    INSTANCE_TYPE="$a_ascii_instance_type"
+  if [[ -n "$p_ascii_instance_type" ]]; then
+    INSTANCE_TYPE="$p_ascii_instance_type"
   fi
 
-  if [[ -n "$a_ascii_provision_using" ]]; then
-    PROVISION_USING="$a_ascii_provision_using"
+  if [[ -n "$p_ascii_provision_using" ]]; then
+    PROVISION_USING="$p_ascii_provision_using"
   fi
 
   # Debug.
@@ -233,7 +233,7 @@ f_instance_init() {
 
   # If we want to test instance init (when "dry run" flag is set), nothing is
   # written and hooks are replaced by a prefixed variant.
-  if [[ $a_ascii_dry_run -eq 1 ]]; then
+  if [[ $p_ascii_dry_run -eq 1 ]]; then
     f_global_debug
     hook -a 'init' -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE' -p 'dry_run'
     hook -s "$subjects instance" -a 'ensure_dirs_exist' -p 'dry_run'
@@ -688,14 +688,14 @@ f_instance_get_ownership() {
 #   echo "instance_domain = $instance_domain"
 #
 f_instance_domain() {
-  local a_local_host_name="$1"
+  local p_local_host_name="$1"
 
-  if [[ -z "$a_local_host_name" ]]; then
-    a_local_host_name="$(f_host_ip)"
+  if [[ -z "$p_local_host_name" ]]; then
+    p_local_host_name="$(f_host_ip)"
   fi
 
-  case "$a_local_host_name" in "192.168."*)
-    a_local_host_name="${a_local_host_name//192.168./lan-}"
+  case "$p_local_host_name" in "192.168."*)
+    p_local_host_name="${p_local_host_name//192.168./lan-}"
   esac
 
   # The dir name is slugified + we remove any '-dev-stack' suffix + lowercase.
@@ -704,9 +704,9 @@ f_instance_domain() {
   dirname="${dirname//-dev-stack/}"
   f_str_lowercase "$dirname" 'dirname'
 
-  if [[ -n "$a_local_host_name" ]]; then
-    a_local_host_name="${a_local_host_name//./-}"
-    echo "${dirname}.host-${a_local_host_name}.localhost"
+  if [[ -n "$p_local_host_name" ]]; then
+    p_local_host_name="${p_local_host_name//./-}"
+    echo "${dirname}.host-${p_local_host_name}.localhost"
     return
   fi
 
@@ -825,16 +825,16 @@ f_instance_registry_del() {
 #   fi
 #
 f_instance_once() {
-  local a_flag="$1"
+  local p_flag="$1"
 
   # TODO check what happens in case of unexpected collisions (if that var
   # already exists in calling scope).
   local reg_val
 
-  f_instance_registry_get "$a_flag"
+  f_instance_registry_get "$p_flag"
 
   if [[ $reg_val -ne 1 ]]; then
-    f_instance_registry_set "$a_flag"
+    f_instance_registry_set "$p_flag"
     return
   fi
 

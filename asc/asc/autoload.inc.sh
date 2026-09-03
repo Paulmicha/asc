@@ -55,24 +55,24 @@
 #   fi
 #
 f_autoload_override() {
-  local a_script_path="$1"
-  local a_operand="$2"
-  local a_reaction="$3"
+  local p_script_path="$1"
+  local p_operand="$2"
+  local p_reaction="$3"
 
   local operand='return'
   local base_dir='scripts'
-  local override=${a_script_path/asc/"$base_dir/overrides"}
+  local override=${p_script_path/asc/"$base_dir/overrides"}
 
-  if [[ -n "$a_operand" ]]; then
-    operand="$a_operand"
+  if [[ -n "$p_operand" ]]; then
+    operand="$p_operand"
   fi
 
   inc_override_evaled_code=''
 
   if [[ -f "$override" ]]; then
     # Allows to react to the presence of an override differently.
-    if [[ -n "$a_reaction" ]]; then
-      inc_override_evaled_code="$a_reaction"
+    if [[ -n "$p_reaction" ]]; then
+      inc_override_evaled_code="$p_reaction"
     # Normal behavior (see examples in function docblock).
     else
       inc_override_evaled_code=". $override ; $operand"
@@ -90,15 +90,15 @@ f_autoload_override() {
 #   f_autoload_print_lookup_paths GLOBALS_INCLUDES_PATHS "Env includes"
 #
 f_autoload_print_lookup_paths() {
-  local a_arr=${1}[@]
-  local a_title="$2"
+  local p_arr=${1}[@]
+  local p_title="$2"
 
   echo
-  echo "$a_title lookup paths :"
+  echo "$p_title lookup paths :"
   echo
 
   local path
-  for path in ${!a_arr}; do
+  for path in ${!p_arr}; do
     echo "$path"
     if [[ -f "$path" ]]; then
       echo "  exists"
@@ -126,48 +126,48 @@ f_autoload_print_lookup_paths() {
 #   done
 #
 f_autoload_add_lookup_level() {
-  local a_prefix="$1"
-  local a_suffix="$2"
-  local a_name="$3"
-  local a_lookups_var_name="$4"
-  local a_extra_level_name="$5"
-  local a_sep="$6"
+  local p_prefix="$1"
+  local p_suffix="$2"
+  local p_name="$3"
+  local p_lookups_var_name="$4"
+  local p_extra_level_name="$5"
+  local p_sep="$6"
 
   local sep="."
-  if [[ -n "$a_sep" ]]; then
-    sep="$a_sep"
+  if [[ -n "$p_sep" ]]; then
+    sep="$p_sep"
   fi
 
   local name_version_arr=()
-  f_autoload_item_split_version name_version_arr "$a_name"
+  f_autoload_item_split_version name_version_arr "$p_name"
 
   if [[ -n "${name_version_arr[1]}" ]]; then
-    f_array_add_once "${a_prefix}${name_version_arr[0]}.${a_suffix}" $a_lookups_var_name
+    f_array_add_once "${p_prefix}${name_version_arr[0]}.${p_suffix}" $p_lookups_var_name
 
-    if [[ -n "$a_extra_level_name" ]]; then
-      f_autoload_add_lookup_level "${a_prefix}${name_version_arr[0]}." $a_suffix $a_extra_level_name $a_lookups_var_name
+    if [[ -n "$p_extra_level_name" ]]; then
+      f_autoload_add_lookup_level "${p_prefix}${name_version_arr[0]}." $p_suffix $p_extra_level_name $p_lookups_var_name
     fi
 
     local v
-    local path="${a_prefix}${name_version_arr[0]}-"
+    local path="${p_prefix}${name_version_arr[0]}-"
     local version_arr=()
 
     f_str_split1 'version_arr' "${name_version_arr[1]}" '.'
 
     for v in "${version_arr[@]}"; do
       path+="${v}${sep}"
-      f_array_add_once "${path}${a_suffix}" $a_lookups_var_name
+      f_array_add_once "${path}${p_suffix}" $p_lookups_var_name
 
-      if [[ -n "$a_extra_level_name" ]]; then
-        f_autoload_add_lookup_level "${path}" $a_suffix $a_extra_level_name $a_lookups_var_name
+      if [[ -n "$p_extra_level_name" ]]; then
+        f_autoload_add_lookup_level "${path}" $p_suffix $p_extra_level_name $p_lookups_var_name
       fi
     done
 
   else
-    f_array_add_once "${a_prefix}${a_name}${sep}${a_suffix}" $a_lookups_var_name
+    f_array_add_once "${p_prefix}${p_name}${sep}${p_suffix}" $p_lookups_var_name
 
-    if [[ -n "$a_extra_level_name" ]]; then
-      f_autoload_add_lookup_level "${a_prefix}${a_name}${sep}" $a_suffix $a_extra_level_name $a_lookups_var_name
+    if [[ -n "$p_extra_level_name" ]]; then
+      f_autoload_add_lookup_level "${p_prefix}${p_name}${sep}" $p_suffix $p_extra_level_name $p_lookups_var_name
     fi
   fi
 }
@@ -188,26 +188,26 @@ f_autoload_add_lookup_level() {
 #   done
 #
 f_autoload_item_split_version() {
-  local a_var_name="$1"
-  local a_str="$2"
+  local p_var_name="$1"
+  local p_str="$2"
 
-  eval "${a_var_name}=()"
+  eval "${p_var_name}=()"
 
-  local version_part="${a_str##*-}"
+  local version_part="${p_str##*-}"
 
-  # If last part doesn't match only numbers and dots, just return [$a_str].
+  # If last part doesn't match only numbers and dots, just return [$p_str].
   if [[ ! "$version_part" =~ [0-9.]+$ ]]; then
-    eval "${a_var_name}+=(\"$a_str\")"
+    eval "${p_var_name}+=(\"$p_str\")"
     return
   fi
 
-  local name_part="${a_str%-*}"
+  local name_part="${p_str%-*}"
 
   if [[ -n "$name_part" ]]; then
-    eval "${a_var_name}+=(\"$name_part\")"
+    eval "${p_var_name}+=(\"$name_part\")"
   fi
 
   if [[ -n "$version_part" ]] && [[ "$version_part" != "$name_part" ]]; then
-    eval "${a_var_name}+=(\"$version_part\")"
+    eval "${p_var_name}+=(\"$version_part\")"
   fi
 }

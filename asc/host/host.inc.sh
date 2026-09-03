@@ -13,7 +13,7 @@
 # Adds (once) a cronjob on local host.
 #
 # TODO [debt] Find better workaround to load PATH of required user. Currently :
-#   su $a_user -c "my command (param 1)"
+#   su $p_user -c "my command (param 1)"
 # -> avoid double quotes inside param 1 unless escaped (untested).
 #
 # @requires the 'crontab' software.
@@ -46,24 +46,24 @@
 #   f_host_crontab_add "cd $PROJECT_DOCROOT && make drush cron" '*/20 * * * *' 'www-data'
 #
 f_host_crontab_add() {
-  local a_cmd="$1"
-  local a_freq="$2"
-  local a_user="$3"
+  local p_cmd="$1"
+  local p_freq="$2"
+  local p_user="$3"
 
-  if [[ -z "$a_freq" ]]; then
-    a_freq="*/30 * * * *"
+  if [[ -z "$p_freq" ]]; then
+    p_freq="*/30 * * * *"
   fi
 
-  if [[ -z "$a_user" ]]; then
-    a_user="$USER"
+  if [[ -z "$p_user" ]]; then
+    p_user="$USER"
   fi
 
   # TODO [debt] find better workaround to run with PATH of required user loaded.
   # @see http://www.lostsaloon.com/technology/how-to-run-cron-jobs-as-a-specific-user/
-  local cronjob="$a_freq su $a_user -c \"$a_cmd\""
+  local cronjob="$p_freq su $p_user -c \"$p_cmd\""
 
   # See https://stackoverflow.com/a/17975418
-  ( crontab -l | grep -v -F "$a_cmd" ; echo "$cronjob" ) | crontab -
+  ( crontab -l | grep -v -F "$p_cmd" ; echo "$cronjob" ) | crontab -
 }
 
 ##
@@ -82,8 +82,8 @@ f_host_crontab_add() {
 #   f_host_crontab_remove "cd $PROJECT_DOCROOT && make drush cron"
 #
 f_host_crontab_remove() {
-  local a_cmd="$1"
-  ( crontab -l | grep -v -F "$a_cmd" ) | crontab -
+  local p_cmd="$1"
+  ( crontab -l | grep -v -F "$p_cmd" ) | crontab -
 }
 
 ##
@@ -261,16 +261,16 @@ f_host_registry_del() {
 #   fi
 #
 f_host_once() {
-  local a_flag="$1"
+  local p_flag="$1"
 
   # TODO check what happens in case of unexpected collisions (if that var
   # already exists in calling scope).
   local reg_val
 
-  f_host_registry_get "$a_flag"
+  f_host_registry_get "$p_flag"
 
   if [[ $reg_val -ne 1 ]]; then
-    f_host_registry_set "$a_flag"
+    f_host_registry_set "$p_flag"
     return
   fi
 

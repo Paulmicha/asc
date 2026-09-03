@@ -18,8 +18,8 @@
 # TODO [wip] @example
 #
 f_test_lookup_paths_assertion() {
-  local a_msg="$1"
-  local a_flag=$2
+  local p_msg="$1"
+  local p_flag=$2
   local fail_reason
 
   case $flag in
@@ -28,7 +28,7 @@ f_test_lookup_paths_assertion() {
     *) fail_reason='unexpected error' ;;
   esac
 
-  assertTrue "$a_msg (error $flag : $fail_reason)" "[ $flag -eq 0 ]"
+  assertTrue "$p_msg (error $flag : $fail_reason)" "[ $flag -eq 0 ]"
 }
 
 ##
@@ -96,8 +96,8 @@ f_test_compare_expected_lookup_paths() {
 # @param 1 [optional] String : output var name (default: test_results_root).
 #
 f_test_results_root() {
-  local a_output_var_name="${1:-test_results_root}"
-  printf -v "$a_output_var_name" '%s' "${ASC_TEST_RESULTS_ROOT:-data/test-results}"
+  local p_output_var_name="${1:-test_results_root}"
+  printf -v "$p_output_var_name" '%s' "${ASC_TEST_RESULTS_ROOT:-data/test-results}"
 }
 
 f_test_results_enabled() {
@@ -111,7 +111,7 @@ f_test_results_enabled() {
 # @param $2 [optional] partial : 1 = merge tree / append full-output (default 0)
 #
 f_test_results_batch_begin() {
-  local a_dir="$1"
+  local p_dir="$1"
   local partial="${2:-0}"
 
   if ! f_test_results_enabled; then
@@ -119,7 +119,7 @@ f_test_results_batch_begin() {
     return 0
   fi
 
-  test_results_slug="${a_dir##*/}"
+  test_results_slug="${p_dir##*/}"
   test_results_active=1
   test_results_partial="$partial"
   test_results_tree_new_arr=()
@@ -458,18 +458,18 @@ f_test_results_case_status() {
 #
 f_test_results_write_browser_tree() {
   local kind="$1"
-  local a_env="$2"
+  local p_env="$2"
   local root dest summary results_root
 
   f_test_results_root 'results_root'
-  root="${results_root}/browser/${kind}/${a_env}"
-  summary="${results_root}/browser/${kind}/${a_env}.txt"
+  root="${results_root}/browser/${kind}/${p_env}"
+  summary="${results_root}/browser/${kind}/${p_env}.txt"
 
   mkdir -p "$(dirname "$summary")"
 
   {
     echo "# kind: ${kind}"
-    echo "# env: ${a_env}"
+    echo "# env: ${p_env}"
     echo "# updated: $(date -Iseconds)"
     echo
     if [[ -d "$root" ]]; then
@@ -565,7 +565,7 @@ f_test_discover_batch_cases() {
   local batch_script="$1"
   local batch_dir=''
   local manifest=''
-  local a_env=''
+  local p_env=''
   local stems=''
   local stem=''
   local found=0
@@ -587,9 +587,9 @@ f_test_discover_batch_cases() {
     fi
   fi
 
-  for a_env in $ASC_TEST_CASE_ENVS; do
-    if [[ -d "${batch_dir}/${a_env}" ]]; then
-      f_fs_file_list "${batch_dir}/${a_env}" '*.test.sh'
+  for p_env in $ASC_TEST_CASE_ENVS; do
+    if [[ -d "${batch_dir}/${p_env}" ]]; then
+      f_fs_file_list "${batch_dir}/${p_env}" '*.test.sh'
       for stem in $file_list; do
         stem="${stem%.test.sh}"
         [[ "$stem" == 'orchestrated' ]] && continue
@@ -742,7 +742,7 @@ f_test_case_registry_index() {
 f_test_run_case() {
   local batch_task="$1"
   local case_stem="$2"
-  local a_env="${3:-local}"
+  local p_env="${3:-local}"
   local i='' mode='' batch_dir='' batch_script='' runner='' test_file=''
   local exit_code=0
 
@@ -799,7 +799,7 @@ f_test_run_case() {
   case "$mode" in
     manifest)
       if [[ -x "$runner" || -f "$runner" ]]; then
-        bash "$runner" "$a_env" "$case_stem"
+        bash "$runner" "$p_env" "$case_stem"
         exit_code=$?
         if f_test_results_enabled && [[ "${test_results_active:-0}" -eq 1 ]]; then
           f_test_results_batch_end "$exit_code"
@@ -813,14 +813,14 @@ f_test_run_case() {
       ;;
     env_subdir)
       if [[ -f "$runner" ]]; then
-        bash "$runner" "$a_env" "$case_stem"
+        bash "$runner" "$p_env" "$case_stem"
         exit_code=$?
         if f_test_results_enabled && [[ "${test_results_active:-0}" -eq 1 ]]; then
           f_test_results_batch_end "$exit_code"
         fi
         return "$exit_code"
       fi
-      test_file="${batch_dir}/${a_env}/${case_stem}.test.sh"
+      test_file="${batch_dir}/${p_env}/${case_stem}.test.sh"
       f_test_file_exec "$test_file"
       exit_code=$?
       if f_test_results_enabled && [[ "${test_results_active:-0}" -eq 1 ]]; then
@@ -854,7 +854,7 @@ f_test_run_case() {
 #
 f_test_run_case_by_target() {
   local target="$1"
-  local a_env="${2:-local}"
+  local p_env="${2:-local}"
   local i=''
 
   if ! f_test_case_cache_load; then
@@ -870,7 +870,7 @@ f_test_run_case_by_target() {
       f_test_run_case \
         "${test_case_registry_batch_tasks_arr[i]}" \
         "${test_case_registry_stems_arr[i]}" \
-        "$a_env"
+        "$p_env"
       return $?
     fi
   done
@@ -894,23 +894,23 @@ f_test_run_case_by_target() {
 #   f_test_batch_exec asc/extensions/mysql/test/mysql
 #
 f_test_batch_exec() {
-  local a_dir="$1"
+  local p_dir="$1"
   local batch_exit=0
 
-  if [[ ! -d "$a_dir" ]]; then
+  if [[ ! -d "$p_dir" ]]; then
     echo >&2
-    echo "Error in f_test_batch_exec() - $BASH_SOURCE line $LINENO: the '$a_dir' folder is missing or inaccessible." >&2
+    echo "Error in f_test_batch_exec() - $BASH_SOURCE line $LINENO: the '$p_dir' folder is missing or inaccessible." >&2
     echo "-> Aborting." >&2
     echo >&2
     exit 1
   fi
 
-  f_test_results_batch_begin "$a_dir" 0
+  f_test_results_batch_begin "$p_dir" 0
 
-  f_fs_file_list "$a_dir" '*.test.sh'
+  f_fs_file_list "$p_dir" '*.test.sh'
 
   for test_script in $file_list; do
-    f_test_file_exec "$a_dir/$test_script" || batch_exit=$?
+    f_test_file_exec "$p_dir/$test_script" || batch_exit=$?
 
     if [[ "$batch_exit" -ne 0 ]]; then
       break
@@ -932,15 +932,15 @@ f_test_batch_exec() {
 #   f_test_program_is_executable 'git'
 #
 f_test_program_is_executable() {
-  local a_program="$1"
+  local p_program="$1"
   local check=0
 
-  if [[ "$(type -t $a_program)" == 'alias' ]]; then
+  if [[ "$(type -t $p_program)" == 'alias' ]]; then
     # TODO [fail] there seems to be no reliable way to test if an alias can run
     # successfully. Meanwhile, we assume that if an alias is found, it will be
     # executable.
     check=0
-  elif ! [ -x "$(command -v $a_program)" ]; then
+  elif ! [ -x "$(command -v $p_program)" ]; then
     check=1
   fi
 

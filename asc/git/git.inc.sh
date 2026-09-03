@@ -49,7 +49,7 @@
 #   f_git_log -c '_print_log_line' --merges -b 'master' -s '3 months ago' -i
 #
 f_git_log() {
-  local a_evaled_code
+  local p_evaled_code
   local i
   local h
   local t
@@ -61,14 +61,14 @@ f_git_log() {
   # 2 args for simplicity.
   case "$1" in -c | --callback )
     shift
-    a_evaled_code="$1"
+    p_evaled_code="$1"
     shift
   esac
 
   # By default, this will output all log lines to stdout using the following
   # format : <line number> : <datestamp> <short commit ID> <commit message>
-  if [[ -z "$a_evaled_code" ]]; then
-    a_evaled_code='echo "$i : $d ${h:0:8} $t"'
+  if [[ -z "$p_evaled_code" ]]; then
+    p_evaled_code='echo "$i : $d ${h:0:8} $t"'
   fi
 
   f_git_find_commits "$@"
@@ -79,7 +79,7 @@ f_git_log() {
     e="${git_commits_emails_arr[$i]}"
     d="${git_commits_dates_arr[$i]}"
     s="${git_commits_timestamps_arr[$i]}"
-    eval "$a_evaled_code"
+    eval "$p_evaled_code"
   done
 }
 
@@ -109,18 +109,18 @@ f_git_log() {
 #   done
 #
 f_git_find_changed_files() {
-  local a_search="$1"
-  local a_source_branch="$2"
+  local p_search="$1"
+  local p_source_branch="$2"
 
   # By default, search in all branches.
-  if [[ -z "$a_source_branch" ]]; then
-    a_source_branch='--all'
+  if [[ -z "$p_source_branch" ]]; then
+    p_source_branch='--all'
   fi
 
   f_git_find_commits \
-    -m "$a_search" \
+    -m "$p_search" \
     -f '<have-changed>' \
-    -b "$a_source_branch" \
+    -b "$p_source_branch" \
     -v
 }
 
@@ -452,7 +452,7 @@ f_git_find_commits() {
 #   done
 #
 f_git_mfind_commits() {
-  local a_search_terms="$1"
+  local p_search_terms="$1"
 
   # All remaining arguments are forwarded, except for some options that require
   # specific pre-processing.
@@ -489,7 +489,7 @@ f_git_mfind_commits() {
   git_commits_timestamps_arr=()
   git_changed_files_arr=()
 
-  for search_term in $a_search_terms; do
+  for search_term in $p_search_terms; do
     f_git_find_commits "$search_op" "$search_term" $forwarded_args
   done
 
@@ -610,23 +610,23 @@ f_git_mfind_commits() {
 #   f_git_write_hooks '' /my/custom/path/to/.git/hooks
 #
 f_git_write_hooks() {
-  local a_git_hooks="$1"
-  local a_git_hook_dir="$2"
+  local p_git_hooks="$1"
+  local p_git_hook_dir="$2"
 
-  if [[ -z "$a_git_hooks" ]]; then
-    a_git_hooks='pre-applypatch pre-commit post-checkout post-merge pre-push post-receive'
+  if [[ -z "$p_git_hooks" ]]; then
+    p_git_hooks='pre-applypatch pre-commit post-checkout post-merge pre-push post-receive'
   fi
 
-  if [[ -z "$a_git_hook_dir" ]]; then
-    a_git_hook_dir="$PROJECT_DOCROOT/.git/hooks"
+  if [[ -z "$p_git_hook_dir" ]]; then
+    p_git_hook_dir="$PROJECT_DOCROOT/.git/hooks"
 
     if [[ -n "$APP_DOCROOT" ]]; then
-      a_git_hook_dir="$APP_DOCROOT/.git/hooks"
+      p_git_hook_dir="$APP_DOCROOT/.git/hooks"
     fi
 
-    if [[ ! -d "$a_git_hook_dir" ]]; then
+    if [[ ! -d "$p_git_hook_dir" ]]; then
       echo >&2
-      echo "Error in f_git_write_hooks() - $BASH_SOURCE line $LINENO: the Git hook dir '$a_git_hook_dir' is missing." >&2
+      echo "Error in f_git_write_hooks() - $BASH_SOURCE line $LINENO: the Git hook dir '$p_git_hook_dir' is missing." >&2
       echo "-> Aborting (1)." >&2
       echo >&2
       exit 1
@@ -660,11 +660,11 @@ f_git_write_hooks() {
   git_hooks_whitelist_arr+=('sendemail-validate')
   git_hooks_whitelist_arr+=('fsmonitor-watchman')
 
-  for git_hook in $a_git_hooks; do
+  for git_hook in $p_git_hooks; do
 
     # Whitelist allowed values for git hooks.
     if f_in_array "$git_hook" 'git_hooks_whitelist_arr'; then
-      git_hook_script_path="$a_git_hook_dir/$git_hook"
+      git_hook_script_path="$p_git_hook_dir/$git_hook"
 
       relative_path=''
       f_fs_relative_path "$git_hook_script_path"
@@ -725,17 +725,17 @@ EOF
 #   done
 #
 f_git_get_staged_files() {
-  local a_git_work_tree="$1"
-  local a_git_dir=''
+  local p_git_work_tree="$1"
+  local p_git_dir=''
 
-  if [[ -z "$a_git_work_tree" ]]; then
-    a_git_work_tree="$APP_DOCROOT"
+  if [[ -z "$p_git_work_tree" ]]; then
+    p_git_work_tree="$APP_DOCROOT"
   fi
 
   if [[ -n "$2" ]]; then
-    a_git_dir="$2"
+    p_git_dir="$2"
   else
-    a_git_dir="$a_git_work_tree/.git"
+    p_git_dir="$p_git_work_tree/.git"
   fi
 
   echo "$(f_git_wrapper diff --name-only --cached)"
@@ -761,17 +761,17 @@ f_git_get_staged_files() {
 #   done
 #
 f_git_get_unmerged_paths() {
-  local a_git_work_tree="$1"
-  local a_git_dir=''
+  local p_git_work_tree="$1"
+  local p_git_dir=''
 
-  if [[ -z "$a_git_work_tree" ]]; then
-    a_git_work_tree="$APP_DOCROOT"
+  if [[ -z "$p_git_work_tree" ]]; then
+    p_git_work_tree="$APP_DOCROOT"
   fi
 
   if [[ -n "$2" ]]; then
-    a_git_dir="$2"
+    p_git_dir="$2"
   else
-    a_git_dir="$a_git_work_tree/.git"
+    p_git_dir="$p_git_work_tree/.git"
   fi
 
   echo "$(f_git_wrapper diff --name-only --diff-filter=U)"
@@ -781,16 +781,16 @@ f_git_get_unmerged_paths() {
 # Wraps git calls to exec commands from another dir.
 #
 # Uses the following variables in calling scope if available :
-# @var a_git_work_tree # Defaults to current dir.
-# @var a_git_dir # Defaults to "$a_git_work_tree/.git" if $a_git_work_tree is set.
-# @var a_git_debug # When not empty, prints the git command without running it.
+# @var p_git_work_tree # Defaults to current dir.
+# @var p_git_dir # Defaults to "$p_git_work_tree/.git" if $p_git_work_tree is set.
+# @var p_git_debug # When not empty, prints the git command without running it.
 #
 # The path to the git working dir (git work tree) defaults to current dir. It
 # falls back to normal git calls in this case. All arguments are directly
 # forwarded to the git program.
 #
 # @example
-#   a_git_work_tree=/path/to/git/work-tree
+#   p_git_work_tree=/path/to/git/work-tree
 #   giw status
 #
 function giw() {
@@ -820,21 +820,21 @@ function giw() {
   # echo "  $escaped_args"
   # return
 
-  if [[ -n "$a_git_work_tree" ]]; then
-    local git_dir="$a_git_work_tree/.git"
+  if [[ -n "$p_git_work_tree" ]]; then
+    local git_dir="$p_git_work_tree/.git"
 
-    if [[ -n "$a_git_dir" ]]; then
-      git_dir="$a_git_dir"
+    if [[ -n "$p_git_dir" ]]; then
+      git_dir="$p_git_dir"
     fi
 
-    if [[ -n "$a_git_debug" ]]; then
+    if [[ -n "$p_git_debug" ]]; then
       echo "giw() debug :"
-      echo "git --git-dir=$git_dir --work-tree=$a_git_work_tree $escaped_args"
+      echo "git --git-dir=$git_dir --work-tree=$p_git_work_tree $escaped_args"
     else
-      eval "git --git-dir=$git_dir --work-tree=$a_git_work_tree $escaped_args"
+      eval "git --git-dir=$git_dir --work-tree=$p_git_work_tree $escaped_args"
     fi
   else
-    if [[ -n "$a_git_debug" ]]; then
+    if [[ -n "$p_git_debug" ]]; then
       echo "giw() debug :"
       echo "git $escaped_args"
     else
@@ -859,14 +859,14 @@ function giw() {
 #   f_git_wrapper status
 #
 #   # Execute the same command in another dir.
-#   a_git_work_tree=path/to/git-work-tree
+#   p_git_work_tree=path/to/git-work-tree
 #   f_git_wrapper status
 #
 f_git_wrapper() {
-  local work_tree="$a_git_work_tree"
+  local work_tree="$p_git_work_tree"
 
   if [[ -z "$work_tree" ]] && [[ -n "$APP_DOCROOT" ]]; then
-    a_git_work_tree="$APP_DOCROOT"
+    p_git_work_tree="$APP_DOCROOT"
     giw "$@"
   else
     giw "$@"

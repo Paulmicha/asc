@@ -85,18 +85,18 @@
 #   f_db_set id_example 1
 #
 f_db_set() {
-  local a_db_id="$1"
-  local a_force_reload="$2"
+  local p_db_id="$1"
+  local p_force_reload="$2"
   local db_id
   local asc_db_id
   local reg_val
 
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
-    echo "u_db_set $a_db_id"
+    echo "u_db_set $p_db_id"
   fi
 
-  if [[ -z "$a_db_id" ]]; then
+  if [[ -z "$p_db_id" ]]; then
     # TODO deprecate fallback to probably unused ASC_DB_ID ?
     if [[ -n "$ASC_DB_ID" ]]; then
       db_id="$ASC_DB_ID"
@@ -110,7 +110,7 @@ f_db_set() {
       db_id='default'
     fi
   else
-    db_id="$a_db_id"
+    db_id="$p_db_id"
   fi
 
   f_str_sanitize_var_name "$db_id" 'db_id'
@@ -119,7 +119,7 @@ f_db_set() {
     # If DB credentials vars are already exported in current shell scope for given
     # db_id, no need to reload (unless explicitly asked).
     case "$DB_ID" in "$db_id")
-      if [[ -z "$a_force_reload" ]]; then
+      if [[ -z "$p_force_reload" ]]; then
         if [[ -n "$ASC_DB_DEBUG" ]]; then
           echo "DB_ID:$DB_ID == db_id:$db_id -> skip reload"
         fi
@@ -451,18 +451,18 @@ f_db_vars_list() {
 #   fi
 #
 f_db_exists() {
-  local a_db_name="$1"
-  local a_db_id="$2"
-  local a_force_reload_flag="$3"
+  local p_db_name="$1"
+  local p_db_id="$2"
+  local p_force_reload_flag="$3"
 
   local db_exists=''
 
-  f_db_set "$a_db_id" "$a_force_reload_flag"
+  f_db_set "$p_db_id" "$p_force_reload_flag"
 
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
     db_exists=true
-    echo "u_db_exists $a_db_name $a_db_id"
+    echo "u_db_exists $p_db_name $p_db_id"
     echo "  DB_HOST = $DB_HOST"
     echo "  DB_NAME = $DB_NAME"
   else
@@ -617,17 +617,17 @@ f_db_unflag_all() {
 #   echo "key = $key"
 #
 f_db_get_flag_key() {
-  local a_db_id="$1"
-  local a_flag="$2"
+  local p_db_id="$1"
+  local p_flag="$2"
 
-  if [[ -z "$a_flag" ]]; then
-    a_flag='is_already_setup'
+  if [[ -z "$p_flag" ]]; then
+    p_flag='is_already_setup'
   fi
 
-  key="db_${a_db_id}_flag_${a_flag}"
+  key="db_${p_db_id}_flag_${p_flag}"
 
   if [[ -n "$STACK_VERSION" ]]; then
-    key="db_${STACK_VERSION}_${a_db_id}_flag_${a_flag}"
+    key="db_${STACK_VERSION}_${p_db_id}_flag_${p_flag}"
   fi
 }
 
@@ -656,21 +656,21 @@ f_db_get_flag_key() {
 #   f_db_create
 #
 f_db_create() {
-  local a_db_id="$1"
-  local a_force_reload_flag="$2"
+  local p_db_id="$1"
+  local p_force_reload_flag="$2"
 
-  f_db_set "$a_db_id" "$a_force_reload_flag"
+  f_db_set "$p_db_id" "$p_force_reload_flag"
 
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
-    echo "u_db_create $a_db_id"
+    echo "u_db_create $p_db_id"
     echo "  DB_HOST = $DB_HOST"
     echo "  DB_NAME = $DB_NAME"
   else
     hook_ms -s 'db' -a 'create' -v 'DB_DRIVER DB_ID INSTANCE_TYPE'
   fi
 
-  f_db_ensure_creds "$a_db_id" "$a_force_reload_flag"
+  f_db_ensure_creds "$p_db_id" "$p_force_reload_flag"
 }
 
 ##
@@ -699,14 +699,14 @@ f_db_create() {
 #   f_db_destroy 'custom_db_id'
 #
 f_db_destroy() {
-  local a_db_id="$1"
-  local a_force_reload_flag="$2"
+  local p_db_id="$1"
+  local p_force_reload_flag="$2"
 
-  f_db_set "$a_db_id" "$a_force_reload_flag"
+  f_db_set "$p_db_id" "$p_force_reload_flag"
 
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
-    echo "u_db_destroy $a_db_id"
+    echo "u_db_destroy $p_db_id"
     echo "  DB_HOST = $DB_HOST"
     echo "  DB_NAME = $DB_NAME"
   else
@@ -745,29 +745,29 @@ f_db_destroy() {
 #   f_db_exec 'path/to/dump/file.sql.tgz'
 #
 f_db_exec() {
-  local a_dump_file_path="$1"
-  local a_db_id="$2"
-  local a_force_reload_flag="$3"
+  local p_dump_file_path="$1"
+  local p_db_id="$2"
+  local p_force_reload_flag="$3"
 
   local db_dump_dir
   local db_dump_file
   local leaf
 
-  if [[ ! -f "$a_dump_file_path" ]]; then
+  if [[ ! -f "$p_dump_file_path" ]]; then
     echo >&2
-    echo "Error in f_db_exec() - $BASH_SOURCE line $LINENO: the DB dump file '$a_dump_file_path' is missing or inaccessible." >&2
+    echo "Error in f_db_exec() - $BASH_SOURCE line $LINENO: the DB dump file '$p_dump_file_path' is missing or inaccessible." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     exit 1
   fi
 
-  f_db_set "$a_db_id" "$a_force_reload_flag"
+  f_db_set "$p_db_id" "$p_force_reload_flag"
 
-  db_dump_file="$a_dump_file_path"
+  db_dump_file="$p_dump_file_path"
 
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
-    echo "u_db_exec $a_dump_file_path $a_db_id"
+    echo "u_db_exec $p_dump_file_path $p_db_id"
     echo "  DB_HOST = $DB_HOST"
     echo "  DB_NAME = $DB_NAME"
   fi
@@ -852,21 +852,21 @@ f_db_exec() {
 #   f_db_query 'UPDATE users SET name = "foobar" WHERE email = "foo@bar.com";'
 #
 f_db_query() {
-  local a_query="$1"
-  local a_db_id="$2"
-  local a_force_reload_flag="$3"
+  local p_query="$1"
+  local p_db_id="$2"
+  local p_force_reload_flag="$3"
 
-  f_db_set "$a_db_id" "$a_force_reload_flag"
+  f_db_set "$p_db_id" "$p_force_reload_flag"
 
   echo "Running query in $DB_DRIVER DB '$DB_NAME' ..."
 
-  # Implementations MUST use var $a_query as input.
+  # Implementations MUST use var $p_query as input.
   if [[ -z "$ASC_DB_DEBUG" ]]; then
     hook_ms -s 'db' -a 'query' -v 'DB_DRIVER DB_ID INSTANCE_TYPE PROVISION_USING'
   else
     echo
     echo "[debug] would run query :"
-    echo "$a_query"
+    echo "$p_query"
     echo
   fi
 
@@ -908,9 +908,9 @@ f_db_query() {
 #   f_db_dump 'path/to/dump/file.sql'
 #
 f_db_dump() {
-  local a_dump_file_path="$1"
-  local a_db_id="$2"
-  local a_force_reload_flag="$3"
+  local p_dump_file_path="$1"
+  local p_db_id="$2"
+  local p_force_reload_flag="$3"
 
   if [[ -z "$ASC_DB_DUMPS_DIR" ]]; then
     echo >&2
@@ -925,9 +925,9 @@ f_db_dump() {
   local db_dump_file
   local db_dump_file_name
 
-  f_db_set "$a_db_id" "$a_force_reload_flag"
+  f_db_set "$p_db_id" "$p_force_reload_flag"
 
-  db_dump_file="$a_dump_file_path"
+  db_dump_file="$p_dump_file_path"
   db_dump_dir="${db_dump_file%/${db_dump_file##*/}}"
 
   # The "backup" action should only have to create a new file. If it already
@@ -955,7 +955,7 @@ f_db_dump() {
 
   # Implementations MUST use var $db_dump_file as output path (resulting file).
   if [[ -n "$ASC_DB_DEBUG" ]]; then
-    echo "u_db_dump $a_dump_file_path $a_db_id"
+    echo "u_db_dump $p_dump_file_path $p_db_id"
     echo "  DB_HOST = $DB_HOST"
     echo "  DB_NAME = $DB_NAME"
   else
@@ -1023,20 +1023,20 @@ f_db_dump() {
 #   f_db_clear
 #
 f_db_clear() {
-  local a_db_id="$1"
-  local a_force_reload_flag="$2"
+  local p_db_id="$1"
+  local p_force_reload_flag="$2"
 
-  f_db_set "$a_db_id" "$a_force_reload_flag"
+  f_db_set "$p_db_id" "$p_force_reload_flag"
 
   # Only attempt to clear if DB exists.
-  if ! f_db_exists "$DB_NAME" "$a_db_id"; then
+  if ! f_db_exists "$DB_NAME" "$p_db_id"; then
     echo "Notice: DB name '$DB_NAME' does not appear to exist -> skip clearing."
     return;
   fi
 
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
-    echo "u_db_clear $a_db_id"
+    echo "u_db_clear $p_db_id"
     echo "  DB_HOST = $DB_HOST"
     echo "  DB_NAME = $DB_NAME"
   else
@@ -1059,20 +1059,20 @@ f_db_clear() {
 #   f_db_restore 'path/to/dump/file.sql' 'my_custom_db_id'
 #
 f_db_restore() {
-  local a_dump_file_path="$1"
-  local a_db_id="$2"
-  local a_force_reload_flag="$3"
+  local p_dump_file_path="$1"
+  local p_db_id="$2"
+  local p_force_reload_flag="$3"
 
-  if [[ ! -f "$a_dump_file_path" ]]; then
+  if [[ ! -f "$p_dump_file_path" ]]; then
     echo >&2
-    echo "Error in f_db_restore() - $BASH_SOURCE line $LINENO: the DB dump file '$a_dump_file_path' is missing or inaccessible." >&2
+    echo "Error in f_db_restore() - $BASH_SOURCE line $LINENO: the DB dump file '$p_dump_file_path' is missing or inaccessible." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     exit 1
   fi
 
-  f_db_clear "$a_db_id" "$a_force_reload_flag"
-  f_db_exec "$a_dump_file_path" "$a_db_id" "$a_force_reload_flag"
+  f_db_clear "$p_db_id" "$p_force_reload_flag"
+  f_db_exec "$p_dump_file_path" "$p_db_id" "$p_force_reload_flag"
 }
 
 ##
@@ -1093,9 +1093,9 @@ f_db_restore() {
 #   f_db_restore_last
 #
 f_db_restore_last() {
-  local a_db_id="$1"
-  local a_subdir="$2"
-  local a_force_reload_flag="$3"
+  local p_db_id="$1"
+  local p_subdir="$2"
+  local p_force_reload_flag="$3"
 
   if [[ -z "$ASC_DB_DUMPS_DIR" ]]; then
     echo >&2
@@ -1114,18 +1114,18 @@ f_db_restore_last() {
     exit 2
   fi
 
-  if [[ -z "$a_db_id" ]]; then
-    a_db_id='default'
+  if [[ -z "$p_db_id" ]]; then
+    p_db_id='default'
   fi
 
-  if [[ -z "$a_subdir" ]]; then
-    a_subdir='local'
+  if [[ -z "$p_subdir" ]]; then
+    p_subdir='local'
   fi
 
   f_db_restore \
-    "$(f_fs_get_most_recent $ASC_DB_DUMPS_DIR/$a_subdir/$a_db_id)" \
-    "$a_db_id" \
-    "$a_force_reload_flag"
+    "$(f_fs_get_most_recent $ASC_DB_DUMPS_DIR/$p_subdir/$p_db_id)" \
+    "$p_db_id" \
+    "$p_force_reload_flag"
 }
 
 ##
@@ -1156,8 +1156,8 @@ f_db_restore_last() {
 #   # data/db-dumps/local/default/2024-08-08.17-25-29_local-default.paul.sql
 #
 f_db_routine_backup() {
-  local a_db_id="$1"
-  local a_force_reload_flag="$2"
+  local p_db_id="$1"
+  local p_force_reload_flag="$2"
 
   if [[ -z "$ASC_DB_DUMPS_DIR" ]]; then
     echo >&2
@@ -1177,7 +1177,7 @@ f_db_routine_backup() {
     exit 2
   fi
 
-  f_db_set "$a_db_id" "$a_force_reload_flag"
+  f_db_set "$p_db_id" "$p_force_reload_flag"
 
   local db_routine_new_backup_file
   local db_backup_file_middle
@@ -1208,8 +1208,8 @@ f_db_routine_backup() {
 
   f_db_dump \
     "$ASC_DB_DUMPS_DIR/local/$DB_ID/$db_routine_new_backup_file" \
-    "$a_db_id" \
-    "$a_force_reload_flag"
+    "$p_db_id" \
+    "$p_force_reload_flag"
 
   # Some tasks need the generated dump file path.
   routine_dump_file="${db_routine_new_backup_file}.gz"
@@ -1244,40 +1244,40 @@ f_db_routine_backup() {
 #   echo "Result = '$initial_dump_file'"
 #
 f_db_get_dump() {
-  local a_option="$1"
-  local a_db_id="$2"
-  local a_subdir="$3"
-  local a_force_reload_flag="$4"
+  local p_option="$1"
+  local p_db_id="$2"
+  local p_subdir="$3"
+  local p_force_reload_flag="$4"
 
-  if [[ -z "$a_option" ]]; then
-    a_option='last'
+  if [[ -z "$p_option" ]]; then
+    p_option='last'
   fi
 
-  if [[ -z "$a_db_id" ]]; then
-    a_db_id='default'
+  if [[ -z "$p_db_id" ]]; then
+    p_db_id='default'
   fi
 
-  if [[ -z "$a_subdir" ]]; then
-    a_subdir='local'
+  if [[ -z "$p_subdir" ]]; then
+    p_subdir='local'
   fi
 
   local dump_to_return
 
-  case "$a_option" in
+  case "$p_option" in
     'last')
-      dump_to_return="$(f_fs_get_most_recent "$ASC_DB_DUMPS_DIR/$a_subdir/$a_db_id")"
+      dump_to_return="$(f_fs_get_most_recent "$ASC_DB_DUMPS_DIR/$p_subdir/$p_db_id")"
       ;;
 
     # The 'new' option means create immediately a new routine dump and return
     # its file path.
     'new')
-      f_db_routine_backup "$a_db_id" "$a_force_reload_flag"
+      f_db_routine_backup "$p_db_id" "$p_force_reload_flag"
       dump_to_return="$routine_dump_file"
       ;;
 
     # Any other value is a "find" file name filter.
     *)
-      dump_to_return="$(f_fs_get_most_recent "$ASC_DB_DUMPS_DIR/$a_subdir/$a_db_id" "$a_option")"
+      dump_to_return="$(f_fs_get_most_recent "$ASC_DB_DUMPS_DIR/$p_subdir/$p_db_id" "$p_option")"
       ;;
   esac
 
@@ -1300,15 +1300,15 @@ f_db_get_dump() {
 #   f_db_ensure_creds 'custom_db_id'
 #
 f_db_ensure_creds() {
-  local a_db_id="$1"
-  local a_force_reload_flag="$2"
+  local p_db_id="$1"
+  local p_force_reload_flag="$2"
 
-  f_db_set "$a_db_id" "$a_force_reload_flag"
+  f_db_set "$p_db_id" "$p_force_reload_flag"
 
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
     echo
-    echo "u_db_ensure_creds $a_db_id"
+    echo "u_db_ensure_creds $p_db_id"
     echo "  DB_HOST = $DB_HOST"
     echo "  DB_NAME = $DB_NAME"
     echo "  DB_USER = $DB_USER"
@@ -1331,24 +1331,24 @@ f_db_ensure_creds() {
 #   f_db_setup 'custom_db_id'
 #
 f_db_setup() {
-  local a_db_id="$1"
-  local a_force_reload_flag="$2"
+  local p_db_id="$1"
+  local p_force_reload_flag="$2"
 
-  f_db_set "$a_db_id" "$a_force_reload_flag"
+  f_db_set "$p_db_id" "$p_force_reload_flag"
 
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
     echo
-    echo "u_db_setup $a_db_id"
+    echo "u_db_setup $p_db_id"
     echo "  DB_HOST = $DB_HOST"
     echo "  DB_NAME = $DB_NAME"
   fi
 
   # Only create the database if it does not already exist.
-  if f_db_exists "$DB_NAME" "$a_db_id"; then
+  if f_db_exists "$DB_NAME" "$p_db_id"; then
     echo "The $DB_ID database ('$DB_NAME') exists already."
   else
-    f_db_create "$DB_ID" "$a_force_reload_flag"
+    f_db_create "$DB_ID" "$p_force_reload_flag"
   fi
 
   # Only move on to the initial DB import if configured to do so.
@@ -1357,7 +1357,7 @@ f_db_setup() {
   esac
 
   # Flag the DB as already setup.
-  if f_db_exists "$DB_NAME" "$a_db_id"; then
+  if f_db_exists "$DB_NAME" "$p_db_id"; then
     f_db_flag "$DB_ID"
   else
     f_db_unflag "$DB_ID"
@@ -1389,14 +1389,14 @@ f_db_setup() {
 #   f_db_restore_any 'custom_db_id'
 #
 f_db_restore_any() {
-  local a_db_id="$1"
-  local a_force_reload_flag="$2"
+  local p_db_id="$1"
+  local p_force_reload_flag="$2"
 
-  f_db_set "$a_db_id" "$a_force_reload_flag"
+  f_db_set "$p_db_id" "$p_force_reload_flag"
 
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
-    echo "u_db_restore_any $a_db_id"
+    echo "u_db_restore_any $p_db_id"
     echo "  DB_HOST = $DB_HOST"
     echo "  DB_NAME = $DB_NAME"
   fi

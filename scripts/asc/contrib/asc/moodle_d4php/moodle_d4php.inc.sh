@@ -106,7 +106,7 @@ f_moodle_write_settings() {
       esac
 
       sed -e "s,${token_prefix}${var_name}${token_suffix},${var_val},g" -i "$MOODLE_CONFIG_FILE"
-      # echo "  [$a_site] replaced '${token_prefix}${var_name}${token_suffix}' by '${var_val}'"
+      # echo "  [$p_site] replaced '${token_prefix}${var_name}${token_suffix}' by '${var_val}'"
     fi
   done
 
@@ -142,7 +142,7 @@ f_moodle_write_settings() {
   for var_name in $db_vars; do
     if grep -Fq "${token_prefix}${var_name}${token_suffix}" "$MOODLE_CONFIG_FILE"; then
       sed -e "s,${token_prefix}${var_name}${token_suffix},${!var_name},g" -i "$MOODLE_CONFIG_FILE"
-      # echo "  [$a_site] replaced '${token_prefix}${var_name}${token_suffix}' by '${!var_name}'"
+      # echo "  [$p_site] replaced '${token_prefix}${var_name}${token_suffix}' by '${!var_name}'"
     fi
   done
 
