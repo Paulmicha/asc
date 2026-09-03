@@ -30,7 +30,7 @@ case "$DB_NAME" in
       --password="$DB_PASS" \
       --host="$DB_HOST" \
       --port="$DB_PORT" \
-      -B <<< "$a_query"
+      -B <<< "$p_query"
     ;;
   *)
     mysql --default_character_set="$SQL_CHARSET" \
@@ -39,7 +39,7 @@ case "$DB_NAME" in
       --host="$DB_HOST" \
       --port="$DB_PORT" \
       -B \
-      "$DB_NAME" <<< "$a_query"
+      "$DB_NAME" <<< "$p_query"
     ;;
 esac
 

@@ -16,25 +16,25 @@
 
 . asc/bootstrap.sh
 
-a_file="$1"
+p_file="$1"
 
-if [[ ! -f "$a_file" ]]; then
+if [[ ! -f "$p_file" ]]; then
   echo >&2
   echo "Error in $BASH_SOURCE line $LINENO - missing file :" >&2
-  echo "  '$a_file'" >&2
+  echo "  '$p_file'" >&2
   echo "Aborting (1)." >&2
   echo >&2
   exit 1
 fi
 
-echo "Processing: '$a_file' ..."
+echo "Processing: '$p_file' ..."
 
-export file="$a_file"
-export wav_file="${a_file%.*}.wav"
+export file="$p_file"
+export wav_file="${p_file%.*}.wav"
 
 if [[ -f "$wav_file" ]]; then
   echo "Already exists: '$wav_file'"
-  echo "Processing: '$a_file' : done."
+  echo "Processing: '$p_file' : done."
 
   exit 0
 fi
@@ -45,11 +45,11 @@ hook_ms -s 'convert' -a 'to_wav' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
 
 if [[ ! -f "$wav_file" ]]; then
   echo >&2
-  echo "Error in $BASH_SOURCE line $LINENO - failed to convert '$a_file' to '$wav_file'." >&2
+  echo "Error in $BASH_SOURCE line $LINENO - failed to convert '$p_file' to '$wav_file'." >&2
   echo "Aborting (2)." >&2
   echo >&2
   exit 2
 fi
 
 echo "Converting to '$wav_file' : done."
-echo "Processing: '$a_file' : done."
+echo "Processing: '$p_file' : done."

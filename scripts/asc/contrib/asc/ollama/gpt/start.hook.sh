@@ -26,23 +26,23 @@ if ! command -v ollama >/dev/null 2>&1; then
   exit 1
 fi
 
-a_service_active='unknown'
-a_api_ok=0
+p_service_active='unknown'
+p_api_ok=0
 
 if curl -sf http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
-  a_api_ok=1
+  p_api_ok=1
 fi
 
-if [[ $a_api_ok -eq 0 ]]; then
+if [[ $p_api_ok -eq 0 ]]; then
   if systemctl is-active --quiet ollama 2>/dev/null; then
-    a_service_active='active'
+    p_service_active='active'
   elif systemctl is-active --quiet ollama.service 2>/dev/null; then
-    a_service_active='active'
+    p_service_active='active'
   else
-    a_service_active='inactive'
+    p_service_active='inactive'
   fi
 
-  if [[ "$a_service_active" != 'active' ]]; then
+  if [[ "$p_service_active" != 'active' ]]; then
     echo "Starting ollama.service ..."
 
     if systemctl start ollama 2>/dev/null; then

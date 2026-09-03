@@ -96,8 +96,8 @@ EOF
 #
 test_asc_global_aggregate() {
   local global_lookup_paths=''
-  local a_ascii_dry_run=1
-  local a_ascii_yes=1
+  local p_ascii_dry_run=1
+  local p_ascii_yes=1
   local test_asc_global_aggregate=1
 
   unset GLOBALS

@@ -19,20 +19,20 @@
 
 . asc/bootstrap.sh
 
-a_remote_id="$1"
+p_remote_id="$1"
 
-if [[ -z "$a_remote_id" ]]; then
-  a_remote_id='prod'
+if [[ -z "$p_remote_id" ]]; then
+  p_remote_id='prod'
 fi
 
-f_remote_check_id "$a_remote_id"
+f_remote_check_id "$p_remote_id"
 
-if [[ ! -d "data/logs/remote/$a_remote_id" ]]; then
-  mkdir -p "data/logs/remote/$a_remote_id"
+if [[ ! -d "data/logs/remote/$p_remote_id" ]]; then
+  mkdir -p "data/logs/remote/$p_remote_id"
 fi
 
 datestamp="$(date +"%Y-%m-%d.%H-%M-%S")"
 
-f_remote_download "$a_remote_id" \
+f_remote_download "$p_remote_id" \
   "data/logs/traefik.log" \
-  "data/logs/remote/$a_remote_id/${datestamp}.traefik.log"
+  "data/logs/remote/$p_remote_id/${datestamp}.traefik.log"

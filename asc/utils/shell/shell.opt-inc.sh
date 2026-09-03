@@ -66,11 +66,11 @@ i_am_su() {
 #   wait_for "MySQL" "$cmd"
 #
 wait_for() {
-  local a_service="$1"
-  local a_command="$2"
-  local a_max_try=$3
-  local a_wait_seconds=$4
-  local a_delay_seconds=$5
+  local p_service="$1"
+  local p_command="$2"
+  local p_max_try=$3
+  local p_wait_seconds=$4
+  local p_delay_seconds=$5
 
   local started=0
 
@@ -78,35 +78,35 @@ wait_for() {
   # non-zero status.
   set -e
 
-  if [[ -z "$a_max_try" ]]; then
-    a_max_try=10
+  if [[ -z "$p_max_try" ]]; then
+    p_max_try=10
   fi
-  if [[ -z "$a_wait_seconds" ]]; then
-    a_wait_seconds=2
+  if [[ -z "$p_wait_seconds" ]]; then
+    p_wait_seconds=2
   fi
-  if [[ -z "$a_delay_seconds" ]]; then
-    a_delay_seconds=0
-  fi
-
-  if [[ $a_delay_seconds -ge 1 ]]; then
-    sleep "${a_delay_seconds}"
+  if [[ -z "$p_delay_seconds" ]]; then
+    p_delay_seconds=0
   fi
 
-  for i in $(seq 1 "${a_max_try}"); do
-    if eval "${a_command}"; then
+  if [[ $p_delay_seconds -ge 1 ]]; then
+    sleep "${p_delay_seconds}"
+  fi
+
+  for i in $(seq 1 "${p_max_try}"); do
+    if eval "${p_command}"; then
       started=1
       break
     fi
-    echo "Waiting for ${a_service} to start..."
-    sleep "${a_wait_seconds}"
+    echo "Waiting for ${p_service} to start..."
+    sleep "${p_wait_seconds}"
   done
 
   if [[ $started -eq 0 ]]; then
     echo
-    echo "Notice : wait_for(${a_service}) has not responded after $a_max_try tries of ${a_wait_seconds}s."
+    echo "Notice : wait_for(${p_service}) has not responded after $p_max_try tries of ${p_wait_seconds}s."
     echo
   else
-    echo "${a_service} has started!"
+    echo "${p_service} has started!"
   fi
 
   # Unset temporary flag to exit immediately if a command exits with a non-zero

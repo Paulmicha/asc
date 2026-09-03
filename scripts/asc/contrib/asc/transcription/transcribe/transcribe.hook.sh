@@ -17,9 +17,9 @@
 #
 
 # Prefer explicit targets when the abstract entry provided them.
-if [[ -n "${a_targets:-}" ]]; then
+if [[ -n "${p_targets:-}" ]]; then
   # shellcheck disable=SC2086
-  set -- $a_targets
+  set -- $p_targets
   for file in "$@"; do
     [[ -f "$file" ]] || continue
     case "$file" in
@@ -55,10 +55,10 @@ if [[ -n "${a_targets:-}" ]]; then
       exit 4
     fi
 
-    if [[ -z "$a_output_lang" ]]; then
+    if [[ -z "$p_output_lang" ]]; then
       python "$most_specific_match" "$file"
     else
-      python "$most_specific_match" "$file" --output-lang "$a_output_lang"
+      python "$most_specific_match" "$file" --output-lang "$p_output_lang"
     fi
 
     if [[ $? -ne 0 ]]; then
@@ -78,8 +78,8 @@ if [[ -n "${a_targets:-}" ]]; then
     echo "Processing: '$file' : done."
   done
 else
-# Default: scan a_input_dir for *.wav
-find "$a_input_dir" -maxdepth 1 -type f -name "*.wav" -printf "%T@ %p\n" \
+# Default: scan p_input_dir for *.wav
+find "$p_input_dir" -maxdepth 1 -type f -name "*.wav" -printf "%T@ %p\n" \
   | sort -n \
   | cut -d' ' -f2- \
   | while read -r file
@@ -112,10 +112,10 @@ do
     exit 4
   fi
 
-  if [[ -z "$a_output_lang" ]]; then
+  if [[ -z "$p_output_lang" ]]; then
     python "$most_specific_match" "$file"
   else
-    python "$most_specific_match" "$file" --output-lang "$a_output_lang"
+    python "$most_specific_match" "$file" --output-lang "$p_output_lang"
   fi
 
   if [[ $? -ne 0 ]]; then

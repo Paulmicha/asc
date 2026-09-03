@@ -3,7 +3,7 @@
 ##
 # Upload DB dump on remote.
 #
-# @see data/asc/remote-instances/${a_remote_id}.sh
+# @see data/asc/remote-instances/${p_remote_id}.sh
 # @see f_remote_instances_setup() in asc/extensions/remote/remote.inc.sh
 #
 # @param 1 String : destination remote host ID.

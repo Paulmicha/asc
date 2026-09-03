@@ -55,12 +55,12 @@
 # echo "raw args :"
 # echo "  $@"
 
-a_real_script="$1"
+p_real_script="$1"
 shift
 
-if [[ ! -f "$a_real_script" ]]; then
+if [[ ! -f "$p_real_script" ]]; then
   echo >&2
-  echo "Error in $BASH_SOURCE line $LINENO : script '$a_real_script' not found." >&2
+  echo "Error in $BASH_SOURCE line $LINENO : script '$p_real_script' not found." >&2
   echo "-> Aborting (1)." >&2
   echo >&2
   exit 1
@@ -83,7 +83,7 @@ fi
 
 # Debug.
 # echo
-# echo "a_real_script = $a_real_script"
+# echo "p_real_script = $p_real_script"
 # echo "make_entry_point = $make_entry_point"
 
 # Won't use that here to do all in one loop below.
@@ -117,7 +117,7 @@ while [ $# -gt 0 ]; do
       echo "The value '$arg' is reserved as a Make entry point." >&2
       echo "Use the following equivalent command instead :" >&2
       echo >&2
-      echo "  $a_real_script $rest_of_args" >&2
+      echo "  $p_real_script $rest_of_args" >&2
       echo >&2
       exit 2
     esac
@@ -146,14 +146,14 @@ done
 # echo "  $escaped_args"
 # echo
 # echo "call :"
-# echo "  $a_real_script $escaped_args"
+# echo "  $p_real_script $escaped_args"
 # echo
 
-case "$a_real_script" in
+case "$p_real_script" in
   */test/case.run.sh)
-    eval "$a_real_script $(printf '%q' "$invoked_make_target") $escaped_args"
+    eval "$p_real_script $(printf '%q' "$invoked_make_target") $escaped_args"
     ;;
   *)
-    eval "$a_real_script $escaped_args"
+    eval "$p_real_script $escaped_args"
     ;;
 esac

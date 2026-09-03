@@ -11,9 +11,9 @@
 
 . asc/bootstrap.sh
 
-a_service="$1"
+p_service="$1"
 
-if [[ -z "$a_service" ]]; then
+if [[ -z "$p_service" ]]; then
   echo >&2
   echo "Error in $BASH_SOURCE line $LINENO: service name is required." >&2
   echo "-> Aborting (1)." >&2
@@ -21,15 +21,15 @@ if [[ -z "$a_service" ]]; then
   exit 1
 fi
 
-echo "Building the '$a_service' service ..."
+echo "Building the '$p_service' service ..."
 
 # TODO [wip] Differenciate single service pre-build hook ?
 hook -s 'instance' -p 'pre' -a 'build' -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'
 
-docker compose build --no-cache "$a_service"
+docker compose build --no-cache "$p_service"
 
 # TODO [wip] Differenciate single service post-build hook ?
 hook -s 'instance' -p 'post' -a 'build' -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'
 
-echo "Building the '$a_service' service : done."
+echo "Building the '$p_service' service : done."
 echo

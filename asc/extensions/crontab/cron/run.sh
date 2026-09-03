@@ -10,10 +10,10 @@
 
 . asc/bootstrap.sh
 
-a_entry="${1:-}"
-a_entry="${a_entry#e:}"
+p_entry="${1:-}"
+p_entry="${p_entry#e:}"
 
-if [[ -z "$a_entry" ]]; then
+if [[ -z "$p_entry" ]]; then
   echo >&2
   echo "Error in $BASH_SOURCE line $LINENO - entry name required (e:<make-entry>)." >&2
   echo "Aborting (1)." >&2
@@ -21,18 +21,18 @@ if [[ -z "$a_entry" ]]; then
   exit 1
 fi
 
-if ! f_cron_entry_load "$a_entry"; then
+if ! f_cron_entry_load "$p_entry"; then
   # Attempt regenerate once if missing.
   f_cron_settings_setup || true
-  if ! f_cron_entry_load "$a_entry"; then
-    echo >&2 "Error: no generated cron definition for '$a_entry'."
+  if ! f_cron_entry_load "$p_entry"; then
+    echo >&2 "Error: no generated cron definition for '$p_entry'."
     echo >&2 "Add a {action}.{preset}.crontab.yml beside the entry script, then reinit."
     exit 1
   fi
 fi
 
 if [[ "${ASC_CRON_ENABLED}" != 'true' ]]; then
-  echo "Cron entry '$a_entry' is disabled; skipping."
+  echo "Cron entry '$p_entry' is disabled; skipping."
   exit 0
 fi
 

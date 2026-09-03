@@ -31,15 +31,15 @@ printf '%-28s %-8s %-10s %-10s %-24s %-24s %s\n' \
 printf '%-28s %-8s %-10s %-10s %-24s %-24s %s\n' \
   '----' '---' '-----' '------' '-------' '----------' '------'
 
-for a_yml in "${yml_files_arr[@]}"; do
-  a_entry="${a_yml##*/}"
-  a_entry="${a_entry%.yml}"
+for p_yml in "${yml_files_arr[@]}"; do
+  p_entry="${p_yml##*/}"
+  p_entry="${p_entry%.yml}"
 
   unset thread_tree_arr
   unset thread_entry thread_owner thread_pid thread_status
   unset thread_started_ms thread_output
 
-  if ! f_thread_yml_load "$a_entry"; then
+  if ! f_thread_yml_load "$p_entry"; then
     continue
   fi
 
@@ -48,9 +48,9 @@ for a_yml in "${yml_files_arr[@]}"; do
     f_thread_yml_mark_stale
   fi
 
-  a_last='-'
-  f_thread_output_mtime_ms "$thread_output" 'a_last'
-  [[ -n "$a_last" ]] || a_last='-'
+  p_last='-'
+  f_thread_output_mtime_ms "$thread_output" 'p_last'
+  [[ -n "$p_last" ]] || p_last='-'
 
   printf '%-28s %-8s %-10s %-10s %-24s %-24s %s\n' \
     "$thread_entry" \
@@ -58,6 +58,6 @@ for a_yml in "${yml_files_arr[@]}"; do
     "$thread_owner" \
     "$thread_status" \
     "$thread_started_ms" \
-    "$a_last" \
+    "$p_last" \
     "$thread_output"
 done

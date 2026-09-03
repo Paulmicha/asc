@@ -9,11 +9,11 @@
 
 . asc/bootstrap.sh
 
-a_entry="${1:-}"
-if [[ -z "$a_entry" ]]; then
+p_entry="${1:-}"
+if [[ -z "$p_entry" ]]; then
   echo >&2 "Error: e:<entry> required."
   exit 1
 fi
 
-f_cron_stop_entry "$a_entry"
-f_cron_start_entry "$a_entry"
+f_cron_stop_entry "$p_entry"
+f_cron_start_entry "$p_entry"

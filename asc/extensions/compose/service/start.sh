@@ -11,9 +11,9 @@
 
 . asc/bootstrap.sh
 
-a_service="$1"
+p_service="$1"
 
-if [[ -z "$a_service" ]]; then
+if [[ -z "$p_service" ]]; then
   echo >&2
   echo "Error in $BASH_SOURCE line $LINENO: service name is required." >&2
   echo "-> Aborting (1)." >&2
@@ -21,17 +21,17 @@ if [[ -z "$a_service" ]]; then
   exit 1
 fi
 
-echo "Starting the '$a_service' service ..."
+echo "Starting the '$p_service' service ..."
 
 # TODO [wip] Differenciate single service pre-start hook ?
 hook -s 'instance' -p 'pre' -a 'start' -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'
 
-docker compose start "$a_service"
+docker compose start "$p_service"
 
 # TODO [wip] Differenciate single service post-start hook ?
 hook -s 'instance' -p 'post' -a 'start' -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'
 
-echo "Starting the '$a_service' service : done."
+echo "Starting the '$p_service' service : done."
 echo
 
 # Create an opportunity for containers like databases to wait until their

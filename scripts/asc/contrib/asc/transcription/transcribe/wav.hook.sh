@@ -4,7 +4,7 @@
 # Implements hook_ms -a 'wav' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
 #
 # Generic core default (tested on debian-13 only for now).
-# Transcribes .wav files in a_input_dir to .txt using faster-whisper.
+# Transcribes .wav files in p_input_dir to .txt using faster-whisper.
 #
 # TODO setup (prereqs) doc — pipx + faster-whisper (software-deps future plan).
 # TODO [evol] automatically copy files from the $HOME/Downloads dir if the input
@@ -20,7 +20,7 @@
 #   make transcribe-all
 #
 
-find "$a_input_dir" -maxdepth 1 -type f -name "*.wav" -printf "%T@ %p\n" \
+find "$p_input_dir" -maxdepth 1 -type f -name "*.wav" -printf "%T@ %p\n" \
   | sort -n \
   | cut -d' ' -f2- \
   | while read -r file
@@ -53,10 +53,10 @@ do
     exit 4
   fi
 
-  if [[ -z "$a_output_lang" ]]; then
+  if [[ -z "$p_output_lang" ]]; then
     python "$most_specific_match" "$file"
   else
-    python "$most_specific_match" "$file" --output-lang "$a_output_lang"
+    python "$most_specific_match" "$file" --output-lang "$p_output_lang"
   fi
 
   if [[ $? -ne 0 ]]; then

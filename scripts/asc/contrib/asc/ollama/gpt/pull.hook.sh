@@ -21,9 +21,9 @@ if ! command -v ollama >/dev/null 2>&1; then
   exit 1
 fi
 
-a_models="${a_models:-${agent_MODEL:-${agent_OLLAMA_MODEL:-}}}"
+p_models="${p_models:-${agent_MODEL:-${agent_OLLAMA_MODEL:-}}}"
 
-if [[ -z "$a_models" ]]; then
+if [[ -z "$p_models" ]]; then
   echo >&2
   echo "Error in $BASH_SOURCE line $LINENO - no model specified." >&2
   echo "Usage: make agent-pull MODEL [MODEL…]  (or export agent_MODEL)" >&2
@@ -32,9 +32,9 @@ if [[ -z "$a_models" ]]; then
   exit 2
 fi
 
-for a_model in $a_models; do
-  echo "Pulling model '$a_model' ..."
-  ollama pull "$a_model" || exit $?
+for p_model in $p_models; do
+  echo "Pulling model '$p_model' ..."
+  ollama pull "$p_model" || exit $?
 done
 
 echo "Over."

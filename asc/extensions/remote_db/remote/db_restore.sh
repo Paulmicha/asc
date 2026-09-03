@@ -10,7 +10,7 @@
 # remote instance.
 #
 # @see asc/extensions/remote_db/remote/db_upload.sh
-# @see data/asc/remote-instances/${a_remote_id}.sh
+# @see data/asc/remote-instances/${p_remote_id}.sh
 # @see f_remote_instances_setup() in asc/extensions/remote/remote.inc.sh
 #
 # @param 1 String : destination remote host ID.

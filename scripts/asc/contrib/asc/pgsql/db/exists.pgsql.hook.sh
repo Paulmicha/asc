@@ -17,7 +17,7 @@
 #
 
 # Debug.
-# echo "Test if database '${a_db_name}' exists (user=$DB_USER, password="$DB_PASS", host="$DB_HOST", port="$DB_PORT")..."
+# echo "Test if database '${p_db_name}' exists (user=$DB_USER, password="$DB_PASS", host="$DB_HOST", port="$DB_PORT")..."
 
 # See https://stackoverflow.com/a/32084118
 if psql -lqtA \
@@ -25,7 +25,7 @@ if psql -lqtA \
   -h "$DB_HOST" \
   -p "$DB_PORT" \
   -d "$DB_NAME" \
-    | grep -q "^$a_db_name|"
+    | grep -q "^$p_db_name|"
 then
   db_exists='true'
 else

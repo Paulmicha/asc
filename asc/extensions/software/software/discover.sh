@@ -11,19 +11,19 @@
 
 . asc/bootstrap.sh
 
-a_variant='default'
+p_variant='default'
 
 # Optional hostname-based profiles (extend as needed).
 case "$(hostname -s 2>/dev/null || hostname)" in
   *-laptop|laptop-*)
-    a_variant='laptop'
+    p_variant='laptop'
     ;;
   *-desktop|desktop-*)
-    a_variant='desktop'
+    p_variant='desktop'
     ;;
 esac
 
-f_instance_registry_set 'software_variant' "$a_variant"
+f_instance_registry_set 'software_variant' "$p_variant"
 
-echo "software_variant = '$a_variant'"
+echo "software_variant = '$p_variant'"
 echo "Over."

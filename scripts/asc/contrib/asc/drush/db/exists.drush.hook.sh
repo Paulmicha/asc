@@ -17,7 +17,7 @@
 #
 
 # Debug.
-# echo "DRUSH DB Driver : Test if database '${a_db_name}' exists (user=$DB_USER, password="$DB_PASS", host="$DB_HOST", port="$DB_PORT")..."
+# echo "DRUSH DB Driver : Test if database '${p_db_name}' exists (user=$DB_USER, password="$DB_PASS", host="$DB_HOST", port="$DB_PORT")..."
 
 fallback_hook_implementation="asc/extensions/${DRUSH_DB_DRIVER_FALLBACK}/db/exists.${DRUSH_DB_DRIVER_FALLBACK}.hook.sh"
 

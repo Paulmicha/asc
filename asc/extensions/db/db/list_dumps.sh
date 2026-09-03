@@ -19,8 +19,8 @@
 
 . asc/bootstrap.sh
 
-a_subdir="$1"
-a_db_id="$2"
+p_subdir="$1"
+p_db_id="$2"
 
 if [[ -z "$ASC_DB_DUMPS_DIR" ]]; then
   echo >&2
@@ -40,9 +40,9 @@ f_fs_dir_list "$ASC_DB_DUMPS_DIR"
 echo "Listing dumps in :"
 
 for subdir in $dir_list; do
-  if [[ -n "$a_subdir" ]]; then
+  if [[ -n "$p_subdir" ]]; then
     case "$subdir" in
-      "$a_subdir")
+      "$p_subdir")
         echo "  $subdir :"
         ;;
       *)
@@ -58,9 +58,9 @@ for subdir in $dir_list; do
 
     f_fs_relative_path "$dir"
 
-    if [[ -n "$a_db_id" ]]; then
+    if [[ -n "$p_db_id" ]]; then
       case "$db_id" in
-        "$a_db_id")
+        "$p_db_id")
           echo "    $db_id ($relative_path) :"
           ;;
         *)

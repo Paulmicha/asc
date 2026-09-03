@@ -65,16 +65,16 @@
 #   f_nested_asc_exec /abs/path/to/my-project make reinit
 #
 f_nested_asc_exec() {
-  local a_docroot="$1"
+  local p_docroot="$1"
   shift
 
-  if [[ -z "$a_docroot" || ! -d "$a_docroot" ]]; then
-    echo "Error in f_nested_asc_exec() - $BASH_SOURCE line $LINENO: invalid docroot '$a_docroot'." >&2
+  if [[ -z "$p_docroot" || ! -d "$p_docroot" ]]; then
+    echo "Error in f_nested_asc_exec() - $BASH_SOURCE line $LINENO: invalid docroot '$p_docroot'." >&2
     return 1
   fi
 
-  if [[ ! -f "$a_docroot/asc/bootstrap.sh" ]]; then
-    echo "Error in f_nested_asc_exec() - $BASH_SOURCE line $LINENO: not a ASC instance ('$a_docroot')." >&2
+  if [[ ! -f "$p_docroot/asc/bootstrap.sh" ]]; then
+    echo "Error in f_nested_asc_exec() - $BASH_SOURCE line $LINENO: not a ASC instance ('$p_docroot')." >&2
     return 2
   fi
 
@@ -84,7 +84,7 @@ f_nested_asc_exec() {
     return 3
   fi
 
-  a_docroot="$(cd "$a_docroot" && pwd)"
+  p_docroot="$(cd "$p_docroot" && pwd)"
 
   env -i \
     HOME="$HOME" \
@@ -93,7 +93,7 @@ f_nested_asc_exec() {
     LANG="${LANG:-}" \
     LC_CTYPE="${LC_ALL:-${LC_CTYPE:-$LANG}}" \
     TERM="${TERM:-}" \
-    bash -c 'cd "$1" && shift && exec "$@"' bash "$a_docroot" "$@"
+    bash -c 'cd "$1" && shift && exec "$@"' bash "$p_docroot" "$@"
 }
 
 ##

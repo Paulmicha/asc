@@ -38,7 +38,7 @@
 #   for d in $nested_asc_instances; do echo "$d"; done
 #
 f_nested_asc_find() {
-  local a_roots="${1:-$HOME/Documents}"
+  local p_roots="${1:-$HOME/Documents}"
   local root
   local cand
   local abs
@@ -46,7 +46,7 @@ f_nested_asc_find() {
 
   nested_asc_instances=''
 
-  for root in $a_roots; do
+  for root in $p_roots; do
     [[ -d "$root" ]] || continue
     # Depth 1.
     for cand in "$root"/*/asc/bootstrap.sh; do
@@ -82,10 +82,10 @@ f_nested_asc_find() {
 # @param 2 String : space-separated absolute paths (peer set).
 #
 f_nested_asc_short_id() {
-  local a_abs="$1"
-  local a_peers="$2"
-  local suffix="${a_abs##*/}"
-  local parent="${a_abs%/*}"
+  local p_abs="$1"
+  local p_peers="$2"
+  local suffix="${p_abs##*/}"
+  local parent="${p_abs%/*}"
   local peer
   local count
 
@@ -93,7 +93,7 @@ f_nested_asc_short_id() {
 
   while [[ -n "$parent" && "$parent" != '/' ]]; do
     count=0
-    for peer in $a_peers; do
+    for peer in $p_peers; do
       case "$peer" in
         */"$suffix"|"$suffix")
           count=$((count + 1))
@@ -132,7 +132,7 @@ f_nested_asc_short_id() {
 #   f_nested_asc_resolve 'client/my-project'
 #
 f_nested_asc_resolve() {
-  local a_ref="$1"
+  local p_ref="$1"
   local abs
   local matches=''
   local m
@@ -141,14 +141,14 @@ f_nested_asc_resolve() {
 
   nested_asc_resolved=''
 
-  if [[ -z "$a_ref" ]]; then
+  if [[ -z "$p_ref" ]]; then
     echo "Error in f_nested_asc_resolve() - $BASH_SOURCE line $LINENO: empty ref." >&2
     return 1
   fi
 
   # Absolute / relative path to an existing ASC instance.
-  if [[ -d "$a_ref" && -f "$a_ref/asc/bootstrap.sh" ]]; then
-    nested_asc_resolved="$(cd "$a_ref" && pwd)"
+  if [[ -d "$p_ref" && -f "$p_ref/asc/bootstrap.sh" ]]; then
+    nested_asc_resolved="$(cd "$p_ref" && pwd)"
     return 0
   fi
 
@@ -162,7 +162,7 @@ f_nested_asc_resolve() {
   # Match by path suffix (basename or ancestor-qualified).
   for abs in $nested_asc_instances; do
     case "$abs" in
-      */"$a_ref"|"$a_ref")
+      */"$p_ref"|"$p_ref")
         matches+=" $abs"
         ;;
     esac
@@ -171,7 +171,7 @@ f_nested_asc_resolve() {
 
   case "$matches" in
     '')
-      echo "Error in f_nested_asc_resolve() - $BASH_SOURCE line $LINENO: no nested ASC instance matches '$a_ref'." >&2
+      echo "Error in f_nested_asc_resolve() - $BASH_SOURCE line $LINENO: no nested ASC instance matches '$p_ref'." >&2
       echo "Known short ids :" >&2
       for abs in $nested_asc_instances; do
         f_nested_asc_short_id "$abs" "$nested_asc_instances"
@@ -180,7 +180,7 @@ f_nested_asc_resolve() {
       return 3
       ;;
     *' '*)
-      echo "Error in f_nested_asc_resolve() - $BASH_SOURCE line $LINENO: ambiguous ref '$a_ref'." >&2
+      echo "Error in f_nested_asc_resolve() - $BASH_SOURCE line $LINENO: ambiguous ref '$p_ref'." >&2
       echo "Qualify with a parent folder (shortest unique id) :" >&2
       for m in $matches; do
         f_nested_asc_short_id "$m" "$nested_asc_instances"

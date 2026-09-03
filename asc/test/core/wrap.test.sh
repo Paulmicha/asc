@@ -11,16 +11,16 @@
 
 . asc/bootstrap.sh
 
-a_test_entry='make-list-entry-points'
+p_test_entry='make-list-entry-points'
 
 oneTimeTearDown() {
   rm -f \
-    "data/threads/${a_test_entry}.txt" \
-    "data/threads/${a_test_entry}.sidecar.txt" \
-    "data/threads/${a_test_entry}.pid" \
-    "data/threads/${a_test_entry}.yml" \
-    "data/logs/${a_test_entry}.txt" \
-    "data/logs/${a_test_entry}.sidecar.txt"
+    "data/threads/${p_test_entry}.txt" \
+    "data/threads/${p_test_entry}.sidecar.txt" \
+    "data/threads/${p_test_entry}.pid" \
+    "data/threads/${p_test_entry}.yml" \
+    "data/logs/${p_test_entry}.txt" \
+    "data/logs/${p_test_entry}.sidecar.txt"
 }
 
 test_wrap_rejects_invalid_entry() {
@@ -34,25 +34,25 @@ test_wrap_rejects_invalid_entry() {
 test_thread_wrap_starts_debug() {
   local output=''
   local exit_code=0
-  local a_yml="data/threads/${a_test_entry}.yml"
+  local p_yml="data/threads/${p_test_entry}.yml"
 
-  rm -f "$a_yml" "data/threads/${a_test_entry}.pid"
+  rm -f "$p_yml" "data/threads/${p_test_entry}.pid"
 
-  output="$(asc/thread/thread.wrap.sh "$a_test_entry" 2>&1)" || exit_code=$?
+  output="$(asc/thread/thread.wrap.sh "$p_test_entry" 2>&1)" || exit_code=$?
 
   # Allow supervisor to write / finalize YAML.
   sleep 0.2
 
   assertEquals 'thread wrap must succeed' 0 "$exit_code"
-  assertTrue 'yaml record must exist' "[[ -f '$a_yml' ]]"
+  assertTrue 'yaml record must exist' "[[ -f '$p_yml' ]]"
   assertTrue 'output mentions PID' "[[ '$output' == *'Thread started'* ]]"
   assertFalse 'thread output file must not exist' \
-    "[[ -f 'data/threads/${a_test_entry}.txt' ]]"
+    "[[ -f 'data/threads/${p_test_entry}.txt' ]]"
   assertFalse 'legacy pid file must not exist' \
-    "[[ -f 'data/threads/${a_test_entry}.pid' ]]"
+    "[[ -f 'data/threads/${p_test_entry}.pid' ]]"
 
   unset thread_tree_arr
-  f_thread_yml_load "$a_test_entry"
+  f_thread_yml_load "$p_test_entry"
 
   assertTrue 'owner must be set' "[[ -n '$thread_owner' ]]"
   assertTrue 'script must be absolute' "[[ '$thread_script' == /* ]]"
@@ -65,26 +65,26 @@ test_thread_wrap_starts_debug() {
 test_log_wrap_chains_thread_wrap() {
   local output=''
   local exit_code=0
-  local a_yml="data/threads/${a_test_entry}.yml"
+  local p_yml="data/threads/${p_test_entry}.yml"
 
   rm -f \
-    "data/logs/${a_test_entry}.txt" \
-    "data/logs/${a_test_entry}.sidecar.txt" \
-    "$a_yml"
+    "data/logs/${p_test_entry}.txt" \
+    "data/logs/${p_test_entry}.sidecar.txt" \
+    "$p_yml"
 
-  output="$(asc/log/log.wrap.sh asc/thread/thread.wrap.sh "$a_test_entry" 2>&1)" || exit_code=$?
+  output="$(asc/log/log.wrap.sh asc/thread/thread.wrap.sh "$p_test_entry" 2>&1)" || exit_code=$?
 
   sleep 0.2
 
   assertEquals 'log wrap chain must succeed' 0 "$exit_code"
   assertTrue 'log sidecar must exist' \
-    "[[ -f 'data/logs/${a_test_entry}.sidecar.txt' ]]"
+    "[[ -f 'data/logs/${p_test_entry}.sidecar.txt' ]]"
   assertTrue 'log output must exist' \
-    "[[ -f 'data/logs/${a_test_entry}.txt' ]]"
+    "[[ -f 'data/logs/${p_test_entry}.txt' ]]"
   assertTrue 'output mentions PID' "[[ '$output' == *'Log started'* ]]"
-  assertTrue 'yaml record must exist' "[[ -f '$a_yml' ]]"
+  assertTrue 'yaml record must exist' "[[ -f '$p_yml' ]]"
   assertFalse 'thread output file must not exist' \
-    "[[ -f 'data/threads/${a_test_entry}.txt' ]]"
+    "[[ -f 'data/threads/${p_test_entry}.txt' ]]"
 }
 
 . asc/vendor/shunit2/shunit2

@@ -19,23 +19,23 @@ fi
 
 echo "binary    : $(command -v ollama)"
 
-a_service='unknown'
+p_service='unknown'
 if systemctl is-active --quiet ollama 2>/dev/null \
   || systemctl is-active --quiet ollama.service 2>/dev/null; then
-  a_service='active'
+  p_service='active'
 elif systemctl is-enabled --quiet ollama 2>/dev/null \
   || systemctl is-enabled --quiet ollama.service 2>/dev/null; then
-  a_service='inactive (enabled)'
+  p_service='inactive (enabled)'
 elif command -v systemctl >/dev/null 2>&1; then
-  a_service='inactive'
+  p_service='inactive'
 fi
-echo "service   : $a_service"
+echo "service   : $p_service"
 
-a_api='down'
+p_api='down'
 if curl -sf http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
-  a_api='up (http://127.0.0.1:11434)'
+  p_api='up (http://127.0.0.1:11434)'
 fi
-echo "api       : $a_api"
+echo "api       : $p_api"
 
 echo
 echo "Running models (ollama ps):"

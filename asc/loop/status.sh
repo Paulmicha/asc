@@ -17,13 +17,13 @@ f_loop_monitor_enabled() {
 }
 
 f_loop_monitor_one() {
-  local a_id="$1"
-  local reg="data/asc/loop/${a_id}.sh"
+  local p_id="$1"
+  local reg="data/asc/loop/${p_id}.sh"
   local unit=''
   local state=''
 
   if [[ ! -f "$reg" ]]; then
-    echo "loop-monitor: no registry for '$a_id'"
+    echo "loop-monitor: no registry for '$p_id'"
     return 1
   fi
 
@@ -31,16 +31,16 @@ f_loop_monitor_one() {
   . "$reg"
   unit="${ASC_LOOP_UNIT:-}"
   if [[ -z "$unit" ]]; then
-    echo "loop-monitor: empty unit for '$a_id'"
+    echo "loop-monitor: empty unit for '$p_id'"
     return 1
   fi
 
   state="$(systemctl --user is-active "$unit" 2>/dev/null || echo unknown)"
-  printf '%-40s %-12s %s\n' "$a_id" "$state" "$unit"
+  printf '%-40s %-12s %s\n' "$p_id" "$state" "$unit"
 }
 
 f_loop_monitor_default() {
-  local a_filter="${1:-}"
+  local p_filter="${1:-}"
   local f
   local id
 
@@ -49,9 +49,9 @@ f_loop_monitor_default() {
     return 0
   fi
 
-  if [[ -n "$a_filter" ]]; then
-    a_filter="${a_filter#e:}"
-    f_loop_monitor_one "$a_filter"
+  if [[ -n "$p_filter" ]]; then
+    p_filter="${p_filter#e:}"
+    f_loop_monitor_one "$p_filter"
     return $?
   fi
 

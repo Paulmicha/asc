@@ -20,15 +20,15 @@
 # @param 2 [optional] String : output var name (default: software_scalar).
 #
 f_software_scalar() {
-  local a_val="$1"
-  local a_output_var_name="${2:-software_scalar}"
+  local p_val="$1"
+  local p_output_var_name="${2:-software_scalar}"
 
-  a_val="${a_val#\"}"
-  a_val="${a_val%\"}"
-  a_val="${a_val#\'}"
-  a_val="${a_val%\'}"
+  p_val="${p_val#\"}"
+  p_val="${p_val%\"}"
+  p_val="${p_val#\'}"
+  p_val="${p_val%\'}"
 
-  printf -v "$a_output_var_name" '%s' "$a_val"
+  printf -v "$p_output_var_name" '%s' "$p_val"
 }
 
 ##
@@ -38,12 +38,12 @@ f_software_scalar() {
 # @param 2 [optional] String : output var name (default: software_expand_path).
 #
 f_software_expand_path() {
-  local a_path="$1"
-  local a_output_var_name="${2:-software_expand_path}"
+  local p_path="$1"
+  local p_output_var_name="${2:-software_expand_path}"
 
   local expanded
 
-  f_software_scalar "$a_path" 'expanded'
+  f_software_scalar "$p_path" 'expanded'
 
   case "$expanded" in
     '~'|'~/'*)
@@ -51,7 +51,7 @@ f_software_expand_path() {
       ;;
   esac
 
-  printf -v "$a_output_var_name" '%s' "$expanded"
+  printf -v "$p_output_var_name" '%s' "$expanded"
 }
 
 ##
@@ -152,8 +152,8 @@ f_software_load_manifests() {
 # @param 1 [optional] String : output var name (default: software_managed_path).
 #
 f_software_managed_path() {
-  local a_output_var_name="${1:-software_managed_path}"
-  printf -v "$a_output_var_name" '%s' 'data/asc/software/managed.list'
+  local p_output_var_name="${1:-software_managed_path}"
+  printf -v "$p_output_var_name" '%s' 'data/asc/software/managed.list'
 }
 
 ##
@@ -167,7 +167,7 @@ f_software_ensure_state_dir() {
 # Record a managed install id (kind:name).
 #
 f_software_managed_add() {
-  local a_id="$1"
+  local p_id="$1"
   local path
   local line
 
@@ -176,13 +176,13 @@ f_software_managed_add() {
 
   if [[ -f "$path" ]]; then
     while IFS= read -r line || [[ -n "$line" ]]; do
-      if [[ "$line" == "$a_id" ]]; then
+      if [[ "$line" == "$p_id" ]]; then
         return 0
       fi
     done < "$path"
   fi
 
-  echo "$a_id" >> "$path"
+  echo "$p_id" >> "$path"
 }
 
 ##
@@ -228,14 +228,14 @@ f_software_managed_save() {
 # Remove one id from the managed list.
 #
 f_software_managed_remove() {
-  local a_id="$1"
+  local p_id="$1"
   local kept_arr=()
   local id
 
   f_software_managed_load
 
   for id in "${software_managed_ids_arr[@]}"; do
-    if [[ "$id" != "$a_id" ]]; then
+    if [[ "$id" != "$p_id" ]]; then
       kept_arr+=("$id")
     fi
   done
@@ -292,11 +292,11 @@ f_software_desired_ids() {
 # Return 0 if id is in the desired set.
 #
 f_software_is_desired() {
-  local a_id="$1"
+  local p_id="$1"
   local id
 
   for id in "${software_desired_ids_arr[@]}"; do
-    if [[ "$id" == "$a_id" ]]; then
+    if [[ "$id" == "$p_id" ]]; then
       return 0
     fi
   done
@@ -308,9 +308,9 @@ f_software_is_desired() {
 # Apt package status: missing | ok
 #
 f_software_apt_status() {
-  local a_pkg="$1"
+  local p_pkg="$1"
 
-  if dpkg-query -W -f='${Status}' "$a_pkg" 2>/dev/null | grep -q 'install ok installed'; then
+  if dpkg-query -W -f='${Status}' "$p_pkg" 2>/dev/null | grep -q 'install ok installed'; then
     echo 'ok'
   else
     echo 'missing'
@@ -323,17 +323,17 @@ f_software_apt_status() {
 # Spec is name or name==version.
 #
 f_software_pipx_status() {
-  local a_spec="$1"
+  local p_spec="$1"
   local name
   local want_ver
   local have
   local have_ver
 
-  name="${a_spec%%==*}"
+  name="${p_spec%%==*}"
   want_ver=''
 
-  if [[ "$a_spec" == *==* ]]; then
-    want_ver="${a_spec#*==}"
+  if [[ "$p_spec" == *==* ]]; then
+    want_ver="${p_spec#*==}"
   fi
 
   if ! command -v pipx >/dev/null 2>&1; then
@@ -362,15 +362,15 @@ f_software_pipx_status() {
 # Tarball app status via install_dir/.asc-software-version
 #
 f_software_tarball_status() {
-  local a_dir="$1"
-  local a_version="$2"
-  local a_binary="$3"
+  local p_dir="$1"
+  local p_version="$2"
+  local p_binary="$3"
   local marker
   local have
   local bin_path
 
-  marker="${a_dir}/.asc-software-version"
-  bin_path="${a_dir}/${a_binary}"
+  marker="${p_dir}/.asc-software-version"
+  bin_path="${p_dir}/${p_binary}"
 
   if [[ ! -x "$bin_path" && ! -f "$bin_path" ]]; then
     echo 'missing'
@@ -380,7 +380,7 @@ f_software_tarball_status() {
   if [[ -f "$marker" ]]; then
     have="$(tr -d '[:space:]' < "$marker")"
 
-    if [[ "$have" == "$a_version" ]]; then
+    if [[ "$have" == "$p_version" ]]; then
       echo 'ok'
       return 0
     fi
@@ -397,19 +397,19 @@ f_software_tarball_status() {
 # AppImage status: missing | outdated | ok
 #
 f_software_appimage_status() {
-  local a_path="$1"
-  local a_sha="$2"
+  local p_path="$1"
+  local p_sha="$2"
   local have
 
-  if [[ ! -f "$a_path" ]]; then
+  if [[ ! -f "$p_path" ]]; then
     echo 'missing'
     return 0
   fi
 
-  if [[ -n "$a_sha" ]]; then
-    have="$(sha256sum "$a_path" | awk '{ print $1 }')"
+  if [[ -n "$p_sha" ]]; then
+    have="$(sha256sum "$p_path" | awk '{ print $1 }')"
 
-    if [[ "$have" != "$a_sha" ]]; then
+    if [[ "$have" != "$p_sha" ]]; then
       echo 'outdated'
       return 0
     fi
@@ -422,9 +422,9 @@ f_software_appimage_status() {
 # Ensure-command status: missing | ok
 #
 f_software_ensure_status() {
-  local a_cmd="$1"
+  local p_cmd="$1"
 
-  if command -v "$a_cmd" >/dev/null 2>&1; then
+  if command -v "$p_cmd" >/dev/null 2>&1; then
     echo 'ok'
   else
     echo 'missing'
@@ -435,9 +435,9 @@ f_software_ensure_status() {
 # systemd --user unit status: missing | ok
 #
 f_software_unit_status() {
-  local a_id="$1"
+  local p_id="$1"
 
-  if [[ -f "${HOME}/.config/systemd/user/${a_id}.service" ]]; then
+  if [[ -f "${HOME}/.config/systemd/user/${p_id}.service" ]]; then
     echo 'ok'
   else
     echo 'missing'
@@ -580,12 +580,12 @@ f_software_print_diff() {
 # Run apt-get install for one package (sudo if needed).
 #
 f_software_apt_install() {
-  local a_pkg="$1"
+  local p_pkg="$1"
 
   if [[ "$(id -u)" -eq 0 ]]; then
-    apt-get install -y "$a_pkg"
+    apt-get install -y "$p_pkg"
   else
-    sudo apt-get install -y "$a_pkg"
+    sudo apt-get install -y "$p_pkg"
   fi
 }
 
@@ -593,7 +593,7 @@ f_software_apt_install() {
 # Install or upgrade a pipx package from name==version or name.
 #
 f_software_pipx_install() {
-  local a_spec="$1"
+  local p_spec="$1"
   local name
   local st
 
@@ -602,15 +602,15 @@ f_software_pipx_install() {
     return 1
   fi
 
-  name="${a_spec%%==*}"
-  st="$(f_software_pipx_status "$a_spec")"
+  name="${p_spec%%==*}"
+  st="$(f_software_pipx_status "$p_spec")"
 
   case "$st" in
     missing)
-      pipx install "$a_spec"
+      pipx install "$p_spec"
       ;;
     outdated)
-      pipx install --force "$a_spec"
+      pipx install --force "$p_spec"
       ;;
     *)
       return 0
@@ -622,21 +622,21 @@ f_software_pipx_install() {
 # Download + unpack a versioned tarball into install_dir.
 #
 f_software_tarball_install() {
-  local a_id="$1"
-  local a_version="$2"
-  local a_url="$3"
-  local a_dir="$4"
-  local a_binary="$5"
+  local p_id="$1"
+  local p_version="$2"
+  local p_url="$3"
+  local p_dir="$4"
+  local p_binary="$5"
   local url
   local tmp
   local archive
   local extracted
 
-  url="${a_url//\{version\}/$a_version}"
+  url="${p_url//\{version\}/$p_version}"
   tmp="$(mktemp -d)"
-  archive="${tmp}/${a_id}.tar.gz"
+  archive="${tmp}/${p_id}.tar.gz"
 
-  echo "Downloading $a_id v$a_version ..."
+  echo "Downloading $p_id v$p_version ..."
 
   if ! curl -fsSL "$url" -o "$archive"; then
     rm -rf "$tmp"
@@ -644,20 +644,20 @@ f_software_tarball_install() {
     return 1
   fi
 
-  mkdir -p "$a_dir"
+  mkdir -p "$p_dir"
   tar -xzf "$archive" -C "$tmp"
 
-  extracted="$(find "$tmp" -type f -name "$a_binary" | head -1)"
+  extracted="$(find "$tmp" -type f -name "$p_binary" | head -1)"
 
   if [[ -z "$extracted" || ! -f "$extracted" ]]; then
     rm -rf "$tmp"
-    echo >&2 "Error: binary '$a_binary' not found in archive."
+    echo >&2 "Error: binary '$p_binary' not found in archive."
     return 1
   fi
 
-  cp -a "$extracted" "${a_dir}/${a_binary}"
-  chmod +x "${a_dir}/${a_binary}"
-  echo "$a_version" > "${a_dir}/.asc-software-version"
+  cp -a "$extracted" "${p_dir}/${p_binary}"
+  chmod +x "${p_dir}/${p_binary}"
+  echo "$p_version" > "${p_dir}/.asc-software-version"
   rm -rf "$tmp"
 }
 
@@ -665,36 +665,36 @@ f_software_tarball_install() {
 # Download AppImage when URL is set.
 #
 f_software_appimage_install() {
-  local a_id="$1"
-  local a_url="$2"
-  local a_sha="$3"
-  local a_path="$4"
+  local p_id="$1"
+  local p_url="$2"
+  local p_sha="$3"
+  local p_path="$4"
   local have
   local dir
 
-  if [[ -z "$a_url" ]]; then
-    echo >&2 "Skip appimage:$a_id — no url in manifest (file missing at $a_path)."
+  if [[ -z "$p_url" ]]; then
+    echo >&2 "Skip appimage:$p_id — no url in manifest (file missing at $p_path)."
     return 1
   fi
 
-  dir="$(dirname "$a_path")"
+  dir="$(dirname "$p_path")"
   mkdir -p "$dir"
 
-  echo "Downloading appimage:$a_id ..."
+  echo "Downloading appimage:$p_id ..."
 
-  if ! curl -fsSL "$a_url" -o "$a_path"; then
-    echo >&2 "Error: download failed for $a_url"
+  if ! curl -fsSL "$p_url" -o "$p_path"; then
+    echo >&2 "Error: download failed for $p_url"
     return 1
   fi
 
-  chmod +x "$a_path"
+  chmod +x "$p_path"
 
-  if [[ -n "$a_sha" ]]; then
-    have="$(sha256sum "$a_path" | awk '{ print $1 }')"
+  if [[ -n "$p_sha" ]]; then
+    have="$(sha256sum "$p_path" | awk '{ print $1 }')"
 
-    if [[ "$have" != "$a_sha" ]]; then
-      echo >&2 "Error: sha256 mismatch for $a_path"
-      echo >&2 "  expected: $a_sha"
+    if [[ "$have" != "$p_sha" ]]; then
+      echo >&2 "Error: sha256 mismatch for $p_path"
+      echo >&2 "  expected: $p_sha"
       echo >&2 "  got:      $have"
       return 1
     fi
@@ -705,27 +705,27 @@ f_software_appimage_install() {
 # Ensure a command via a known install method.
 #
 f_software_ensure_install() {
-  local a_id="$1"
-  local a_cmd="$2"
-  local a_method="$3"
+  local p_id="$1"
+  local p_cmd="$2"
+  local p_method="$3"
 
-  if command -v "$a_cmd" >/dev/null 2>&1; then
+  if command -v "$p_cmd" >/dev/null 2>&1; then
     return 0
   fi
 
-  case "$a_method" in
+  case "$p_method" in
     ollama_install_sh)
       echo "Installing ollama via official install script ..."
       curl -fsSL https://ollama.com/install.sh | sh
       ;;
     *)
-      echo >&2 "Error: unknown ensure method '$a_method' for $a_id"
+      echo >&2 "Error: unknown ensure method '$p_method' for $p_id"
       return 1
       ;;
   esac
 
-  if ! command -v "$a_cmd" >/dev/null 2>&1; then
-    echo >&2 "Error: $a_cmd still missing after install."
+  if ! command -v "$p_cmd" >/dev/null 2>&1; then
+    echo >&2 "Error: $p_cmd still missing after install."
     return 1
   fi
 }
@@ -734,38 +734,38 @@ f_software_ensure_install() {
 # Install a systemd --user unit from a template path.
 #
 f_software_unit_install() {
-  local a_id="$1"
-  local a_template="$2"
-  local a_enable="$3"
+  local p_id="$1"
+  local p_template="$2"
+  local p_enable="$3"
   local dest
   local src
 
-  src="$a_template"
+  src="$p_template"
 
   if [[ ! -f "$src" ]]; then
-    if [[ -f "scripts/asc/extend/software/${a_template}" ]]; then
-      src="scripts/asc/extend/software/${a_template}"
-    elif [[ -f "asc/extensions/software/${a_template}" ]]; then
-      src="asc/extensions/software/${a_template}"
+    if [[ -f "scripts/asc/extend/software/${p_template}" ]]; then
+      src="scripts/asc/extend/software/${p_template}"
+    elif [[ -f "asc/extensions/software/${p_template}" ]]; then
+      src="asc/extensions/software/${p_template}"
     fi
   fi
 
   if [[ ! -f "$src" ]]; then
-    echo >&2 "Error: unit template not found: $a_template"
+    echo >&2 "Error: unit template not found: $p_template"
     return 1
   fi
 
-  dest="${HOME}/.config/systemd/user/${a_id}.service"
+  dest="${HOME}/.config/systemd/user/${p_id}.service"
   mkdir -p "$(dirname "$dest")"
   cp -a "$src" "$dest"
   systemctl --user daemon-reload
 
   local enable_scalar
-  f_software_scalar "$a_enable" 'enable_scalar'
+  f_software_scalar "$p_enable" 'enable_scalar'
   case "$enable_scalar" in
     true|yes|1)
-      systemctl --user enable --now "${a_id}.service" || \
-        systemctl --user enable "${a_id}.service"
+      systemctl --user enable --now "${p_id}.service" || \
+        systemctl --user enable "${p_id}.service"
       ;;
   esac
 }
@@ -1013,7 +1013,7 @@ f_software_apply_prune() {
 # @param 1 String : status | apply
 #
 f_software_provision() {
-  local a_mode="${1:-apply}"
+  local p_mode="${1:-apply}"
   local rc=0
 
   if ! f_software_load_manifests; then
@@ -1023,7 +1023,7 @@ f_software_provision() {
   f_software_build_diff
   f_software_print_diff
 
-  case "$a_mode" in
+  case "$p_mode" in
     status)
       return 0
       ;;
@@ -1035,7 +1035,7 @@ f_software_provision() {
       return $rc
       ;;
     *)
-      echo >&2 "Error: unknown mode '$a_mode' (use status|apply)."
+      echo >&2 "Error: unknown mode '$p_mode' (use status|apply)."
       return 2
       ;;
   esac

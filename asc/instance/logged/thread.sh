@@ -34,11 +34,11 @@
 . asc/bootstrap.sh
 
 # Rewrite the 1st arg only if it contains our custom make prefix.
-a_arg1="$1"
-a_arg1=${a_arg1#'e:'}
-set -- "$a_arg1" "${@:2}"
+p_arg1="$1"
+p_arg1=${p_arg1#'e:'}
+set -- "$p_arg1" "${@:2}"
 
-export LOGGED_THREAD_ENTRY="$a_arg1"
+export LOGGED_THREAD_ENTRY="$p_arg1"
 
 logged_thread_variants='STACK_VERSION PROVISION_USING HOST_OS'
 

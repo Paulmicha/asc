@@ -4,12 +4,12 @@
 # Implements hook_ms -a 'ogg' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
 #
 # Generic core default (tested on debian-13 only for now).
-# Converts .ogg files in a_input_dir to .wav via convert/to_wav.
+# Converts .ogg files in p_input_dir to .wav via convert/to_wav.
 #
 # @see asc/extensions/transcription/transcribe/all.sh
 #
 
-find "$a_input_dir" -maxdepth 1 -type f -name "*.ogg" -printf "%T@ %p\n" \
+find "$p_input_dir" -maxdepth 1 -type f -name "*.ogg" -printf "%T@ %p\n" \
   | sort -n \
   | cut -d' ' -f2- \
   | while read -r file

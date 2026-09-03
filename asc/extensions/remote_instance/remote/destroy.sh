@@ -16,9 +16,9 @@
 
 . asc/bootstrap.sh
 
-a_remote_id="$1"
+p_remote_id="$1"
 
-f_remote_check_id "$a_remote_id"
+f_remote_check_id "$p_remote_id"
 
-asc/extensions/remote_asc/remote/exec.sh "$a_remote_id" \
+asc/extensions/remote_asc/remote/exec.sh "$p_remote_id" \
   'asc/instance/destroy.sh && find . -delete'

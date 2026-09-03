@@ -184,8 +184,8 @@ f_array_reverse() {
 # See https://unix.stackexchange.com/a/366655
 #
 # @example (associative array)
-#   declare -A a_dict=([a]=123 [b]="foo bar" [c]="(blah)")
-#   f_array_print a_dict
+#   declare -A p_dict=([a]=123 [b]="foo bar" [c]="(blah)")
+#   f_array_print p_dict
 #   # -> outputs :
 #   #   a=123
 #   #   b=foo bar

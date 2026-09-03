@@ -27,9 +27,9 @@
 
 . asc/bootstrap.sh
 
-a_service="$1"
+p_service="$1"
 
-if [[ -z "$a_service" ]]; then
+if [[ -z "$p_service" ]]; then
   echo >&2
   echo "Error in $BASH_SOURCE line $LINENO: service name is required." >&2
   echo "-> Aborting (1)." >&2
@@ -42,7 +42,7 @@ shift 1
 # When nothing is sent in arguments to be executed, default to exec whatever is
 # the value of "$DC_SERVICE_EXEC_FALLBACK" (defaults to 'sh').
 if [[ -z "$@" && -n "$DC_SERVICE_EXEC_FALLBACK" ]]; then
-  docker compose exec "$a_service" "$DC_SERVICE_EXEC_FALLBACK"
+  docker compose exec "$p_service" "$DC_SERVICE_EXEC_FALLBACK"
 else
-  docker compose exec "$a_service" $@
+  docker compose exec "$p_service" $@
 fi

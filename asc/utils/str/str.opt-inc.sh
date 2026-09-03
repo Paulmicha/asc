@@ -46,27 +46,27 @@
 #   echo "my_var_name = '$my_var_name'"
 #
 f_str_convert_tokens() {
-  local a_input_var_name="$1"
-  local a_output_var_name="$2"
-  local a_circuit_breaker=0
+  local p_input_var_name="$1"
+  local p_output_var_name="$2"
+  local p_circuit_breaker=0
 
-  if [[ -z "$a_input_var_name" ]]; then
+  if [[ -z "$p_input_var_name" ]]; then
     echo >&2
-    echo "Error in f_str_convert_tokens() - $BASH_SOURCE line $LINENO: param 1 (a_input_var_name) is required." >&2
+    echo "Error in f_str_convert_tokens() - $BASH_SOURCE line $LINENO: param 1 (p_input_var_name) is required." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     return 1
   fi
 
-  if [[ -z "$a_output_var_name" ]]; then
-    f_str_lowercase "$a_input_var_name" 'a_output_var_name'
+  if [[ -z "$p_output_var_name" ]]; then
+    f_str_lowercase "$p_input_var_name" 'p_output_var_name'
   fi
 
-  if [[ $3 -gt $a_circuit_breaker ]]; then
-    a_circuit_breaker=$3
+  if [[ $3 -gt $p_circuit_breaker ]]; then
+    p_circuit_breaker=$3
   fi
 
-  local tokens_replaced="${!a_input_var_name}"
+  local tokens_replaced="${!p_input_var_name}"
   local regex="\{\{[[:space:]]*([^[:space:]]+)[[:space:]]*\}\}"
   local regex_loop_str="$tokens_replaced"
   local token=''
@@ -126,9 +126,9 @@ f_str_convert_tokens() {
   # There are tokens that may point to values that also contain tokens.
   case "$tokens_replaced" in *'{{ '*)
     # Up to 9 recursions is probably more than enough.
-    if [[ $a_circuit_breaker -lt 10 ]]; then
-      a_circuit_breaker+=1
-      f_str_convert_tokens "$a_input_var_name" "$a_output_var_name" $a_circuit_breaker
+    if [[ $p_circuit_breaker -lt 10 ]]; then
+      p_circuit_breaker+=1
+      f_str_convert_tokens "$p_input_var_name" "$p_output_var_name" $p_circuit_breaker
     else
       echo >&2
       echo "Error : breaking out of f_str_convert_tokens() recursion." >&2
@@ -140,7 +140,7 @@ f_str_convert_tokens() {
   esac
 
   # Write result to var in calling scope.
-  printf -v "$a_output_var_name" '%s' "$tokens_replaced"
+  printf -v "$p_output_var_name" '%s' "$tokens_replaced"
 }
 
 ##
@@ -160,26 +160,26 @@ f_str_convert_tokens() {
 # @see asc/make/call_wrap.make.sh
 #
 f_str_escape_single_quotes() {
-  local a_arg="$1"
-  local a_var_name="$2"
+  local p_arg="$1"
+  local p_var_name="$2"
 
-  if [[ -z "$a_var_name" ]]; then
-    a_var_name='escaped_arg'
+  if [[ -z "$p_var_name" ]]; then
+    p_var_name='escaped_arg'
   fi
 
-  escaped_arg="$a_arg"
+  escaped_arg="$p_arg"
 
-  case "$a_arg" in
+  case "$p_arg" in
     *' '*|*'$'*|*'#'*|*'['*|*']'*|*'*|*'*|*'&'*|*'*'*|*'"'*|*"'"*|*'='*)
-      a_arg="${a_arg//\'/"'\"'\"'"}"
-      escaped_arg="'${a_arg}'"
+      p_arg="${p_arg//\'/"'\"'\"'"}"
+      escaped_arg="'${p_arg}'"
       ;;
   esac
 
   # Debug
-  # echo "escape $a_var_name = $escaped_arg"
+  # echo "escape $p_var_name = $escaped_arg"
 
-  printf -v "$a_var_name" '%s' "$escaped_arg"
+  printf -v "$p_var_name" '%s' "$escaped_arg"
 }
 
 ##
@@ -213,33 +213,33 @@ f_str_escape_single_quotes() {
 #   echo "$encoded_credentials"
 #
 f_str_basic_auth_credentials() {
-  local a_key="$1"
-  local a_user="$2"
-  local a_pass="$3"
+  local p_key="$1"
+  local p_user="$2"
+  local p_pass="$3"
 
-  if [[ -z "$a_key" ]]; then
-    a_key='basic_auth_creds'
+  if [[ -z "$p_key" ]]; then
+    p_key='basic_auth_creds'
   fi
-  if [[ -z "$a_user" ]]; then
-    a_user='admin'
+  if [[ -z "$p_user" ]]; then
+    p_user='admin'
   fi
 
   # When no password is passed as argument, if there was no random password
   # already generated in current instance for given key, generate one.
-  f_instance_registry_get "$a_key"
-  if [[ -z "$a_pass" ]] && [[ -z "$reg_val" ]]; then
-    a_pass=`< /dev/urandom tr -dc A-Za-z0-9 | head -c8; echo`
-    f_instance_registry_set "$a_key" "$a_user:$a_pass"
+  f_instance_registry_get "$p_key"
+  if [[ -z "$p_pass" ]] && [[ -z "$reg_val" ]]; then
+    p_pass=`< /dev/urandom tr -dc A-Za-z0-9 | head -c8; echo`
+    f_instance_registry_set "$p_key" "$p_user:$p_pass"
   else
     f_str_split1 'split_arr' "$reg_val" ':'
-    a_user="${split_arr[0]}"
-    a_pass="${split_arr[1]}"
+    p_user="${split_arr[0]}"
+    p_pass="${split_arr[1]}"
   fi
 
   # Update : because we're using an env. variable for credentials, we don't
   # actually need to escape dollar signs here.
-  # echo "$a_user:$(openssl passwd -apr1 "$a_pass")" | sed -e s/\\$/\\$\\$/g
-  echo "$a_user:$(openssl passwd -apr1 "$a_pass")"
+  # echo "$p_user:$(openssl passwd -apr1 "$p_pass")" | sed -e s/\\$/\\$\\$/g
+  echo "$p_user:$(openssl passwd -apr1 "$p_pass")"
 }
 
 ##
@@ -256,19 +256,19 @@ f_str_basic_auth_credentials() {
 #
 # @example
 #   # Typical use case : see f_str_split1().
-#   local a_var_name="$1"
-#   f_str_sanitize_var_name "$a_var_name" 'a_var_name'
-#   echo "$a_var_name" # <- Prints sanitized variable name.
+#   local p_var_name="$1"
+#   f_str_sanitize_var_name "$p_var_name" 'p_var_name'
+#   echo "$p_var_name" # <- Prints sanitized variable name.
 #
 f_str_sanitize_var_name() {
-  local a_input="$1"
-  local a_notvicswhtvntbs="$2"
+  local p_input="$1"
+  local p_notvicswhtvntbs="$2"
 
-  # The variable a_notvicswhtvntbs must not collide in calling scope. Hopefully
+  # The variable p_notvicswhtvntbs must not collide in calling scope. Hopefully
   # the acronym used here is enough to make it sufficiently unlikely.
-  printf -v "$a_notvicswhtvntbs" '%s' "${a_notvicswhtvntbs//[^a-zA-Z0-9_]/_}"
+  printf -v "$p_notvicswhtvntbs" '%s' "${p_notvicswhtvntbs//[^a-zA-Z0-9_]/_}"
 
-  f_str_sanitize "$a_input" '_' "$a_notvicswhtvntbs" '[^a-zA-Z0-9_]'
+  f_str_sanitize "$p_input" '_' "$p_notvicswhtvntbs" '[^a-zA-Z0-9_]'
 }
 
 ##
@@ -295,29 +295,29 @@ f_str_sanitize_var_name() {
 #   f_str_sanitize "a b c d"
 #   echo "$sanitized_str" # <- Prints 'a-b-c-d'
 #   f_str_sanitize "a b c d" '_'
-#   echo "$sanitized_str" # <- Prints 'a_b_c_d'
+#   echo "$sanitized_str" # <- Prints 'p_b_c_d'
 #
 f_str_sanitize() {
-  local a_ussvfhnc_str="$1"
-  local a_ussvfhnc_replace="$2"
-  local a_ussvfhnc_var_name="$3"
-  local a_ussvfhnc_filter="$4"
+  local p_ussvfhnc_str="$1"
+  local p_ussvfhnc_replace="$2"
+  local p_ussvfhnc_var_name="$3"
+  local p_ussvfhnc_filter="$4"
 
-  if [[ -z "$a_ussvfhnc_filter" ]]; then
-    a_ussvfhnc_filter='[^a-zA-Z0-9_\-\.]'
+  if [[ -z "$p_ussvfhnc_filter" ]]; then
+    p_ussvfhnc_filter='[^a-zA-Z0-9_\-\.]'
   fi
 
   # Allows empty strings.
-  if [[ $# -lt 2 ]] && [[ -z "$a_ussvfhnc_replace" ]]; then
-    a_ussvfhnc_replace='-'
+  if [[ $# -lt 2 ]] && [[ -z "$p_ussvfhnc_replace" ]]; then
+    p_ussvfhnc_replace='-'
   fi
 
-  if [[ -z "$a_ussvfhnc_var_name" ]]; then
-    a_ussvfhnc_var_name='sanitized_str'
+  if [[ -z "$p_ussvfhnc_var_name" ]]; then
+    p_ussvfhnc_var_name='sanitized_str'
   fi
 
-  # ${!a_ussvfhnc_var_name}="${a_ussvfhnc_str//$a_ussvfhnc_filter/$a_ussvfhnc_replace}"
-  printf -v "$a_ussvfhnc_var_name" '%s' "${a_ussvfhnc_str//$a_ussvfhnc_filter/$a_ussvfhnc_replace}"
+  # ${!p_ussvfhnc_var_name}="${p_ussvfhnc_str//$p_ussvfhnc_filter/$p_ussvfhnc_replace}"
+  printf -v "$p_ussvfhnc_var_name" '%s' "${p_ussvfhnc_str//$p_ussvfhnc_filter/$p_ussvfhnc_replace}"
 }
 
 ##
@@ -346,34 +346,34 @@ f_str_sanitize() {
 #   done
 #
 f_str_subsequences() {
-  local a_values="$1"
-  local a_concatenation="$2"
-  local a_separator="$3"
+  local p_values="$1"
+  local p_concatenation="$2"
+  local p_separator="$3"
 
-  if [[ -z "$a_separator" ]]; then
-    a_separator=' '
+  if [[ -z "$p_separator" ]]; then
+    p_separator=' '
   fi
 
   str_subsequences=''
 
   _u_str_subsequences_inner_recursion() {
-    local a_prefix="$1"
-    local a_inner_values="$2"
+    local p_prefix="$1"
+    local p_inner_values="$2"
 
     local i
-    local concat="$a_concatenation"
+    local concat="$p_concatenation"
 
-    if [[ -z "$a_prefix" ]]; then
+    if [[ -z "$p_prefix" ]]; then
       concat=""
     fi
 
-    for i in $a_inner_values; do
-      str_subsequences+="${a_prefix}${concat}${i}${a_separator}"
-      _u_str_subsequences_inner_recursion "${a_prefix}${concat}${i}" "${a_inner_values#*$i}"
+    for i in $p_inner_values; do
+      str_subsequences+="${p_prefix}${concat}${i}${p_separator}"
+      _u_str_subsequences_inner_recursion "${p_prefix}${concat}${i}" "${p_inner_values#*$i}"
     done
   }
 
-  _u_str_subsequences_inner_recursion '' "$a_values"
+  _u_str_subsequences_inner_recursion '' "$p_values"
 
   unset -f _u_str_subsequences_inner_recursion
 }
@@ -395,14 +395,14 @@ f_str_subsequences() {
 #   echo "$my_custom_var_name" # Outputs 'my_string'
 #
 f_str_lowercase() {
-  local a_input="$1"
-  local a_str_lowercase_var_name="$2"
+  local p_input="$1"
+  local p_str_lowercase_var_name="$2"
 
-  if [[ -z "$a_str_lowercase_var_name" ]]; then
-    a_str_lowercase_var_name='lowercase'
+  if [[ -z "$p_str_lowercase_var_name" ]]; then
+    p_str_lowercase_var_name='lowercase'
   fi
 
-  printf -v "$a_str_lowercase_var_name" '%s' "${a_input,,}"
+  printf -v "$p_str_lowercase_var_name" '%s' "${p_input,,}"
 }
 
 ##
@@ -422,14 +422,14 @@ f_str_lowercase() {
 #   echo "$my_custom_var_name" # Outputs 'MY_STRING'
 #
 f_str_uppercase() {
-  local a_input="$1"
-  local a_str_uppercase_var_name="$2"
+  local p_input="$1"
+  local p_str_uppercase_var_name="$2"
 
-  if [[ -z "$a_str_uppercase_var_name" ]]; then
-    a_str_uppercase_var_name='uppercase'
+  if [[ -z "$p_str_uppercase_var_name" ]]; then
+    p_str_uppercase_var_name='uppercase'
   fi
 
-  printf -v "$a_str_uppercase_var_name" '%s' "${a_input^^}"
+  printf -v "$p_str_uppercase_var_name" '%s' "${p_input^^}"
 }
 
 ##
@@ -464,14 +464,14 @@ f_str_uppercase() {
 #   echo "$joined_str" # <- outputs 'one && two && three && four && five'
 #
 f_str_join() {
-  local a_sep=$1
+  local p_sep=$1
   local IFS=
-  if [[ -z "$a_sep" ]]; then
-    a_sep='|'
+  if [[ -z "$p_sep" ]]; then
+    p_sep='|'
   fi
   joined_str=$2
   shift 2 || shift $(($#))
-  joined_str+="${*/#/$a_sep}"
+  joined_str+="${*/#/$p_sep}"
 }
 
 ##
@@ -487,15 +487,15 @@ f_str_join() {
 #   echo "$my_var" # Outputs "A string with commas\, and dots\.\.\. !"
 #
 f_str_sed_escape() {
-  local a_str="$1"
-  local a_output_var_name="${2:-sed_escaped}"
+  local p_str="$1"
+  local p_output_var_name="${2:-sed_escaped}"
 
-  a_str="${a_str//,/\\,}"
-  a_str="${a_str//\./\\\.}"
-  a_str="${a_str//\*/\\\*}"
-  a_str="${a_str//\//\\\/}"
+  p_str="${p_str//,/\\,}"
+  p_str="${p_str//\./\\\.}"
+  p_str="${p_str//\*/\\\*}"
+  p_str="${p_str//\//\\\/}"
 
-  printf -v "$a_output_var_name" '%s' "$a_str"
+  printf -v "$p_output_var_name" '%s' "$p_str"
 }
 
 ##
@@ -512,21 +512,21 @@ f_str_sed_escape() {
 #   f_str_append_once '--test B' "$str" 'str' # str='Foo bar--test A--test B'
 #
 f_str_append_once() {
-  local a_needle="$1"
-  local a_haystack="$2"
-  local a_output_var_name="${3:-str_append_once}"
+  local p_needle="$1"
+  local p_haystack="$2"
+  local p_output_var_name="${3:-str_append_once}"
 
   local result
 
-  if [[ -z "$a_haystack" ]]; then
-    result="$a_needle"
-  elif [[ "$a_haystack" != *"$a_needle"* ]]; then
-    result="${a_haystack}${a_needle}"
+  if [[ -z "$p_haystack" ]]; then
+    result="$p_needle"
+  elif [[ "$p_haystack" != *"$p_needle"* ]]; then
+    result="${p_haystack}${p_needle}"
   else
-    result="$a_haystack"
+    result="$p_haystack"
   fi
 
-  printf -v "$a_output_var_name" '%s' "$result"
+  printf -v "$p_output_var_name" '%s' "$result"
 }
 
 ##
@@ -543,19 +543,19 @@ f_str_append_once() {
 #   done
 #
 f_str_split1() {
-  local a_str_split1_var_name="$1"
-  local a_str="$2"
-  local a_sep="$3"
+  local p_str_split1_var_name="$1"
+  local p_str="$2"
+  local p_sep="$3"
 
-  f_str_sanitize_var_name "$a_str_split1_var_name" 'a_str_split1_var_name'
+  f_str_sanitize_var_name "$p_str_split1_var_name" 'p_str_split1_var_name'
 
   # See https://stackoverflow.com/a/41059855
-  eval "${a_str_split1_var_name}=()"
+  eval "${p_str_split1_var_name}=()"
 
   # See https://stackoverflow.com/a/45201229 (#7)
-  while read -rd"$a_sep"; do
-    eval "${a_str_split1_var_name}+=(\"$REPLY\")"
-  done <<<"${a_str}${a_sep}"
+  while read -rd"$p_sep"; do
+    eval "${p_str_split1_var_name}+=(\"$REPLY\")"
+  done <<<"${p_str}${p_sep}"
 }
 
 ##
@@ -634,17 +634,17 @@ f_transliterate_char() {
 #   echo "$slug_dot" # "second.test.456.2"
 #
 f_str_slug() {
-  local a_str="$1"
-  local a_sep="${2:--}"
-  local a_output_var_name="${3:-slug_val}"
+  local p_str="$1"
+  local p_sep="${2:--}"
+  local p_output_var_name="${3:-slug_val}"
   local result=''
   local pending_sep=0
   local i c
 
-  f_str_sanitize_var_name "$a_output_var_name" 'a_output_var_name'
+  f_str_sanitize_var_name "$p_output_var_name" 'p_output_var_name'
 
-  for ((i = 0; i < ${#a_str}; i++)); do
-    c="${a_str:i:1}"
+  for ((i = 0; i < ${#p_str}; i++)); do
+    c="${p_str:i:1}"
 
     case "$c" in
       '~' | '^') continue ;;
@@ -655,22 +655,22 @@ f_str_slug() {
     if [[ -n "$transliterated_char" ]]; then
       result+="$transliterated_char"
       pending_sep=0
-    elif [[ -n "$a_sep" && -n "$result" && pending_sep -eq 0 ]]; then
-      result+="$a_sep"
+    elif [[ -n "$p_sep" && -n "$result" && pending_sep -eq 0 ]]; then
+      result+="$p_sep"
       pending_sep=1
     fi
   done
 
-  if [[ -n "$a_sep" && -n "$result" ]]; then
-    while [[ "$result" == "$a_sep"* ]]; do
-      result="${result#"$a_sep"}"
+  if [[ -n "$p_sep" && -n "$result" ]]; then
+    while [[ "$result" == "$p_sep"* ]]; do
+      result="${result#"$p_sep"}"
     done
-    while [[ "$result" == *"$a_sep" ]]; do
-      result="${result%"$a_sep"}"
+    while [[ "$result" == *"$p_sep" ]]; do
+      result="${result%"$p_sep"}"
     done
   fi
 
-  printf -v "$a_output_var_name" '%s' "$result"
+  printf -v "$p_output_var_name" '%s' "$result"
 }
 
 ##
@@ -698,10 +698,10 @@ f_str_snake() {
 #
 f_str_trim() {
   local result="$1"
-  local a_output_var_name="${2:-str_trimmed}"
+  local p_output_var_name="${2:-str_trimmed}"
 
   result="${result%"${result##*[![:space:]]}"}"
   result="${result#"${result%%[![:space:]]*}"}"
 
-  printf -v "$a_output_var_name" '%s' "$result"
+  printf -v "$p_output_var_name" '%s' "$result"
 }

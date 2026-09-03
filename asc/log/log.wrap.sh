@@ -33,14 +33,14 @@
 
 . asc/bootstrap.sh
 
-a_script="$1"
+p_script="$1"
 shift
 
-log_file="$a_script"
+log_file="$p_script"
 uses_thread_inner_wrap=0
 is_valid=0
 
-if [[ "$a_script" == *'thread.wrap.sh' ]]; then
+if [[ "$p_script" == *'thread.wrap.sh' ]]; then
   uses_thread_inner_wrap=1
   log_file="$1"
 fi
@@ -65,7 +65,7 @@ for index in "${!real_scripts_arr[@]}"; do
   # Check other values against make entry points (whitelist).
   if [[ $uses_thread_inner_wrap -eq 0 ]]; then
     case "$log_file" in "$task")
-      a_script="$script"
+      p_script="$script"
       is_valid=1
     esac
   else
@@ -84,9 +84,9 @@ if [[ $is_valid -ne 1 ]]; then
 fi
 
 # Pile-up: do not truncate/restart logs if the entry thread is still running.
-a_entry_name="${log_file#e:}"
-if f_thread_pileup_should_skip "$a_entry_name"; then
-  echo "Log/thread '$a_entry_name' already running (PID $thread_pid); skip."
+p_entry_name="${log_file#e:}"
+if f_thread_pileup_should_skip "$p_entry_name"; then
+  echo "Log/thread '$p_entry_name' already running (PID $thread_pid); skip."
   exit 0
 fi
 

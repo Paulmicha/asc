@@ -28,16 +28,16 @@
 
 . asc/bootstrap.sh
 
-a_input_dir=""
-a_output_lang=""
-a_skip_vscodium=1
-a_targets=""
+p_input_dir=""
+p_output_lang=""
+p_skip_vscodium=1
+p_targets=""
 input_file=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -l|--output-lang) a_output_lang="$2"; shift 2;;
-    -s|--skip-vsc) a_skip_vscodium=1; shift 1;;
+    -l|--output-lang) p_output_lang="$2"; shift 2;;
+    -s|--skip-vsc) p_skip_vscodium=1; shift 1;;
     -*)
       echo "Error in $BASH_SOURCE line $LINENO: unknown option: $1" >&2
       exit 1
@@ -69,7 +69,7 @@ if [[ ! -f "$input_file" ]]; then
   exit 2
 fi
 
-a_input_dir="$(dirname -- "$input_file")"
+p_input_dir="$(dirname -- "$input_file")"
 stem_path="${input_file%.*}"
 
 case "$input_file" in
@@ -101,8 +101,8 @@ else
   touch "$agregated_txt"
 fi
 
-a_targets="$wav_file"
+p_targets="$wav_file"
 
-export a_input_dir a_output_lang a_skip_vscodium a_targets agregated_txt
+export p_input_dir p_output_lang p_skip_vscodium p_targets agregated_txt
 
 hook_ms -a 'transcribe' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
