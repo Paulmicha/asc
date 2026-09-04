@@ -371,10 +371,18 @@ async function ascRunMermaid() {{
     const w = Math.max(bb.width + 2 * pad, 1);
     const h = Math.max(bb.height + 2 * pad, 1);
     svg.setAttribute('viewBox', x + ' ' + y + ' ' + w + ' ' + h);
-    const scale = Math.min(pageW / w, pageH / h, 1);
-    svg.style.width = (w * scale) + 'px';
-    svg.style.height = (h * scale) + 'px';
+    const scaleW = pageW / w;
+    const scaleH = pageH / h;
+    const scale = Math.min(scaleW, scaleH, 1);
+    if (scaleW < 1 && scaleW <= scaleH) {{
+      svg.style.width = '100%';
+      svg.style.height = 'auto';
+    }} else {{
+      svg.style.width = (w * scale) + 'px';
+      svg.style.height = (h * scale) + 'px';
+    }}
     svg.style.maxWidth = '100%';
+    svg.style.flexShrink = '0';
   }}
   function ascCenterMermaidLabels(svg) {{
     svg.querySelectorAll('.node').forEach(function (node) {{

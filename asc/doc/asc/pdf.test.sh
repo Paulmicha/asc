@@ -41,6 +41,7 @@ assert ".asc-print-break" not in css_full
 assert "--asc-font-size: 9pt" in css_full
 assert "--asc-mermaid-font-size: 1em" in css_full
 assert "font-size: var(--asc-mermaid-font-size)" in css_full
+assert "flex-shrink: 0" in css_full
 assert ".nodeLabel" in css_full
 assert "--asc-font-size-h1: 1.625rem" in css_full
 print("ok")
@@ -408,6 +409,11 @@ assert "ascMermaidMeasureCss" in js
 assert "nodeLabel" in js
 assert "shape: rounded" not in js
 assert "radius: 3" not in js
+assert "const scale = Math.min(scaleW, scaleH, 1);" in js
+assert "scaleW < 1 && scaleW <= scaleH" in js
+assert "pageH / Math.max(bb.height, 1), 1)" in js
+assert "svg.style.flexShrink = '0'" in js
+assert "svg.style.width = '100%'" in js
 print("ok")
 PY
   assertEquals 'mermaid candidates Python assertions failed' 0 $?
