@@ -7,9 +7,14 @@
 #   -> 'data/ideas/2026/08/Agents of Redirection (Donella Meadows, Alexandre Monnin, Pierre Lévy).pdf'
 #
 # @requires https://github.com/rbutinar/md2pdf-mermaid
-# Styled via asc/doc/md2pdf_asc.py + pdf_styles.css (Spectral, compact 8pt).
+# Styled via asc/doc/md2pdf_asc.py + pdf_styles.css (Spectral, 9pt body).
 # Mermaid: local asc/vendor/mermaid.esm.min.mjs (offline).
 # KaTeX: local asc/vendor/katex/ (CSS + JS + auto-render, offline).
+#
+# Print pipeline (do not reorder; heading/table pagination is last):
+#   protect math → markdown → restore math → explode code lines → inject CSS/boot
+#   → fonts → Mermaid → KaTeX flatten → emulate print → mark long paragraphs
+#   → paginate orphans/widows → page.pdf
 #
 # @param n [optional] String : any additional named option.
 #   --force (flag) : Force re-compiling already compiled pdfs. By default, only
@@ -23,7 +28,7 @@
 #   asc/doc/pdf_export.sh --force
 #
 #   # Single file :
-#   asc/doc/pdf_export.sh 'data/ideas/2026/08/Agents of Redirection (Donella Meadows, Alexandre Monnin, Pierre Lévy).md'
+#   asc/doc/pdf_export.sh 'data/ideas/2026/08/Agents of Redirection.md'
 #   asc/doc/pdf_export.sh --force 'docs/asc/builder.md'
 #
 #   # All *.md files under a folder (recursive) :

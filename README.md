@@ -4,11 +4,11 @@ ASC is not a program; it is the “glue” between programs. It is a generic, cu
 
 It allows to set a common, shared vocabulary for anything interacting with the shell somehow. It provides mechanisms allowing to establish "pivots" that represent actions with varying implementations.
 
-The only "job" of ASC is to serve as a thin layer that :
+The only job of ASC is to serve as a thin layer that :
 
 - **wraps** calls to other CLIs and/or OS-level operations ;
 - **sets** a naming convention that persists despite implementation changes, i.e. the *action* `make transcribe-file -- path/to/file.mp4` will remain identical, even when the program(s) used to do the actual transcribing in a project using ASC do ;
-- allows to provide **adaptations** to a variety of contextual *specificities* such as host types (local, remote), OS (debian, apline, windows, ios), or any other *variants*.
+- allows to provide **adaptations** to a variety of contextual *specificities* such as host types (local, remote), OS (debian, alpine, windows, ios, etc), or any other *variants*.
 
 ## Overarching goal
 
@@ -759,7 +759,7 @@ a remote instance entity has a parent remote host entity,
 they both have a 'hostname' field,
 which stores (in sidecars or globals or cache or scripts) the value for ASC implementations to use.
 
-#### Linking VS Nesting
+#### Linking (relationships, references) VS Nesting (wrapper)
 
 TODO
 
