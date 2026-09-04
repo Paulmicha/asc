@@ -567,9 +567,16 @@ PAGINATE_JS = r"""
     return tableEl || headingEl;
   };
 
+  const clearFailedPush = (el, sp) => {
+    // A spacer that did not land the target at the top of a later page
+    // becomes a mid-page hole (blank lines before a table/heading).
+    if (sp && sp.parentNode) sp.remove();
+    return 0;
+  };
+
   const trimOvershoot = (el, sp, fromPage) => {
     let n = sp.querySelectorAll('br').length;
-    if (pageOf(yOf(el)) <= fromPage) return n;
+    if (pageOf(yOf(el)) <= fromPage) return clearFailedPush(el, sp);
     const cur = parseFloat(sp.style.minHeight) || 0;
     let yon = yOn(yOf(el));
     let next = yon > topEps ? Math.max(0, cur - yon) : cur;
@@ -581,15 +588,11 @@ PAGINATE_JS = r"""
       last.remove();
       n -= 1;
     }
-    if (pageOf(yOf(el)) === fromPage) {
-      addBr(el);
-      n += 1;
-      sp.style.minHeight = cur + 'px';
-    }
+    if (pageOf(yOf(el)) <= fromPage) return clearFailedPush(el, sp);
     const h = parseFloat(sp.style.minHeight) || 0;
     sp.style.height = h + 'px';
     sp.style.overflow = 'hidden';
-    return n;
+    return sp.querySelectorAll('br').length;
   };
 
   const pushUntilNextTop = (el, fromPage) => {
@@ -600,7 +603,21 @@ PAGINATE_JS = r"""
       addBr(el);
       n += 1;
     }
-    return trimOvershoot(el, sp, fromPage);
+    n = trimOvershoot(el, sp, fromPage);
+    const sp2 = el.previousElementSibling;
+    if (!isPush(sp2)) return 0;
+    // Still mid-page, or prior sibling shares this page → hole, not a page break.
+    if (pageOf(yOf(el)) <= fromPage || yOn(yOf(el)) > topEps + lineH) {
+      return clearFailedPush(el, sp2);
+    }
+    let prev = sp2.previousElementSibling;
+    while (prev && (isPush(prev) || prev.getBoundingClientRect().height === 0)) {
+      prev = prev.previousElementSibling;
+    }
+    if (prev && pageOf(yOf(prev)) === pageOf(yOf(el))) {
+      return clearFailedPush(el, sp2);
+    }
+    return n;
   };
 
   const debug = [];

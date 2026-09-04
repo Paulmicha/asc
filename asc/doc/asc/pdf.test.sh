@@ -298,6 +298,11 @@ h, n = trim_overshoot_spacer(
     y_on_next=6.0, min_height=180.0, n_br=4, br_h=16.0, top_eps=9.0
 )
 assert abs(h - 164.0) < 1e-9 and n == 4
+# Failed pushes must remove the spacer (not restore minHeight on the
+# source page — that printed as blank lines before the Gazit table).
+assert "clearFailedPush" in PAGINATE_JS
+assert "return clearFailedPush(el, sp)" in PAGINATE_JS
+assert "sp.style.minHeight = cur + 'px'" not in PAGINATE_JS
 print("ok")
 PY
   assertEquals 'table-then-heading page-review assertions failed' 0 $?
