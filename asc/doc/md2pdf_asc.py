@@ -2,34 +2,46 @@
 """
 ASC-styled md2pdf wrapper (Spectral + Source Code Pro + compact type).
 
-md2pdf's HTML engine ignores --font and hardcodes ~11pt system UI fonts.
-This wraps convert_markdown_to_pdf_html, replacing the embedded <style>
-with asc/doc/pdf_styles.css and @font-face rules for
-Spectral (bundled under fonts/Spectral/) and Source Code Pro
-(fonts/SourceCodePro-Powerline-Awesome-Regular.ttf) for monospace.
-
-Mermaid: ```mermaid blocks become live HTML (.mermaid) rendered by the
-local self-contained bundle at asc/vendor/mermaid.esm.min.mjs (IIFE,
-no CDN). KaTeX: $...$ / $$...$$ in the HTML are typeset by the local
-bundle at asc/vendor/katex/ (CSS + JS + auto-render, no CDN). Printable
-HTML is written under data/tmp/ so Mermaid, KaTeX, and fonts load via
-relative paths. Math spans are stashed before Markdown conversion so
-underscores in TeX (e.g. ``$\\mathcal{D}_{\\mathrm{train}}$``) are not eaten
-by emphasis. Local <img src> paths are rewritten from the markdown
-file's directory to that print HTML, so images next to the .md resolve
-under file://.
+Pipeline (do not reorder; pagination is last):
+  protect math → markdown → restore math → explode code lines → inject CSS/boot
+  → write HTML → fonts → Mermaid → KaTeX → emulate print → mark long paras
+  → paginate orphans/widows → page.pdf
+  Preview stops before paginate.
 
 Usage:
   asc/doc/md2pdf_asc.py input.md -o output.pdf
+  asc/doc/md2pdf_asc.py input.md -o output.pdf --no-paginate
 """
 from __future__ import annotations
 
 import argparse
-import html as html_lib
+import hashlib
 import os
 import re
 import sys
 from pathlib import Path
+
+from print_code import explode_pre_code_lines
+from print_katex import (
+    KATEX_RUN_JS,
+    html_has_katex,
+    katex_assets_html,
+    protect_katex_math,
+    restore_katex_math,
+)
+from print_mermaid import (
+    inject_mermaid_candidates,
+    mermaid_run_js,
+    mermaid_vendor_tag,
+    patch_mermaid_as_html,
+)
+from print_paginate import (
+    ASC_MARK_LONG_PARAS_FN,
+    MARK_LONG_PARAS_JS,
+    apply_print_pushes,
+    content_height_px,
+    content_width_px,
+)
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 # asc/doc -> asc -> project root (repo containing data/, docs/, asc/)
@@ -41,19 +53,23 @@ FONT_DIR = FONTS_DIR / "Spectral"
 FONT_FAMILY = "Spectral"
 MONO_FONT_FAMILY = "Source Code Pro"
 MONO_FONT_FILE = FONTS_DIR / "SourceCodePro-Powerline-Awesome-Regular.ttf"
+SANS_DIR = FONTS_DIR / "SourceSans3"
+SANS_FAMILY = "Source Sans 3"
+SANS_FILES = {
+    "regular": "SourceSans3-Regular.ttf",
+    "bold": "SourceSans3-Bold.ttf",
+    "italic": "SourceSans3-Italic.ttf",
+    "bold_italic": "SourceSans3-BoldItalic.ttf",
+}
 MERMAID_VENDOR = ASC_DIR / "vendor" / "mermaid.esm.min.mjs"
 KATEX_VENDOR = ASC_DIR / "vendor" / "katex"
 KATEX_FILES = ("katex.min.css", "katex.min.js", "auto-render.min.js")
-# Match pdf_styles.css --asc-font-size. Mermaid sequence diagrams ignore
-# themeVariables.fontSize for actors (hardcoded 16px) unless sequence.*FontSize
-# is set — those options expect a px number, not pt.
-MERMAID_FONT_SIZE = "8pt"
-MERMAID_FONT_SIZE_PX = 11  # 8pt ≈ 10.67px at 96dpi
 
 # Paths for the current conversion (relative Mermaid/font URLs).
 _CURRENT_SOURCE_MD: Path | None = None
 _PROJECT_ROOT: Path | None = None
 _PRINT_HTML_PATH: Path | None = None
+_NO_PAGINATE = False
 
 # Bundled static faces (Production Type Spectral / OFL).
 FACE_FILES = {
@@ -132,6 +148,27 @@ def font_face_css(html_path: Path) -> str:
   font-display: swap;
 }}"""
         )
+    sans_map = [
+        ("regular", "normal", "normal"),
+        ("bold", "normal", "bold"),
+        ("italic", "italic", "normal"),
+        ("bold_italic", "italic", "bold"),
+    ]
+    sans_regular = SANS_DIR / SANS_FILES["regular"]
+    if sans_regular.is_file():
+        for key, font_style, font_weight in sans_map:
+            sp = SANS_DIR / SANS_FILES[key]
+            if not sp.is_file():
+                sp = sans_regular
+            rules.append(
+                f"""@font-face {{
+  font-family: "{SANS_FAMILY}";
+  font-style: {font_style};
+  font-weight: {font_weight};
+  src: url("{url(sp)}") format("truetype");
+  font-display: swap;
+}}"""
+            )
     missing = [k for k, v in faces.items() if v is None]
     if missing:
         print(
@@ -170,247 +207,52 @@ def require_katex_vendor() -> Path:
     return KATEX_VENDOR
 
 
-_KATEX_DELIM_RE = re.compile(r"\$\$[\s\S]+?\$\$|\$(?:\\.|[^$\n])+?\$")
-_KATEX_DISPLAY_RE = re.compile(r"\$\$[\s\S]+?\$\$")
-_KATEX_INLINE_RE = re.compile(r"(?<!\$)\$(?!\$)(?:\\.|[^$\n])+?\$(?!\$)")
-_FENCED_CODE_RE = re.compile(r"(```[\s\S]*?```)")
-# Plain-text tokens (not HTML comments): Markdown treats comments as block HTML
-# and pulls them out of <p>, which drops mid-sentence math like $x$ / $H$.
-_KATEX_PLACEHOLDER_FMT = "@@ASC_MATH_{i}@@"
-_KATEX_PLACEHOLDER_RE = re.compile(r"@@ASC_MATH_(\d+)@@")
 
-
-def html_has_katex(html: str) -> bool:
-    """True when HTML still contains $...$ or $$...$$ math delimiters."""
-    return bool(_KATEX_DELIM_RE.search(html))
-
-
-def protect_katex_math(markdown_text: str) -> tuple[str, list[str]]:
-    """Stash $...$ / $$...$$ so Markdown emphasis cannot eat TeX underscores.
-
-    Display math is wrapped in a <div> so it is not left inside a <p> (KaTeX
-    display mode is block-level; block-in-<p> breaks Chromium PDF layout).
-    """
-    placeholders: list[str] = []
-
-    def stash_inline(match: re.Match[str]) -> str:
-        placeholders.append(match.group(0))
-        return _KATEX_PLACEHOLDER_FMT.format(i=len(placeholders) - 1)
-
-    def stash_display(match: re.Match[str]) -> str:
-        placeholders.append(match.group(0))
-        tok = _KATEX_PLACEHOLDER_FMT.format(i=len(placeholders) - 1)
-        return f'\n\n<div class="asc-math-display">{tok}</div>\n\n'
-
-    parts = _FENCED_CODE_RE.split(markdown_text)
-    out: list[str] = []
-    for i, part in enumerate(parts):
-        if i % 2 == 1:
-            out.append(part)
-            continue
-        part = _KATEX_DISPLAY_RE.sub(stash_display, part)
-        part = _KATEX_INLINE_RE.sub(stash_inline, part)
-        out.append(part)
-    return "".join(out), placeholders
-
-
-def restore_katex_math(html: str, placeholders: list[str]) -> str:
-    """Put stashed math back into HTML for KaTeX auto-render."""
-
-    def repl(match: re.Match[str]) -> str:
-        idx = int(match.group(1))
-        if 0 <= idx < len(placeholders):
-            return html_lib.escape(placeholders[idx])
-        return match.group(0)
-
-    return _KATEX_PLACEHOLDER_RE.sub(repl, html)
-
-
-def mermaid_boot_script(html_path: Path) -> str:
-    """Classic script boot (IIFE vendor) — works with file:// relative src."""
-    mermaid_path = require_mermaid_vendor()
-    mermaid_rel = rel_url(html_path, mermaid_path)
-    ff = f"{FONT_FAMILY}, Georgia, serif"
-    px = MERMAID_FONT_SIZE_PX
-    # Half of Mermaid flowchart default node padding (15 → 8).
-    MERMAID_NODE_PADDING = 8
-    theme_css = (
-        ".mermaid text,.mermaid tspan,.mermaid .nodeLabel,"
-        ".mermaid .edgeLabel,.mermaid .label,.mermaid .labelText,"
-        ".mermaid .actor,.mermaid .messageText,.mermaid .noteText,"
-        ".mermaid foreignObject,.mermaid foreignObject div,"
-        ".mermaid foreignObject span{"
-        f"font-size:{MERMAID_FONT_SIZE} !important;"
-        f"font-family:{ff} !important;"
-        "}"
-        ".mermaid .nodeLabel p{margin:0!important;padding:0!important;}"
-        ".mermaid foreignObject div{line-height:1.25!important;}"
+def layout_boot_script(html_path: Path, has_mermaid: bool, has_katex: bool) -> str:
+    """Single ordered boot: fonts → Mermaid → KaTeX → (preview) para-mark."""
+    parts: list[str] = []
+    if has_mermaid:
+        parts.append(mermaid_vendor_tag(rel_url(html_path, require_mermaid_vendor())))
+    if has_katex:
+        katex_dir = require_katex_vendor()
+        parts.append(
+            katex_assets_html(
+                rel_url(html_path, katex_dir / "katex.min.css"),
+                rel_url(html_path, katex_dir / "katex.min.js"),
+                rel_url(html_path, katex_dir / "auto-render.min.js"),
+            )
+        )
+    mermaid_js = (
+        mermaid_run_js(content_width_px(), content_height_px())
+        if has_mermaid
+        else "async function ascRunMermaid() {}\n"
     )
-    # IIFE bundle exposes global `mermaid`. Avoid type=module: Chromium blocks
-    # parent-directory ESM imports under file://.
-    return f"""<script src="{mermaid_rel}"></script>
-<script>
-  (function () {{
-    const m = (typeof mermaid !== 'undefined' && mermaid.default) ? mermaid.default : mermaid;
-    m.initialize({{
-      startOnLoad: false,
-      theme: 'base',
-      securityLevel: 'loose',
-      fontFamily: '{ff}',
-      fontSize: {px},
-      themeVariables: {{
-        fontSize: '{MERMAID_FONT_SIZE}',
-        fontFamily: '{ff}'
-      }},
-      themeCSS: {theme_css!r},
-      flowchart: {{
-        useMaxWidth: true,
-        htmlLabels: true,
-        padding: {MERMAID_NODE_PADDING}
-      }},
-      sequence: {{
-        useMaxWidth: true,
-        actorFontSize: {px},
-        messageFontSize: {px},
-        noteFontSize: {px}
-      }},
-      er: {{ useMaxWidth: true }},
-      journey: {{ useMaxWidth: true }}
-    }});
-    window.__ascMermaidReady = m.run().then(() => {{
-      window.__ascMermaidDone = true;
-    }}).catch((err) => {{
-      console.error('Mermaid render failed', err);
-      window.__ascMermaidDone = true;
-    }});
-  }})();
+    katex_js = KATEX_RUN_JS if has_katex else "async function ascRunKatex() {}\n"
+    parts.append(
+        f"""<script>
+{mermaid_js}
+{katex_js}
+{ASC_MARK_LONG_PARAS_FN}
+async function ascLayoutBoot() {{
+  try {{
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+  }} catch (e) {{}}
+  await ascRunMermaid();
+  await ascRunKatex();
+  if (!window.__ascPdfDriver) {{
+    ascMarkLongParagraphs();
+  }}
+  window.__ascLayoutReady = true;
+}}
+ascLayoutBoot().catch(function (err) {{
+  console.error('ascLayoutBoot failed', err);
+  window.__ascLayoutReady = true;
+}});
 </script>
 """
+    )
+    return "".join(parts)
 
-
-def katex_boot_script(html_path: Path) -> str:
-    """Local KaTeX auto-render — works with file:// relative src."""
-    katex_dir = require_katex_vendor()
-    css_rel = rel_url(html_path, katex_dir / "katex.min.css")
-    js_rel = rel_url(html_path, katex_dir / "katex.min.js")
-    auto_rel = rel_url(html_path, katex_dir / "auto-render.min.js")
-    return f"""<link rel="stylesheet" href="{css_rel}">
-<style>
-  /*
-   * Chromium PDF: KaTeX strut/vlist nesting inflates line boxes when .katex
-   * stays display:inline. Atomic inline-block keeps baseline math in-flow.
-   */
-  .katex {{
-    display: inline-block !important;
-    vertical-align: baseline;
-    line-height: 1;
-    font-size: 1.05em;
-    text-indent: 0;
-    white-space: nowrap;
-  }}
-  .katex-display {{
-    display: block !important;
-    margin: 0.55em 0;
-    text-align: center;
-    white-space: normal;
-  }}
-  .asc-math-display {{
-    margin: 0.55em 0;
-    text-align: center;
-  }}
-  .asc-math-display .katex-display {{
-    margin: 0;
-  }}
-  /* Hidden MathML still pollutes Chromium's PDF text layer / copy-paste. */
-  .katex .katex-mathml {{
-    display: none !important;
-  }}
-</style>
-<script src="{js_rel}"></script>
-<script src="{auto_rel}"></script>
-<script>
-  (function () {{
-    function ascFinishKatex() {{
-      document.querySelectorAll('.katex-mathml').forEach(function (el) {{
-        el.remove();
-      }});
-      /* auto-render wraps .katex in a bare <span>; unwrap so inline-block applies. */
-      document.querySelectorAll('.katex').forEach(function (el) {{
-        var isDisplay = el.classList.contains('katex-display')
-          || (el.parentElement && el.parentElement.classList.contains('katex-display'));
-        if (!isDisplay) {{
-          el.style.display = 'inline-block';
-          el.style.verticalAlign = 'baseline';
-          el.style.lineHeight = '1';
-          el.style.whiteSpace = 'nowrap';
-        }}
-        var parent = el.parentElement;
-        if (
-          parent
-          && parent.tagName === 'SPAN'
-          && !parent.className
-          && parent.childElementCount === 1
-          && parent.childNodes.length === 1
-        ) {{
-          parent.replaceWith(el);
-        }}
-      }});
-      var ready = (document.fonts && document.fonts.ready)
-        ? document.fonts.ready
-        : Promise.resolve();
-      ready.then(function () {{
-        window.__ascKatexDone = true;
-      }}).catch(function () {{
-        window.__ascKatexDone = true;
-      }});
-    }}
-    function ascRunKatex() {{
-      try {{
-        renderMathInElement(document.body, {{
-          delimiters: [
-            {{left: '$$', right: '$$', display: true}},
-            {{left: '$', right: '$', display: false}}
-          ],
-          throwOnError: false,
-          output: 'html'
-        }});
-      }} catch (err) {{
-        console.error('KaTeX render failed', err);
-      }}
-      ascFinishKatex();
-    }}
-    if (window.__ascMermaidReady) {{
-      window.__ascMermaidReady.then(ascRunKatex).catch(ascRunKatex);
-    }} else {{
-      ascRunKatex();
-    }}
-  }})();
-</script>
-"""
-
-
-def patch_mermaid_as_html() -> None:
-    """Turn ```mermaid fences into live HTML for in-page Mermaid.js (not PNG)."""
-    import md2pdf.html_renderer as hr
-
-    def _process_mermaid_diagrams(markdown_text: str):
-        temp_images: list[str] = []
-        pattern = r"```mermaid\n(.*?)\n```"
-        matches = list(re.finditer(pattern, markdown_text, re.DOTALL))
-        for match in reversed(matches):
-            code = match.group(1).strip("\n")
-            safe = html_lib.escape(code)
-            block = (
-                '<div class="mermaid-wrap">\n'
-                f'<pre class="mermaid">{safe}</pre>\n'
-                "</div>\n"
-            )
-            markdown_text = (
-                markdown_text[: match.start()] + block + markdown_text[match.end() :]
-            )
-        return markdown_text, temp_images
-
-    hr._process_mermaid_diagrams = _process_mermaid_diagrams
 
 
 def find_project_root(source_md: Path) -> Path:
@@ -466,6 +308,41 @@ def rewrite_local_img_srcs(html: str, source_md: Path, html_path: Path) -> str:
     return _IMG_SRC_RE.sub(repl, html)
 
 
+# Chromium writes HTML ids as PDF name dests. PDF 1.4 names max 127 bytes.
+PDF_DEST_NAME_MAX = 120
+
+
+def shorten_html_ids(html: str, max_len: int = PDF_DEST_NAME_MAX) -> str:
+    """Truncate heading ids / fragment hrefs so PDF name tokens stay legal."""
+    found = re.findall(r'\bid="([^"]+)"', html)
+    mapping: dict[str, str] = {}
+    taken = set(found)
+    for old in found:
+        if old in mapping:
+            continue
+        if len(old.encode("utf-8")) <= max_len:
+            mapping[old] = old
+            continue
+        digest = hashlib.sha1(old.encode("utf-8")).hexdigest()[:8]
+        budget = max(8, max_len - 9)
+        stem = old.encode("utf-8")[:budget].decode("utf-8", "ignore").rstrip("-")
+        new = f"{stem}-{digest}"
+        n = 2
+        while new in taken:
+            new = f"{stem}-{digest}{n}"
+            n += 1
+        mapping[old] = new
+        taken.add(new)
+    for old, new in sorted(mapping.items(), key=lambda kv: -len(kv[0])):
+        if old == new:
+            continue
+        html = html.replace(f'id="{old}"', f'id="{new}"')
+        html = html.replace(f"id='{old}'", f"id='{new}'")
+        html = html.replace(f'href="#{old}"', f'href="#{new}"')
+        html = html.replace(f"href='#{old}'", f"href='#{new}'")
+    return html
+
+
 def patch_html_renderer() -> None:
     import md2pdf.html_renderer as hr
 
@@ -479,6 +356,9 @@ def patch_html_renderer() -> None:
         protected, katex_placeholders = protect_katex_math(markdown_text)
         html = orig(protected, title=title, enable_mermaid=enable_mermaid)
         html = restore_katex_math(html, katex_placeholders)
+        html = explode_pre_code_lines(html)
+        html = inject_mermaid_candidates(html)
+        html = shorten_html_ids(html)
         html_path = _PRINT_HTML_PATH
         if html_path is None:
             raise RuntimeError("Internal error: print HTML path not set")
@@ -492,15 +372,12 @@ def patch_html_renderer() -> None:
         )
         if n != 1:
             raise RuntimeError("Failed to replace md2pdf embedded <style> block")
-        boot = ""
-        if enable_mermaid and 'class="mermaid"' in html2:
-            boot += mermaid_boot_script(html_path)
-        if html_has_katex(html2):
-            boot += katex_boot_script(html_path)
-        if boot:
-            if "</body>" not in html2:
-                raise RuntimeError("HTML missing </body>; cannot inject scripts")
-            html2 = html2.replace("</body>", boot + "</body>", 1)
+        has_mermaid = bool(enable_mermaid and 'class="mermaid"' in html2)
+        has_katex = html_has_katex(html2)
+        boot = layout_boot_script(html_path, has_mermaid, has_katex)
+        if "</body>" not in html2:
+            raise RuntimeError("HTML missing </body>; cannot inject scripts")
+        html2 = html2.replace("</body>", boot + "</body>", 1)
         source_md = _CURRENT_SOURCE_MD
         if source_md is not None:
             html2 = rewrite_local_img_srcs(html2, source_md, html_path)
@@ -547,43 +424,47 @@ def patch_html_renderer() -> None:
                 },
             }
 
-            has_mermaid = 'class="mermaid"' in html_content
-            has_katex = "auto-render.min.js" in html_content
             # Playwright requires a URL; derived from project-local HTML only.
             goto_url = html_path.resolve().as_uri()
 
             async with async_playwright() as p:
                 browser = await p.chromium.launch()
                 page = await browser.new_page()
+                # PIPELINE PDF: wait layout → emulate print → mark paras → paginate → pdf
+                await page.add_init_script("window.__ascPdfDriver = true")
+                await page.set_viewport_size(
+                    {
+                        "width": max(1, round(content_width_px())),
+                        "height": max(1, round(content_height_px())),
+                    }
+                )
                 await page.goto(goto_url)
-                if has_mermaid:
-                    await page.wait_for_function(
-                        """() => window.__ascMermaidDone === true""",
-                        timeout=60000,
+                await page.wait_for_function(
+                    "window.__ascLayoutReady === true",
+                    timeout=120000,
+                )
+                failed = await page.evaluate(
+                    "() => window.__ascMermaidFailed || []"
+                )
+                if failed:
+                    print(
+                        f"warning: {len(failed)} Mermaid diagram(s) left as source "
+                        f"(#{', #'.join(str(n) for n in failed)})",
+                        file=sys.stderr,
                     )
-                    await page.wait_for_function(
-                        """() => {
-                          const nodes = [...document.querySelectorAll('.mermaid')];
-                          return nodes.length === 0
-                            || nodes.every(n => n.querySelector('svg'));
-                        }""",
-                        timeout=60000,
+                await page.emulate_media(media="print")
+                await page.evaluate(MARK_LONG_PARAS_JS)
+                if not _NO_PAGINATE:
+                    inserted = await apply_print_pushes(page, pdf_options)
+                    print(f"  print pushes: {inserted}")
+                err_n = await page.evaluate(
+                    "() => document.querySelectorAll('.katex-error').length"
+                )
+                if err_n:
+                    print(
+                        f"warning: {err_n} KaTeX error span(s)",
+                        file=sys.stderr,
                     )
-                if has_katex:
-                    await page.wait_for_function(
-                        """() => window.__ascKatexDone === true""",
-                        timeout=60000,
-                    )
-                    # Ensure KaTeX webfonts are applied before print.
-                    await page.evaluate(
-                        """async () => {
-                          if (document.fonts && document.fonts.ready) {
-                            await document.fonts.ready;
-                          }
-                        }"""
-                    )
-                elif not has_mermaid:
-                    await page.wait_for_load_state("networkidle")
                 await page.pdf(**pdf_options)
                 await browser.close()
 
@@ -632,7 +513,15 @@ def main() -> int:
     parser.add_argument("-o", "--output", required=True, help="Output PDF path")
     parser.add_argument("--title", default=None, help="Document title")
     parser.add_argument("--no-mermaid", action="store_true")
+    parser.add_argument(
+        "--no-paginate",
+        action="store_true",
+        help="Skip heading/table <br> pagination (debug only)",
+    )
     args = parser.parse_args()
+
+    global _NO_PAGINATE
+    _NO_PAGINATE = bool(args.no_paginate)
 
     input_path = Path(args.input)
     output_path = Path(args.output)

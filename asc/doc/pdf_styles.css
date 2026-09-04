@@ -26,6 +26,8 @@
   --asc-font-size: 8pt;
   --asc-font-size-code: 6pt;
   --asc-font-size-small: .875em;
+  /* Mermaid layout font (px). Keep in sync with MERMAID_FONT_PX. */
+  --asc-mermaid-font-size: 11px;
 
   --asc-font-size-h1: 13pt;
   --asc-font-size-h2: 11pt;
@@ -418,21 +420,20 @@ pre {
   border: var(--pico-border-width) solid var(--pico-muted-border-color);
   margin: 0 var(--pico-spacing);
   padding: var(--pico-spacing);
-  overflow-x: auto;
-  -ms-overflow-style: scrollbar;
 }
 
 pre code,
 pre samp {
-  display: inline-block;
-  width: 100%;
+  display: block;
+  width: auto;
   padding: 0;
   margin: 0;
   border: none;
   background: none;
   font-family: inherit;
   line-height: var(--pico-line-height);
-  white-space: pre-wrap;
+  /* Line breaks come from .code-line blocks; a leftover \\n here doubles them. */
+  white-space: normal;
   word-break: break-word;
 }
 
@@ -442,6 +443,28 @@ pre.codehilite,
   margin-top: calc(var(--pico-spacing) * 2);
   margin-bottom: calc(var(--pico-spacing) * 2);
   background: var(--pico-code-background-color);
+}
+
+pre,
+pre.codehilite,
+.codehilite {
+  overflow: visible;
+  page-break-inside: auto;
+  break-inside: auto;
+}
+
+.code-line {
+  display: block;
+  white-space: pre-wrap;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+.code-line:empty {
+  page-break-inside: auto;
+  break-inside: auto;
+}
+.code-line:empty::before {
+  content: "\00a0";
 }
 
 kbd {
@@ -472,7 +495,7 @@ hr {
 }
 
 .emoji {
-  font-family: var(--pico-font-family-sans-serif);
+  font-family: var(--pico-font-family-sans);
 }
 
 /* Mermaid: live SVG in the print page (see md2pdf_asc.py), not PNG */
@@ -491,9 +514,9 @@ pre.mermaid {
   border: none;
   background: transparent;
   color: var(--pico-color);
-  font-family: var(--pico-font-family-sans-serif);
-  font-size: var(--asc-font-size);
-  line-height: var(--pico-line-height);
+  font-family: var(--pico-font-family-sans);
+  font-size: var(--asc-mermaid-font-size);
+  line-height: 1.25;
   white-space: pre-wrap;
 }
 
@@ -502,19 +525,28 @@ pre.mermaid svg {
   height: auto;
 }
 
-/* Sequence diagrams set actor <text> to 16px unless overridden */
-.mermaid text,
-.mermaid tspan,
-.mermaid .nodeLabel,
-.mermaid .edgeLabel,
-.mermaid .labelText,
-.mermaid .messageText,
-.mermaid .noteText,
-.mermaid foreignObject,
-.mermaid foreignObject div,
-.mermaid foreignObject span {
-  font-size: var(--asc-font-size) !important;
-  font-family: var(--pico-font-family-sans-serif) !important;
+pre.mermaid .nodeLabel,
+pre.mermaid .edgeLabel,
+pre.mermaid .label,
+pre.mermaid foreignObject,
+pre.mermaid foreignObject div,
+pre.mermaid foreignObject span,
+pre.mermaid foreignObject p {
+  font-size: var(--asc-mermaid-font-size);
+  font-family: var(--pico-font-family-sans);
+  line-height: 1.25;
+}
+
+/* Applied during mermaid.render() too (temp SVG is on document.body, not in pre). */
+.nodeLabel,
+.edgeLabel,
+.label foreignObject,
+.label foreignObject div,
+.label foreignObject span,
+.label foreignObject p {
+  font-size: var(--asc-mermaid-font-size) !important;
+  font-family: var(--pico-font-family-sans) !important;
+  line-height: 1.25 !important;
 }
 
 .mermaid .nodeLabel p {
@@ -522,8 +554,22 @@ pre.mermaid svg {
   padding: 0 !important;
 }
 
-.mermaid foreignObject div {
-  line-height: 1.25 !important;
+.asc-print-push {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  line-height: inherit;
+  font-size: inherit;
+}
+
+p.asc-para-long + p.asc-para-long {
+  margin-top: 1em;
+}
+
+.katex-display,
+.katex-display .katex,
+.katex-display .katex-html {
+  line-height: 1;
 }
 
 .page-break {

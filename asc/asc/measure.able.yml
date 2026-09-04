@@ -1,0 +1,6 @@
+required:
+  using:
+    type: field
+    result:
+      var: value
+    validation: test-is(@,numeric)

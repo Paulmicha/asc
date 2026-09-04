@@ -7,6 +7,7 @@
 # @example
 #   asc/doc/html_preview.sh 'data/ideas/2026/08/Agents of Redirection (Donella Meadows, Alexandre Monnin, Pierre Lévy).md'
 #   asc/doc/html_preview.sh 'docs/asc/builder.md'
+#   asc/doc/html_preview.sh 'asc/doc/fixtures/katex-delimiters.md'
 #
 
 . asc/bootstrap.sh
@@ -25,13 +26,13 @@ if [[ ! -f "$p_md" ]]; then
 fi
 
 case "$p_md" in
-  data/ideas/*|docs/*) ;;
+  data/ideas/*|docs/*|asc/doc/fixtures/*) ;;
   *)
     abs="$(cd "$(dirname "$p_md")" && pwd)/$(basename "$p_md")"
     case "$abs" in
-      "$PWD/data/ideas/"*|"$PWD/docs/"*) ;;
+      "$PWD/data/ideas/"*|"$PWD/docs/"*|"$PWD/asc/doc/fixtures/"*) ;;
       *)
-        echo "Expected a markdown file under data/ideas/ or docs/: $p_md" >&2
+#   Expected a markdown file under data/ideas/, docs/, or asc/doc/fixtures/: $p_md
         exit 1
         ;;
     esac
