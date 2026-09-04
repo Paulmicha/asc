@@ -10,7 +10,7 @@ from print_paginate import (
     MERMAID_FONT_PX,
     MERMAID_LABEL_WRAP_CHARS,
     MERMAID_MAX_CANDIDATES,
-    MERMAID_MIN_FONT_PX,
+    MERMAID_NATIVE_FONT_PX,
     MERMAID_SKIP_RETRY_SCALE,
     MERMAID_TIE_EPS,
     mermaid_layout_px,
@@ -226,16 +226,6 @@ def mermaid_vendor_tag(mermaid_rel: str) -> str:
 
 
 def mermaid_run_js(page_w: float, page_h: float) -> str:
-    pad = mermaid_layout_px(8)
-    wrap = mermaid_layout_px(200)
-    spacing = mermaid_layout_px(50)
-    gantt_left = mermaid_layout_px(75)
-    gantt_bar = mermaid_layout_px(20)
-    gantt_gap = mermaid_layout_px(4)
-    gantt_top = mermaid_layout_px(50)
-    seq_actor = mermaid_layout_px(50)
-    seq_box = mermaid_layout_px(10)
-    seq_msg = mermaid_layout_px(35)
     return f"""
 async function ascRunMermaid() {{
   const pres = [...document.querySelectorAll('pre.mermaid')];
@@ -245,13 +235,15 @@ async function ascRunMermaid() {{
   const pageW = {page_w};
   const pageH = {page_h};
   const skipScale = {MERMAID_SKIP_RETRY_SCALE};
-  const minFont = {MERMAID_MIN_FONT_PX};
-  const mermaidFont = {MERMAID_FONT_PX};
+  const mermaidNative = {MERMAID_NATIVE_FONT_PX};
+  const mermaidFont =
+    parseFloat(getComputedStyle(document.documentElement).fontSize) || {MERMAID_FONT_PX};
+  const minFont = mermaidFont * 0.75;
+  const layout = function (n) {{
+    return Math.max(1, Math.round(n * mermaidFont / mermaidNative));
+  }};
   const tieEps = {MERMAID_TIE_EPS};
   const ff = 'Source Sans 3, system-ui, sans-serif';
-  document.documentElement.style.setProperty(
-    '--asc-mermaid-font-size', mermaidFont + 'px'
-  );
   if (!document.getElementById('ascMermaidMeasureCss')) {{
     const st = document.createElement('style');
     st.id = 'ascMermaidMeasureCss';
@@ -268,31 +260,42 @@ async function ascRunMermaid() {{
     securityLevel: 'loose',
     fontFamily: ff,
     fontSize: mermaidFont,
-    themeVariables: {{ fontSize: mermaidFont + 'px', fontFamily: ff }},
+    htmlLabels: true,
+    themeVariables: {{
+      fontSize: mermaidFont + 'px',
+      fontFamily: ff
+    }},
     flowchart: {{
       useMaxWidth: false,
       htmlLabels: true,
-      padding: {pad},
-      wrappingWidth: {wrap},
-      nodeSpacing: {spacing},
-      rankSpacing: {spacing}
+      padding: layout(8),
+      wrappingWidth: layout(200),
+      nodeSpacing: layout(50),
+      rankSpacing: layout(50)
     }},
     sequence: {{
       useMaxWidth: false,
-      actorMargin: {seq_actor},
-      boxMargin: {seq_box},
-      messageMargin: {seq_msg},
+      actorMargin: layout(50),
+      boxMargin: layout(10),
+      messageMargin: layout(35),
       actorFontSize: mermaidFont,
       messageFontSize: mermaidFont,
       noteFontSize: mermaidFont
     }},
     gantt: {{
       useMaxWidth: false,
-      leftPadding: {gantt_left},
-      barHeight: {gantt_bar},
-      barGap: {gantt_gap},
-      topPadding: {gantt_top},
+      leftPadding: layout(75),
+      barHeight: layout(20),
+      barGap: layout(4),
+      topPadding: layout(50),
       fontSize: mermaidFont
+    }},
+    state: {{
+      useMaxWidth: false,
+      padding: layout(8),
+      fontSize: mermaidFont,
+      textHeight: layout(10),
+      labelHeight: layout(16)
     }},
     er: {{ useMaxWidth: false }},
     journey: {{ useMaxWidth: false }}

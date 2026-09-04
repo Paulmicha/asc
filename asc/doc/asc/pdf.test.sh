@@ -36,10 +36,13 @@ css_full = Path("asc/doc/pdf_styles.css").read_text(encoding="utf-8")
 assert ".code-line" in css_full
 assert ".code-line:empty::before" in css_full
 assert ".asc-print-push" in css_full
+assert ".asc-print-push + :is(h1, h2, h3, h4, h5, h6)" in css_full
 assert ".asc-print-break" not in css_full
-assert "--asc-mermaid-font-size: 11px" in css_full
+assert "--asc-font-size: 9pt" in css_full
+assert "--asc-mermaid-font-size: 1em" in css_full
 assert "font-size: var(--asc-mermaid-font-size)" in css_full
 assert ".nodeLabel" in css_full
+assert "--asc-font-size-h1: 1.625rem" in css_full
 print("ok")
 PY
   assertEquals 'page CSS margin regression assertions failed' 0 $?
@@ -48,6 +51,7 @@ PY
 test_constants_and_content_box() {
   "$PDF_PY" - <<'PY'
 from print_paginate import (
+    ASC_FONT_PT,
     A4_HEIGHT_PX,
     A4_WIDTH_PX,
     CSS_PAGE_MARGIN_CM,
@@ -65,6 +69,7 @@ from print_paginate import (
     MERMAID_SKIP_RETRY_SCALE,
     MERMAID_TIE_EPS,
     mermaid_layout_px,
+    em_to_px,
     MIN_FOLLOWING_LINES,
     MIN_TABLE_ROWS,
     PARA_LONG_MIN_LINES,
@@ -77,7 +82,7 @@ from print_paginate import (
 assert MIN_FOLLOWING_LINES == 4
 assert MIN_TABLE_ROWS == 3
 assert MAX_WIDOW_LINE_EQUIV == 4.0
-assert TOP_MAX_PX == 8.0
+assert TOP_MAX_PX == em_to_px(0.75)
 assert MAX_BR_PER_TARGET == 80
 assert BOTTOM_BAND_LINES == 12.0
 assert A4_WIDTH_PX == 210.0 * 96.0 / 25.4
@@ -88,15 +93,16 @@ assert MARGIN_BOTTOM_CM == 1.0
 assert MARGIN_LEFT_CM == 0.7
 assert CSS_PAGE_MARGIN_CM == 0.75
 assert PARA_LONG_MIN_LINES == 3
+assert ASC_FONT_PT == 9.0
 assert MERMAID_MAX_CANDIDATES == 4
 assert MERMAID_SKIP_RETRY_SCALE == 0.70
-assert MERMAID_MIN_FONT_PX == 10
-assert MERMAID_FONT_PX == 11
 assert MERMAID_NATIVE_FONT_PX == 16
+assert abs(MERMAID_FONT_PX - em_to_px(1.0)) < 1e-9
+assert abs(MERMAID_MIN_FONT_PX - em_to_px(0.75)) < 1e-9
 assert mermaid_layout_px(8) == 6
-assert mermaid_layout_px(16) == 11
-assert mermaid_layout_px(50) == 34
-assert mermaid_layout_px(200) == 138
+assert mermaid_layout_px(16) == 12
+assert mermaid_layout_px(50) == 38
+assert mermaid_layout_px(200) == 150
 assert MERMAID_LABEL_WRAP_CHARS == 42
 assert MERMAID_TIE_EPS == 5.0
 assert content_box(1122.5, 22.5, 37.8) == 1062.2
@@ -205,6 +211,25 @@ jargon_rows = (
     "Hook pre_llm",
 )
 assert heading_keep_from_pdf(jargon, 2, 691, jargon_rows, next_heading_page=5) is False
+
+# Wide multi-column table: PDF lines do not match full DOM row strings,
+# but the section already continues on this page (do not push).
+wide = [
+    PdfLine(11, 565, "B. Retrieval, memory, data"),
+    PdfLine(11, 595, "Source Interesting / original For Projet Complexe Read"),
+    PdfLine(11, 614, "Norman, Agentic Production RAG that admits failure"),
+    PdfLine(11, 627, "RAG Systems (2026) pipelines fail in production"),
+    PdfLine(11, 639, "embeddings have a semantic gap"),
+    PdfLine(11, 651, "lexical / semantic / structural similarity"),
+    PdfLine(11, 663, "are different families. Then the useful Implementation"),
+    PdfLine(12, 24, "later"),
+]
+wide_rows = (
+    "Source Interesting / original For Projet Complexe Read",
+    "Norman, Agentic RAG Systems (2026) Production RAG that admits failure: naive pipelines fail in production",
+    "Labaschin & Wallace Managing Memory for AI Agents Memory is data with types",
+)
+assert heading_keep_from_pdf(wide, 11, 565, wide_rows, next_heading_page=13) is True
 print("ok")
 PY
   assertEquals 'heading-orphan page-review assertions failed' 0 $?
@@ -212,7 +237,17 @@ PY
 
 test_page_review_table_then_heading() {
   "$PDF_PY" - <<'PY'
-from print_paginate import PageIssue, choose_bottom_issue, is_table_widow
+from print_paginate import (
+    HEADING_TAGS,
+    PAGINATE_JS,
+    PageIssue,
+    choose_bottom_issue,
+    is_table_widow,
+    section_owns_table,
+    trim_overshoot_spacer,
+    _DOM_Y_JS,
+    _MARK_KEEP_JS,
+)
 
 # Header + one data row at the bottom; rest of the table continues.
 assert is_table_widow(
@@ -233,6 +268,35 @@ assert choose_bottom_issue(table, heading) == heading
 assert choose_bottom_issue(table, None) == table
 assert choose_bottom_issue(None, heading) == heading
 assert choose_bottom_issue(None, None) is None
+
+# Do not insert a table spacer between a heading and its table
+# (## 2.3 then one intro line then the table).
+assert section_owns_table(["H2"], 0.0) is True
+assert section_owns_table(["P", "H2"], 1.0) is True
+assert section_owns_table(["P", "H3"], 3.0) is True
+assert section_owns_table(["P", "H2"], 4.0) is False
+assert section_owns_table(["P"], 1.0) is False
+assert section_owns_table(["H1"], 0.0) is True
+assert section_owns_table(["P", "H1"], 1.0) is True
+assert "H1" in HEADING_TAGS
+assert "/^H[1-6]$/" in PAGINATE_JS
+assert "h1,h2,h3,h4,h5,h6,table" in PAGINATE_JS
+assert "h1,h2,h3,h4,h5,h6,table" in _DOM_Y_JS
+assert "h1,h2,h3,h4,h5,h6" in _MARK_KEEP_JS
+assert "sectionHeadForTable" in PAGINATE_JS
+assert "tableFragmentLines" in PAGINATE_JS
+assert "trimOvershoot" in PAGINATE_JS
+
+# After a push, leftover spacer must not floor at one <br> (that is a
+# blank line at the top of the next page).
+h, n = trim_overshoot_spacer(
+    y_on_next=20.0, min_height=20.0, n_br=2, br_h=16.0, top_eps=9.0
+)
+assert h == 0.0 and n == 0
+h, n = trim_overshoot_spacer(
+    y_on_next=6.0, min_height=180.0, n_br=4, br_h=16.0, top_eps=9.0
+)
+assert abs(h - 164.0) < 1e-9 and n == 4
 print("ok")
 PY
   assertEquals 'table-then-heading page-review assertions failed' 0 $?
@@ -308,6 +372,8 @@ assert "<br>" in wrapped
 assert "hello" in wrapped and "world" in wrapped
 cands = mermaid_candidates(src)
 assert cands[0][1] is True
+assert 'A["hello world this is a long node label here"]' in cands[0][0]
+assert "@{ shape: rounded" not in cands[0][0]
 assert any(c[0].startswith("flowchart TD") for c in cands)
 assert len(cands) <= 4
 
@@ -334,13 +400,14 @@ from print_mermaid import mermaid_run_js
 js = mermaid_run_js(800, 1000)
 assert "error-text" in js
 assert "dascMmd" in js
-assert "padding: 6" in js
-assert "wrappingWidth: 138" in js
-assert "nodeSpacing: 34" in js
+assert "layout(8)" in js
+assert "getComputedStyle(document.documentElement)" in js
+assert "htmlLabels: true" in js
 assert "ascCenterMermaidLabels" in js
-assert "--asc-mermaid-font-size" in js
 assert "ascMermaidMeasureCss" in js
 assert "nodeLabel" in js
+assert "shape: rounded" not in js
+assert "radius: 3" not in js
 print("ok")
 PY
   assertEquals 'mermaid candidates Python assertions failed' 0 $?
@@ -376,6 +443,11 @@ assert long_id not in out
 assert 'id="short"' in out
 assert f'href="#{long_id}"' not in out
 assert 'href="#' in out
+from md2pdf_asc import PROJECT_ROOT_DEFAULT, MERMAID_VENDOR, display_path
+outside = Path("/tmp/unrelated-project")
+shown = display_path(MERMAID_VENDOR, outside, PROJECT_ROOT_DEFAULT)
+assert shown.endswith("asc/vendor/mermaid.esm.min.mjs"), shown
+assert not shown.startswith("/tmp/")
 print("ok")
 PY
   assertEquals 'pipeline order assertions failed' 0 $?

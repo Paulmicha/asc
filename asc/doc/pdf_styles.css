@@ -8,9 +8,9 @@
  * (p, h1–h4, a, ul/ol/li, table/thead/tbody/tr/th/td, code/pre,
  * strong/em, blockquote, hr, br, img, …). Forms/nav/modals omitted.
  *
- * Sizes: ASC print scale (body 8pt Spectral). Colors: Pico orange
- * light scheme. Print tweak: inline/pre code use body text color (Pico’s
- * muted --pico-code-color is too weak at 7–8pt in dense tables).
+ * Sizes: ASC print scale (body 9pt Spectral; headings/code/mermaid in rem/em).
+ * Colors: Pico orange light scheme. Print tweak: inline/pre code use body text
+ * color (Pico’s muted --pico-code-color is too weak at 7–8pt in dense tables).
  */
 
 @page {
@@ -23,16 +23,16 @@
   --pico-line-height: 1.45;
   --pico-font-weight: 400;
 
-  --asc-font-size: 8pt;
-  --asc-font-size-code: 6pt;
+  --asc-font-size: 9pt;
+  --asc-font-size-code: 0.75rem;
   --asc-font-size-small: .875em;
-  /* Mermaid layout font (px). Keep in sync with MERMAID_FONT_PX. */
-  --asc-mermaid-font-size: 11px;
+  /* Mermaid labels: 1em so they track --asc-font-size. */
+  --asc-mermaid-font-size: 1em;
 
-  --asc-font-size-h1: 13pt;
-  --asc-font-size-h2: 11pt;
-  --asc-font-size-h3: 9.5pt;
-  --asc-font-size-h4: 8.5pt;
+  --asc-font-size-h1: 1.625rem;
+  --asc-font-size-h2: 1.375rem;
+  --asc-font-size-h3: 1.1875rem;
+  --asc-font-size-h4: 1.0625rem;
 
   --pico-border-radius: .25rem;
   --pico-border-width: .0625rem;
@@ -101,7 +101,7 @@ html {
 
   /*
     Chromium → PDF: optimizeLegibility enables GPOS kern + liga.
-    At 8pt, those adjustments quantize unevenly (mono looks fine — no kern).
+    At 9pt, those adjustments quantize unevenly (mono looks fine — no kern).
   */
   text-rendering: geometricPrecision;
   font-kerning: none;
@@ -191,14 +191,14 @@ h6 {
   margin-bottom: var(--pico-spacing);
   color: var(--pico-color);
   font-family: var(--pico-font-family-headings);
-  font-weight: 700;
+  font-weight: 900;
   line-height: 1.25;
 }
 
 /* Pico: spacing-top before headings that follow blocks */
 :where(article, address, blockquote, dl, figure, ol, p, pre, table, ul)
   ~ :is(h1, h2, h3, h4, h5, h6) {
-  margin-top: 16px;
+  margin-top: calc(var(--pico-spacing) * 2);
 }
 
 h1 {
@@ -560,6 +560,12 @@ pre.mermaid foreignObject p {
   border: 0;
   line-height: inherit;
   font-size: inherit;
+  overflow: hidden;
+}
+
+.asc-print-push + :is(h1, h2, h3, h4, h5, h6),
+.asc-print-push + table {
+  margin-top: 0;
 }
 
 p.asc-para-long + p.asc-para-long {

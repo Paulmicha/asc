@@ -93,6 +93,17 @@ def rel_url(from_file: Path, to_file: Path) -> str:
     ).as_posix()
 
 
+def display_path(path: Path, *roots: Path) -> str:
+    """Path relative to the first matching root; otherwise the absolute path."""
+    resolved = path.resolve()
+    for root in roots:
+        try:
+            return resolved.relative_to(root.resolve()).as_posix()
+        except ValueError:
+            continue
+    return str(resolved)
+
+
 def font_face_css(html_path: Path) -> str:
     faces = {k: _face_path(k) for k in FACE_FILES}
     if not faces["regular"]:
@@ -550,9 +561,9 @@ def main() -> int:
     title = args.title or input_path.stem
     print(f"Converting {input_path} to PDF...")
     print(
-        f"  (ASC style: {FONT_FAMILY} + {MONO_FONT_FAMILY} + compact 8pt; "
-        f"Mermaid local {MERMAID_VENDOR.relative_to(_PROJECT_ROOT)}; "
-        f"KaTeX local {KATEX_VENDOR.relative_to(_PROJECT_ROOT)}; "
+        f"  (ASC style: {FONT_FAMILY} + {MONO_FONT_FAMILY} + 9pt body; "
+        f"Mermaid local {display_path(MERMAID_VENDOR, _PROJECT_ROOT, PROJECT_ROOT_DEFAULT)}; "
+        f"KaTeX local {display_path(KATEX_VENDOR, _PROJECT_ROOT, PROJECT_ROOT_DEFAULT)}; "
         "local images rewritten for print HTML)"
     )
     try:

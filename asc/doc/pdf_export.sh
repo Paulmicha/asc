@@ -7,7 +7,7 @@
 #   -> 'data/ideas/2026/08/Agents of Redirection (Donella Meadows, Alexandre Monnin, Pierre Lévy).pdf'
 #
 # @requires https://github.com/rbutinar/md2pdf-mermaid
-# Styled via asc/doc/md2pdf_asc.py + pdf_styles.css (Spectral, compact 8pt).
+# Styled via asc/doc/md2pdf_asc.py + pdf_styles.css (Spectral, 9pt body).
 # Mermaid: local asc/vendor/mermaid.esm.min.mjs (offline).
 # KaTeX: local asc/vendor/katex/ (CSS + JS + auto-render, offline).
 #

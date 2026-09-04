@@ -16,8 +16,6 @@ from pathlib import Path
 MIN_FOLLOWING_LINES = 4
 MIN_TABLE_ROWS = 3
 MAX_WIDOW_LINE_EQUIV = 4.0
-# "Already at the top of this layout page" — do not keep pushing.
-TOP_MAX_PX = 8.0
 MAX_BR_PER_TARGET = 80
 BOTTOM_BAND_LINES = 12.0
 A4_WIDTH_PX = 210.0 * 96.0 / 25.4
@@ -30,18 +28,27 @@ MARGIN_BOTTOM_CM = 1.0
 MARGIN_LEFT_CM = 0.7
 CSS_PAGE_MARGIN_CM = 0.75
 PARA_LONG_MIN_LINES = 3
+# Body type (CSS html font-size). 1em in print CSS and Mermaid layout.
+ASC_FONT_PT = 9.0
 MERMAID_MAX_CANDIDATES = 4
 MERMAID_SKIP_RETRY_SCALE = 0.70
-MERMAID_MIN_FONT_PX = 10
-MERMAID_FONT_PX = 11
-# Mermaid's built-in flowchart/gantt lengths are tuned for 16px type.
 MERMAID_NATIVE_FONT_PX = 16
 MERMAID_LABEL_WRAP_CHARS = 42
 MERMAID_TIE_EPS = 5.0
 
 
+def em_to_px(em: float) -> float:
+    """CSS px for an em at ASC_FONT_PT (Chromium 96 CSS px / in)."""
+    return em * ASC_FONT_PT * PT_TO_PX
+
+
+TOP_MAX_PX = em_to_px(0.75)  # already at the top of this layout page
+MERMAID_FONT_PX = em_to_px(1.0)
+MERMAID_MIN_FONT_PX = em_to_px(0.75)
+
+
 def mermaid_layout_px(native: float) -> int:
-    """Scale a Mermaid 16px-layout length down to MERMAID_FONT_PX."""
+    """Scale a Mermaid 16px-layout length to 1em (ASC_FONT_PT)."""
     return max(1, round(native * MERMAID_FONT_PX / MERMAID_NATIVE_FONT_PX))
 
 
@@ -241,8 +248,33 @@ def heading_keep_from_pdf(
                     break
         if table_start is not None:
             body = sum(1 for ln in following if ln.y < table_start)
-            return body >= MIN_FOLLOWING_LINES
+            if body >= MIN_FOLLOWING_LINES:
+                return True
+            # Wide cells split across PDF lines, so DOM row strings often
+            # fail to match. Lines after the header still count as body.
+            table_lines = sum(1 for ln in following if ln.y >= table_start)
+            return table_lines >= MIN_FOLLOWING_LINES
     return len(following) >= MIN_FOLLOWING_LINES
+
+
+HEADING_TAGS = {"H1", "H2", "H3", "H4", "H5", "H6"}
+
+
+def section_owns_table(
+    prev_tags: list[str], intro_line_equiv: float
+) -> bool:
+    """True when a table spacer would split a heading from its table.
+
+    ``prev_tags`` is nearest previous real sibling first. A short intro
+    (one paragraph, < 4 line-equivalents) still belongs to the heading.
+    """
+    if not prev_tags:
+        return False
+    if prev_tags[0] in HEADING_TAGS:
+        return True
+    if intro_line_equiv >= MIN_FOLLOWING_LINES:
+        return False
+    return any(tag in HEADING_TAGS for tag in prev_tags)
 
 
 def fit_content_height_px(
@@ -267,6 +299,30 @@ def fit_content_height_px(
     hs.sort()
     fitted = hs[len(hs) // 2]
     return min(guess + 80.0, max(guess - 80.0, fitted))
+
+
+def trim_overshoot_spacer(
+    y_on_next: float,
+    min_height: float,
+    n_br: int,
+    br_h: float,
+    top_eps: float,
+) -> tuple[float, int]:
+    """Shrink a spacer that landed past the top of the next layout page.
+
+    ``minHeight`` may go to 0. Extra ``<br>`` tags still occupy space
+    after minHeight is reduced, so they are dropped too.
+    """
+    if y_on_next <= top_eps:
+        new_min = min_height
+    else:
+        new_min = max(0.0, min_height - y_on_next)
+    # One line short of the layout remaining: Chromium otherwise splits a
+    # leftover <br> onto the next page (blank line above the heading).
+    new_min = max(0.0, new_min - br_h)
+    while n_br > 0 and n_br * br_h > new_min + top_eps:
+        n_br -= 1
+    return new_min, n_br
 
 
 def is_heading_orphan(
@@ -337,7 +393,7 @@ PAGINATE_JS = r"""
     d.remove();
     return h;
   })();
-  const isHeading = (el) => el && /^H[2-6]$/.test(el.tagName);
+  const isHeading = (el) => el && /^H[1-6]$/.test(el.tagName);
   const isPush = (el) => el && el.classList && el.classList.contains('asc-print-push');
   const yOf = (el) => el.getBoundingClientRect().top + window.scrollY;
   const pageOf = (y) => Math.floor(y / contentH);
@@ -351,7 +407,7 @@ PAGINATE_JS = r"""
     return n;
   };
 
-  const targets = () => [...document.querySelectorAll('h2,h3,h4,h5,h6,table')];
+  const targets = () => [...document.querySelectorAll('h1,h2,h3,h4,h5,h6,table')];
 
   const clearPush = (el) => {
     const sp = el.previousElementSibling;
@@ -398,6 +454,37 @@ PAGINATE_JS = r"""
     return n;
   };
 
+  const tableFragmentLines = (t, page) => {
+    let usedH = 0;
+    for (const tr of t.querySelectorAll('tr')) {
+      const top = yOf(tr);
+      if (pageOf(top) !== page) break;
+      usedH += tr.getBoundingClientRect().height;
+    }
+    return usedH / lineH;
+  };
+
+  const sectionHeadForTable = (t) => {
+    let n = t.previousElementSibling;
+    let intro = 0;
+    while (n) {
+      if (isPush(n) || n.getBoundingClientRect().height === 0) {
+        n = n.previousElementSibling;
+        continue;
+      }
+      if (n.tagName === 'TABLE' || (n.classList && n.classList.contains('mermaid-wrap'))) {
+        break;
+      }
+      if (isHeading(n)) {
+        return n;
+      }
+      intro += n.getBoundingClientRect().height / lineH;
+      if (intro >= minFollow) return null;
+      n = n.previousElementSibling;
+    }
+    return null;
+  };
+
   const followingOnPage = (el, page) => {
     let acc = 0;
     let n = nextReal(el);
@@ -414,13 +501,14 @@ PAGINATE_JS = r"""
       }
       if (n.tagName === 'TABLE') {
         const nf = nFit(n);
+        acc += tableFragmentLines(n, page);
         if (nf < minRows) {
           const rows = n.querySelectorAll('tr');
           const last = rows[rows.length - 1];
           if (last && pageOf(yOf(last)) !== page) hasLater = true;
           break;
         }
-        acc += minFollow;
+        acc = Math.max(acc, minFollow);
         break;
       }
       acc += n.getBoundingClientRect().height / lineH;
@@ -431,6 +519,11 @@ PAGINATE_JS = r"""
   };
 
   const tableWidow = (t, page) => {
+    const head = sectionHeadForTable(t);
+    if (head) {
+      if (head.getAttribute('data-asc-keep') === '1') return false;
+      if (pageOf(yOf(head)) === page) return false;
+    }
     const y = yOf(t);
     if (pageOf(y) !== page) return false;
     if (yOn(y) <= topEps) return false;
@@ -474,6 +567,31 @@ PAGINATE_JS = r"""
     return tableEl || headingEl;
   };
 
+  const trimOvershoot = (el, sp, fromPage) => {
+    let n = sp.querySelectorAll('br').length;
+    if (pageOf(yOf(el)) <= fromPage) return n;
+    const cur = parseFloat(sp.style.minHeight) || 0;
+    let yon = yOn(yOf(el));
+    let next = yon > topEps ? Math.max(0, cur - yon) : cur;
+    next = Math.max(0, next - brH);
+    sp.style.minHeight = next + 'px';
+    while (pageOf(yOf(el)) > fromPage && yOn(yOf(el)) > topEps) {
+      const last = sp.querySelector('br:last-child');
+      if (!last) break;
+      last.remove();
+      n -= 1;
+    }
+    if (pageOf(yOf(el)) === fromPage) {
+      addBr(el);
+      n += 1;
+      sp.style.minHeight = cur + 'px';
+    }
+    const h = parseFloat(sp.style.minHeight) || 0;
+    sp.style.height = h + 'px';
+    sp.style.overflow = 'hidden';
+    return n;
+  };
+
   const pushUntilNextTop = (el, fromPage) => {
     const remaining = contentH - yOn(yOf(el));
     const sp = fillRemaining(el, remaining);
@@ -482,16 +600,7 @@ PAGINATE_JS = r"""
       addBr(el);
       n += 1;
     }
-    const yon = yOn(yOf(el));
-    if (pageOf(yOf(el)) > fromPage && yon > topEps) {
-      const cur = parseFloat(sp.style.minHeight) || 0;
-      const next = Math.max(brH, cur - yon);
-      sp.style.minHeight = next + 'px';
-      if (pageOf(yOf(el)) === fromPage) {
-        sp.style.minHeight = cur + 'px';
-      }
-    }
-    return n;
+    return trimOvershoot(el, sp, fromPage);
   };
 
   const debug = [];
@@ -531,7 +640,7 @@ PAGINATE_JS = r"""
 
 _DOM_Y_JS = """() => {
   const norm = (s) => (s || '').replace(/\\s+/g, ' ').trim();
-  const nodes = [...document.querySelectorAll('h2,h3,h4,h5,h6,table')];
+  const nodes = [...document.querySelectorAll('h1,h2,h3,h4,h5,h6,table')];
   const heads = [];
   for (let i = 0; i < nodes.length; i++) {
     const el = nodes[i];
@@ -555,7 +664,7 @@ _DOM_Y_JS = """() => {
 }"""
 
 _MARK_KEEP_JS = """(idxs) => {
-  const hs = [...document.querySelectorAll('h2,h3,h4,h5,h6')];
+  const hs = [...document.querySelectorAll('h1,h2,h3,h4,h5,h6')];
   for (const i of idxs) {
     if (hs[i]) hs[i].setAttribute('data-asc-keep', '1');
   }
