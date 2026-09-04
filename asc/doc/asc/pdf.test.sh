@@ -409,11 +409,12 @@ assert "ascMermaidMeasureCss" in js
 assert "nodeLabel" in js
 assert "shape: rounded" not in js
 assert "radius: 3" not in js
-assert "const scale = Math.min(scaleW, scaleH, 1);" in js
-assert "scaleW < 1 && scaleW <= scaleH" in js
+assert "min(100%, '" in js
+assert "svg.style.height = 'auto'" in js
 assert "pageH / Math.max(bb.height, 1), 1)" in js
 assert "svg.style.flexShrink = '0'" in js
-assert "svg.style.width = '100%'" in js
+assert "wrap: true" in js
+assert "wrapPadding: 3" in js
 print("ok")
 PY
   assertEquals 'mermaid candidates Python assertions failed' 0 $?

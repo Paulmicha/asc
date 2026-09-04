@@ -275,6 +275,8 @@ async function ascRunMermaid() {{
     }},
     sequence: {{
       useMaxWidth: false,
+      wrap: true,
+      wrapPadding: 3,
       actorMargin: layout(50),
       boxMargin: layout(10),
       messageMargin: layout(35),
@@ -371,16 +373,8 @@ async function ascRunMermaid() {{
     const w = Math.max(bb.width + 2 * pad, 1);
     const h = Math.max(bb.height + 2 * pad, 1);
     svg.setAttribute('viewBox', x + ' ' + y + ' ' + w + ' ' + h);
-    const scaleW = pageW / w;
-    const scaleH = pageH / h;
-    const scale = Math.min(scaleW, scaleH, 1);
-    if (scaleW < 1 && scaleW <= scaleH) {{
-      svg.style.width = '100%';
-      svg.style.height = 'auto';
-    }} else {{
-      svg.style.width = (w * scale) + 'px';
-      svg.style.height = (h * scale) + 'px';
-    }}
+    svg.style.width = 'min(100%, ' + w + 'px)';
+    svg.style.height = 'auto';
     svg.style.maxWidth = '100%';
     svg.style.flexShrink = '0';
   }}
