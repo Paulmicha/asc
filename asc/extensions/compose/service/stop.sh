@@ -4,9 +4,9 @@
 # Docker-compose single service "stop" operation.
 #
 # @example
-#   make service-stop 'arangodb'
+#   make service-stop 'arcadedb'
 #   # Or :
-#   asc/extensions/compose/service/stop.sh 'arangodb'
+#   asc/extensions/compose/service/stop.sh 'arcadedb'
 #
 
 . asc/bootstrap.sh

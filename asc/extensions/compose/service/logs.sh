@@ -4,9 +4,9 @@
 # Reads single Docker-compose service logs.
 #
 # @example
-#   make service-logs 'arangodb'
+#   make service-logs 'arcadedb'
 #   # Or :
-#   asc/extensions/compose/service/logs.sh 'arangodb'
+#   asc/extensions/compose/service/logs.sh 'arcadedb'
 #
 
 . asc/bootstrap.sh

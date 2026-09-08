@@ -4,9 +4,9 @@
 # Docker-compose single service "rm" operation.
 #
 # @example
-#   make service-rm 'arangodb'
+#   make service-rm 'arcadedb'
 #   # Or :
-#   asc/extensions/compose/service/rm.sh 'arangodb'
+#   asc/extensions/compose/service/rm.sh 'arcadedb'
 #
 
 . asc/bootstrap.sh

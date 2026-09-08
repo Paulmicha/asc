@@ -4,9 +4,9 @@
 # Docker-compose single service "build" operation.
 #
 # @example
-#   make service-build 'arangodb'
+#   make service-build 'arcadedb'
 #   # Or :
-#   asc/extensions/compose/service/build.sh 'arangodb'
+#   asc/extensions/compose/service/build.sh 'arcadedb'
 #
 
 . asc/bootstrap.sh

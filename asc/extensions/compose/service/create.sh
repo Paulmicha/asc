@@ -6,9 +6,9 @@
 # TODO deprecated
 #
 # @example
-#   make service-create 'arangodb'
+#   make service-create 'arcadedb'
 #   # Or :
-#   asc/extensions/compose/service/create.sh 'arangodb'
+#   asc/extensions/compose/service/create.sh 'arcadedb'
 #
 
 . asc/bootstrap.sh

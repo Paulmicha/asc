@@ -14,4 +14,4 @@
 # @see asc/bootstrap.sh
 #
 
-global ARANGODB_SNAME "[default]=arangodb"
+global ARCADEDB_SNAME "[default]=arcadedb"

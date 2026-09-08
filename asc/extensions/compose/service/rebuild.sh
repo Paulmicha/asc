@@ -4,9 +4,9 @@
 # Docker-compose single service "rebuild" operation.
 #
 # @example
-#   make service-rebuild 'arangodb'
+#   make service-rebuild 'arcadedb'
 #   # Or :
-#   asc/extensions/compose/service/rebuild.sh 'arangodb'
+#   asc/extensions/compose/service/rebuild.sh 'arcadedb'
 #
 
 asc/extensions/compose/service/rm.sh "$1" \

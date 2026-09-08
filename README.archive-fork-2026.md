@@ -1101,7 +1101,7 @@ Enable/disable via ignore files (see above). Catalog of bundled folders:
 | `agent` | | | Plan subject stubs (`plan-iterate`, `plan-review`) |
 | `apache` | | | Apache VHost helpers (classic LAMP, non-compose) |
 | `apt` | ✔ | | Host apt `dependency-*` hooks (stubs) |
-| `arangodb` | | | Alias / image tag defaults |
+| `arcadedb` | | | Alias / image tag defaults |
 | `builder` | | | Templates / blueprints / prototypes stubs ([docs/asc/builder.md](docs/asc/builder.md)) |
 | `cognition` | | | `observe-*` / `recognize-*` / `categorize-*` / `compare-*` stubs |
 | `compose` | | | Docker Compose start/stop/build/destroy (`DC_MODE`, stack helpers) |

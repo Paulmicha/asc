@@ -723,7 +723,7 @@ In order to explicitly describe how they work and how to use them, we'll take th
 
 #### Definition and storage
 
-Entities are defined using a single Yaml file. These declarations can reside in any ASC active dir following the double extension naming convention `*.entity.yml`. Their instances can be stored in file sidecars (placed in `data/asc/entities`) or even use other storage types, like databases (sqlite, postgres, arangodb, etc.)
+Entities are defined using a single Yaml file. These declarations can reside in any ASC active dir following the double extension naming convention `*.entity.yml`. Their instances can be stored in file sidecars (placed in `data/asc/entities`) or even use other storage types, like databases (sqlite, postgres, arcadedb, etc.)
 
 Some implementations can dynamically assign an appropriate storage (e.g. file sidecars or database entries) given expected volume of entity instances.
 

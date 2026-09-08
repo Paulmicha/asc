@@ -3,7 +3,7 @@
 ##
 # Stack-specific custom ASC globals for instances using docker-compose.
 #
-# See https://hub.docker.com/_/arangodb/
+# See https://hub.docker.com/_/arcadedb/
 #
 # This file is used during "instance init" to generate the global environment
 # variables specific to current project instance.
@@ -13,4 +13,4 @@
 # @see asc/bootstrap.sh
 #
 
-global ARANGODB_TAG "[default]='3.7.12'"
+global ARCADEDB_TAG "[default]='3.7.12'"

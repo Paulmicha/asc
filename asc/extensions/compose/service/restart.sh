@@ -4,9 +4,9 @@
 # Docker-compose single service "restart" operation.
 #
 # @example
-#   make service-restart 'arangodb'
+#   make service-restart 'arcadedb'
 #   # Or :
-#   asc/extensions/compose/service/restart.sh 'arangodb'
+#   asc/extensions/compose/service/restart.sh 'arcadedb'
 #
 
 . asc/bootstrap.sh

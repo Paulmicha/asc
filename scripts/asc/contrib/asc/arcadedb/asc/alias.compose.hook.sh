@@ -4,7 +4,7 @@
 # Implements hook -s 'asc' -a 'alias' -v 'STACK_VERSION PROVISION_USING'.
 #
 # Declares default bash aliases for current project instance using a DB with
-# 'arangodb' as driver.
+# 'arcadedb' as driver.
 #
 # This file is dynamically included when the "hook" is triggered.
 # @see asc/bootstrap.sh
@@ -22,7 +22,7 @@
 # @see asc/extensions/db/db.inc.sh
 # @see asc/extensions/mysql/asc/global.compose.vars.sh
 if [[ -z "$dc_db_service_name" ]]; then
-  dc_db_service_name="${ARANGODB_SNAME:=arangodb}"
+  dc_db_service_name="${ARCADEDB_SNAME:=arcadedb}"
 fi
 
-alias arangosh="docker compose exec $DC_TTY $dc_db_service_name arangosh"
+alias arcade_console="docker compose exec $DC_TTY $dc_db_service_name bin/console.sh"

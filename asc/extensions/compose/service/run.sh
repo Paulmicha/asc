@@ -4,9 +4,9 @@
 # Docker-compose single service "run" operation.
 #
 # @example
-#   make service-run 'arangodb' 'bash'
+#   make service-run 'arcadedb' 'bash'
 #   # Or :
-#   asc/extensions/compose/service/run.sh 'arangodb' 'bash'
+#   asc/extensions/compose/service/run.sh 'arcadedb' 'bash'
 #
 
 . asc/bootstrap.sh
