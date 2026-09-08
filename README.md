@@ -784,12 +784,13 @@ It can also add any other prop that isn't present in the included "base" entity.
 
 #### Contracts (capabilities)
 
-Let's take the host entity as an example. It uses (= loads = includes) the following capabilities :
+Let's take the `host` entity as an example. It uses (= loads = includes) the following capabilities :
 
 | Label (designation) | Description | Path |
 |---------------------|-------------|------|
-| sidecar.able | Means that a local Yaml file can be used to represent a single "concrete" host - e.g. the local host, a dedicated server, a (Docker) container, etc. with any number of custom, specific properties like name, state, OS, etc. | `asc/sidecar/sidecar.able.yml` |
+| sidecar.able | Means that a local Yaml file can be used to represent a single "concrete" host - e.g. the local host, a dedicated server, a (Docker) container, etc. with any number of custom, specific fields like name, state, OS, etc. | `asc/sidecar/sidecar.able.yml` |
 | provision.able | Means that the entity can have installed softwares, drivers, etc. It can be tracked against a manifest to know its state (e.g. : provisionned, missing dependencies, etc.) | `asc/host/provision.able.yml` |
+| synchronize.able | This capability definition allows to specify things like : how is this host receiving updates from its upstream git repo (e.g. `post-merge` git hook), etc. | `asc/host/synchronize.able.yml` |
 | ssh.able | Means that the entity being represented can be connected to using SSH (details may include : address, port, ssh key, ssh user, etc.) | `asc/host/ssh.able.yml` |
 | nest.able | Means that the entity can contain other instances of itself, like : one or more VMs, (Docker) containers, etc. | `asc/host/nest.able.yml` |
 
