@@ -749,6 +749,7 @@ foo_bar_value: the value
 
 There are **reserved root-level keys**, though :
 
+- `synonmy` : defines equivalent props
 - `include` : loads (= merges) other `*.yml` files into the current file
 - `includes` : defines blocks of key/value pairs that can be reused elsewhere in the same Yaml file
 - `required` : this exists to ensure expectations are met (e.g. for entities, this allows to spot incorrect declarations or outdated instances in case of contract or specification changes)
@@ -774,6 +775,27 @@ The file sidecar is one of the many storage method that can be used : see `asc/e
 - Example of property : `*.entity.yml` all have `required` and `optional` root-level keys ;
 - Example of field : the `host` entity has a `hostname` field to store its address (string), defaulting to "localhost".
 
+`field` declarations are either placed inside `required` or `optional` props, and follow a common structure :
+
+- `is` : string, int, float, entity (for referencing other entities)
+- `volume` : expected volume of field data to store ; either a range (`$min-$max`), or a single max limit
+- `allowed` : optionally defines a fixed list of allowed values
+- `validate` : optional DSL string that defines the validation mechanism to run when testing the local project instance
+- `default` : the default (fallback) value - for `optional` fields only
+- `storage` : references a specific store (sidecar, database...)
+
+Example :
+
+```yml
+required:
+  field:
+    hostname:
+      is: string
+      volume: 1-999
+      default: localhost
+      validate: test-hostname(p-1)
+```
+
 #### Structure and combination
 
 Take the ASC core (generic) **host** entity. It is declared (synonyms : defined, specified) in `asc/host/host.entity.yml`. That entity is "sidecar.able" (see the *contracts* section), so its instances may be stored locally as Yaml files in `data/asc/entities`.
@@ -782,7 +804,7 @@ Now take the **remote host** entity (defined in `asc/extensions/remote/remote_ho
 
 It can also add any other prop that isn't present in the included "base" entity.
 
-#### Contracts (capabilities)
+#### Contracts (= capabilities = abilities ~= skills)
 
 Let's take the `host` entity as an example. It uses (= loads = includes) the following capabilities :
 
@@ -794,7 +816,18 @@ Let's take the `host` entity as an example. It uses (= loads = includes) the fol
 | ssh.able | Means that the entity being represented can be connected to using SSH (details may include : address, port, ssh key, ssh user, etc.) | `asc/host/ssh.able.yml` |
 | nest.able | Means that the entity can contain other instances of itself, like : one or more VMs, (Docker) containers, etc. | `asc/host/nest.able.yml` |
 
-TODO detail + more examples
+The capabilities are inheritable themselves, so it is possible to create inheritance chains of contracts - like :
+
+- shell.able → ssh.able (i.e. `ssh.able.yml` has the `shell.able.yml` item in its `include` root prop list)
+- stack.able → compose.able (i.e. `compose.able.yml` has the `stack.able.yml` item in its `include` root prop list)
+
+Then any entity using any of these contracts would inherit from the whole chain, e.g. for our `host` entity example, the inclusion chain would be :
+
+1. entity.entity (`asc/extensions/entity/entity/entity.entity.yml`)
+1. able.able (`asc/extensions/entity/asc/able.able.yml`)
+1. shell.able (`asc/host/shell.able.yml`)
+1. ssh.able (`asc/host/ssh.able.yml`)
+1. host (`asc/host/host.entity.yml`)
 
 #### Linking (relationships, references) VS Nesting (wrapper)
 
