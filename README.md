@@ -721,6 +721,40 @@ In order to explicitly describe how they work and how to use them, we'll take th
 - **Host** : represents a local or remote device where a human or agent works (i.e. a laptop, a server, any device usually - but not obligatorily - connected to a network),
 - *(project)* **Instance** : represents a single application, workspace, or any bundle of one or more softwares ; usually an ASC project instance (with or without a stack composed by one or more services).
 
+#### Custom Yaml syntax (with collisions)
+
+Same as the `env.yml` files used to define env vars (see  the [environment variables (*env vars*)](#environment-variables-env-vars) section). Those are equivalent notations having the same result :
+
+```yaml
+foo:
+  bar:
+    value: the value
+```
+
+```yaml
+foo_bar:
+  value: the value
+```
+
+```yaml
+# We could spot and hard fail potentially unintended collisions, but for now :
+# No warning - all is merged and potentially lost (in reading order).
+foo:
+  bar_value: the value
+```
+
+```yaml
+foo_bar_value: the value
+```
+
+There are **reserved root-level keys**, though :
+
+- `include` : loads (= merges) other `*.yml` files into the current file
+- `includes` : defines blocks of key/value pairs that can be reused elsewhere in the same Yaml file
+- `required` : this exists to ensure expectations are met (e.g. for entities, this allows to spot incorrect declarations or outdated instances in case of contract or specification changes)
+- `optional` : for entities, this allows to list what fields and/or props may optionally be used
+- `append` : only applies to entity declarations that include other *contracts* and/or *entity declarations* - i.e. instead of *replacing* a root property, it *appends* more values to its inherited parent(s) declaration(s) on the given prop(s) (listed in this `append` root prop)
+
 #### Definition and storage
 
 Entities are defined using a single Yaml file. These declarations can reside in any ASC active dir following the double extension naming convention `*.entity.yml`. Their instances can be stored in file sidecars (placed in `data/asc/entities`) or even use other storage types, like databases (sqlite, postgres, arcadedb, etc.)
@@ -731,26 +765,14 @@ The file sidecar is one of the many storage method that can be used : see `asc/e
 
 #### Field vs Prop
 
-field = store.able instance values (edit.able)
+**field** = *values* stored by entity *instances* (*concrete* entities)
 
 --vs--
 
-prop = yml "constants" shared by all those entities (inherit.able)
+**prop** = Yaml *keys* shared by all those *instances* + inherited by all (*abstract*) entity *definitions* that include other entities definitions.
 
-*Concrete "prop" example* :
-
-`*.entity.yml` all have `required` and `optional` root-level keys (in yml key:value nestable syntax)
-
-*Concrete "field" example* :
-
-TODO use remote_host.entity.yml and remote_instance.entity.yml as examples.
-
-Fields must be stabilized first.
-They must allow to do things like :
-
-a remote instance entity has a parent remote host entity,
-they both have a 'hostname' field,
-which stores (in sidecars or globals or cache or scripts) the value for ASC implementations to use.
+- Example of property : `*.entity.yml` all have `required` and `optional` root-level keys ;
+- Example of field : the `host` entity has a `hostname` field to store its address (string), defaulting to "localhost".
 
 #### Structure and combination
 
