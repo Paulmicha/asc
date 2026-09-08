@@ -68,10 +68,10 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
   - [Wrappers](#wrappers)
   - [Entities](#entities)
     - [Definition and storage](#definition-and-storage)
-    - [Structure and combination](#structure-and-combination)
     - [Field vs Prop](#field-vs-prop)
-    - [Linking vs Nesting](#linking-vs-nesting)
+    - [Structure and combination](#structure-and-combination)
     - [Contracts (capabilities)](#contracts-capabilities)
+    - [Linking vs Nesting](#linking-vs-nesting)
   - [Tests](#tests)
     - [Organization](#organization)
     - [Pre and post test suite execution (shunit2) functions](#pre-and-post-test-suite-execution-shunit2-functions)
@@ -244,7 +244,7 @@ This may be one of the most useful reinterpretations.
 
 Good prompting is often described as "being clear."
 
-I think a better formulation is:
+A better formulation is:
 
 > A good prompt keeps the agent inside its optimal cognitive operating region.
 
@@ -258,12 +258,7 @@ That means regulating:
 
 instead of merely reducing token count.
 
-Enough teasing "_Projet Complexe_", back to ASC - the generic base upon which all of this work rests :
-
-### Overlap with existing projects
-
-- [google-research/envharness](https://github.com/google-research/envharness) and [arXiv:2608.19880](https://arxiv.org/abs/2608.19880) : EnvHarness is the closest published operationalization of “keep the agent in the flow band by reshaping the world, not the weights.” It does that for frozen training benchmarks. Projet Complexe wants the same control idea for a living second brain, with ASC as generic glue. [Analysis here](data/ideas/2026/08/Overlap%20with%20EnvHarness.md) + [pdf](data/ideas/2026/08/Overlap%20with%20EnvHarness.pdf).
-- [Yaxin9Luo/AutoDesign](https://github.com/Yaxin9Luo/AutoDesign), [arXiv:2608.13560](https://arxiv.org/abs/2608.13560), [autodesign.designanything.ai](https://autodesign.designanything.ai/) Same week as EnvHarness (20 Aug 2026): two papers, two sides of the same “harness, not weights” claim. EnvHarness wraps a frozen *environment*. AutoDesign evolves the *agent* harness around a frozen *model*. Projet Complexe sits between them: named computational glue (ASC), packing and composition (Projet Complexe ASC), a living knowledge world (Projet Complexe). [Analysis here](data/ideas/2026/08/Overlap%20with%20AutoDesign%20-%20Meta%20Harness%20Optimization%20for%20Long-Horizon%20Agentic%20Design.md) + [pdf](data/ideas/2026/08/Overlap%20with%20AutoDesign%20-%20Meta%20Harness%20Optimization%20for%20Long-Horizon%20Agentic%20Design.pdf).
+Enough teasing "_Projet Complexe_", back to ASC - the generic base upon which that kind of work rests :
 
 ## Current status of the ASC project
 
@@ -728,13 +723,11 @@ In order to explicitly describe how they work and how to use them, we'll take th
 
 #### Definition and storage
 
-Entities are defined using a single Yaml file. These declarations can reside in any ASC active dir following the double extension naming convention `*.entity.yml`. Their instances can be stored in file sidecars (placed in `data/asc/entities` by default).
+Entities are defined using a single Yaml file. These declarations can reside in any ASC active dir following the double extension naming convention `*.entity.yml`. Their instances can be stored in file sidecars (placed in `data/asc/entities`) or even use other storage types, like databases (sqlite, postgres, arangodb, etc.)
 
-TODO other storage support ? e.g. databases (sqlite, postgres, arangodb, etc.)
+Some implementations can dynamically assign an appropriate storage (e.g. file sidecars or database entries) given expected volume of entity instances.
 
-#### Structure and combination
-
-TODO
+The file sidecar is one of the many storage method that can be used : see `asc/extensions/memory/store/store.able.yml` for criterias of assignation to different kinds of storage.
 
 #### Field vs Prop
 
@@ -759,11 +752,28 @@ a remote instance entity has a parent remote host entity,
 they both have a 'hostname' field,
 which stores (in sidecars or globals or cache or scripts) the value for ASC implementations to use.
 
-#### Linking (relationships, references) VS Nesting (wrapper)
+#### Structure and combination
 
-TODO
+Take the ASC core (generic) **host** entity. It is declared (synonyms : defined, specified) in `asc/host/host.entity.yml`. That entity is "sidecar.able" (see the *contracts* section), so its instances may be stored locally as Yaml files in `data/asc/entities`.
+
+Now take the **remote host** entity (defined in `asc/extensions/remote/remote_host.entity.yml`) : it includes the host entity, so all its props and values are the same, unless it overrides some values by declaring the same props.
+
+It can also add any other prop that isn't present in the included "base" entity.
 
 #### Contracts (capabilities)
+
+Let's take the host entity as an example. It uses (= loads = includes) the following capabilities :
+
+| Label (designation) | Description | Path |
+|---------------------|-------------|------|
+| sidecar.able | Means that a local Yaml file can be used to represent a single "concrete" host - e.g. the local host, a dedicated server, a (Docker) container, etc. with any number of custom, specific properties like name, state, OS, etc. | `asc/sidecar/sidecar.able.yml` |
+| provision.able | Means that the entity can have installed softwares, drivers, etc. It can be tracked against a manifest to know its state (e.g. : provisionned, missing dependencies, etc.) | `asc/host/provision.able.yml` |
+| ssh.able | Means that the entity being represented can be connected to using SSH (details may include : address, port, ssh key, ssh user, etc.) | `asc/host/ssh.able.yml` |
+| nest.able | Means that the entity can contain other instances of itself, like : one or more VMs, (Docker) containers, etc. | `asc/host/nest.able.yml` |
+
+TODO detail + more examples
+
+#### Linking (relationships, references) VS Nesting (wrapper)
 
 TODO
 
