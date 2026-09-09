@@ -1,6 +1,6 @@
 # Primitive definition of all *.able definitions.
-include:
-  # All *.able definitions inherit from the primordial "contract" entity
-  # definition. They can choose how deep they want to be in the inheritance
-  # chain by choosing their own includes, but this one is common to all :
-  - contract.entity
+synonym:
+  skill:
+    - capability
+    - ability
+    - contract

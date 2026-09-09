@@ -749,7 +749,7 @@ foo_bar_value: the value
 
 There are **reserved root-level keys**, though :
 
-- `synonmy` : defines equivalent props
+- `synonym` : defines equivalent props and/or fields names
 - `include` : loads (= merges) other `*.yml` files into the current file
 - `includes` : defines blocks of key/value pairs that can be reused elsewhere in the same Yaml file
 - `required` : this exists to ensure expectations are met (e.g. for entities, this allows to spot incorrect declarations or outdated instances in case of contract or specification changes)

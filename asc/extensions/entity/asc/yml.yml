@@ -5,12 +5,11 @@
 synonym:
   op:
     - operation
-  skill:
-    - ability
-    - capability
-    # - capacity # don't : contenance if storage
   val:
     - value
+  size:
+    - volume
+    - range
   prop:
     - key
     - property
@@ -25,6 +24,8 @@ synonym:
     - integer
   arr:
     - array
+  dict:
+    - dictionary
   dir:
     - directory
     - folder
