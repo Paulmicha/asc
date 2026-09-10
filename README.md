@@ -33,6 +33,8 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
 
 ## Table of contents
 
+<nav>
+
 - [Overarching goal](#overarching-goal)
   - [Scope](#scope)
   - [Non-goals ("out of scope"s)](#non-goals-out-of-scopes)
@@ -62,11 +64,13 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
   - [Hooks (and variants)](#hooks-and-variants)
   - [Wrappers](#wrappers)
   - [Entities](#entities)
+    - [Custom Yaml syntax (with collisions)](#custom-yaml-syntax-with-collisions)
     - [Definition and storage](#definition-and-storage)
     - [Field vs Prop](#field-vs-prop)
-    - [Structure and combination](#structure-and-combination)
-    - [Contracts (capabilities)](#contracts-capabilities)
-    - [Linking vs Nesting](#linking-vs-nesting)
+    - [Contracts (= capabilities = abilities ~= skills, or rather : SKILL.md blueprints)](#contracts-capabilities-abilities-skills-or-rather-skillmd-blueprints)
+    - [Combination (= inclusion), Overriding (= replacement), Alteration (= merging), Appending (= incrementing)](#combination-inclusion-overriding-replacement-alteration-merging-appending-incrementing)
+    - [Instanciation ("concrete" entity instances)](#instanciation-concrete-entity-instances)
+    - [Linking (relationships, references) VS Nesting (wrapper)](#linking-relationships-references-vs-nesting-wrapper)
   - [Tests](#tests)
     - [Organization](#organization)
     - [Pre and post test suite execution (shunit2) functions](#pre-and-post-test-suite-execution-shunit2-functions)
@@ -85,9 +89,9 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
     - [DSL in Yaml](#dsl-in-yaml)
   - [Data dirs](#data-dirs)
     - [ASC cache : `data/asc/cache`](#asc-cache-dataasccache)
-    - [Default file-based entity storage : `data/entities`](#default-file-based-entity-storage-dataascentities)
-      - [Queue entities : `data/entities/queue`](#queue-entities-dataascentitiesqueue)
-      - [Thread entities : `data/entities/thread`](#thread-entities-dataascentitiesthread)
+    - [Default file-based entity storage : `data/entities`](#default-file-based-entity-storage-dataentities)
+      - [Queue entities : `data/entities/queue`](#queue-entities-dataentitiesqueue)
+      - [Thread entities : `data/entities/thread`](#thread-entities-dataentitiesthread)
     - [Logs : `data/logs`](#logs-datalogs)
     - [Private files : `data/private`](#private-files-dataprivate)
     - [Prompts local archive : `data/prompts`](#prompts-local-archive-dataprompts)
@@ -110,6 +114,8 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
 - [File structure](#file-structure)
 - [Contributors](#contributors)
 - [License](#license)
+
+</nav>
 
 ## Purpose
 
@@ -637,7 +643,7 @@ foo:
 foo_bar_value: the value
 ```
 
-There are **reserved root-level keys**, though :
+For ASC entites and abilities Yaml files (`*.entity.yml` and `*.able.yml`), there are **reserved root-level keys** :
 
 - `synonym` : defines equivalent props and/or fields names
 - `include` : loads (= merges) other `*.yml` files into the current file
@@ -645,6 +651,9 @@ There are **reserved root-level keys**, though :
 - `required` : this exists to ensure expectations are met (e.g. for entities, this allows to spot incorrect declarations or outdated instances in case of contract or specification changes)
 - `optional` : for entities, this allows to list what fields and/or props may optionally be used
 - `append` / `alter` / `override` : only applies to entity declarations that include other *contracts* and/or *entity declarations* - i.e. instead of *replacing* a whole root-level property, it either *appends* more values to its inherited parent(s) declaration(s) on the given prop(s) (listed in this `append` root prop), or *alters* (= merges) its sub-props, or only *overrides* (= selectively replaces) one or more targeted sub-props. See the *"Combination (= inclusion), Overriding (= replacement), Alteration (= merging), Appending (= incrementing)"* section below.
+- `map` : for entities, defines where specific field value(s) come from - e.g. for for `host` and `remote_host` entities (both sidecar.able entities), it allows to define that the concrete entity file name is the `hostname` value
+
+Aside from those, (almost) anything goes, really. Bear in mind the limitations of the simplified (but sufficient for our use cases here) Bash Yaml parser in use : [`asc/vendor/bash-yaml`](https://github.com/jasperes/bash-yaml)
 
 #### Definition and storage
 
@@ -928,14 +937,14 @@ foobar:
 
 #### Instanciation ("concrete" entity instances)
 
-Entities are discovered using the following lookup mechanism. It runs for all (enabled) entity declarations, per *type*.
+Entities are discovered using the following lookup mechanism. It runs for all (enabled) entity declarations, per entity *type* :
 
-1. All `*.entity.yml` in all active dirs are discovered and cached during *instance (re)init* in the "normal" (file-based) ASC cache, i.e. in `data/asc/cache`.
+1. All `*.entity.yml` in all *active dirs* are discovered and cached during *instance (re)init* in the "normal" (file-based) ASC cache, i.e. in `data/asc/cache`.
 1. Once all active entity types are discovered, the *instance (re)init* post-processing *discovers* all the **concrete entity instances**.
 1. For *sidecar.able* entities, all manually created or generated instances are to be placed in paths like (for ex. for the `host` entity *type*) : `data/entities/host/foobar.home.arpa.yml`.
 1. The discovered concrete entity instances may either be written to the "normal" (file-based) ASC cache (in `data/asc/cache/entities/$type/...`), or - depending on the entity spec itself which may define a specific storage type like databse - in any other available storage mechanism (whose read / write / etc. operations are wrapped in ASC entry points or pivots), like databases.
 
-Once the local ASC project instance is initialized, any operation that interacts with one or more concrete entities will have their definition loaded in the shell scope of the entry point used using `f_entity_load()`.
+Once the local ASC project instance is initialized, any operation that interacts with one or more concrete entities can have their field values loaded in the shell scope of the entry point used using `f_entity_load()`.
 
 TODO replace the existing `f_remote_instance_load()` implementation with this system.
 
