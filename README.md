@@ -754,7 +754,7 @@ There are **reserved root-level keys**, though :
 - `includes` : defines blocks of key/value pairs that can be reused elsewhere in the same Yaml file
 - `required` : this exists to ensure expectations are met (e.g. for entities, this allows to spot incorrect declarations or outdated instances in case of contract or specification changes)
 - `optional` : for entities, this allows to list what fields and/or props may optionally be used
-- `append` / `merge` : only applies to entity declarations that include other *contracts* and/or *entity declarations* - i.e. instead of *replacing* a root property, it either *appends* more values to its inherited parent(s) declaration(s) on the given prop(s) (listed in this `append` root prop), or merges its sub-props. See the *"Combination (= inclusion) and Merging (~= appending)"* section below.
+- `append` / `merge` / `override` : only applies to entity declarations that include other *contracts* and/or *entity declarations* - i.e. instead of *replacing* a root property, it either *appends* more values to its inherited parent(s) declaration(s) on the given prop(s) (listed in this `append` root prop), or *merges* its sub-props, or only *overrides* one or more targeted sub-props. See the *"Combination (= inclusion) and Merging (~= appending)"* section below.
 
 #### Definition and storage
 
@@ -763,19 +763,6 @@ Entities are defined using a single Yaml file named like `$type.entity.yml` (e.g
 Some implementations can dynamically assign an appropriate storage (e.g. file sidecars or database entries) given expected volume (= size) of entity instances.
 
 The file sidecar is one of the many storage method that can be used : see `asc/extensions/memory/store/store.able.yml` for criterias of assignation to different kinds of storage.
-
-#### Instanciation ("concrete" entity instances)
-
-Entities are discovered using the following lookup mechanism. It runs for all (enabled) entity declarations, per *type*.
-
-1. All `*.entity.yml` in all active dirs are discovered and cached during *instance (re)init* in the "normal" (file-based) ASC cache, i.e. in `data/asc/cache`.
-1. Once all active entity types are discovered, the *instance (re)init* post-processing *discovers* all the **concrete entity instances**.
-1. For *sidecar.able* entities, all manually created or generated instances are to be placed in paths like (for ex. for the `host` entity *type*) : `data/entities/host/foobar.home.arpa.yml`.
-1. The discovered concrete entity instances may either be written to the "normal" (file-based) ASC cache (in `data/asc/cache/entities/$type/...`), or - depending on the entity spec itself which may define a specific storage type like databse - in any other available storage mechanism (whose read / write / etc. operations are wrapped in ASC entry points or pivots), like databases.
-
-Once the local ASC project instance is initialized, any operation that interacts with one or more concrete entities will have their definition loaded in the shell scope of the entry point used using `f_entity_load()`.
-
-TODO replace the existing `f_remote_instance_load()` implementation with this system.
 
 #### Field vs Prop
 
@@ -858,20 +845,22 @@ include:
   - bar.able
 ```
 
-When a Yaml specification is included, all its props are copied into the current (self) spec. Collisions occur when the same *root* prop(s) is/are present both in the included declaration(s) and in the current definition. There are 2 ways collisions are handled :
+When a Yaml specification is included, all its props are copied into the current (self) spec. Collisions occur when the same *root* prop(s) is/are present both in the included declaration(s) and in the current definition. There are 3 ways collisions are handled :
 
-1. Any identical root-level prop gets overridden entirely, and
-1. The only way to avoid this is to put those props into the `append` or `merge` reserved root prop.
+1. Any identical root-level prop **gets entirely replaced**, *discarding* whatever was included on that root-level prop ;
+1. Specific "per Yaml depth level" sub-props may be targeted :
+    1. inside the `override` root-level prop, the *entire* declaration *at that depth level only* get **replaced** ;
+    1. inside the `append` root-level prop, those entries get **added** ;
+    1. and inside the `merge` root-level prop, they get selectively **altered**.
 
-Here is how the `append` mechanism works, following the same `remote_host` entity example  :
+Here is how the mechanism works  :
 
-1. Declare a "concrete" host entity *instance* : `data/entities/host/foobar.home.arpa.yml`
 1. Define from which entity it is based on :
     ```yml
     include:
       - remote_host.entity
     ```
-1. Identify the prop you want to inherit only partially or differently, e.g. for the following included declaration :
+1. Identify the prop you want to inherit only partially or differently, e.g. take the following included declaration :
     ```yml
     required:
       field:
@@ -880,27 +869,69 @@ Here is how the `append` mechanism works, following the same `remote_host` entit
           size: 64
         hostname:
           is: string
-          size: 1-999
+          size: 1 - 999
           default: localhost
           validate: test-hostname(p-1)
     ```
-1. Now, either replace the whole field `hostname`:
-    ```yml
-    required:
-      field:
-        hostname:
-          is: foobar
-          size: 3
-          default: toto
-          validate: test-foobar(p-1)
-    ```
-1. Or only override a specific sub-prop :
-    ```yml
-    required:
-      field:
-        hostname:
-          is: foobar
-    ```
+1. Now, either :
+    - **Replace** the whole contents of `required` - in the following example : only keep 1 `field` in `required`, effectively **discarding** anything inherited inside the `required` prop *from all of the inclusion chain* :
+        ```yml
+        required:
+          field:
+            hostname:
+              is: foobar
+              size: 3
+              default: toto
+              validate: test-foobar(p-1)
+        ```
+    - Or only **replace** a specific sub-prop on a specific level - in the following example : only override the **level 1** `field` sub-prop (level 0 being the `required` prop) in `required`, meaning **all** the fields are *entirely replaced* by a single `foo` field :
+        ```yml
+        override:
+          from-1:
+            required:
+              field:
+                foo:
+                  is: bar
+        ```
+    - Only **replace** the **level 2** `field` sub-prop in `required`, meaning : the whole `field` declaration is *entirely replaced* by a single `foo` field (any other inherited `field` items in `required` are *lost*) :
+        ```yml
+        override:
+          from-2:
+            required:
+              field:
+                hostname:
+                  is: foobar
+                  size: 3
+                  default: toto
+                  validate: test-foobar(p-1)
+        ```
+    - Only **replace** the **level 3** `hostname` field , meaning : the whole `hostname` field declaration is *replaced* (any other inherited `field` items in `required` are *preserved*) :
+        ```yml
+        override:
+          from-2:
+            required:
+              field:
+                hostname:
+                  is: foobar
+                  size: 3
+                  default: toto
+                  validate: test-foobar(p-1)
+        ```
+
+#### Instanciation ("concrete" entity instances)
+
+Entities are discovered using the following lookup mechanism. It runs for all (enabled) entity declarations, per *type*.
+
+1. All `*.entity.yml` in all active dirs are discovered and cached during *instance (re)init* in the "normal" (file-based) ASC cache, i.e. in `data/asc/cache`.
+1. Once all active entity types are discovered, the *instance (re)init* post-processing *discovers* all the **concrete entity instances**.
+1. For *sidecar.able* entities, all manually created or generated instances are to be placed in paths like (for ex. for the `host` entity *type*) : `data/entities/host/foobar.home.arpa.yml`.
+1. The discovered concrete entity instances may either be written to the "normal" (file-based) ASC cache (in `data/asc/cache/entities/$type/...`), or - depending on the entity spec itself which may define a specific storage type like databse - in any other available storage mechanism (whose read / write / etc. operations are wrapped in ASC entry points or pivots), like databases.
+
+Once the local ASC project instance is initialized, any operation that interacts with one or more concrete entities will have their definition loaded in the shell scope of the entry point used using `f_entity_load()`.
+
+TODO replace the existing `f_remote_instance_load()` implementation with this system.
+
+TODO detailed example using a "concrete" host entity *instance* : `data/entities/host/foobar.home.arpa.yml`
 
 #### Linking (relationships, references) VS Nesting (wrapper)
 
