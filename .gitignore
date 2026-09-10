@@ -25,7 +25,7 @@ __pycache__/
 /scripts/asc/local/*
 !/scripts/asc/local/README.md
 
-# Instance data, logs, etc.
+# ASC project instance generated data (cache, env vars, make targets, etc.)
 /data/asc/*
 !/data/asc/README.md
 

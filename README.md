@@ -90,9 +90,9 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
     - [DSL in Yaml](#dsl-in-yaml)
   - [Data dirs](#data-dirs)
     - [ASC cache : `data/asc/cache`](#asc-cache-dataasccache)
-    - [Default file-based entity storage : `data/asc/entities`](#default-file-based-entity-storage-dataascentities)
-      - [Queue entities : `data/asc/entities/queue`](#queue-entities-dataascentitiesqueue)
-      - [Thread entities : `data/asc/entities/thread`](#thread-entities-dataascentitiesthread)
+    - [Default file-based entity storage : `data/entities`](#default-file-based-entity-storage-dataascentities)
+      - [Queue entities : `data/entities/queue`](#queue-entities-dataascentitiesqueue)
+      - [Thread entities : `data/entities/thread`](#thread-entities-dataascentitiesthread)
     - [Logs : `data/logs`](#logs-datalogs)
     - [Private files : `data/private`](#private-files-dataprivate)
     - [Prompts local archive : `data/prompts`](#prompts-local-archive-dataprompts)
@@ -754,15 +754,28 @@ There are **reserved root-level keys**, though :
 - `includes` : defines blocks of key/value pairs that can be reused elsewhere in the same Yaml file
 - `required` : this exists to ensure expectations are met (e.g. for entities, this allows to spot incorrect declarations or outdated instances in case of contract or specification changes)
 - `optional` : for entities, this allows to list what fields and/or props may optionally be used
-- `append` : only applies to entity declarations that include other *contracts* and/or *entity declarations* - i.e. instead of *replacing* a root property, it *appends* more values to its inherited parent(s) declaration(s) on the given prop(s) (listed in this `append` root prop)
+- `append` / `merge` : only applies to entity declarations that include other *contracts* and/or *entity declarations* - i.e. instead of *replacing* a root property, it either *appends* more values to its inherited parent(s) declaration(s) on the given prop(s) (listed in this `append` root prop), or merges its sub-props. See the *"Combination (= inclusion) and Merging (~= appending)"* section below.
 
 #### Definition and storage
 
-Entities are defined using a single Yaml file. These declarations can reside in any ASC active dir following the double extension naming convention `*.entity.yml`. Their instances can be stored in file sidecars (placed in `data/asc/entities`) or even use other storage types, like databases (sqlite, postgres, arcadedb, etc.)
+Entities are defined using a single Yaml file named like `$type.entity.yml` (e.g. the file `host.entity.yml` declares the `host` entity *type*). These declarations can reside in any ASC active dir following the double extension naming convention `*.entity.yml`. Their instances can be stored in file sidecars (placed in `data/entities`) or even use other storage types, like databases (sqlite, postgres, arcadedb, etc.)
 
-Some implementations can dynamically assign an appropriate storage (e.g. file sidecars or database entries) given expected volume of entity instances.
+Some implementations can dynamically assign an appropriate storage (e.g. file sidecars or database entries) given expected volume (= size) of entity instances.
 
 The file sidecar is one of the many storage method that can be used : see `asc/extensions/memory/store/store.able.yml` for criterias of assignation to different kinds of storage.
+
+#### Instanciation ("concrete" entity instances)
+
+Entities are discovered using the following lookup mechanism. It runs for all (enabled) entity declarations, per *type*.
+
+1. All `*.entity.yml` in all active dirs are discovered and cached during *instance (re)init* in the "normal" (file-based) ASC cache, i.e. in `data/asc/cache`.
+1. Once all active entity types are discovered, the *instance (re)init* post-processing *discovers* all the **concrete entity instances**.
+1. For *sidecar.able* entities, all manually created or generated instances are to be placed in paths like (for ex. for the `host` entity *type*) : `data/entities/host/foobar.home.arpa.yml`.
+1. The discovered concrete entity instances may either be written to the "normal" (file-based) ASC cache (in `data/asc/cache/entities/$type/...`), or - depending on the entity spec itself which may define a specific storage type like databse - in any other available storage mechanism (whose read / write / etc. operations are wrapped in ASC entry points or pivots), like databases.
+
+Once the local ASC project instance is initialized, any operation that interacts with one or more concrete entities will have their definition loaded in the shell scope of the entry point used using `f_entity_load()`.
+
+TODO replace the existing `f_remote_instance_load()` implementation with this system.
 
 #### Field vs Prop
 
@@ -777,8 +790,9 @@ The file sidecar is one of the many storage method that can be used : see `asc/e
 
 `field` declarations are either placed inside `required` or `optional` props, and follow a common structure :
 
-- `is` : string, int, float, entity (for referencing other entities)
-- `volume` : expected volume of field data to store ; either a range (`$min-$max`), or a single max limit
+- `is` : string (= `str`), integer (= `int`), float, entity (for referencing other entities)
+- `unit` (optional) : either a measurable *quantity* like number of characters / words / tokens, weight, size (kg, ko, mb, g, cm, mm, km...), contenance (l), consumption or rate (w/h, tok/s), or a *number of items* (or proportion) for enumerable content (in this case, *unitless*)
+- `size` : expected *volume* of field data (and/or *number of items*) to store ; either a range (`$min - $max`), or a single *min* or *max* **limit** (`> $max`, `>= $max`, `< $max`, `<= $max`), or an exact size (the actual unitless value provided)
 - `allowed` : optionally defines a fixed list of allowed values
 - `validate` : optional DSL string that defines the validation mechanism to run when testing the local project instance
 - `default` : the default (fallback) value - for `optional` fields only
@@ -791,20 +805,14 @@ required:
   field:
     hostname:
       is: string
-      volume: 1-999
+      size: 1 - 999
       default: localhost
       validate: test-hostname(p-1)
 ```
 
-#### Structure and combination
+#### Contracts (= capabilities = abilities ~= skills, or rather : SKILL.md blueprints)
 
-Take the ASC core (generic) **host** entity. It is declared (synonyms : defined, specified) in `asc/host/host.entity.yml`. That entity is "sidecar.able" (see the *contracts* section), so its instances may be stored locally as Yaml files in `data/asc/entities`.
-
-Now take the **remote host** entity (defined in `asc/extensions/remote/remote_host.entity.yml`) : it includes the host entity, so all its props and values are the same, unless it overrides some values by declaring the same props.
-
-It can also add any other prop that isn't present in the included "base" entity.
-
-#### Contracts (= capabilities = abilities ~= skills)
+Their job is to express how to use the **tools** that are *wrapped* (or "pivoted") in ASC *project instances*. It structures in a standardized way **how to implement** and/or how to *do* things (**tasks**). Those Yaml files essentially point at ASC entry points, DSL, etc.
 
 Let's take the `host` entity as an example. It uses (= loads = includes) the following capabilities :
 
@@ -816,18 +824,83 @@ Let's take the `host` entity as an example. It uses (= loads = includes) the fol
 | ssh.able | Means that the entity being represented can be connected to using SSH (details may include : address, port, ssh key, ssh user, etc.) | `asc/host/ssh.able.yml` |
 | nest.able | Means that the entity can contain other instances of itself, like : one or more VMs, (Docker) containers, etc. | `asc/host/nest.able.yml` |
 
-The capabilities are inheritable themselves, so it is possible to create inheritance chains of contracts - like :
+The capabilities can include other capabilities, so it is possible to create inheritance chains of contracts - like : shell.able → ssh.able (i.e. `ssh.able.yml` has the `shell.able.yml` item in its `include` root prop list).
 
-- shell.able → ssh.able (i.e. `ssh.able.yml` has the `shell.able.yml` item in its `include` root prop list)
-- stack.able → compose.able (i.e. `compose.able.yml` has the `stack.able.yml` item in its `include` root prop list)
+Any entity using any of these contracts would inherit the whole chain, e.g. for the `remote_host` entity, the default inclusion chain as implemented in "ASC core" is :
 
-Then any entity using any of these contracts would inherit from the whole chain, e.g. for our `host` entity example, the inclusion chain would be :
+1. *entity.entity* (the primitive entity specification inherited - or shared by - every entities : cf. `asc/extensions/entity/entity/entity.entity.yml`)
+1. *able.able* (the primitive ability spec inherited - or shared by - every skill : cf. `asc/extensions/entity/asc/able.able.yml`)
+1. **sidecar.able** (the "concrete" *instances* of the *remote_host* entities may be stored locally as Yaml files in `data/entities` : cf. `asc/sidecar/sidecar.able.yml`)
+1. **shell.able** (expresses a skill e.g. where a specific tool (here, a terminal) is used to interact with the shell : cf. `asc/host/shell.able.yml`)
+1. **ssh.able** (this contract further specifies that the shell of a remote host can be reached using the ssh program : cf. `asc/host/ssh.able.yml`)
+1. **host** entity (because a *remote host* is a specific kind of *host* : cf. `asc/host/host.entity.yml`)
+1. Then finally, the **remote_host** entity ("self" : cf. `asc/extensions/remote/host/remote_host.entity.yml`)
 
-1. entity.entity (`asc/extensions/entity/entity/entity.entity.yml`)
-1. able.able (`asc/extensions/entity/asc/able.able.yml`)
-1. shell.able (`asc/host/shell.able.yml`)
-1. ssh.able (`asc/host/ssh.able.yml`)
-1. host (`asc/host/host.entity.yml`)
+#### Combination (= inclusion) and Merging (~= appending)
+
+Nothing forbids the inclusion of any Yaml file. So it is theoretically possible (but not necessarily a good idea) to do things like including concrete entity instances definitions. See the *builder* extension :
+
+- `asc/extensions/builder/template/core/[subject]/[able].able.yml`
+- `asc/extensions/builder/template/core/[subject]/[entity].entity.yml`
+
+This system even allows to produce Yaml files that match other specs, such as valid Docker compose files :
+
+- `scripts/asc/contrib/asc/drupalwt_d4d/stack/compose.yml`
+- `scripts/asc/contrib/asc/drupalwt_d4d/stack/compose.override.local.dev.yml`
+
+In fact, the hooks used in the entity instanciation process (= agregation ~= compilation) even make it possible to output other file formats, so the same mechanism makes theoretically possible to produce specs in Toml, Json, JsonL, XML, Html, or even Markdown.
+
+The inclusion is declared like this, e.g. in any `*.entity.yml` or `*.able.yml` :
+
+```yml
+include:
+  - foo.entity
+  - bar.able
+```
+
+When a Yaml specification is included, all its props are copied into the current (self) spec. Collisions occur when the same *root* prop(s) is/are present both in the included declaration(s) and in the current definition. There are 2 ways collisions are handled :
+
+1. Any identical root-level prop gets overridden entirely, and
+1. The only way to avoid this is to put those props into the `append` or `merge` reserved root prop.
+
+Here is how the `append` mechanism works, following the same `remote_host` entity example  :
+
+1. Declare a "concrete" host entity *instance* : `data/entities/host/foobar.home.arpa.yml`
+1. Define from which entity it is based on :
+    ```yml
+    include:
+      - remote_host.entity
+    ```
+1. Identify the prop you want to inherit only partially or differently, e.g. for the following included declaration :
+    ```yml
+    required:
+      field:
+        uuid:
+          is: string
+          size: 64
+        hostname:
+          is: string
+          size: 1-999
+          default: localhost
+          validate: test-hostname(p-1)
+    ```
+1. Now, either replace the whole field `hostname`:
+    ```yml
+    required:
+      field:
+        hostname:
+          is: foobar
+          size: 3
+          default: toto
+          validate: test-foobar(p-1)
+    ```
+1. Or only override a specific sub-prop :
+    ```yml
+    required:
+      field:
+        hostname:
+          is: foobar
+    ```
 
 #### Linking (relationships, references) VS Nesting (wrapper)
 
@@ -1034,15 +1107,15 @@ Files placed in `data/*` are usually writeable and specific to a single ASC proj
 
 TODO
 
-#### Default file-based entity storage : `data/asc/entities`
+#### Default file-based entity storage : `data/entities`
 
 TODO
 
-##### Queue entities : `data/asc/entities/queue`
+##### Queue entities : `data/entities/queue`
 
 TODO
 
-##### Thread entities : `data/asc/entities/thread`
+##### Thread entities : `data/entities/thread`
 
 TODO
 

@@ -3,6 +3,15 @@
 # @see asc/asc/able.able.yml
 # @see asc/asc/contract.entity.yml
 synonym:
+  required:
+    - mandatory
+  spec:
+    - specify
+    - specification
+    - declaration
+    - declare
+    - definition
+    - define
   op:
     - operation
   val:
@@ -29,5 +38,3 @@ synonym:
   dir:
     - directory
     - folder
-  required:
-    - mandatory
