@@ -39,11 +39,6 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
 - [Purpose](#purpose)
 - [How (concepts in brief)](#how-concepts-in-brief)
 - [Example project (demo / case study)](#example-project-demo-case-study)
-  - [ASC demo : "_Projet Complexe_" as an attempt at reinterpreting Mihaly Csikszentmihalyi's concept of _Flow_ for agents](#asc-demo-projet-complexe-as-an-attempt-at-reinterpreting-mihaly-csikszentmihalyis-concept-of-flow-for-agents)
-  - [An agent is under-challenged when it has excessive unused capacity relative to the problem](#an-agent-is-under-challenged-when-it-has-excessive-unused-capacity-relative-to-the-problem)
-  - [The opposite regime is when complexity exceeds the available cognitive resources](#the-opposite-regime-is-when-complexity-exceeds-the-available-cognitive-resources)
-  - [Prompt engineering is really challenge regulation](#prompt-engineering-is-really-challenge-regulation)
-  - [Overlap with existing projects](#overlap-with-existing-projects)
 - [Current status of the ASC project](#current-status-of-the-asc-project)
 - [Core ASC concepts](#core-asc-concepts)
   - [General notes](#general-notes)
@@ -154,111 +149,6 @@ See :
 
 - the corresponding [project-specific ASC (stack) repo](https://github.com/Paulmicha/projet-complexe-asc)
 - and [the UI (Tauri app) repo](https://github.com/Paulmicha/projet-complexe)
-
-Here's a few words to tease this representative ASC use case :
-
-### ASC demo : "_Projet Complexe_" as an attempt at reinterpreting Mihaly Csikszentmihalyi's concept of _Flow_ for agents
-
-For humans:
-
-> challenge ≈ skill
-
-For an agent:
-
-> task complexity ≈ effective cognitive capacity
-
-The important point is that *effective* capacity is not simply model size.
-
-It depends on things such as:
-
-* available context  
-* retrieval quality  
-* tool availability  
-* memory organization  
-* planning depth  
-* decomposition strategy  
-* uncertainty estimation  
-* time/token budget
-
-A 7B model with excellent retrieval may outperform a 70B model with poor context.
-
-So "skill" is actually an emergent property of the entire cognitive architecture.
-
-### An agent is under-challenged when it has excessive unused capacity relative to the problem
-
-Symptoms include:
-
-* overthinking  
-* hallucinated complexity  
-* unnecessary abstractions  
-* verbosity  
-* recursive planning  
-* inventing distinctions that do not exist
-
-You can observe this in many LLMs.
-
-Ask:
-
-> "Rename this file."
-
-The model writes five paragraphs explaining naming conventions.
-
-The task provided almost no cognitive load.
-
-The excess capacity gets filled with plausible but unnecessary generation.
-
-Humans get bored.
-
-LLMs ramble.
-
-### The opposite regime is when complexity exceeds the available cognitive resources
-
-Examples:
-
-* context window saturated  
-* contradictory instructions  
-* missing ontology  
-* too many objectives  
-* hidden assumptions  
-* missing world model  
-* excessive branching factor
-
-The symptoms become familiar.
-
-The model begins to:
-
-* forget constraints  
-* contradict itself  
-* latch onto superficial cues  
-* ignore part of the prompt  
-* randomly prioritize objectives  
-* oscillate between incompatible interpretations
-
-Humans experience anxiety.
-
-Agents experience instability.
-
-### Prompt engineering is really challenge regulation
-
-This may be one of the most useful reinterpretations.
-
-Good prompting is often described as "being clear."
-
-A better formulation is:
-
-> A good prompt keeps the agent inside its optimal cognitive operating region.
-
-That means regulating:
-
-* complexity  
-* ambiguity  
-* branching factor  
-* uncertainty  
-* objective count
-
-instead of merely reducing token count.
-
-Enough teasing "_Projet Complexe_", back to ASC - the generic base upon which that kind of work rests :
 
 ## Current status of the ASC project
 
@@ -754,7 +644,7 @@ There are **reserved root-level keys**, though :
 - `includes` : defines blocks of key/value pairs that can be reused elsewhere in the same Yaml file
 - `required` : this exists to ensure expectations are met (e.g. for entities, this allows to spot incorrect declarations or outdated instances in case of contract or specification changes)
 - `optional` : for entities, this allows to list what fields and/or props may optionally be used
-- `append` / `merge` / `override` : only applies to entity declarations that include other *contracts* and/or *entity declarations* - i.e. instead of *replacing* a root property, it either *appends* more values to its inherited parent(s) declaration(s) on the given prop(s) (listed in this `append` root prop), or *merges* its sub-props, or only *overrides* one or more targeted sub-props. See the *"Combination (= inclusion) and Merging (~= appending)"* section below.
+- `append` / `alter` / `override` : only applies to entity declarations that include other *contracts* and/or *entity declarations* - i.e. instead of *replacing* a whole root-level property, it either *appends* more values to its inherited parent(s) declaration(s) on the given prop(s) (listed in this `append` root prop), or *alters* (= merges) its sub-props, or only *overrides* (= selectively replaces) one or more targeted sub-props. See the *"Combination (= inclusion), Overriding (= replacement), Alteration (= merging), Appending (= incrementing)"* section below.
 
 #### Definition and storage
 
@@ -794,7 +684,7 @@ required:
       is: string
       size: 1 - 999
       default: localhost
-      validate: test-hostname(p-1)
+      validate: test-hostname(p1)
 ```
 
 #### Contracts (= capabilities = abilities ~= skills, or rather : SKILL.md blueprints)
@@ -823,7 +713,7 @@ Any entity using any of these contracts would inherit the whole chain, e.g. for 
 1. **host** entity (because a *remote host* is a specific kind of *host* : cf. `asc/host/host.entity.yml`)
 1. Then finally, the **remote_host** entity ("self" : cf. `asc/extensions/remote/host/remote_host.entity.yml`)
 
-#### Combination (= inclusion) and Merging (~= appending)
+#### Combination (= inclusion), Overriding (= replacement), Alteration (= merging), Appending (= incrementing)
 
 Nothing forbids the inclusion of any Yaml file. So it is theoretically possible (but not necessarily a good idea) to do things like including concrete entity instances definitions. See the *builder* extension :
 
@@ -855,7 +745,7 @@ When a Yaml specification is included, all its props are copied into the current
 
 Here is how the mechanism works  :
 
-1. Define from which entity it is based on :
+1. Define from which entity it is based on, e.g. :
     ```yml
     include:
       - remote_host.entity
@@ -871,7 +761,7 @@ Here is how the mechanism works  :
           is: string
           size: 1 - 999
           default: localhost
-          validate: test-hostname(p-1)
+          validate: test-hostname(p1)
     ```
 1. Now, either :
     - **Replace** the whole contents of `required` - in the following example : only keep 1 `field` in `required`, effectively **discarding** anything inherited inside the `required` prop *from all of the inclusion chain* :
@@ -882,8 +772,9 @@ Here is how the mechanism works  :
               is: foobar
               size: 3
               default: toto
-              validate: test-foobar(p-1)
+              validate: test-foobar(p1)
         ```
+        Here, the result is : no more `uuid` field at all.
     - Or only **replace** a specific sub-prop on a specific level - in the following example : only override the **level 1** `field` sub-prop (level 0 being the `required` prop) in `required`, meaning **all** the fields are *entirely replaced* by a single `foo` field :
         ```yml
         override:
@@ -893,7 +784,7 @@ Here is how the mechanism works  :
                 foo:
                   is: bar
         ```
-    - Only **replace** the **level 2** `field` sub-prop in `required`, meaning : the whole `field` declaration is *entirely replaced* by a single `foo` field (any other inherited `field` items in `required` are *lost*) :
+    - Only **replace** the **level 2** `field` sub-prop in `required`, meaning : the `hostname` field declaration is *replaced* (any other inherited `field` items in `required` are *preserved*) :
         ```yml
         override:
           from-2:
@@ -903,20 +794,137 @@ Here is how the mechanism works  :
                   is: foobar
                   size: 3
                   default: toto
-                  validate: test-foobar(p-1)
+                  validate: test-foobar(p1)
         ```
-    - Only **replace** the **level 3** `hostname` field , meaning : the whole `hostname` field declaration is *replaced* (any other inherited `field` items in `required` are *preserved*) :
+        So here, the `uuid` field is left untouched.
+    - Now, in this next example, there is no difference between **replacing** and **altering** a single **level 3** property - i.e. those are strictly equivalent declarations :
         ```yml
         override:
-          from-2:
+          from-3:
             required:
               field:
                 hostname:
-                  is: foobar
-                  size: 3
-                  default: toto
-                  validate: test-foobar(p-1)
+                  size: 1
         ```
+        And :
+        ```yml
+        alter:
+          required:
+            field:
+              hostname:
+                size: 1
+        ```
+        Because the **level 3** `size` sub-prop is targeted, there is no difference between overriding and altering (both change the resulting value at this specific leaf in the Yaml tree).
+    - When only **modifications** are needed instead of replacing entire trees, the `alter` root-level prop allows to do many alterations at once without losing any other part of the trees. Unlike `override`, it only overrides specific inherited values in the exact target leaves only - e.g. :
+        ```yml
+        alter:
+          required:
+            field:
+              hostname:
+                default: foobar
+                validate: test-hostname-foobar-alternative(p1)
+              uuid:
+                size: 128
+        ```
+        Here, both fields inherit all the other sub-props values, and only change those explicitly defined inside the `alter` roo-level prop.
+    - Finally, if any list needs incrementing, like adding a new `required` field, we can use the `append` root-level prop :
+        ```yml
+        append:
+          required:
+            field:
+              foo:
+                is: bar
+        ```
+        Here, the result would have 3 `required` fields : `uuid`, `hostname`, and `foo`.
+
+**Appending** (= *incrementing*) works on the first missing prop on the deepest level of the inherited tree. So, starting from the same previous included Yaml example :
+
+```yml
+required:
+  field:
+    uuid:
+      is: string
+      size: 64
+    hostname:
+      is: string
+      size: 1 - 999
+      default: localhost
+      validate: test-hostname(p1)
+```
+
+1. If you have :
+    ```yml
+    append:
+      optional:
+        field:
+          foo:
+            is: bar
+    ```
+    Then the result would be :
+    ```yml
+      required:
+        field:
+          uuid:
+            is: string
+            size: 64
+          hostname:
+            is: string
+            size: 1 - 999
+            default: localhost
+            validate: test-hostname(p1)
+      optional:
+        field:
+          foo:
+            is: bar
+      ```
+1. But if you have :
+    ```yml
+    append:
+      required:
+        field:
+          uuid:
+            validate: test-uuid(p1)
+    ```
+    Then the result would be :
+    ```yml
+      required:
+        field:
+          uuid:
+            is: string
+            size: 64
+            validate: test-uuid(p1)
+          hostname:
+            is: string
+            size: 1 - 999
+            default: localhost
+            validate: test-hostname(p1)
+      ```
+    Here, the result is equivalent to `alter` (which will fill the gap just like `append` adds the new sub-prop at that level in the tree).
+
+Finally, `append` works on lists like :
+
+```yml
+foobar:
+  - item 1
+  - item 2
+```
+
+If you do :
+
+```yml
+append:
+  foobar:
+    - item 3
+```
+
+The result would be :
+
+```yml
+foobar:
+  - item 1
+  - item 2
+  - item 3
+```
 
 #### Instanciation ("concrete" entity instances)
 
