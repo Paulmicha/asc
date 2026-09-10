@@ -69,6 +69,7 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
     - [Field vs Prop](#field-vs-prop)
     - [Contracts (= capabilities = abilities ~= skills, or rather : SKILL.md blueprints)](#contracts-capabilities-abilities-skills-or-rather-skillmd-blueprints)
     - [Combination (= inclusion), Overriding (= replacement), Alteration (= merging), Appending (= incrementing)](#combination-inclusion-overriding-replacement-alteration-merging-appending-incrementing)
+    - [Reusable Yaml blocks (`includes` : plural)](#reusable-yaml-blocks-includes-plural)
     - [Instanciation ("concrete" entity instances)](#instanciation-concrete-entity-instances)
     - [Linking (relationships, references) VS Nesting (wrapper)](#linking-relationships-references-vs-nesting-wrapper)
   - [Tests](#tests)
@@ -645,9 +646,9 @@ foo_bar_value: the value
 
 For ASC entites and abilities Yaml files (`*.entity.yml` and `*.able.yml`), there are **reserved root-level keys** :
 
-- `synonym` : defines equivalent props and/or fields names
 - `include` : loads (= merges) other `*.yml` files into the current file
-- `includes` : defines blocks of key/value pairs that can be reused elsewhere in the same Yaml file
+- `includes` : defines blocks of Yaml that can be reused elsewhere in the same Yaml file
+- `synonym` : defines equivalent props and/or fields names
 - `required` : this exists to ensure expectations are met (e.g. for entities, this allows to spot incorrect declarations or outdated instances in case of contract or specification changes)
 - `optional` : for entities, this allows to list what fields and/or props may optionally be used
 - `append` / `alter` / `override` : only applies to entity declarations that include other *contracts* and/or *entity declarations* - i.e. instead of *replacing* a whole root-level property, it either *appends* more values to its inherited parent(s) declaration(s) on the given prop(s) (listed in this `append` root prop), or *alters* (= merges) its sub-props, or only *overrides* (= selectively replaces) one or more targeted sub-props. See the *"Combination (= inclusion), Overriding (= replacement), Alteration (= merging), Appending (= incrementing)"* section below.
@@ -933,6 +934,91 @@ foobar:
   - item 1
   - item 2
   - item 3
+```
+
+#### Reusable Yaml blocks (`includes` : plural)
+
+- `include` is about loading other Yaml files with the mechanism explained above
+- `includes` make possible to reuse blocks of Yaml in the same file like this :
+
+```yml
+includes:
+  default:
+    shell: ash
+  front:
+    docroot: /var/www/html
+    logs: /var/log/apache2
+  api:
+    docroot: /var/www/api
+    logs: /var/log/api
+  auth:
+    docroot: /opt/keycloak
+    logs: /var/log/auth
+  index:
+    docroot: /opt/search
+    logs: /var/log/search
+
+dev:
+  site:
+    includes: default front
+    hostname: www.dev.specimen.home.arpa
+  api:
+    includes: default api
+    hostname: api.dev.specimen.home.arpa
+  auth:
+    includes: default auth
+    hostname: auth.dev.specimen.home.arpa
+  search:
+    includes: default index
+    hostname: search.dev.specimen.home.arpa
+
+staging:
+  site:
+    includes: default front
+    hostname: www.staging.specimen.home.arpa
+  api:
+    includes: default api
+    hostname: api.staging.specimen.home.arpa
+  auth:
+    includes: default auth
+    hostname: auth.staging.specimen.home.arpa
+  search:
+    includes: default index
+    hostname: search.staging.specimen.home.arpa
+
+prod:
+  site:
+    includes: default front
+    hostname: www.prod.specimen.home.arpa
+  api:
+    includes: default api
+    hostname: api.prod.specimen.home.arpa
+  auth:
+    includes: default auth
+    hostname: auth.prod.specimen.home.arpa
+  search:
+    includes: default index
+    hostname: search.prod.specimen.home.arpa
+```
+
+The result is that every place where `includes` is specified, the space-separated list of targeted resusable blocks will be placed in the tree, e.g. :
+
+```yml
+dev:
+  site:
+    includes: default front
+    hostname: www.dev.specimen.home.arpa
+```
+
+... becomes :
+
+```yml
+dev:
+  site:
+    shell: ash
+    docroot: /var/www/html
+    logs: /var/log/apache2
+    hostname: www.dev.specimen.home.arpa
 ```
 
 #### Instanciation ("concrete" entity instances)
