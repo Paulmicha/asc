@@ -8,7 +8,7 @@
 #
 
 ##
-# Initializes primitives (fundamental values for ASC extension mecanisms).
+# Initializes primitives (fundamental values for ASC extension mechanisms).
 #
 # @param 1 [optional] String relative path (defaults to 'asc' = ASC "core").
 #   Provides a extension folder without trailing slash.
@@ -169,25 +169,48 @@ f_asc_extensions() {
   local ei_override
 
   # ALlow to deactivate some extensions using dotfile '.asc_extensions_ignore'.
-  # This file can be overridden in project-specific scripts/asc/override folder.
-  exclusions_arr=()
-  extensions_ignore_filepath='asc/extensions/.asc_extensions_ignore'
+  extensions_ignore_filepath='.asc_extensions_ignore'
 
   # The following lookups will be used in this order (the last found takes
   # precedence) :
-  # - scripts/asc/override/.asc_extensions_ignore (convenience default path)
-  # - scripts/asc/override/extensions/.asc_extensions_ignore (normal override)
-  # - scripts/asc/override/.${PROVISION_USING}.asc_extensions_ignore
-  # - scripts/asc/override/.${INSTANCE_DOMAIN}.asc_extensions_ignore
+  # - .asc_extensions_ignore
+  # - .$INSTANCE_TYPE.asc_extensions_ignore
+  # - .$STACK_VERSION.asc_extensions_ignore
+  # - .$HOST_TYPE.$INSTANCE_TYPE.asc_extensions_ignore
+  # - .$STACK_VERSION.$HOST_TYPE.asc_extensions_ignore
+  # - .$STACK_VERSION.$INSTANCE_TYPE.asc_extensions_ignore
+  # - .$STACK_VERSION.$HOST_TYPE.$INSTANCE_TYPE.asc_extensions_ignore
+  exclusions_arr=()
   ei_override_lookup_arr=()
-  ei_override_lookup_arr+=('scripts/asc/override/.asc_extensions_ignore')
-  ei_override_lookup_arr+=('scripts/asc/override/extensions/.asc_extensions_ignore')
-  if [[ -n "$PROVISION_USING" ]]; then
-    ei_override_lookup_arr+=("scripts/asc/override/.${PROVISION_USING}.asc_extensions_ignore")
+
+  if [[ -n "$HOST_TYPE" ]]; then
+    ei_override_lookup_arr+=(".$HOST_TYPE.asc_extensions_ignore")
   fi
-  if [[ -n "$INSTANCE_DOMAIN" ]]; then
-    ei_override_lookup_arr+=("scripts/asc/override/.${INSTANCE_DOMAIN}.asc_extensions_ignore")
+
+  if [[ -n "$INSTANCE_TYPE" ]]; then
+    ei_override_lookup_arr+=(".$INSTANCE_TYPE.asc_extensions_ignore")
   fi
+
+  if [[ -n "$STACK_VERSION" ]]; then
+    ei_override_lookup_arr+=(".$STACK_VERSION.asc_extensions_ignore")
+  fi
+
+  if [[ -n "$HOST_TYPE" && -n "$INSTANCE_TYPE" ]]; then
+    ei_override_lookup_arr+=(".$HOST_TYPE.$INSTANCE_TYPE.asc_extensions_ignore")
+  fi
+
+  if [[ -n "$STACK_VERSION" && -n "$HOST_TYPE" ]]; then
+    ei_override_lookup_arr+=(".$STACK_VERSION.$HOST_TYPE.asc_extensions_ignore")
+  fi
+
+  if [[ -n "$STACK_VERSION" && -n "$INSTANCE_TYPE" ]]; then
+    ei_override_lookup_arr+=(".$STACK_VERSION.$INSTANCE_TYPE.asc_extensions_ignore")
+  fi
+
+  if [[ -n "$STACK_VERSION" && -n "$HOST_TYPE" && -n "$INSTANCE_TYPE" ]]; then
+    ei_override_lookup_arr+=(".$STACK_VERSION.$HOST_TYPE.$INSTANCE_TYPE.asc_extensions_ignore")
+  fi
+
   for ei_override in "${ei_override_lookup_arr[@]}"; do
     if [[ -f "$ei_override" ]]; then
       extensions_ignore_filepath="$ei_override"
@@ -196,6 +219,7 @@ f_asc_extensions() {
 
   if [[ -f "$extensions_ignore_filepath" ]]; then
     f_fs_get_file_contents "$extensions_ignore_filepath" 'exclusions'
+
     if [[ -n "$exclusions" ]]; then
       for excl in $exclusions; do
         exclusions_arr+=("$excl")
@@ -204,6 +228,7 @@ f_asc_extensions() {
   fi
 
   f_fs_dir_list "asc/extensions"
+
   for extension in $dir_list; do
 
     # Ignore dirnames starting with '.'.
@@ -223,6 +248,7 @@ f_asc_extensions() {
 
     # For convenience, also accept generic includes at the root of extensions.
     inc="asc/extensions/$extension/${extension}.inc.sh"
+
     if [[ -f "$inc" ]]; then
       ASC_INC+="$inc "
     fi
@@ -232,10 +258,12 @@ f_asc_extensions() {
   # provide any implementation like "normal" ASC extensions meant for current
   # project-specific operations (non-reusable).
   custom_extend_path="scripts/asc/extend"
+
   if [[ -d "$custom_extend_path" ]]; then
     ASC_EXTENSIONS+="extend "
     f_asc_extend "$custom_extend_path"
     inc="$custom_extend_path/extend.inc.sh"
+
     if [[ -f "$inc" ]]; then
       ASC_INC+="$inc "
     fi
@@ -305,6 +333,7 @@ f_asc_primitive_values() {
   # (per subject) - its values are simply added if both exist.
   local dn
   local dotfile_names='asc'
+
   # case "$p_primitive" in variants|prefixes)
   if [[ -n "$p_action" ]]; then
     dotfile_names+=" asc_$p_action"
@@ -314,10 +343,13 @@ f_asc_primitive_values() {
   # Look for the dotfile that provides explictly ignored values.
   local ignored_values_arr=()
   local ignored_val
+
   for dn in $dotfile_names; do
     dotfile="$p_path/.${dn}_${p_primitive}_ignore"
+
     if [[ -f "$dotfile" ]]; then
       f_fs_get_file_contents "$dotfile" 'dotfile_contents'
+
       if [[ -n "$dotfile_contents" ]]; then
         for ignored_val in $dotfile_contents; do
           ignored_values_arr+=("$ignored_val")
@@ -328,11 +360,14 @@ f_asc_primitive_values() {
 
   # Look for the dotfile that will override all default values.
   local proceed=1
+
   for dn in $dotfile_names; do
     dotfile="$p_path/.${dn}_${p_primitive}"
+
     if [[ -f "$dotfile" ]]; then
       proceed=0
       f_fs_get_file_contents "$dotfile" 'dotfile_contents'
+
       if [[ -n "$dotfile_contents" ]]; then
         primitive_values="$dotfile_contents"
       fi
@@ -342,6 +377,7 @@ f_asc_primitive_values() {
   # Provide dynamic default values.
   if [[ $proceed -eq 1 ]]; then
     local dyn_values
+
     case "$p_primitive" in
       subjects)
         f_fs_dir_list "$p_path"
@@ -356,6 +392,7 @@ f_asc_primitive_values() {
     # Filter out invalid values.
     local v
     local v_dots_arr
+
     for v in $dyn_values; do
 
       # Always ignore values starting with a dot.
@@ -386,10 +423,13 @@ f_asc_primitive_values() {
   # Look for the dotfile that provides additional values + add them if it exists.
   for dn in $dotfile_names; do
     dotfile="$p_path/.${dn}_${p_primitive}_append"
+
     if [[ -f "$dotfile" ]]; then
       f_fs_get_file_contents "$dotfile" 'dotfile_contents'
+
       if [[ -n "$dotfile_contents" ]]; then
         local added_val
+
         for added_val in $dotfile_contents; do
           primitive_values+=" $added_val "
         done

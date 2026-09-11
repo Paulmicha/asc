@@ -294,15 +294,18 @@ f_instance_yaml_config_load() {
 
   # Start by looking for any declarations in ASC dirs (with variants).
   hook_dry_run_matches=''
+
   # make hook-debug s:instance a:env c:yml v:STACK_VERSION HOST_TYPE INSTANCE_TYPE
   hook -s 'instance' -a 'env' -c 'yml' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE' -t -r
+
   for instance_yaml_config_file in $hook_dry_run_matches; do
     f_instance_yaml_config_parse "$instance_yaml_config_file"
   done
 
   # Also support PROJECT_DOCROOT env.yml files variations, as well as local,
   # git-ignored declarations in PROJECT_DOCROOT (last loaded take precedence).
-  instance_yaml_config_root_files="env.$INSTANCE_TYPE.yml
+  instance_yaml_config_root_files="env.$HOST_TYPE.yml
+env.$INSTANCE_TYPE.yml
 env.$STACK_VERSION.yml
 env.$HOST_TYPE.$INSTANCE_TYPE.yml
 env.$STACK_VERSION.$HOST_TYPE.yml
@@ -316,6 +319,7 @@ env.$STACK_VERSION.$HOST_TYPE.$INSTANCE_TYPE.yml
 .env-local.$STACK_VERSION.$HOST_TYPE.yml
 .env-local.$STACK_VERSION.$INSTANCE_TYPE.yml
 .env-local.$STACK_VERSION.$HOST_TYPE.$INSTANCE_TYPE.yml"
+
   for instance_yaml_config_file in $instance_yaml_config_root_files; do
     if [[ -f "$instance_yaml_config_file" ]]; then
       f_instance_yaml_config_parse "$instance_yaml_config_file"
