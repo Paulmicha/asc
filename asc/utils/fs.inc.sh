@@ -565,6 +565,7 @@ f_fs_relative_path() {
 }
 
 ##
+# Update 2026-09 : comment out for now, unused but still might change our minds.
 # Adds or updates a single line in given file.
 #
 # NB : hasn't been tested when pattern matches several lines.
@@ -576,34 +577,35 @@ f_fs_relative_path() {
 # @example
 #   f_fs_update_or_append_line 'MY_VAR=' 'MY_VAR="new-val"' path/to/writeable/file
 #
-f_fs_update_or_append_line() {
-  local p_pattern="$1"
-  local p_new_line="$2"
-  local p_file_path="$3"
+# f_fs_update_or_append_line() {
+#   local p_pattern="$1"
+#   local p_new_line="$2"
+#   local p_file_path="$3"
 
-  if [[ ! -f "$p_file_path" ]]; then
-    echo >&2
-    echo "Error in f_fs_update_or_append_line() - $BASH_SOURCE line $LINENO: file $p_file_path was not found." >&2
-    echo "Aborting (1)." >&2
-    echo >&2
-    return 1
-  fi
+#   if [[ ! -f "$p_file_path" ]]; then
+#     echo >&2
+#     echo "Error in f_fs_update_or_append_line() - $BASH_SOURCE line $LINENO: file $p_file_path was not found." >&2
+#     echo "Aborting (1)." >&2
+#     echo >&2
+#     return 1
+#   fi
 
-  local haystack
-  f_fs_get_file_contents "$p_file_path" 'haystack'
-  if [[ -z "$haystack" ]]; then
-    echo "$p_new_line" > "$p_file_path"
-    return
-  fi
+#   local haystack
+#   f_fs_get_file_contents "$p_file_path" 'haystack'
+#   if [[ -z "$haystack" ]]; then
+#     echo "$p_new_line" > "$p_file_path"
+#     return
+#   fi
 
-  # Escape backslash, forward slash and ampersand for use as a sed replacement.
-  # See https://stackoverflow.com/a/42727904
-  p_new_line=$(echo "$p_new_line" | sed -e 's/[\/&]/\\&/g')
+#   # Escape backslash, forward slash and ampersand for use as a sed replacement.
+#   # See https://stackoverflow.com/a/42727904
+#   p_new_line=$(echo "$p_new_line" | sed -e 's/[\/&]/\\&/g')
 
-  sed -e "s,${p_pattern}.*,${p_new_line},g" -i "$p_file_path"
-}
+#   sed -e "s,${p_pattern}.*,${p_new_line},g" -i "$p_file_path"
+# }
 
 ##
+# Update 2026-09 : comment out for now, unused but still might change our minds.
 # Writes given string to a file only once.
 #
 # @param 1 String : the string to append to the file.
@@ -614,25 +616,25 @@ f_fs_update_or_append_line() {
 #   f_fs_write_once '--test A' path/to/writeable/file # (unchanged)
 #   f_fs_write_once '--test B' path/to/writeable/file # File contents appended.
 #
-f_fs_write_once() {
-  local p_needle="$1"
-  local p_file_path="$2"
+# f_fs_write_once() {
+#   local p_needle="$1"
+#   local p_file_path="$2"
 
-  local haystack
-  f_fs_get_file_contents "$p_file_path" 'haystack'
+#   local haystack
+#   f_fs_get_file_contents "$p_file_path" 'haystack'
 
-  if [[ -z "$haystack" ]]; then
-    echo "$p_needle" > "$p_file_path"
-    return
-  fi
+#   if [[ -z "$haystack" ]]; then
+#     echo "$p_needle" > "$p_file_path"
+#     return
+#   fi
 
-  local new_str
-  f_str_append_once $'\n'"$p_needle" "$haystack" 'new_str'
+#   local new_str
+#   f_str_append_once $'\n'"$p_needle" "$haystack" 'new_str'
 
-  if [[ "$new_str" != "$haystack" ]]; then
-    echo "$new_str" > "$p_file_path"
-  fi
-}
+#   if [[ "$new_str" != "$haystack" ]]; then
+#     echo "$new_str" > "$p_file_path"
+#   fi
+# }
 
 ##
 # Replaces an entire line in given file.
