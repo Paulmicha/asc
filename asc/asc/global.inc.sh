@@ -362,6 +362,7 @@ f_global_aggregate() {
 }
 
 ##
+# Update 2026-09 Comment out be keep here in case we change our minds.
 # Executes given callback function for all env vars discovered so far.
 #
 # @requires the following globals in calling scope :
@@ -373,17 +374,17 @@ f_global_aggregate() {
 # @example
 #   f_global_foreach f_global_assign_value
 #
-f_global_foreach() {
-  local p_callback="$1"
-  local globals_arr
-  local global_name
+# f_global_foreach() {
+#   local p_callback="$1"
+#   local globals_arr
+#   local global_name
 
-  for global_name in ${GLOBALS['.sorting']}; do
-    f_str_split1 'globals_arr' "$global_name" '|'
-    global_name="${globals_arr[1]}"
-    $p_callback $global_name
-  done
-}
+#   for global_name in ${GLOBALS['.sorting']}; do
+#     f_str_split1 'globals_arr' "$global_name" '|'
+#     global_name="${globals_arr[1]}"
+#     $p_callback $global_name
+#   done
+# }
 
 ##
 # Assigns arg or default value to given global env var.
