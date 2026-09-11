@@ -125,6 +125,75 @@ test_asc_global_aggregate() {
 }
 
 ##
+# f_global_lookup_paths must include subject + extension global.vars.sh files.
+#
+test_f_global_lookup_paths() {
+  local global_lookup_paths=''
+  local s
+  local found_subject=0
+
+  f_global_lookup_paths
+
+  assertTrue 'lookup paths should be non-empty' "[[ -n \"$global_lookup_paths\" ]]"
+
+  for s in $ASC_SUBJECTS; do
+    case "$s" in bootstrap) continue ;; esac
+    assertTrue "should list asc/$s/global.vars.sh" \
+      "[[ \" \$global_lookup_paths \" == *\" asc/$s/global.vars.sh \"* ]]"
+    found_subject=1
+    break
+  done
+  assertTrue 'at least one subject global.vars.sh should be checked' \
+    "[[ $found_subject -eq 1 ]]"
+
+  assertTrue 'should list dummy extension root global.vars.sh' \
+    "[[ \" \$global_lookup_paths \" == *\" asc/extensions/nftascgevdehnc/global.vars.sh \"* ]]"
+  assertTrue 'should list dummy extension instance global.vars.sh' \
+    "[[ \" \$global_lookup_paths \" == *\" asc/extensions/nftascgevdehnc/instance/global.vars.sh \"* ]]"
+}
+
+##
+# f_global_list must fill parallel name/value arrays from aggregated globals.
+#
+test_f_global_list() {
+  local p_ascii_dry_run=1
+  local p_ascii_yes=1
+  local test_asc_global_aggregate=1
+  local i
+  local found=0
+
+  unset GLOBALS
+  declare -A GLOBALS
+  GLOBALS_COUNT=0
+  GLOBALS_UNIQUE_NAMES=()
+  GLOBALS_UNIQUE_KEYS=()
+  GLOBALS_DEFERRED=()
+  GLOBALS_DRY_RUN=0
+
+  f_global_aggregate
+
+  asc_globals_var_names_arr=()
+  asc_globals_values_arr=()
+  f_global_list
+
+  assertTrue 'f_global_list should populate names' \
+    "[[ ${#asc_globals_var_names_arr[@]} -gt 0 ]]"
+  assertEquals 'names and values arrays should match in length' \
+    "${#asc_globals_var_names_arr[@]}" "${#asc_globals_values_arr[@]}"
+
+  for ((i = 0; i < ${#asc_globals_var_names_arr[@]}; i++)); do
+    if [[ "${asc_globals_var_names_arr[i]}" == 'NFTASCGEVHNC_VAR_1' ]]; then
+      assertEquals 'listed value for NFTASCGEVHNC_VAR_1' \
+        'test' "${asc_globals_values_arr[i]}"
+      found=1
+      break
+    fi
+  done
+  assertTrue 'NFTASCGEVHNC_VAR_1 should appear in f_global_list names' \
+    "[[ $found -eq 1 ]]"
+}
+
+##
 # Cleans up any leftovers from previous tests.
 #
 # (Internal shunit2 function called after all tests have run.)
