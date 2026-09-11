@@ -79,6 +79,7 @@ if [[ -d './scripts/asc' ]]; then
 fi
 
 # ASC "actions" - and the ones of its active extensions - need to be executable.
+. asc/instance/list_actions.sh
 f_asc_get_actions
 
 for f in "${asc_action_scripts_arr[@]}"; do

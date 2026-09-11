@@ -41,7 +41,12 @@ global HOST_OS "$(f_host_os)"
 # @see f_make_generate()
 # @see f_make_task_name()
 # @see Makefile
-global ASC_MAKE_INC "[append]='$(f_asc_extensions_get_makefiles)'"
+# @see asc/instance/list_makefiles.sh
+. asc/instance/list_makefiles.sh
+_asc_make_inc_ext=''
+f_asc_extensions_get_makefiles '_asc_make_inc_ext'
+global ASC_MAKE_INC "[append]='${_asc_make_inc_ext}'"
+unset _asc_make_inc_ext
 
 global ASC_SYNONYMS "[append]='asc-cache-clear/cc'"
 global ASC_SYNONYMS "[append]='asc-cache-rebuild/cr'"
