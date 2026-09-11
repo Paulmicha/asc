@@ -68,7 +68,9 @@ elif [[ -f 'env.yml' ]]; then
   . asc/utils/str/str.opt-inc.sh
   . asc/yml/yml.inc.sh
 
-  eval "$(f_yaml_parse 'env.yml' 'yaml_')"
+  parsed=''
+  f_yaml_parse 'env.yml' 'yaml_' 'parsed'
+  eval "$parsed"
 
   if [[ -n "$yaml_stack_version" ]]; then
     STACK_VERSION="$yaml_stack_version"

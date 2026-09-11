@@ -222,6 +222,7 @@ f_cron_parse_filename() {
 f_cron_load_base_templates() {
   local base_file='asc/extensions/crontab/base_settings.crontab.yml'
   local k
+  local parsed=''
 
   unset cron_tpl_defaults_enabled cron_tpl_defaults_wrap cron_tpl_defaults_lock \
     cron_tpl_defaults_user cron_tpl_scheduled_job_retry_max \
@@ -233,7 +234,8 @@ f_cron_load_base_templates() {
   fi
 
   # shellcheck disable=SC2034
-  eval "$(f_yaml_parse "$base_file" 'cronbase_')"
+  f_yaml_parse "$base_file" 'cronbase_' 'parsed'
+  eval "$parsed"
 
   f_cron_scalar "${cronbase_includes_defaults_enabled:-true}" 'cron_tpl_defaults_enabled'
   f_cron_scalar "${cronbase_includes_defaults_wrap:-lt}" 'cron_tpl_defaults_wrap'
@@ -288,6 +290,7 @@ f_cron_settings_setup() {
   local entry
   local files_arr=()
   local peer_idx
+  local parsed=''
   declare -A peer_count_dict=()
   declare -A peer_seen_dict=()
 
@@ -349,7 +352,9 @@ EOF
       croncj_user croncj_retry_max croncj_retry_delay croncj_make croncj_run \
       croncj_monitor_mark_stale croncj_monitor_reclaim_lock \
       croncj_monitor_outer_retry
-    eval "$(f_yaml_parse "$f" 'croncj_')"
+    parsed=''
+    f_yaml_parse "$f" 'croncj_' 'parsed'
+    eval "$parsed"
 
     f_cron_apply_includes "${croncj_includes:-}"
 

@@ -571,7 +571,8 @@ f_remote_instances_setup() {
 EOF
 
   # Write remotes definitions.
-  local parsed_yaml_remotes="$(f_yaml_parse "$most_specific_match" 'ascri_')"
+  local parsed_yaml_remotes=''
+  f_yaml_parse "$most_specific_match" 'ascri_' 'parsed_yaml_remotes'
   echo "$parsed_yaml_remotes" >> 'data/asc/remote-instances.sh'
 
   # Process & adapt parsed result for use with f_remote_instance_load().

@@ -563,7 +563,7 @@ f_dwt_sites() {
   then
     sites_parsed_yaml_str="$memoized_dwt_sites_parsed_yaml_str"
   else
-    sites_parsed_yaml_str="$(f_yaml_parse "$most_specific_match" "$dwt_vars_prefix")"
+    f_yaml_parse "$most_specific_match" "$dwt_vars_prefix" 'sites_parsed_yaml_str'
     memoized_dwt_sites_parsed_yaml_str="$sites_parsed_yaml_str"
     memoized_dwt_sites_yaml_file="$most_specific_match"
   fi

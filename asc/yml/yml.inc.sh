@@ -22,6 +22,9 @@
 #
 # @param 1 String : path to YAML file.
 # @param 2 [optional] String : the resulting variables prefix. Defaults to 'y_'.
+# @param 3 [optional] String : output var name. When set, writes assignment
+#   text via printf -v (no caller capture subshell). When omitted, prints to
+#   stdout. Vendor parse_yaml still uses a sed/awk pipeline internally.
 #
 # @example
 #   # Given this input file contents (path/to/file.yml) :
@@ -40,9 +43,9 @@
 #       content: Item 3 content
 #
 #   # Calling this :
-#   f_yaml_parse path/to/file.yml 'conf_'
+#   f_yaml_parse path/to/file.yml 'conf_' 'parsed'
 #
-#   # -> outputs :
+#   # -> $parsed contains :
 #   conf_site_all=("default-sites.txt")
 #   conf_site_new=("new-sites.txt")
 #   conf_urls+=("preprod.example.com")
@@ -55,7 +58,8 @@
 #   conf_items__content+=("Item 3 content")
 #
 #   # Usage example :
-#   eval "$(f_yaml_parse path/to/file.yml 'conf_')"
+#   f_yaml_parse path/to/file.yml 'conf_' 'parsed'
+#   eval "$parsed"
 #   echo "$conf_site_all"             # -> default-sites.txt
 #   echo "$conf_site_new"             # -> new-sites.txt
 #   echo "${conf_urls[0]}"            # -> preprod.example.com
@@ -85,6 +89,7 @@
 f_yaml_parse() {
   local p_yml_file="$1"
   local p_prefix="$2"
+  local p_output_var_name="${3:-}"
 
   if [[ -z "$p_prefix" ]]; then
     p_prefix='y_'
@@ -92,7 +97,11 @@ f_yaml_parse() {
     f_str_sanitize_var_name "$p_prefix" p_prefix
   fi
 
-  parse_yaml "$p_yml_file" "$p_prefix"
+  if [[ -n "$p_output_var_name" ]]; then
+    printf -v "$p_output_var_name" '%s' "$(parse_yaml "$p_yml_file" "$p_prefix")"
+  else
+    parse_yaml "$p_yml_file" "$p_prefix"
+  fi
 }
 
 ##
@@ -120,8 +129,6 @@ f_yaml_get_root_keys() {
   local p_yaml_file="$1"
   local parsed_line
   local parsed_var
-  local parsed_var_leaf
-  local parsed_var_split
 
   yaml_keys_arr=()
 
@@ -145,7 +152,7 @@ f_yaml_get_root_keys() {
 ##
 # Gets "keys" from given parsed YAML string filtered by prefix.
 #
-# Warning : for rrot (level 0) keys_arr, use f_yaml_get_root_keys().
+# Warning : for root (level 0) keys_arr, use f_yaml_get_root_keys().
 #
 # For now, only works with "non-list" entries.
 # @see f_yaml_parse()
@@ -159,7 +166,7 @@ f_yaml_get_root_keys() {
 #
 # @example
 #   # Level 1 keys of 'site' from the f_yaml_parse() example file contents :
-#   parsed_yaml_str="$(f_yaml_parse path/to/file.yml 'conf_')"
+#   f_yaml_parse path/to/file.yml 'conf_' 'parsed_yaml_str'
 #   f_yaml_get_keys "$parsed_yaml_str" 'conf_site_'
 #   echo "Level 1 'site' keys = ${yaml_keys_arr[@]}"
 #   echo "Number of level 1 'site' keys = ${#yaml_keys_arr[@]}"
@@ -192,7 +199,7 @@ f_yaml_get_keys() {
           ;;
       esac
     fi
-    parsed_var_split="$(echo "$parsed_var" | cut -d '_' -f 1)"
+    parsed_var_split="${parsed_var%%_*}"
     f_array_add_once "$parsed_var_split" yaml_keys_arr
   done <<< "$p_yaml_str"
 }

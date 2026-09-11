@@ -137,8 +137,10 @@ f_thread_yml_load() {
 
   # bash-yaml uses += for lists; clear before reload.
   unset thread_tree_arr
+  local parsed=''
 
-  eval "$(f_yaml_parse "$p_yml" 'thread_')"
+  f_yaml_parse "$p_yml" 'thread_' 'parsed'
+  eval "$parsed"
   f_thread_yml_strip_quotes
 }
 

@@ -139,7 +139,8 @@ f_software_load_manifests() {
   fi
 
   for f in "${software_manifest_files_arr[@]}"; do
-    parsed="$(f_yaml_parse "$f" 'sw_')"
+    parsed=''
+    f_yaml_parse "$f" 'sw_' 'parsed'
     eval "$parsed"
   done
 

@@ -21,6 +21,7 @@ f_thread_monitor_default() {
   local entry
   local yml
   local host_file
+  local parsed=''
   local healed=0
   local marked=0
 
@@ -56,8 +57,10 @@ f_thread_monitor_default() {
   shopt -s nullglob
   for host_file in "$thread_host_index_dir"/*.yml; do
     unset thread_host_docroot thread_host_entry thread_host_pid thread_host_status
+    parsed=''
+    f_yaml_parse "$host_file" 'thread_host_' 'parsed'
     # shellcheck disable=SC2034
-    eval "$(f_yaml_parse "$host_file" 'thread_host_')" 2>/dev/null || true
+    eval "$parsed" 2>/dev/null || true
     if [[ "${thread_host_docroot:-}" != "$docroot" ]]; then
       continue
     fi

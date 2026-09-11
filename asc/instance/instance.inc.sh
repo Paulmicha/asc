@@ -364,6 +364,7 @@ f_instance_yaml_config_parse() {
   local parsed_var_leaf=''
   local parsed_val=''
   local parsed_asc_apps=''
+  local parsed_yaml_str=''
   local app=''
 
   if [[ ! -f "$yaml_config_filepath" ]]; then
@@ -378,6 +379,7 @@ f_instance_yaml_config_parse() {
   # echo "u_instance_yaml_config_parse('$yaml_config_filepath')"
 
   # TODO [evol] support lists (convert to [append] in globals declarations) ?
+  f_yaml_parse "$yaml_config_filepath" 'yaml_' 'parsed_yaml_str'
   while IFS= read -r parsed_line _; do
     parsed_val="$(echo "$parsed_line" | awk -F '[()]' '{print $2}')"
     parsed_var_leaf="=${parsed_line#*=}"
@@ -439,7 +441,7 @@ f_instance_yaml_config_parse() {
 
     yaml_parsed_globals+="global $parsed_var $parsed_val ; "
 
-  done < <(f_yaml_parse "$yaml_config_filepath" 'yaml_')
+  done <<< "$parsed_yaml_str"
 }
 
 ##
