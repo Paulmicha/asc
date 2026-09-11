@@ -30,14 +30,11 @@ if [[ $ASC_BS_FLAG -ne 1 ]]; then
   shopt -s expand_aliases
 
   # Include ASC core utilities.
-  . asc/utils/shell/shell.opt-inc.sh
+  . asc/utils/core_utils.inc.sh
   . asc/asc/core.inc.sh
   . asc/asc/global.inc.sh
   . asc/asc/hook.inc.sh
   . asc/asc/autoload.inc.sh
-  . asc/utils/fs/fs.opt-inc.sh
-  . asc/utils/arr/arr.opt-inc.sh
-  . asc/utils/str/str.opt-inc.sh
   . asc/yml/yml.inc.sh
 
   # If instance init was run at least once, automatically load locally generated

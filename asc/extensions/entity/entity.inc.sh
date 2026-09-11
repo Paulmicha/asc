@@ -35,9 +35,9 @@ f_entity_load() {
 ##
 # Writes entity instance either to data/entities or in another storage like DB.
 #
-f_entity_instanciate() {
-  # TODO @see README.md
-}
+# f_entity_instanciate() {
+#   # TODO @see README.md
+# }
 
 ##
 # Produces an array of keys for entity definitions.
