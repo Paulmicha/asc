@@ -1,2 +1,0 @@
-url:
-  validate: limit[2048](str.length)

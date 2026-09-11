@@ -77,6 +77,8 @@ f_array_add_once() {
 #   #   declare -a sorted_arr='([0]="3" [1]="5" [2]="a" [3]="b" [4]="c" [5]="f")'
 #
 f_array_qsort() {
+  (($#==0)) && return 0
+
   local stack_arr=(0 $(($#-1)))
   local beg end i pivot smaller_arr larger_arr
 

@@ -62,11 +62,12 @@ f_str_convert_tokens() {
     f_str_lowercase "$p_input_var_name" 'p_output_var_name'
   fi
 
-  if [[ $3 -gt $p_circuit_breaker ]]; then
+  if [[ -n "$3" && $3 -gt $p_circuit_breaker ]]; then
     p_circuit_breaker=$3
   fi
 
-  local tokens_replaced="${!p_input_var_name}"
+  local -n input_nameref="$p_input_var_name"
+  local tokens_replaced="$input_nameref"
   local regex="\{\{[[:space:]]*([^[:space:]]+)[[:space:]]*\}\}"
   local regex_loop_str="$tokens_replaced"
   local token=''
@@ -86,7 +87,10 @@ f_str_convert_tokens() {
 
     # Anything with a '%' character is considered a date formatter.
     case "$match" in *'%'*)
-      val="$(date +"$match")"
+      # Update 2026-09 : avoid subshell, but loose the ability to format lower
+      # than seconds units.
+      # val="$(date +"$match")"
+      printf -v val "%($match)T" -1
 
       # Debug.
       # echo "token = '$token'"
@@ -124,11 +128,17 @@ f_str_convert_tokens() {
   done
 
   # There are tokens that may point to values that also contain tokens.
+  # Write the intermediate result, then recurse on that output as the new input
+  # (re-reading the original input would lose nested expansions).
   case "$tokens_replaced" in *'{{ '*)
     # Up to 9 recursions is probably more than enough.
-    if [[ $p_circuit_breaker -lt 10 ]]; then
-      p_circuit_breaker+=1
-      f_str_convert_tokens "$p_input_var_name" "$p_output_var_name" $p_circuit_breaker
+    if (( p_circuit_breaker < 10 )); then
+      printf -v "$p_output_var_name" '%s' "$tokens_replaced"
+
+      f_str_convert_tokens "$p_output_var_name" "$p_output_var_name" \
+        "$((p_circuit_breaker + 1))"
+
+      return $?
     else
       echo >&2
       echo "Error : breaking out of f_str_convert_tokens() recursion." >&2
@@ -549,12 +559,12 @@ f_str_split1() {
 
   f_str_sanitize_var_name "$p_str_split1_var_name" 'p_str_split1_var_name'
 
-  # See https://stackoverflow.com/a/41059855
-  eval "${p_str_split1_var_name}=()"
+  local -n out_arr_nameref="$p_str_split1_var_name"
+  out_arr_nameref=()
 
   # See https://stackoverflow.com/a/45201229 (#7)
   while read -rd"$p_sep"; do
-    eval "${p_str_split1_var_name}+=(\"$REPLY\")"
+    out_arr_nameref+=("$REPLY")
   done <<<"${p_str}${p_sep}"
 }
 
@@ -685,6 +695,7 @@ f_str_snake() {
 }
 
 ##
+# Update 2026-09 : comment out for now, unused but still might change our minds.
 # Removes leading and trailing white space.
 #
 # See https://stackoverflow.com/questions/369758/how-to-trim-whitespace-from-a-bash-variable
@@ -696,12 +707,12 @@ f_str_snake() {
 #   f_str_trim " testing space trim " 'str_trimmed'
 #   echo "str_trimmed = '$str_trimmed'"
 #
-f_str_trim() {
-  local result="$1"
-  local p_output_var_name="${2:-str_trimmed}"
+# f_str_trim() {
+#   local result="$1"
+#   local p_output_var_name="${2:-str_trimmed}"
 
-  result="${result%"${result##*[![:space:]]}"}"
-  result="${result#"${result%%[![:space:]]*}"}"
+#   result="${result%"${result##*[![:space:]]}"}"
+#   result="${result#"${result%%[![:space:]]*}"}"
 
-  printf -v "$p_output_var_name" '%s' "$result"
-}
+#   printf -v "$p_output_var_name" '%s' "$result"
+# }

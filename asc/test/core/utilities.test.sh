@@ -152,6 +152,37 @@ test_f_array_reverse() {
 }
 
 ##
+# f_str_split1 must fill a caller array (incl. empty segments / spaces).
+#
+test_f_str_split1() {
+  local parts_arr=()
+
+  f_str_split1 'parts_arr' 'one,two three,four' ','
+  assertEquals 'f_str_split1 length mismatch.' '3' "${#parts_arr[@]}"
+  assertEquals 'f_str_split1[0]' 'one' "${parts_arr[0]}"
+  assertEquals 'f_str_split1[1]' 'two three' "${parts_arr[1]}"
+  assertEquals 'f_str_split1[2]' 'four' "${parts_arr[2]}"
+
+  f_str_split1 'parts_arr' 'a,,b' ','
+  assertEquals 'f_str_split1 empty-segment length.' '3' "${#parts_arr[@]}"
+  assertEquals 'f_str_split1 empty middle.' '' "${parts_arr[1]}"
+}
+
+##
+# f_str_convert_tokens must resolve nested token values.
+#
+test_f_str_convert_tokens_nested() {
+  local USER_NAME='paul'
+  local NESTED_PATTERN='{{ USER_NAME }}-db'
+  local DUMP_PATTERN='backup-{{ NESTED_PATTERN }}.sql'
+  local dump_pattern=''
+
+  f_str_convert_tokens DUMP_PATTERN 'dump_pattern'
+  assertEquals 'nested tokens should fully resolve.' \
+    'backup-paul-db.sql' "$dump_pattern"
+}
+
+##
 # Cleans up any leftovers from previous tests.
 #
 # (Internal shunit2 function called after all tests have run.)
