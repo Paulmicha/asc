@@ -183,6 +183,28 @@ test_f_str_convert_tokens_nested() {
 }
 
 ##
+# f_str_convert_tokens must expand date-format tokens (strftime / printf %()T).
+#
+test_f_str_convert_tokens_datestamp() {
+  local DB_ID='site'
+  local DUMP_FILE_EXTENSION='sql'
+  local ASC_DB_DUMPS_LOCAL_PATTERN='{{ %Y-%m-%d.%H-%M-%S }}_local-{{ DB_ID }}.{{ DUMP_FILE_EXTENSION }}'
+  local dump_pattern=''
+  local before after
+
+  # Same formatter as f_str_convert_tokens; allow either second if the clock ticks.
+  printf -v before '%(%Y-%m-%d.%H-%M-%S)T' -1
+  f_str_convert_tokens ASC_DB_DUMPS_LOCAL_PATTERN 'dump_pattern'
+  printf -v after '%(%Y-%m-%d.%H-%M-%S)T' -1
+
+  assertTrue 'datestamp token should match YYYY-mm-dd.HH-MM-SS_local-site.sql' \
+    "[[ \"$dump_pattern\" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}\\.[0-9]{2}-[0-9]{2}-[0-9]{2}_local-site\\.sql\$ ]]"
+
+  assertTrue 'datestamp should match current time (before or after call).' \
+    "[[ \"$dump_pattern\" == \"${before}_local-site.sql\" || \"$dump_pattern\" == \"${after}_local-site.sql\" ]]"
+}
+
+##
 # Cleans up any leftovers from previous tests.
 #
 # (Internal shunit2 function called after all tests have run.)

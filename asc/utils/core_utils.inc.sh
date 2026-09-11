@@ -7,7 +7,7 @@
 # on every bootstrap.
 #
 
-. asc/utils/arr/arr.inc.sh
-. asc/utils/fs/fs.inc.sh
-. asc/utils/shell/shell.inc.sh
-. asc/utils/str/str.inc.sh
+. asc/utils/arr.inc.sh
+. asc/utils/fs.inc.sh
+. asc/utils/shell.inc.sh
+. asc/utils/str.inc.sh
