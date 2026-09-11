@@ -824,7 +824,7 @@ Here is how the mechanism works  :
     - Or only **replace** a specific sub-prop on a specific level - in the following example : only override the **level 1** `field` sub-prop (level 0 being the `required` prop) in `required`, meaning **all** the fields are *entirely replaced* by a single `foo` field :
         ```yml
         override:
-          from-1:
+          d1:
             required:
               field:
                 foo:
@@ -833,7 +833,7 @@ Here is how the mechanism works  :
     - Only **replace** the **level 2** `field` sub-prop in `required`, meaning : the `hostname` field declaration is *replaced* (any other inherited `field` items in `required` are *preserved*) :
         ```yml
         override:
-          from-2:
+          d2:
             required:
               field:
                 hostname:
@@ -846,7 +846,7 @@ Here is how the mechanism works  :
     - Now, in this next example, there is no difference between **replacing** and **altering** a single **level 3** property - i.e. those are strictly equivalent declarations :
         ```yml
         override:
-          from-3:
+          d3:
             required:
               field:
                 hostname:
