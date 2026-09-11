@@ -45,15 +45,18 @@ f_fs_watch_poll() {
   if [[ -z "$p_callback" ]]; then
     p_callback='echo $files_recently_changed'
   fi
+
   if [[ -n "$p_filter_pattern" ]]; then
     name_arg="-name $p_filter_pattern"
   fi
+
   if [[ -z "$p_polling_interval" ]]; then
     p_polling_interval='2'
   fi
 
   while [[ true ]]; do
     files_recently_changed=$(find $p_path -type f $name_arg -newermt "-$p_polling_interval seconds")
+
     if [[ -n $files_recently_changed ]] ; then
       echo
       echo "u_fs_watch_poll() : changes detected in the following file(s) : $files_recently_changed"
@@ -61,6 +64,7 @@ f_fs_watch_poll() {
       echo
       eval "$p_callback"
     fi
+
     sleep $p_polling_interval
   done
 }
@@ -276,13 +280,10 @@ f_fs_get_file_contents() {
 
   f_str_sanitize_var_name "$p_var_name" 'p_var_name'
 
-  local line=''
+  # Whole-file read without fork. Avoid $(<file) / $(cat …): command substitution
+  # strips trailing newlines. read -d '' stops at EOF for normal text files.
   local contents=''
-
-  while read line; do
-    contents+="$line
-"
-  done < "$p_file_path"
+  IFS= read -r -d '' contents < "$p_file_path" || true
 
   printf -v "$p_var_name" '%s' "$contents"
 }
@@ -531,11 +532,20 @@ f_fs_relative_path() {
 
   local result=""
   local common_part="$p_source"
+  local parent_part
+  local forward_part
 
   while [[ "${p_target#$common_part}" == "${p_target}" ]]; do
     # no match, means that candidate common part is not correct
-    # go up one level (reduce common part)
-    common_part="$(dirname $common_part)"
+    # go up one level (reduce common part) — pure bash, no dirname subshell
+    parent_part="${common_part%/*}"
+
+    if [[ -z "$parent_part" ]]; then
+      common_part='/'
+    else
+      common_part="$parent_part"
+    fi
+
     # and record that we went back, with correct / handling
     if [[ -z $result ]]; then
       result=".."
