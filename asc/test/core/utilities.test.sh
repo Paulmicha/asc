@@ -92,6 +92,66 @@ test_u_fs_extract_in_place() {
 }
 
 ##
+# f_in_array / f_array_add_once (nameref + uniqueness).
+#
+test_f_in_array_and_add_once() {
+  local my_array_arr=('test1' 'hello world' 'test3')
+
+  assertTrue 'f_in_array should find an existing item.' \
+    "f_in_array 'test1' my_array_arr"
+  assertTrue 'f_in_array should match items containing spaces.' \
+    "f_in_array 'hello world' my_array_arr"
+  assertFalse 'f_in_array should miss absent items.' \
+    "f_in_array 'missing' my_array_arr"
+
+  f_array_add_once 'test1' my_array_arr
+  f_array_add_once 'test4' my_array_arr
+  f_array_add_once 'hello world' my_array_arr
+
+  assertEquals 'f_array_add_once should keep length when item exists.' \
+    '4' "${#my_array_arr[@]}"
+  assertEquals 'f_array_add_once should append new items once.' \
+    'test4' "${my_array_arr[3]}"
+}
+
+##
+# f_array_qsort must terminate and sort values (lexicographic [[ < ]]).
+#
+test_f_array_qsort() {
+  sorted_arr=()
+  f_array_qsort a c b f 3 5
+  assertEquals 'f_array_qsort length mismatch.' '6' "${#sorted_arr[@]}"
+  assertEquals 'f_array_qsort[0]' '3' "${sorted_arr[0]}"
+  assertEquals 'f_array_qsort[1]' '5' "${sorted_arr[1]}"
+  assertEquals 'f_array_qsort[2]' 'a' "${sorted_arr[2]}"
+  assertEquals 'f_array_qsort[3]' 'b' "${sorted_arr[3]}"
+  assertEquals 'f_array_qsort[4]' 'c' "${sorted_arr[4]}"
+  assertEquals 'f_array_qsort[5]' 'f' "${sorted_arr[5]}"
+
+  sorted_arr=('stale')
+  f_array_qsort
+  assertEquals 'empty f_array_qsort should leave sorted_arr untouched.' \
+    'stale' "${sorted_arr[0]}"
+}
+
+##
+# f_array_reverse must reverse without losing space-containing items.
+#
+test_f_array_reverse() {
+  reversed_arr=()
+  f_array_reverse a 'b c' d
+  assertEquals 'f_array_reverse length mismatch.' '3' "${#reversed_arr[@]}"
+  assertEquals 'f_array_reverse[0]' 'd' "${reversed_arr[0]}"
+  assertEquals 'f_array_reverse[1]' 'b c' "${reversed_arr[1]}"
+  assertEquals 'f_array_reverse[2]' 'a' "${reversed_arr[2]}"
+
+  reversed_arr=('stale')
+  f_array_reverse
+  assertEquals 'empty f_array_reverse should yield empty result.' \
+    '0' "${#reversed_arr[@]}"
+}
+
+##
 # Cleans up any leftovers from previous tests.
 #
 # (Internal shunit2 function called after all tests have run.)

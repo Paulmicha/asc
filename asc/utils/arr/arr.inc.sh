@@ -77,22 +77,24 @@ f_array_add_once() {
 #   #   declare -a sorted_arr='([0]="3" [1]="5" [2]="a" [3]="b" [4]="c" [5]="f")'
 #
 f_array_qsort() {
-  (($#==0)) && return 0
-  local stack_arr=( 0 $(($#-1)) ) beg end i pivot smaller_arr larger_arr
+  local stack_arr=(0 $(($#-1)))
+  local beg end i pivot smaller_arr larger_arr
+
   sorted_arr=("$@")
 
-  while ((${#stack_arr[@]})); do
+  while (( ${#stack_arr[@]} )); do
     beg=${stack_arr[0]}
     end=${stack_arr[1]}
-    stack=( "${stack_arr[@]:2}" )
-    smaller_arr=() larger_arr=()
+    stack_arr=("${stack_arr[@]:2}")
+    smaller_arr=()
+    larger_arr=()
     pivot=${sorted_arr[beg]}
 
-    for ((i=beg+1;i<=end;++i)); do
+    for (( i=beg+1; i<=end; ++i )); do
       if [[ "${sorted_arr[i]}" < "$pivot" ]]; then
-        smaller_arr+=( "${sorted_arr[i]}" )
+        smaller_arr+=("${sorted_arr[i]}")
       else
-        larger_arr+=( "${sorted_arr[i]}" )
+        larger_arr+=("${sorted_arr[i]}")
       fi
     done
 
@@ -114,6 +116,8 @@ f_array_qsort() {
 # NB : for performance reasons (to avoid using a subshell), this function
 # writes its result to a variable subject to collision in calling scope.
 #
+# Builds reversed_arr from positional parameters directly (no intermediate copy).
+#
 # @var reversed_arr
 #
 # See https://unix.stackexchange.com/a/412872
@@ -128,17 +132,10 @@ f_array_qsort() {
 #
 f_array_reverse() {
   local i
-  local a
-  local tmp_arr
 
-  tmp_arr=("$@")
   reversed_arr=()
-  last=${#tmp_arr[@]}
 
-  a=""
-  for (( i=last-1 ; i>=0 ; i-- ));do
-    # printf '%s%s' "$a" "${tmp_arr[i]}"
-    reversed_arr+=("${tmp_arr[i]}")
-    a=" "
+  for (( i=$#; i>=1; i-- )); do
+    reversed_arr+=("${!i}")
   done
 }
