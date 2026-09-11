@@ -7,7 +7,7 @@
 | **Scope** | ASC repo `/home/paul/Documents/asc` — bootstrap, lookup cache, `make cc` / `make reinit` / `make uninit`. Not entity YAML merge, not bash-yaml swap. |
 | **Related** | `asc/bootstrap.sh`; `asc/asc/cache_clear.sh`; `asc/asc/hook.inc.sh` (`hook()` cache); `asc/instance/write_globals.sh`; `asc/make/make.inc.sh` (`f_make_generate`); README § Data dirs / instance init; `changelog/2026/09/10-begin-entity-system-with-remote-instances.md` (`data/asc/cache/entities/`); **follow-up (do not mix in):** [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) |
 | **Constraint (decided)** | **`make cc` stays “wipe lookup only”.** `data/asc/global.vars.sh` and `data/asc/generated.mk` stay where they are and are **not** deleted by `cc`. |
-| **Lifecycle** | Review this file; implement the **picked** slice only. Do not treat this as permission for a cache-tree rewrite plus concatenated bootstrap blob. |
+| **Lifecycle** | Review this file; implement the **picked** slice only. Do not treat this as permission for a cache-tree rewrite plus concatenated bootstrap blob. Shrinking what bootstrap **parses** (`*.opt-inc.sh`, entry-point extraction) is the **follow-up plan**, not this one. |
 
 ---
 
@@ -172,6 +172,15 @@ After `cc`, next bootstrap is a **stamp miss** (no `active.sh`): `f_asc_extend` 
 | Second bootstrap script | Duplicate graph. |
 | Per-hook nested dirs for every flag combination | Complexity without faster hits. |
 | Rebuild pivots.mk when stamp mismatches | Wrong artifact; needs `f_make_generate` + full instance. That is reinit. |
+| Split kernel / `ASC_INC` into `*.opt-inc.sh`, or move one-shot `f_*` into `$subject/$action.sh` | Parse-cost work. **Follow-up:** [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md). Alias / `pre_bootstrap` / `bootstrap` still run on warm path; mixing that into stamp is how those hooks break without a lookup miss. |
+
+---
+
+## Out of scope here (follow-up plan)
+
+This plan does **not** change which functions exist after `. asc/bootstrap.sh`. Warm path still sources the six kernel files and every `ASC_INC` path (~9k lines).
+
+Lazy `*.opt-inc.sh` (caller phase 90 + hook-seeded colocated files), demoting fat utils / `ASC_INC` subjects, and continuing the 2026-09-11 “keep vs dedicated entry point vs drop” drill across leftover core + extensions: **[11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md)**. Implement that **after** stamp + `core/active.sh` + hook keys.
 
 ---
 
@@ -206,6 +215,7 @@ v1.1 only if needed: stamp input **B** (`find` names+mtimes of `*.hook.sh` / `*.
 - [ ] Bare-path hook skip: confirm `make init` from uninit does not need `alias` / `bootstrap` with empty variants.
 - [ ] README `#### ASC cache` (currently TODO): document cc vs reinit vs this layout.
 - [ ] v1.1 find-based stamp if nested new hooks stay stale.
+- [ ] After this lands: [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) (opt-inc / `ASC_INC` shrink / entry-point sweep). Do not start it in the stamp change.
 
 ---
 
@@ -218,3 +228,4 @@ v1.1 only if needed: stamp input **B** (`find` names+mtimes of `*.hook.sh` / `*.
 | Layout | `cache/core/active.sh` + `cache/hook/<canonical-key>.sh`. No nested six-layout tree. No globals/mk under `cache/`. |
 | Bootstrap | One file, bare vs warm branches. No concatenated lib blob. |
 | Weight | Stamp first; rename second; fancy hook directories never (v1). |
+| Not this PR | Lazy `*.opt-inc.sh` / moving leftover `f_*` into entry points — see follow-up plan. |
