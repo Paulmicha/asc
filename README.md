@@ -664,12 +664,31 @@ Aside from those, (almost) anything goes, really. Bear in mind the limitations o
 
 ##### Special notations
 
-For mapping things like CLI arguments, file names, and Yaml prop names, the following notations can be used in any ASC entities and abilities Yaml files (`*.entity.yml` and `*.able.yml`) :
+For convenience, the following notations are complementing the DSL syntax (see the *"ASC domain-specific language : DSL syntax"* section). These special notations are supported in any ASC entities and abilities Yaml files (`*.entity.yml` and `*.able.yml`), and also in concrete entity instances files (= sidecars) :
 
-- `p1`, `p2`, etc. = positional arguments (= `$1`, `$2`, etc)
-- `a` = `$@` (forwards all arguments)
-- `s1`, `s2`, etc. = forwards all arguments after shifting 1, or 2, etc.
-- `d1`, `d2`, etc. = the prop name in current Yaml file at depth 1, 2, etc. of the current branch
+| Notation | Example | Result |
+|----------|---------|--------|
+| `entity.type` | `path/to/foobar.entity.yml` | `foobar` |
+| `file.name` | `path/to/foo.bar-baz_123.yml` | `foo.bar-baz_123.yml` |
+| `file.path` | `path/to/foo.bar-baz_123.yml` | `path/to` |
+| `file.dir` | `path/to/foo.bar-baz_123.yml` | `to` |
+
+Also : `d0`, `d1`, `d2`, etc. = the prop name in current Yaml file at depth 0, 1, 2, etc. of the current branch. Example :
+
+```yml
+foo:
+  bar:
+    tools:
+      run: service-run(d1,a)
+```
+
+Here, the `run` tool DSL would be pre-processed as `service-run(bar,a)`, and would utlimately yield the following call :
+
+```sh
+make service-run 'bar' "$@"
+# Equivalent to :
+asc/extensions/compose/service/run.sh 'bar' "$@"
+```
 
 #### Definition and storage
 
@@ -961,11 +980,7 @@ includes:
   default:
     shell: ash
     tools:
-      run:
-        wrap: asc/extensions/compose/service/run.sh
-        map:
-          p1: d1
-          a: s1
+      run: service-run(d1,a)
   front:
     docroot: /var/www/html
     logs: /var/log/apache2
@@ -992,20 +1007,6 @@ dev:
   search:
     includes: default index
     hostname: search.dev.specimen.home.arpa
-
-staging:
-  site:
-    includes: default front
-    hostname: www.staging.specimen.home.arpa
-  api:
-    includes: default api
-    hostname: api.staging.specimen.home.arpa
-  auth:
-    includes: default auth
-    hostname: auth.staging.specimen.home.arpa
-  search:
-    includes: default index
-    hostname: search.staging.specimen.home.arpa
 
 prod:
   site:
@@ -1038,11 +1039,7 @@ dev:
   site:
     shell: ash
     tools:
-      run:
-        wrap: asc/extensions/compose/service/run.sh
-        map:
-          p1: 1.prop
-          a: s1
+      run: service-run(d1,a)
     docroot: /var/www/html
     logs: /var/log/apache2
     hostname: www.dev.specimen.home.arpa
@@ -1134,21 +1131,28 @@ Special characters are usually forbidden, but the DSL supports the following cus
 
 **Positional arguments :**
 
-- `@` = `$@` (all arguments are forwarded "as is")
+- `a` = `$@` (all arguments are forwarded "as is")
+- `s1` = all arguments are forwarded "as is" after shifting 1 argument
+- `s2` = all arguments are forwarded "as is" after shifting 2 arguments, etc.
 - `p1` = `$1`
 - `p2` = `$2`
 - etc.
 
 **Boolean options :** (shrink all `--` to `-` in prefixed syntax)
 
-- `b-oneline` = `--oneline`
-- `b-y` = `-y` = any boolean option
-- `b-@` = all boolean options are forwarded - and ONLY boolean options
+- `b-y` = `-y` = any boolean option prefixed by a single `-`
+- `bb-oneline` = `--oneline` = any boolean option prefixed by a double `--`
+- `ba` = all boolean options prefixed by a single `-` are forwarded - and ONLY those boolean options
+- `bba` = all boolean options prefixed by a double `--` are forwarded - and ONLY those boolean options
 
 **Named options :**
 
-- `o-max-4` = `--max=4` or `--max 4` or `-m 4` (TODO [wip] How to distinguish ?)
-- `o-@` = all named options are forwarded - and ONLY named options
+- `o-m-4` = `-m 4` = any named option prefixed by a single `-`
+- `oo-max-4` = `--max 4` = any named option prefixed by a double `--`
+- `oe-max-4` = `-max=4` = any named option prefixed by a single `-` with an `=` sign before the value
+- `ooe-max-4` = `--max=4` = any named option prefixed by a double `--` with an `=` sign before the value
+- `oa` = all named options prefixed by a single `-` are forwarded - and ONLY those named options
+- `ooa` = all named options prefixed by a double `--` are forwarded - and ONLY those named options
 
 #### Variables
 
