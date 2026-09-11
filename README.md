@@ -669,6 +669,7 @@ For mapping things like CLI arguments, file names, and Yaml prop names, the foll
 - `p1`, `p2`, etc. = positional arguments (= `$1`, `$2`, etc)
 - `a` = `$@` (forwards all arguments)
 - `s1`, `s2`, etc. = forwards all arguments after shifting 1, or 2, etc.
+- `d1`, `d2`, etc. = the prop name in current Yaml file at depth 1, 2, etc. of the current branch
 
 #### Definition and storage
 
