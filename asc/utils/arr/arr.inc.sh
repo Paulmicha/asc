@@ -109,38 +109,6 @@ f_array_qsort() {
 }
 
 ##
-# Sorts an array by its keys (not is values).
-#
-# This function writes its result to a variable subject to collision in calling
-# scope, and requires that the input array be already defined as 'array_dict'.
-#
-# @var array_dict
-# @var sorted_arr
-#
-# @example
-#   declare -A array_dict=()
-#   array_dict[12]='a'
-#   array_dict[7]='b'
-#   array_dict[32]='c'
-#   array_dict[6785]='d'
-#   f_array_ksort
-#   # Check result :
-#   declare -p sorted_arr
-#   # -> output :
-#   #   declare -a sorted_arr=([7]="b" [12]="a" [32]="c" [6785]="d")
-#
-f_array_ksort() {
-  local array_keys_arr="${!array_dict[@]}"
-  local k
-  f_array_qsort "${array_keys_arr[@]}"
-  array_keys_arr="${sorted_arr[@]}"
-  sorted_arr=()
-  for k in $array_keys_arr; do
-    sorted_arr["$k"]="${array_dict[$k]}"
-  done
-}
-
-##
 # Reverses an array.
 #
 # NB : for performance reasons (to avoid using a subshell), this function
@@ -172,33 +140,5 @@ f_array_reverse() {
     # printf '%s%s' "$a" "${tmp_arr[i]}"
     reversed_arr+=("${tmp_arr[i]}")
     a=" "
-  done
-}
-
-
-##
-# Prints array (debug utility).
-#
-# See https://unix.stackexchange.com/a/366655
-#
-# @example (associative array)
-#   declare -A p_dict=([a]=123 [b]="foo bar" [c]="(blah)")
-#   f_array_print p_dict
-#   # -> outputs :
-#   #   a=123
-#   #   b=foo bar
-#   #   c=(blah)
-#
-# @example (indexed array)
-#   b_arr=(abba acdc)
-#   f_array_print b_arr
-#   # -> outputs :
-#   #   0=abba
-#   #   1=acdc
-#
-f_array_print() {
-  declare -n __p_nameref="$1"
-  for k in "${!__p_nameref[@]}"; do
-    printf "%s=%s\n" "$k" "${__p_nameref[$k]}"
   done
 }
