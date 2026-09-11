@@ -205,6 +205,75 @@ test_f_str_convert_tokens_datestamp() {
 }
 
 ##
+# Case / join / escape / append helpers.
+#
+test_f_str_case_join_escape_append() {
+  local lowercase='' uppercase='' joined_str='' escaped_arg='' sed_escaped='' str_append_once=''
+
+  f_str_lowercase 'AbC_X'
+  assertEquals 'f_str_lowercase' 'abc_x' "$lowercase"
+
+  f_str_uppercase 'AbC_X' 'uppercase'
+  assertEquals 'f_str_uppercase' 'ABC_X' "$uppercase"
+
+  f_str_join '|' one 'two three' four
+  assertEquals 'f_str_join' 'one|two three|four' "$joined_str"
+
+  f_str_escape_single_quotes "it's a test" 'escaped_arg'
+  assertEquals 'f_str_escape_single_quotes' "'it'\"'\"'s a test'" "$escaped_arg"
+
+  f_str_sed_escape 'a,b.c*/d' 'sed_escaped'
+  assertEquals 'f_str_sed_escape' 'a\,b\.c\*\/d' "$sed_escaped"
+
+  f_str_append_once '--B' 'Foo--A' 'str_append_once'
+  assertEquals 'f_str_append_once first' 'Foo--A--B' "$str_append_once"
+  f_str_append_once '--B' "$str_append_once" 'str_append_once'
+  assertEquals 'f_str_append_once idempotent' 'Foo--A--B' "$str_append_once"
+}
+
+##
+# Subsequences, slug/snake, transliterate, random.
+#
+test_f_str_subsequences_slug_random() {
+  local str_subsequences='' slug_val='' snake_val='' transliterated_char=''
+  local rnd rnd2
+
+  f_str_subsequences 'a b c'
+  assertEquals 'f_str_subsequences' 'a ab abc ac b bc c ' "$str_subsequences"
+
+  f_transliterate_char 'É'
+  assertEquals 'f_transliterate_char É' 'e' "$transliterated_char"
+  f_transliterate_char '~'
+  assertEquals 'f_transliterate_char ~' '' "$transliterated_char"
+
+  f_str_slug 'Hello, Été!'
+  assertEquals 'f_str_slug' 'hello-ete' "$slug_val"
+
+  f_str_snake 'Hello, Été!'
+  assertEquals 'f_str_snake' 'hello_ete' "$snake_val"
+
+  rnd="$(f_str_random 12)"
+  assertEquals 'f_str_random length' '12' "${#rnd}"
+  assertTrue 'f_str_random charset' "[[ \"$rnd\" =~ ^[A-Za-z0-9]+\$ ]]"
+  rnd2="$(f_str_random 12)"
+  # Extremely unlikely to collide; still a weak uniqueness smoke check.
+  assertNotEquals 'f_str_random should vary' "$rnd" "$rnd2"
+}
+
+##
+# Basic-auth encoder with explicit registry seed (avoids random path).
+#
+test_f_str_basic_auth_credentials() {
+  local key="shunit_basic_auth_$$"
+  local creds
+
+  f_instance_registry_set "$key" 'alice:s3cret'
+  creds="$(f_str_basic_auth_credentials "$key")"
+  assertTrue 'basic auth should start with alice:' "[[ \"$creds\" == alice:* ]]"
+  assertNotEquals 'basic auth should include a hash suffix' 'alice:' "$creds"
+}
+
+##
 # Cleans up any leftovers from previous tests.
 #
 # (Internal shunit2 function called after all tests have run.)

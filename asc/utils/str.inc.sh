@@ -476,11 +476,15 @@ f_str_uppercase() {
 f_str_join() {
   local p_sep=$1
   local IFS=
+
   if [[ -z "$p_sep" ]]; then
     p_sep='|'
   fi
+
   joined_str=$2
+
   shift 2 || shift $(($#))
+
   joined_str+="${*/#/$p_sep}"
 }
 
