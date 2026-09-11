@@ -19,6 +19,7 @@ asc/claude
 asc/codex
 asc/cursor
 asc/docker
+asc/docling
 asc/drupalwt
 asc/drupalwt_d4d
 asc/drush
@@ -29,3 +30,5 @@ asc/node
 asc/ollama
 asc/pgsql
 asc/remote_traefik
+asc/tesseract
+asc/transcription

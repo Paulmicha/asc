@@ -154,40 +154,31 @@ $prefixed_actions_var='${!prefixed_actions_var}'
 }
 
 ##
-# Loads extensions if any exist.
+# Loads the active '.asc_extensions_ignore' contents.
 #
-# @requires ASC_EXTENSIONS global in calling scope.
-# @see f_asc_extend()
+# @requires local var $extensions_ignore_arr in calling scope.
 #
-f_asc_extensions() {
-  local inc
-  local extension
-  local exclusions_arr
+# Lookups in this order (the last found takes precedence) :
+# - .asc_extensions_ignore
+# - .$HOST_TYPE.asc_extensions_ignore
+# - .$INSTANCE_TYPE.asc_extensions_ignore
+# - .$STACK_VERSION.asc_extensions_ignore
+# - .$HOST_TYPE.$INSTANCE_TYPE.asc_extensions_ignore
+# - .$STACK_VERSION.$HOST_TYPE.asc_extensions_ignore
+# - .$STACK_VERSION.$INSTANCE_TYPE.asc_extensions_ignore
+# - .$STACK_VERSION.$HOST_TYPE.$INSTANCE_TYPE.asc_extensions_ignore
+#
+# Unprefixed entries apply to asc/extensions. Prefixed entries (e.g. asc/apache)
+# apply to scripts/asc/contrib.
+#
+f_asc_extensions_ignore_load() {
+  local extensions_ignore_filepath='.asc_extensions_ignore'
+  local ei_override_lookup_arr=()
+  local ei_override
   local exclusions
   local excl
-  local custom_extend_path
-  local extensions_ignore_filepath
-  local ei_override_lookup_arr
-  local ei_override
-  local contrib_root
-  local contrib_vendors
-  local vendor
-  local contrib_name
 
-  # ALlow to deactivate some extensions using dotfile '.asc_extensions_ignore'.
-  extensions_ignore_filepath='.asc_extensions_ignore'
-
-  # The following lookups will be used in this order (the last found takes
-  # precedence) :
-  # - .asc_extensions_ignore
-  # - .$INSTANCE_TYPE.asc_extensions_ignore
-  # - .$STACK_VERSION.asc_extensions_ignore
-  # - .$HOST_TYPE.$INSTANCE_TYPE.asc_extensions_ignore
-  # - .$STACK_VERSION.$HOST_TYPE.asc_extensions_ignore
-  # - .$STACK_VERSION.$INSTANCE_TYPE.asc_extensions_ignore
-  # - .$STACK_VERSION.$HOST_TYPE.$INSTANCE_TYPE.asc_extensions_ignore
-  exclusions_arr=()
-  ei_override_lookup_arr=()
+  extensions_ignore_arr=()
 
   if [[ -n "$HOST_TYPE" ]]; then
     ei_override_lookup_arr+=(".$HOST_TYPE.asc_extensions_ignore")
@@ -228,41 +219,39 @@ f_asc_extensions() {
 
     if [[ -n "$exclusions" ]]; then
       for excl in $exclusions; do
-        exclusions_arr+=("$excl")
+        extensions_ignore_arr+=("$excl")
       done
     fi
   fi
+}
+
+##
+# Discovers extension identities present on disk (no ignore, no loading).
+#
+# Core : folder names under asc/extensions.
+# Contrib : $vendor/$extension under scripts/asc/contrib.
+# Project-specific : 'extend' when scripts/asc/extend exists.
+#
+# @requires local var $discovered_extensions in calling scope.
+#
+f_asc_extensions_discover() {
+  local extension
+  local contrib_root='scripts/asc/contrib'
+  local contrib_vendors
+  local vendor
+  local custom_extend_path='scripts/asc/extend'
+
+  discovered_extensions=''
 
   f_fs_dir_list "asc/extensions"
 
   for extension in $dir_list; do
-
-    # Ignore dirnames starting with '.'.
     if [[ "${extension:0:1}" == '.' ]]; then
       continue
     fi
 
-    # Unprefixed exclusions apply to asc/extensions.
-    if f_in_array "$extension" exclusions_arr; then
-      continue
-    fi
-
-    ASC_EXTENSIONS+="$extension "
-
-    # Aggregate namespaced primitives for every extension.
-    f_asc_extend "asc/extensions/$extension"
-
-    # For convenience, also accept generic includes at the root of extensions.
-    inc="asc/extensions/$extension/${extension}.inc.sh"
-
-    if [[ -f "$inc" ]]; then
-      ASC_INC+="$inc "
-    fi
+    discovered_extensions+="$extension "
   done
-
-  # Contrib extensions live two levels deep: scripts/asc/contrib/$vendor/$extension.
-  # Prefixed ignore entries (e.g. asc/apache) apply to that tree.
-  contrib_root='scripts/asc/contrib'
 
   if [[ -d "$contrib_root" ]]; then
     f_fs_dir_list "$contrib_root"
@@ -280,38 +269,77 @@ f_asc_extensions() {
           continue
         fi
 
-        contrib_name="$vendor/$extension"
-
-        if f_in_array "$contrib_name" exclusions_arr; then
-          continue
-        fi
-
-        ASC_EXTENSIONS+="$contrib_name "
-        f_asc_extend "$contrib_root/$contrib_name"
-
-        inc="$contrib_root/$contrib_name/${extension}.inc.sh"
-
-        if [[ -f "$inc" ]]; then
-          ASC_INC+="$inc "
-        fi
+        discovered_extensions+="$vendor/$extension "
       done
     done
   fi
 
-  # Consider "scripts/asc/extend" as an extension. This allows to
-  # provide any implementation like "normal" ASC extensions meant for current
-  # project-specific operations (non-reusable).
-  custom_extend_path="scripts/asc/extend"
-
   if [[ -d "$custom_extend_path" ]]; then
-    ASC_EXTENSIONS+="extend "
-    f_asc_extend "$custom_extend_path"
-    inc="$custom_extend_path/extend.inc.sh"
+    discovered_extensions+="extend "
+  fi
+}
+
+##
+# True when a discovered extension is disabled by '.asc_extensions_ignore'.
+#
+# The reserved name 'extend' is never ignored.
+#
+# @param 1 String : extension identity (folder name or $vendor/$extension).
+#
+f_asc_extension_ignored() {
+  local p_extension="$1"
+  local ignored_name
+
+  case "$p_extension" in
+    extend)
+      return 1
+      ;;
+  esac
+
+  for ignored_name in "${extensions_ignore_arr[@]}"; do
+    if [[ "$ignored_name" == "$p_extension" ]]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+##
+# Loads extensions if any exist.
+#
+# @requires ASC_EXTENSIONS global in calling scope.
+# @see f_asc_extend()
+#
+f_asc_extensions() {
+  local inc
+  local extension
+  local ext_path
+  local inc_stem
+  local extensions_ignore_arr
+  local discovered_extensions
+
+  f_asc_extensions_ignore_load
+  f_asc_extensions_discover
+
+  for extension in $discovered_extensions; do
+    if f_asc_extension_ignored "$extension"; then
+      continue
+    fi
+
+    ASC_EXTENSIONS+="$extension "
+
+    ext_path=''
+    f_asc_extension_path "$extension"
+    f_asc_extend "$ext_path/$extension"
+
+    inc_stem="${extension##*/}"
+    inc="$ext_path/$extension/${inc_stem}.inc.sh"
 
     if [[ -f "$inc" ]]; then
       ASC_INC+="$inc "
     fi
-  fi
+  done
 }
 
 ##

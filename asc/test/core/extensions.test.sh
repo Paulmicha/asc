@@ -20,6 +20,7 @@
 
 . asc/bootstrap.sh
 . asc/test/test.inc.sh
+. asc/instance/list_extensions.sh
 
 _nftasc_contrib_vendor='nftascvehnc'
 _nftasc_contrib_on='nftasceonhnc'
@@ -113,6 +114,95 @@ test_hook_finds_contrib_extension() {
 
   f_test_compare_expected_lookup_paths
   f_test_lookup_paths_assertion "Contrib extension hook lookup failed." $flag
+}
+
+##
+# Default filter (enabled) lists live enabled extensions only.
+#
+test_f_asc_get_extensions_enabled() {
+  f_asc_get_extensions
+
+  f_in_array "${_nftasc_contrib_on_id}" asc_extensions_list_arr
+  assertTrue \
+    "enabled list should include '${_nftasc_contrib_on_id}'" \
+    $?
+
+  f_in_array "${_nftasc_contrib_off_id}" asc_extensions_list_arr
+  assertFalse \
+    "enabled list should omit ignored '${_nftasc_contrib_off_id}'" \
+    $?
+
+  f_in_array 'asc/apache' asc_extensions_list_arr
+  assertFalse \
+    "enabled list should omit ignored 'asc/apache'" \
+    $?
+}
+
+##
+# disabled filter lists ignored extensions that exist on disk.
+#
+test_f_asc_get_extensions_disabled() {
+  f_asc_get_extensions 'disabled'
+
+  f_in_array "${_nftasc_contrib_off_id}" asc_extensions_list_arr
+  assertTrue \
+    "disabled list should include ignored '${_nftasc_contrib_off_id}'" \
+    $?
+
+  f_in_array 'asc/apache' asc_extensions_list_arr
+  assertTrue \
+    "disabled list should include ignored 'asc/apache'" \
+    $?
+
+  f_in_array "${_nftasc_contrib_on_id}" asc_extensions_list_arr
+  assertFalse \
+    "disabled list should omit enabled '${_nftasc_contrib_on_id}'" \
+    $?
+}
+
+##
+# all filter lists every discovered extension.
+#
+test_f_asc_get_extensions_all() {
+  f_asc_get_extensions 'all'
+
+  f_in_array "${_nftasc_contrib_on_id}" asc_extensions_list_arr
+  assertTrue \
+    "all list should include enabled '${_nftasc_contrib_on_id}'" \
+    $?
+
+  f_in_array "${_nftasc_contrib_off_id}" asc_extensions_list_arr
+  assertTrue \
+    "all list should include ignored '${_nftasc_contrib_off_id}'" \
+    $?
+
+  f_in_array 'asc/apache' asc_extensions_list_arr
+  assertTrue \
+    "all list should include ignored 'asc/apache'" \
+    $?
+}
+
+##
+# Short aliases a / e / d match all / enabled / disabled.
+#
+test_f_asc_get_extensions_aliases() {
+  f_asc_get_extensions 'e'
+  f_in_array "${_nftasc_contrib_on_id}" asc_extensions_list_arr
+  assertTrue "alias 'e' should list enabled contrib" $?
+  f_in_array "${_nftasc_contrib_off_id}" asc_extensions_list_arr
+  assertFalse "alias 'e' should omit disabled contrib" $?
+
+  f_asc_get_extensions 'd'
+  f_in_array "${_nftasc_contrib_off_id}" asc_extensions_list_arr
+  assertTrue "alias 'd' should list disabled contrib" $?
+  f_in_array "${_nftasc_contrib_on_id}" asc_extensions_list_arr
+  assertFalse "alias 'd' should omit enabled contrib" $?
+
+  f_asc_get_extensions 'a'
+  f_in_array "${_nftasc_contrib_on_id}" asc_extensions_list_arr
+  assertTrue "alias 'a' should include enabled contrib" $?
+  f_in_array "${_nftasc_contrib_off_id}" asc_extensions_list_arr
+  assertTrue "alias 'a' should include disabled contrib" $?
 }
 
 . asc/vendor/shunit2/shunit2
