@@ -5,7 +5,7 @@
 | **Date** | 2026-09-11 |
 | **Status** | proposed (docs only — no code yet) |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — bootstrap, lookup cache, `make cc` / `make reinit` / `make uninit`. Not entity YAML merge, not bash-yaml swap. |
-| **Related** | `asc/bootstrap.sh`; `asc/asc/cache_clear.sh`; `asc/asc/hook.inc.sh` (`hook()` cache); `asc/instance/write_globals.sh`; `asc/make/make.inc.sh` (`f_make_generate`); README § Data dirs / instance init; `changelog/2026/09/10-begin-entity-system-with-remote-instances.md` (`data/asc/cache/entities/`) |
+| **Related** | `asc/bootstrap.sh`; `asc/asc/cache_clear.sh`; `asc/asc/hook.inc.sh` (`hook()` cache); `asc/instance/write_globals.sh`; `asc/make/make.inc.sh` (`f_make_generate`); README § Data dirs / instance init; `changelog/2026/09/10-begin-entity-system-with-remote-instances.md` (`data/asc/cache/entities/`); **follow-up (do not mix in):** [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) |
 | **Constraint (decided)** | **`make cc` stays “wipe lookup only”.** `data/asc/global.vars.sh` and `data/asc/generated.mk` stay where they are and are **not** deleted by `cc`. |
 | **Lifecycle** | Review this file; implement the **picked** slice only. Do not treat this as permission for a cache-tree rewrite plus concatenated bootstrap blob. |
 
