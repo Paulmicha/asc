@@ -1,0 +1,1 @@
+test_asc_has_essential_globals

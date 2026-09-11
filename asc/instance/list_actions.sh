@@ -49,9 +49,7 @@ f_asc_get_actions() {
   done
 
   for extension in $ASC_EXTENSIONS; do
-    uppercase="$extension"
-    f_str_sanitize_var_name "$uppercase" 'uppercase'
-    f_str_uppercase "$uppercase"
+    f_asc_extension_namespace "$extension" 'uppercase'
     actions_var="${uppercase}_ACTIONS"
     ext_path=''
     f_asc_extension_path "$extension"

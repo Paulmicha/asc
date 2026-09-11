@@ -215,9 +215,7 @@ hook() {
   # Allow using only a particular extension (see the '-p' argument).
   if [ -n "$o_extensions_filter" ]; then
     for extension in $o_extensions_filter; do
-      uppercase="$extension"
-      f_str_sanitize_var_name "$uppercase" 'uppercase'
-      f_str_uppercase "$uppercase"
+      f_asc_extension_namespace "$extension" 'uppercase'
       prim_var="${uppercase}_SUBJECTS"
       subjects="${!prim_var}"
       prim_var="${uppercase}_ACTIONS"
@@ -234,9 +232,7 @@ hook() {
   # @see f_asc_extend()
   elif [ -n "$extensions" ]; then
     for extension in $extensions; do
-      uppercase="$extension"
-      f_str_sanitize_var_name "$uppercase" 'uppercase'
-      f_str_uppercase "$uppercase"
+      f_asc_extension_namespace "$extension" 'uppercase'
       prim_var="${uppercase}_SUBJECTS"
       subjects+=" ${!prim_var}"
       prim_var="${uppercase}_ACTIONS"

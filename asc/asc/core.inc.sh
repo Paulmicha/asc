@@ -42,13 +42,15 @@
 #   have the same role as the 'subjects' ones described in 1 but must be placed
 #   inside relevant subject's folder.
 #
-# 3. ASC_EXTENSIONS contains a list of all active extensions' folder names. Each
-#   one uses the same structure as the 'asc' folder. The primitive mecanisms
-#   explained in 1 & 2 above apply to each one of these extensions.
-#   Important notes : extensions' folder names can only contain the following
+# 3. ASC_EXTENSIONS contains a list of all active extensions. Each one uses the
+#   same structure as the 'asc' folder. The primitive mecanisms explained in
+#   1 & 2 above apply to each one of these extensions.
+#   Core extensions are listed by folder name under asc/extensions.
+#   Contrib extensions are listed as $vendor/$extension (relative to
+#   scripts/asc/contrib). The name 'extend' is reserved for project-specific
+#   implementations under scripts/asc/extend.
+#   Important notes : extension folder names can only contain the following
 #   characters : A-Z a-z 0-9 dots . underscores _ dashes -
-#   Exception : the name 'extend' is reserved for project-specific
-#   implementations.
 #
 # 4. The 'ASC_INC' values are a simple list of files to be sourced in
 #   asc/bootstrap.sh scope directly. They are meant to contain bash functions
@@ -167,6 +169,10 @@ f_asc_extensions() {
   local extensions_ignore_filepath
   local ei_override_lookup_arr
   local ei_override
+  local contrib_root
+  local contrib_vendors
+  local vendor
+  local contrib_name
 
   # ALlow to deactivate some extensions using dotfile '.asc_extensions_ignore'.
   extensions_ignore_filepath='.asc_extensions_ignore'
@@ -236,7 +242,7 @@ f_asc_extensions() {
       continue
     fi
 
-    # Exclusions check.
+    # Unprefixed exclusions apply to asc/extensions.
     if f_in_array "$extension" exclusions_arr; then
       continue
     fi
@@ -253,6 +259,44 @@ f_asc_extensions() {
       ASC_INC+="$inc "
     fi
   done
+
+  # Contrib extensions live two levels deep: scripts/asc/contrib/$vendor/$extension.
+  # Prefixed ignore entries (e.g. asc/apache) apply to that tree.
+  contrib_root='scripts/asc/contrib'
+
+  if [[ -d "$contrib_root" ]]; then
+    f_fs_dir_list "$contrib_root"
+    contrib_vendors="$dir_list"
+
+    for vendor in $contrib_vendors; do
+      if [[ "${vendor:0:1}" == '.' ]]; then
+        continue
+      fi
+
+      f_fs_dir_list "$contrib_root/$vendor"
+
+      for extension in $dir_list; do
+        if [[ "${extension:0:1}" == '.' ]]; then
+          continue
+        fi
+
+        contrib_name="$vendor/$extension"
+
+        if f_in_array "$contrib_name" exclusions_arr; then
+          continue
+        fi
+
+        ASC_EXTENSIONS+="$contrib_name "
+        f_asc_extend "$contrib_root/$contrib_name"
+
+        inc="$contrib_root/$contrib_name/${extension}.inc.sh"
+
+        if [[ -f "$inc" ]]; then
+          ASC_INC+="$inc "
+        fi
+      done
+    done
+  fi
 
   # Consider "scripts/asc/extend" as an extension. This allows to
   # provide any implementation like "normal" ASC extensions meant for current
@@ -282,10 +326,19 @@ f_asc_extensions() {
 #   f_asc_extension_path 'extend'
 #   echo "$ext_path" # Yields 'scripts/asc'
 #
+#   ext_path=''
+#   f_asc_extension_path 'asc/apache'
+#   echo "$ext_path" # Yields 'scripts/asc/contrib'
+#
 f_asc_extension_path() {
   ext_path='asc/extensions'
-  case "$1" in 'extend')
-    ext_path='scripts/asc'
+  case "$1" in
+    extend)
+      ext_path='scripts/asc'
+      ;;
+    */*)
+      ext_path='scripts/asc/contrib'
+      ;;
   esac
 }
 

@@ -1,0 +1,37 @@
+batch: core
+updated: 2026-09-11T16:33:33-03:00
+exit: 1
+bootstrap:
+  test_asc_autoload_override_works: PASS
+  test_asc_has_essential_globals: PASS
+extensions:
+  test_f_asc_extension_path_contrib: PASS
+  test_f_asc_extensions_discovers_contrib: PASS
+  test_f_asc_extensions_honors_prefixed_ignore: PASS
+  test_f_asc_extensions_prefixed_ignore_targets_contrib: PASS
+  test_hook_finds_contrib_extension: PASS
+file_system:
+  test_asc_can_chmod: PASS
+  test_asc_can_create_dir: PASS
+  test_asc_can_create_file: PASS
+  test_f_fs_compress_and_extract: PASS
+  test_f_fs_dir_file_list_and_most_recent: PASS
+  test_f_fs_get_file_contents: PASS
+  test_f_fs_merge_change_trim: PASS
+  test_f_fs_relative_path: PASS
+  test_f_fs_watch_poll: PASS
+global:
+  test_asc_global_aggregate: PASS
+hook:
+  test_asc_hook_combinatory_variants: PASS
+  test_asc_hook_prefix_combinatory_variants: PASS
+  test_asc_hook_prefix: PASS
+  test_asc_hook_prefix_variants: PASS
+  test_asc_hook_single_action: PASS
+  test_asc_hook_subject: PASS
+logged_wrappers:
+  test_logged_batch_parent_observability: PASS
+  test_logged_chain_parent_observability: PASS
+  test_logged_pipe_shell_stages_observability: PASS
+  test_sequence_fail_fast: PASS
+  test_sequence_join_semicolon_continues: FAIL
