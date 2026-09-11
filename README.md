@@ -67,11 +67,11 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
     - [Custom Yaml syntax (with collisions)](#custom-yaml-syntax-with-collisions)
     - [Definition and storage](#definition-and-storage)
     - [Field vs Prop](#field-vs-prop)
-    - [Contracts (= capabilities = abilities ~= skills, or rather : SKILL.md blueprints)](#contracts-capabilities-abilities-skills-or-rather-skillmd-blueprints)
+    - [Contracts (= capabilities = abilities = skills ~= SKILL.md blueprints)](#contracts-capabilities-abilities-skills-or-rather-skillmd-blueprints)
     - [Combination (= inclusion), Overriding (= replacement), Alteration (= merging), Appending (= incrementing)](#combination-inclusion-overriding-replacement-alteration-merging-appending-incrementing)
     - [Reusable Yaml blocks (`includes` : plural)](#reusable-yaml-blocks-includes-plural)
     - [Instanciation ("concrete" entity instances)](#instanciation-concrete-entity-instances)
-    - [Linking (relationships, references) VS Nesting (wrapper)](#linking-relationships-references-vs-nesting-wrapper)
+    - [Linking, adressing (relationships, references)](#linking-relationships-references-vs-nesting-wrapper)
   - [Tests](#tests)
     - [Organization](#organization)
     - [Pre and post test suite execution (shunit2) functions](#pre-and-post-test-suite-execution-shunit2-functions)
@@ -257,7 +257,7 @@ The default extensions provided by the main ASC repo are all *disabled* by defau
 
 > Create or edit `scripts/asc/override/.asc_extensions_ignore`.
 
-Like the `.asc_subjects_ignore` files, it are essentially acts like a `.gitignore` files for the ASC discovery mechanism. See :
+Like the `.asc_subjects_ignore` files, it essentially acts like `.gitignore` files for the ASC discovery mechanism. See :
 
 - `asc/extensions/.asc_extensions_ignore` for the ASC core extensions disabled by default,
 - and `scripts/asc/contrib/.asc_extensions_ignore` for the ASC contrib extensions disabled by default.
@@ -611,7 +611,11 @@ TODO examples / decide what asc core provides :
 
 ### Entities
 
-Entities are a concept borrowed from content management applications like Drupal™. In the context of ASC projects, they are *manipulable representations of objects* that are *structured* and *combinable*.
+In the context of ASC projects, entities are *manipulable representations of objects* that are *structured* and *combinable*. Because the whole point of ASC is to provide minimalist, thin wrappers around virtually any CLI via entry points (= actions = named pivots), entities can essentially be seen as **specifications** meant to express in a *generic* and *standardized* way :
+
+- **tools calls** (skills - see section *"Contracts (= capabilities = abilities = skills ~= SKILL.md blueprints)"*),
+- **discovery** (declaration, detection - see section *"Instanciation ("concrete" entity instances)"*),
+- and **targeting** (identity - see section *"Linking, adressing (relationships, references)"*).
 
 In order to explicitly describe how they work and how to use them, we'll take the following objects as examples throughout the explanations below :
 
@@ -644,7 +648,9 @@ foo:
 foo_bar_value: the value
 ```
 
-For ASC entites and abilities Yaml files (`*.entity.yml` and `*.able.yml`), there are **reserved root-level keys** :
+##### Reserved root-level keys
+
+For ASC entities and abilities Yaml files (`*.entity.yml` and `*.able.yml`), there are **reserved root-level keys** :
 
 - `include` : loads (= merges) other `*.yml` files into the current file
 - `includes` : defines blocks of Yaml that can be reused elsewhere in the same Yaml file
@@ -655,6 +661,14 @@ For ASC entites and abilities Yaml files (`*.entity.yml` and `*.able.yml`), ther
 - `map` : for entities, defines where specific field value(s) come from - e.g. for for `host` and `remote_host` entities (both sidecar.able entities), it allows to define that the concrete entity file name is the `hostname` value
 
 Aside from those, (almost) anything goes, really. Bear in mind the limitations of the simplified (but sufficient for our use cases here) Bash Yaml parser in use : [`asc/vendor/bash-yaml`](https://github.com/jasperes/bash-yaml)
+
+##### Special notations
+
+For mapping things like CLI arguments, file names, and Yaml prop names, the following notations can be used in any ASC entities and abilities Yaml files (`*.entity.yml` and `*.able.yml`) :
+
+- `p1`, `p2`, etc. = positional arguments (= `$1`, `$2`, etc)
+- `a` = `$@` (forwards all arguments)
+- `s1`, `s2`, etc. = forwards all arguments after shifting 1, or 2, etc.
 
 #### Definition and storage
 
@@ -697,7 +711,7 @@ required:
       validate: test-hostname(p1)
 ```
 
-#### Contracts (= capabilities = abilities ~= skills, or rather : SKILL.md blueprints)
+#### Contracts (= capabilities = abilities = skills ~= SKILL.md blueprints)
 
 Their job is to express how to use the **tools** that are *wrapped* (or "pivoted") in ASC *project instances*. It structures in a standardized way **how to implement** and/or how to *do* things (**tasks**). Those Yaml files essentially point at ASC entry points, DSL, etc.
 
@@ -945,6 +959,12 @@ foobar:
 includes:
   default:
     shell: ash
+    tools:
+      run:
+        wrap: asc/extensions/compose/service/run.sh
+        map:
+          p1: d1
+          a: s1
   front:
     docroot: /var/www/html
     logs: /var/log/apache2
@@ -1016,6 +1036,12 @@ dev:
 dev:
   site:
     shell: ash
+    tools:
+      run:
+        wrap: asc/extensions/compose/service/run.sh
+        map:
+          p1: 1.prop
+          a: s1
     docroot: /var/www/html
     logs: /var/log/apache2
     hostname: www.dev.specimen.home.arpa
@@ -1036,7 +1062,7 @@ TODO replace the existing `f_remote_instance_load()` implementation with this sy
 
 TODO detailed example using a "concrete" host entity *instance* : `data/entities/host/foobar.home.arpa.yml`
 
-#### Linking (relationships, references) VS Nesting (wrapper)
+#### Linking, adressing (relationships, references)
 
 TODO
 
