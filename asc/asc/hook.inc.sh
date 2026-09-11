@@ -273,7 +273,7 @@ hook() {
     for deduo_val in $dedup; do
       f_array_add_once "$deduo_val" deduo_arr
     done
-    eval "$f=\"${deduo_arr[@]}\""
+    printf -v "$f" '%s' "${deduo_arr[*]}"
 
     f_arg_var="o_${f}_filter"
     f_arg="${!f_arg_var}"
@@ -756,19 +756,31 @@ hook_ms() {
 #
 # Dual-compat: compose and docker-compose resolve to both.
 #
+# @param 1 [optional] String : provision value (default: $PROVISION_USING).
+# @param 2 [optional] String : output var name. When set, writes via printf -v
+#   (no subshell). When omitted, prints to stdout.
+#
 f_provision_using_lookup_values() {
   local p_provision_using="${1:-${PROVISION_USING:-}}"
+  local p_output_var_name="${2:-}"
+  local result=''
 
   case "$p_provision_using" in
     compose|docker-compose)
-      printf '%s' 'compose docker-compose'
+      result='compose docker-compose'
       ;;
     *)
       if [[ -n "$p_provision_using" ]]; then
-        printf '%s' "$p_provision_using"
+        result="$p_provision_using"
       fi
       ;;
   esac
+
+  if [[ -n "$p_output_var_name" ]]; then
+    printf -v "$p_output_var_name" '%s' "$result"
+  else
+    printf '%s' "$result"
+  fi
 }
 
 ##
@@ -781,10 +793,12 @@ f_hook_variant_values_add() {
   local p_v_val="$2"
   local p_v_values_var_name="$3"
   local current="${!p_v_values_var_name}"
+  local alias_vals=''
   local alias_val
 
   if [[ "$p_v_prim" == 'PROVISION_USING' ]]; then
-    for alias_val in $(f_provision_using_lookup_values "$p_v_val"); do
+    f_provision_using_lookup_values "$p_v_val" 'alias_vals'
+    for alias_val in $alias_vals; do
       if [[ "$current" != *"$alias_val"* ]]; then
         current+="$alias_val "
       fi
@@ -813,15 +827,13 @@ f_hook_variant_values_add() {
 #
 f_hook_opt_inc_append_candidates() {
   local p_hook_path="$1"
-  local -n p_out_arr_nameref="$2" # Bash 4.3 +
+  local p_out_arr_name="$2"
 
   local dir
   local base
   local subject
   local action
   local candidate
-  local existing
-  local found
 
   if [[ -z "$p_hook_path" ]]; then
     return 0
@@ -848,24 +860,9 @@ f_hook_opt_inc_append_candidates() {
     "${dir}/${subject}.opt-inc.sh" \
     "${dir}/${action}.opt-inc.sh"
   do
-    if [[ ! -f "$candidate" ]]; then
-      continue
+    if [[ -f "$candidate" ]]; then
+      f_array_add_once "$candidate" "$p_out_arr_name"
     fi
-
-    found=0
-
-    for existing in "${p_out_arr_nameref[@]}"; do
-      if [[ "$existing" == "$candidate" ]]; then
-        found=1
-        break
-      fi
-    done
-
-    if [[ $found -eq 1 ]]; then
-      continue
-    fi
-
-    p_out_arr_nameref+=("$candidate")
   done
 }
 

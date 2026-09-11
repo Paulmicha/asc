@@ -122,7 +122,7 @@ f_global_lookup_paths() {
 
   # 2. Files using variant in their name (i.e. 'global.compose.vars.sh')
   # Fetch provision suffixes once (was called again inside the extension loop).
-  provision_suffixes="$(f_provision_using_lookup_values)"
+  f_provision_using_lookup_values "${PROVISION_USING:-}" 'provision_suffixes'
   for provision_suffix in $provision_suffixes; do
     hook_dry_run_matches=''
     hook -a 'global' -c "${provision_suffix}.vars.sh" -t

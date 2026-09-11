@@ -193,6 +193,70 @@ test_asc_hook_prefix_combinatory_variants() {
 }
 
 ##
+# f_provision_using_lookup_values: dual-compat + printf -v output.
+#
+test_f_provision_using_lookup_values() {
+  local out=''
+
+  f_provision_using_lookup_values 'compose' 'out'
+  assertEquals 'compose dual-compat via printf -v' 'compose docker-compose' "$out"
+
+  out=''
+  f_provision_using_lookup_values 'docker-compose' 'out'
+  assertEquals 'docker-compose dual-compat via printf -v' 'compose docker-compose' "$out"
+
+  out=''
+  f_provision_using_lookup_values 'asc' 'out'
+  assertEquals 'plain provision value via printf -v' 'asc' "$out"
+
+  # Stdout path kept for callers that still capture.
+  assertEquals 'stdout fallback' 'asc' "$(f_provision_using_lookup_values 'asc')"
+}
+
+##
+# f_hook_variant_values_add expands PROVISION_USING without duplicating.
+#
+test_f_hook_variant_values_add() {
+  local v_values=''
+
+  f_hook_variant_values_add 'PROVISION_USING' 'compose' 'v_values'
+  assertEquals 'compose expands to both tokens' 'compose docker-compose ' "$v_values"
+
+  f_hook_variant_values_add 'PROVISION_USING' 'docker-compose' 'v_values'
+  assertEquals 'second dual add is idempotent' 'compose docker-compose ' "$v_values"
+
+  f_hook_variant_values_add 'INSTANCE_TYPE' 'dev' 'v_values'
+  assertEquals 'normal variant appends once' 'compose docker-compose dev ' "$v_values"
+
+  f_hook_variant_values_add 'INSTANCE_TYPE' 'dev' 'v_values'
+  assertEquals 'normal variant dedupes' 'compose docker-compose dev ' "$v_values"
+}
+
+##
+# f_hook_opt_inc_append_candidates finds colocated opt-incs and dedupes.
+#
+test_f_hook_opt_inc_append_candidates() {
+  local opt_incs_arr=()
+  local dir='asc/extensions/nftaschdehnc/test'
+  local hook_path="$dir/nftaschhnc_dry_run.hook.sh"
+
+  touch "$dir/test.opt-inc.sh" "$dir/nftaschhnc_dry_run.opt-inc.sh"
+
+  f_hook_opt_inc_append_candidates "$hook_path" opt_incs_arr
+  assertEquals 'should find subject + action opt-incs' 2 "${#opt_incs_arr[@]}"
+  assertTrue 'subject opt-inc' "[[ \" \${opt_incs_arr[*]} \" == *\" $dir/test.opt-inc.sh \"* ]]"
+  assertTrue 'action opt-inc' "[[ \" \${opt_incs_arr[*]} \" == *\" $dir/nftaschhnc_dry_run.opt-inc.sh \"* ]]"
+
+  f_hook_opt_inc_append_candidates "$hook_path" opt_incs_arr
+  assertEquals 'second append must dedupe' 2 "${#opt_incs_arr[@]}"
+
+  f_hook_opt_inc_append_candidates "$dir/not_a_hook.sh" opt_incs_arr
+  assertEquals 'non-hook paths ignored' 2 "${#opt_incs_arr[@]}"
+
+  rm -f "$dir/test.opt-inc.sh" "$dir/nftaschhnc_dry_run.opt-inc.sh"
+}
+
+##
 # Cleans up any leftovers from previous tests.
 #
 oneTimeTearDown() {
