@@ -133,17 +133,17 @@ Today: `data/asc/cache/hook.${sanitized_argv}.sh` with variant **values** substi
 
 | Option | Pros | Cons |
 |---|---|---|
-| **A — `cache/hook/<canonical-key>.sh` from **parsed** flags, not `"$@"` (picked)** | One builder. Readable enough (`s.asc.a.bootstrap.v.v1.asc.sh`). Drop `-d` from key (debug ≠ different matches). Multi-subject join with `+`. Missing filters omitted. `-t` / `-r` / `-c` stay in the key. No extra `mkdir` per miss beyond `cache/hook/`. Tests glob `cache/hook/*nftaschhnc*`. | Not a directory tree per subject. Long filenames if many variants (same risk as today). |
+| **A — `cache/hook/<canonical-key>.sh` from **parsed** flags, not `"$@"` (picked)** | One builder. Readable enough (`s.asc.a.bootstrap.v.v1.asc.sh`). Drop `-d` from key (debug ≠ different matches). Multi-value join with **`,`** (comma): `-s 'site instance'` → `s.site,instance`. Missing filters omitted. `-t` / `-r` / `-c` stay in the key. No extra `mkdir` per miss beyond `cache/hook/`. Tests glob `cache/hook/*nftaschhnc*`. | Not a directory tree per subject. Long filenames if many variants (same risk as today). Comma is legal on Linux; **always quote** the cache path (`"$hook_cache_file"`) so IFS never splits. |
 | **B — Nested `s.$subject/a.$action/v.$variants.sh` plus six layout rules** (original sketch) | Nice to browse by subject. Can `rm -rf hook/s.foo` if that were a single subject. | `-s` is often **several** subjects. Six layouts to keep in sync. `mkdir -p` on every miss. Tests and `cc` partial wipes get messier. **Heavier than A for little lookup gain.** |
 | **C — Leave flat `cache/hook.*` names as today** | No path migration. | Opaque; `-d` duplicates; `"$@"` order-sensitive. Stamp (§3) still works. |
 
-**Pick A.** Values stay in the key. Canonical order: `s`, `a`, `p`, `v`, `e`, `c`, then flags `t`/`r`/`w`. Never six different directory shapes.
+**Pick A.** Values stay in the key. Canonical order: `s`, `a`, `p`, `v`, `e`, `c`, then flags `t`/`r`/`w`. Never six different directory shapes. Multi-subject / multi-action / multi-variant lists use **comma** (not `+`).
 
 Example:
 
 ```text
 data/asc/cache/hook/s.asc.a.bootstrap.v.v1.asc.sh
-data/asc/cache/hook/s.site+instance.a.fs_perms_set.p.pre.v.v1.asc.local.dev.sh
+data/asc/cache/hook/s.site,instance.a.fs_perms_set.p.pre.v.v1.asc.local.dev.sh
 data/asc/cache/hook/a.global.c.vars.sh.t.sh
 ```
 
