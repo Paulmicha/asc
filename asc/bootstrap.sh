@@ -3,20 +3,12 @@
 ##
 # Bootstraps ASC.
 #
-# Thin orchestrator: sources numbered phase includes under asc/bootstrap/.
-# Phases 10–70 run once per shell (ASC_BS_FLAG). Phase 90 (caller opt-inc)
-# runs on every source so a second `. bootstrap` in an already-bootstrapped
-# shell still loads the caller’s lazy helpers.
+# Loads all env vars and Bash functions in the current shell scope.
 #
-# Phase convention:
-#   asc/bootstrap/*.bootstrap-inc.sh — core phases only (not on ASC_INC)
-# Eager includes:   $subject/$subject.inc.sh (and $ext/$ext.inc.sh) → ASC_INC
-# Lazy (phase 90):  $subject/$subject.opt-inc.sh then $subject/$action.opt-inc.sh
+# TODO [wip] evaluate how to improve the "lazy sourcing" (opt-inc) part.
 #
 # @example
 #   . asc/bootstrap.sh
-#
-# @see asc/bootstrap/
 #
 
 # Make sure the heavy bootstrap runs only once in current shell scope.

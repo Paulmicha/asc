@@ -24,14 +24,12 @@
 #   fi
 #
 f_in_array() {
-  local needle="${1}"
-  local haystack=${2}[@]
-  local i
+  local p_needle="$1"
+  local -n p_haystack="$2"
+  local item
 
-  for i in ${!haystack}; do
-    if [[ "$i" == "$needle" ]]; then
-      return 0
-    fi
+  for item in "${p_haystack[@]}"; do
+    [[ "$item" == "$p_needle" ]] && return 0
   done
 
   return 1
@@ -52,11 +50,11 @@ f_in_array() {
 #   declare -p my_array_arr
 #
 f_array_add_once() {
-  local needle="${1}"
-  local haystack_var_name="${2}"
+  local p_needle="$1"
+  local -n p_haystack="$2"
 
-  if ! f_in_array "$needle" "$haystack_var_name"; then
-    eval "$haystack_var_name+=($needle)"
+  if ! f_in_array "$p_needle" "$2"; then
+    p_haystack+=("$p_needle")
   fi
 }
 
