@@ -90,7 +90,7 @@ f_autoload_override() {
 #   f_autoload_print_lookup_paths GLOBALS_INCLUDES_PATHS "Env includes"
 #
 f_autoload_print_lookup_paths() {
-  local p_arr=${1}[@]
+  local -n p_arr_nameref="$1"
   local p_title="$2"
 
   echo
@@ -98,7 +98,7 @@ f_autoload_print_lookup_paths() {
   echo
 
   local path
-  for path in ${!p_arr}; do
+  for path in "${p_arr_nameref[@]}"; do
     echo "$path"
     if [[ -f "$path" ]]; then
       echo "  exists"
@@ -138,14 +138,28 @@ f_autoload_add_lookup_level() {
     sep="$p_sep"
   fi
 
+  # Fast path: common hook variants have no trailing version suffix
+  # (same predicate as f_autoload_item_split_version early return).
+  local version_part="${p_name##*-}"
+
+  if [[ ! "$version_part" =~ [0-9.]+$ ]]; then
+    f_array_add_once "${p_prefix}${p_name}${sep}${p_suffix}" "$p_lookups_var_name"
+
+    if [[ -n "$p_extra_level_name" ]]; then
+      f_autoload_add_lookup_level "${p_prefix}${p_name}${sep}" "$p_suffix" "$p_extra_level_name" "$p_lookups_var_name"
+    fi
+
+    return
+  fi
+
   local name_version_arr=()
   f_autoload_item_split_version name_version_arr "$p_name"
 
   if [[ -n "${name_version_arr[1]}" ]]; then
-    f_array_add_once "${p_prefix}${name_version_arr[0]}.${p_suffix}" $p_lookups_var_name
+    f_array_add_once "${p_prefix}${name_version_arr[0]}.${p_suffix}" "$p_lookups_var_name"
 
     if [[ -n "$p_extra_level_name" ]]; then
-      f_autoload_add_lookup_level "${p_prefix}${name_version_arr[0]}." $p_suffix $p_extra_level_name $p_lookups_var_name
+      f_autoload_add_lookup_level "${p_prefix}${name_version_arr[0]}." "$p_suffix" "$p_extra_level_name" "$p_lookups_var_name"
     fi
 
     local v
@@ -156,18 +170,18 @@ f_autoload_add_lookup_level() {
 
     for v in "${version_arr[@]}"; do
       path+="${v}${sep}"
-      f_array_add_once "${path}${p_suffix}" $p_lookups_var_name
+      f_array_add_once "${path}${p_suffix}" "$p_lookups_var_name"
 
       if [[ -n "$p_extra_level_name" ]]; then
-        f_autoload_add_lookup_level "${path}" $p_suffix $p_extra_level_name $p_lookups_var_name
+        f_autoload_add_lookup_level "${path}" "$p_suffix" "$p_extra_level_name" "$p_lookups_var_name"
       fi
     done
 
   else
-    f_array_add_once "${p_prefix}${p_name}${sep}${p_suffix}" $p_lookups_var_name
+    f_array_add_once "${p_prefix}${p_name}${sep}${p_suffix}" "$p_lookups_var_name"
 
     if [[ -n "$p_extra_level_name" ]]; then
-      f_autoload_add_lookup_level "${p_prefix}${p_name}${sep}" $p_suffix $p_extra_level_name $p_lookups_var_name
+      f_autoload_add_lookup_level "${p_prefix}${p_name}${sep}" "$p_suffix" "$p_extra_level_name" "$p_lookups_var_name"
     fi
   fi
 }
@@ -188,26 +202,26 @@ f_autoload_add_lookup_level() {
 #   done
 #
 f_autoload_item_split_version() {
-  local p_var_name="$1"
+  local -n p_parts_nameref="$1"
   local p_str="$2"
 
-  eval "${p_var_name}=()"
+  p_parts_nameref=()
 
   local version_part="${p_str##*-}"
 
   # If last part doesn't match only numbers and dots, just return [$p_str].
   if [[ ! "$version_part" =~ [0-9.]+$ ]]; then
-    eval "${p_var_name}+=(\"$p_str\")"
+    p_parts_nameref+=("$p_str")
     return
   fi
 
   local name_part="${p_str%-*}"
 
   if [[ -n "$name_part" ]]; then
-    eval "${p_var_name}+=(\"$name_part\")"
+    p_parts_nameref+=("$name_part")
   fi
 
   if [[ -n "$version_part" ]] && [[ "$version_part" != "$name_part" ]]; then
-    eval "${p_var_name}+=(\"$version_part\")"
+    p_parts_nameref+=("$version_part")
   fi
 }
