@@ -34,7 +34,7 @@ oneTimeSetUp() {
   # Hook dry-run results are cached at init/warmup; clear those before creating
   # temporary global.vars.sh files so f_global_lookup_paths can see them.
   # @see hook() in asc/utilities/hook.sh
-  rm -f data/asc/cache/hook.*global*vars*
+  rm -f data/asc/cache/hook/*global*vars*
 
   for s in $ASC_SUBJECTS; do
     # Skip subjects whose folder is not a normal subject namespace (bootstrap

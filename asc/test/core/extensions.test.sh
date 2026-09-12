@@ -51,7 +51,7 @@ oneTimeTearDown() {
     rm -f "${_nftasc_ignore_backup}"
   fi
   rm -fr "scripts/asc/contrib/${_nftasc_contrib_vendor}"
-  rm -f data/asc/cache/hook.*nftascext_dry_run*
+  rm -f data/asc/cache/hook/*nftascext_dry_run*
 }
 
 ##
@@ -109,7 +109,7 @@ test_hook_finds_contrib_extension() {
   local hook_dry_run_matches=''
   local expected_list="scripts/asc/contrib/${_nftasc_contrib_on_id}/instance/nftascext_dry_run.hook.sh"
 
-  rm -f data/asc/cache/hook.*nftascext_dry_run*
+  rm -f data/asc/cache/hook/*nftascext_dry_run*
   hook -a 'nftascext_dry_run' -t
 
   f_test_compare_expected_lookup_paths

@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-11 |
-| **Status** | proposed (docs only — no code yet) |
+| **Status** | implemented (stamp + `core/active.sh` + `cache/hook/<key>.sh`; lazy opt-inc still follow-up) |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — bootstrap, lookup cache, `make cc` / `make reinit` / `make uninit`. Not entity YAML merge, not bash-yaml swap. |
 | **Related** | `asc/bootstrap.sh`; `asc/asc/cache_clear.sh`; `asc/asc/hook.inc.sh` (`hook()` cache); `asc/instance/write_globals.sh`; `asc/make/make.inc.sh` (`f_make_generate`); README § Data dirs / instance init; `changelog/2026/09/10-begin-entity-system-with-remote-instances.md` (`data/asc/cache/entities/`); **follow-up (do not mix in):** [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) |
 | **Constraint (decided)** | **`make cc` stays “wipe lookup only”.** `data/asc/global.vars.sh` and `data/asc/generated.mk` stay where they are and are **not** deleted by `cc`. |
@@ -226,11 +226,11 @@ v1.1 only if needed: stamp input **B** (`find` names+mtimes of `*.hook.sh` / `*.
 
 ## Open tasks
 
-- [ ] Implement stamp v1 (decision 3A) against current paths or against `core/active.sh` if rename is done in the same change.
-- [ ] Rename primitives cache + hook dir (decisions 2A, 4A).
-- [ ] Canonical hook key; exclude `-d` and `-w`.
+- [x] Implement stamp v1 (decision 3A) against current paths or against `core/active.sh` if rename is done in the same change.
+- [x] Rename primitives cache + hook dir (decisions 2A, 4A).
+- [x] Canonical hook key; exclude `-d` and `-w`.
 - [ ] Later (not v1): reevaluate skipping `pre_bootstrap` / `alias` / `bootstrap` on bare (skip all three, or skip `alias`+`bootstrap` only). Evidence from ATB / IGS / home: they currently no-op on empty variants. Revisit if a compose-enabled `make uninit` + `make init` needs a different split.
-- [ ] README `#### ASC cache` (currently TODO): document cc vs reinit vs this layout.
+- [x] README `#### ASC cache` (currently TODO): document cc vs reinit vs this layout.
 - [ ] v1.1 find-based stamp if nested new hooks stay stale.
 - [ ] After this lands: [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) (opt-inc / `ASC_INC` shrink / entry-point sweep). Do not start it in the stamp change.
 

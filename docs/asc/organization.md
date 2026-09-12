@@ -241,7 +241,7 @@ make hook-debug a:start
 make hook-debug s:instance a:start v:STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE
 ```
 
-Hook lookup caches under `data/asc/cache/hook.*.sh`. Overrides: `scripts/asc/override/` via autoload override. Colocated `*.opt-inc.sh` can be seeded into the hook cache before hook bodies (foreign-subject implementers).
+Hook lookup caches under `data/asc/cache/hook/<canonical-key>.sh`. Overrides: `scripts/asc/override/` via autoload override. Colocated `*.opt-inc.sh` can be seeded into the hook cache before hook bodies (foreign-subject implementers).
 
 **Includes ≠ event hooks:** eager `*.inc.sh` / lazy `*.opt-inc.sh` are include **bodies**, selected by a **single include-loader hook** driven by `ASC_SHELL` (planned) — they are not hook implementations. See § bootstrap.
 
@@ -311,7 +311,7 @@ Phase map (summary):
 | Loader | **One** dedicated include-loader hook selects bodies — include files are **not** hook implementations |
 | Primordial layout | Eager `asc/asc/*.inc.sh` (`core`, `global`, `hook`, `autoload`); lazy `asc/asc/utils/*.opt-inc.sh` — do **not** reintroduce `asc/shell/` |
 
-Primitives cache: `data/asc/cache/asc.sh` (miss → `u_asc_extend`). Nested exec starts a **new** bootstrap in the child.
+Primitives cache: `data/asc/cache/core/active.sh` (stamp miss → `f_asc_extend`). Nested exec starts a **new** bootstrap in the child.
 
 ---
 
@@ -350,18 +350,9 @@ Regenerate after synonym or action changes: **`make reinit`**.
 | `make cc` / `asc-cache-clear` | Drop `data/asc/cache/` |
 | `make uninit` | Tear down generated instance artifacts |
 
-### Cache — current vs ideal
+### Cache
 
-Today hook caches use opaque encoded filenames, e.g. `data/asc/cache/hook._w_s_instance_p_….sh`.
-
-Ideal (ideas, not implemented):
-
-```text
-data/asc/cache/$subject/$action/$file_name
-data/asc/cache/$subject/$action/$args/$file_name
-```
-
-Cached sourced scripts should still expose `$subject`/`$action` and which extension point wrote them (`./asc`, extensions, contrib, extend).
+`make cc` wipes `data/asc/cache/` (lookup only). Globals and `generated.mk` stay. Primitives live at `data/asc/cache/core/active.sh` behind a discovery stamp. Hook lookup files are `data/asc/cache/hook/<canonical-key>.sh` (parsed flags; `-d` / `-w` omitted). Nested `$subject/$action/` hook trees were rejected — see `changelog/2026/09/11-bootstrap-cache-layout-and-invalidation.md`.
 
 ### Incremental cache rebuild (design)
 

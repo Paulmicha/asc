@@ -21,7 +21,7 @@ if [[ $ASC_BS_FLAG -ne 1 ]]; then
   # See https://unix.stackexchange.com/a/1498
   shopt -s expand_aliases
 
-  # Include ASC core utilities.
+  # Include ASC core utilities (always; do not concatenate these into active.sh).
   . asc/utils/core_utils.inc.sh
   . asc/asc/core.inc.sh
   . asc/asc/global.inc.sh
@@ -39,32 +39,12 @@ if [[ $ASC_BS_FLAG -ne 1 ]]; then
     fi
   fi
 
-  # Initializes "primitives" for hooks and lookups (ASC extension mechanisms).
-  # These are : subjects, actions, prefixes, variants and extensions.
-  # Update 2024-06 cache results.
-  if [[ -f data/asc/cache/asc.sh ]]; then
-    . data/asc/cache/asc.sh
-  else
-    ASC_INC=''
-    asc_primitives_cache_str=''
-
-    f_asc_extend
-
-    mkdir -p data/asc/cache
-
-    cat > data/asc/cache/asc.sh <<CACHE
-  #!/usr/bin/env bash
-
-  ##
-  # Generated cache file for ASC primitives.
-  #
-  # @see asc/bootstrap.sh
-  #
-
-  $asc_primitives_cache_str
-
-CACHE
-  fi
+  # Bare vs warm is this stamp check, not a second bootstrap file.
+  # Warm: core/active.sh exists and data/asc/cache/core/stamp matches discovery
+  # inputs (instance identity + ignore/dir mtimes) → source primitives.
+  # Cold / mismatch: f_asc_extend, rewrite active.sh + stamp, wipe hook lookup.
+  # v1: pre_bootstrap / alias / bootstrap still run on both paths.
+  f_asc_primitives_cache_ensure
 
   # Because aliases are expanded when a function definition is read, *not* when
   # the function is executed, we need to have the possibility to define aliases

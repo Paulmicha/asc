@@ -12,11 +12,11 @@
 . asc/bootstrap.sh
 
 oneTimeSetUp() {
-  rm -f data/asc/cache/hook.*transcribe* \
-    data/asc/cache/hook.*ogg* \
-    data/asc/cache/hook.*wav* \
-    data/asc/cache/hook.*to_wav* \
-    data/asc/cache/hook.*convert*
+  rm -f data/asc/cache/hook/*transcribe* \
+    data/asc/cache/hook/*ogg* \
+    data/asc/cache/hook/*wav* \
+    data/asc/cache/hook/*to_wav* \
+    data/asc/cache/hook/*convert*
 }
 
 test_transcribe_ogg_hook_resolves() {

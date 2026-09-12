@@ -27,7 +27,7 @@ oneTimeSetUp() {
 
   # Clear dry-run hook caches so newly touched files are visible.
   # @see hook() in asc/utilities/hook.sh
-  rm -f data/asc/cache/hook.*nftaschhnc*
+  rm -f data/asc/cache/hook/*nftaschhnc*
 
   for s in $ASC_SUBJECTS; do
     # bootstrap/ holds phase includes, not a normal subject action namespace.
@@ -109,7 +109,7 @@ asc/extensions/nftaschdehnc/test/nftaschhnc_dry_run.$INSTANCE_TYPE.hook.sh
 asc/extensions/nftaschdehnc/stack/nftaschhnc_dry_run.hook.sh
 "
 
-  rm -f data/asc/cache/hook.*nftaschhnc*
+  rm -f data/asc/cache/hook/*nftaschhnc*
   hook -a 'nftaschhnc_dry_run' -t
 
   f_test_compare_expected_lookup_paths
@@ -124,7 +124,7 @@ test_asc_hook_subject() {
   local expected_list="asc/test/nftaschhnc_dry_run.hook.sh
 asc/extensions/nftaschdehnc/test/nftaschhnc_dry_run.$INSTANCE_TYPE.hook.sh"
 
-  rm -f data/asc/cache/hook.*nftaschhnc*
+  rm -f data/asc/cache/hook/*nftaschhnc*
   hook -a 'nftaschhnc_dry_run' -s 'test' -t
 
   f_test_compare_expected_lookup_paths
@@ -141,7 +141,7 @@ asc/extensions/nftaschdehnc/test/nftaschhnc_dry_run.$HOST_TYPE.$INSTANCE_TYPE.ho
 asc/extensions/nftaschdehnc/test/nftaschhnc_dry_run.$HOST_TYPE.hook.sh
 "
 
-  rm -f data/asc/cache/hook.*nftaschhnc*
+  rm -f data/asc/cache/hook/*nftaschhnc*
   hook -a 'nftaschhnc_dry_run' -s 'test' -e 'nftaschdehnc' -v 'HOST_TYPE INSTANCE_TYPE' -t
 
   f_test_compare_expected_lookup_paths
@@ -155,7 +155,7 @@ test_asc_hook_prefix() {
   local hook_dry_run_matches=''
   local expected_list="asc/extensions/nftaschdehnc/test/pre_nftaschhnc_dry_run.hook.sh"
 
-  rm -f data/asc/cache/hook.*nftaschhnc*
+  rm -f data/asc/cache/hook/*nftaschhnc*
   hook -a 'nftaschhnc_dry_run' -p 'pre' -t
 
   f_test_compare_expected_lookup_paths
@@ -171,7 +171,7 @@ test_asc_hook_prefix_variants() {
 asc/extensions/nftaschdehnc/test/post_nftaschhnc_dry_run.$INSTANCE_TYPE.hook.sh
 "
 
-  rm -f data/asc/cache/hook.*nftaschhnc*
+  rm -f data/asc/cache/hook/*nftaschhnc*
   hook -a 'nftaschhnc_dry_run' -s 'test' -e 'nftaschdehnc' -p 'post' -t
 
   f_test_compare_expected_lookup_paths
@@ -185,11 +185,72 @@ test_asc_hook_prefix_combinatory_variants() {
   local hook_dry_run_matches=''
   local expected_list="asc/extensions/nftaschdehnc/test/undo_nftaschhnc_dry_run.$HOST_TYPE.$INSTANCE_TYPE.hook.sh"
 
-  rm -f data/asc/cache/hook.*nftaschhnc*
+  rm -f data/asc/cache/hook/*nftaschhnc*
   hook -a 'nftaschhnc_dry_run' -s 'test' -v 'HOST_TYPE INSTANCE_TYPE' -p 'undo' -t
 
   f_test_compare_expected_lookup_paths
   f_test_lookup_paths_assertion "Prefix + combinatory variants filter hook test failed." $flag
+}
+
+##
+# Canonical hook cache key: parsed flags, variant values, no -d / -w.
+#
+test_f_hook_cache_key_canonical() {
+  local o_subjects_filter='site instance'
+  local o_actions_filter='fs_perms_set'
+  local o_prefixes_filter='pre'
+  local o_variants_filter='STACK_VERSION HOST_TYPE INSTANCE_TYPE'
+  local o_extensions_filter=''
+  local o_custom_filter=''
+  local b_debug=1
+  local b_dry_run=0
+  local b_root_lookup=0
+  local b_cache_warmup=1
+  local hook_cache_key=''
+
+  f_hook_cache_key
+  assertEquals 'canonical key from parsed flags' \
+    "s-site,instance.a-fs_perms_set.p-pre.v-${STACK_VERSION},${HOST_TYPE},${INSTANCE_TYPE}" \
+    "$hook_cache_key"
+}
+
+##
+# Dry-run and root-lookup stay in the key; debug and warmup do not.
+#
+test_f_hook_cache_key_flags() {
+  local o_subjects_filter=''
+  local o_actions_filter='global'
+  local o_prefixes_filter=''
+  local o_variants_filter=''
+  local o_extensions_filter=''
+  local o_custom_filter='vars.sh'
+  local b_debug=1
+  local b_dry_run=1
+  local b_root_lookup=1
+  local b_cache_warmup=1
+  local hook_cache_key=''
+
+  f_hook_cache_key
+  assertEquals 'custom + t + r; no d/w' 'a-global.c-vars.sh.t.r' "$hook_cache_key"
+}
+
+##
+# Same -s/-a/-v with and without -d or -w share one cache file.
+#
+test_hook_cache_debug_and_warmup_share_file() {
+  local n1
+  local n2
+
+  rm -f data/asc/cache/hook/*nftaschhnc*
+  hook -a 'nftaschhnc_dry_run' -s 'test' -t
+  n1=$(find data/asc/cache/hook -name '*nftaschhnc*' 2>/dev/null | wc -l)
+
+  hook -a 'nftaschhnc_dry_run' -s 'test' -t -d
+  hook -a 'nftaschhnc_dry_run' -s 'test' -t -w
+  n2=$(find data/asc/cache/hook -name '*nftaschhnc*' 2>/dev/null | wc -l)
+
+  assertEquals 'one cache file for the match set' '1' "$(echo "$n1" | tr -d ' ')"
+  assertEquals '-d and -w must not add cache files' "$n1" "$n2"
 }
 
 ##
