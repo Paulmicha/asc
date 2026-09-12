@@ -1146,12 +1146,12 @@ oneTimeTearDown() {
 
 ### ASC discovery recap
 
-In the following list, `$ext` means a dir name inside any of these paths (extension point) :
+In the following list, `$ext` means any one of these extension points (paths) :
 
-- `./asc` : core (kernel)
-- `./asc/extensions` : (mostly) opt-in *core* extensions
-- `./scripts/asc/contrib/asc` : opt-in ASC-provided *contrib* extensions
-- `./scripts/asc/contrib/$vendor` : opt-in third-party (= vendor) *contrib* extensions
+- the `./asc` dir : core (kernel)
+- any dir inside `./asc/extensions` : (mostly) opt-in *core* extensions
+- any dir inside `./scripts/asc/contrib/asc` : opt-in ASC-provided *contrib* extensions
+- any dir inside `./scripts/asc/contrib/$vendor` : opt-in third-party (= vendor) *contrib* extensions
 - and finally, `$ext` can also be the `./scripts/asc/extend` dir itself (for custom, project-specific implementations)
 
 The following naming conventions will get automatically discovered :
