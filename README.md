@@ -58,7 +58,7 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
   - [Specificity and collisions handling](#specificity-and-collisions-handling)
   - [Actions = (make) _Entry points_](#actions-make-entry-points)
   - [Environment variables (*env vars*)](#environment-variables-env-vars)
-    - [Declaring _env vars_](#declaring-env-vars)
+    - [Declaring globals (= constants)](#declaring-globals-constants)
     - [Interactive terminal prompts during (instance) init](#interactive-terminal-prompts-during-instance-init)
     - [Git-ignored, "private" _globals_](#git-ignored-private-globals)
   - [Hooks (and variants)](#hooks-and-variants)
@@ -105,6 +105,7 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
   - [(re)Search](#research)
   - [Ideas](#ideas)
   - [Change(log)s](#changelogs)
+  - [Doubts](#doubts)
 - [Naming convention](#naming-convention)
   - [File names](#file-names)
   - [Coding style](#coding-style)
@@ -1373,6 +1374,14 @@ TODO
 ### Change(log)s
 
 TODO
+
+### Doubts
+
+In some implementation decisions, several alternatives may have been explored in more or less detail, and the final or current choice sometimes carries some amount of doubt, such as : *"we could have chosen to implement this in the following alternative manner, but we chose this one, and we may eventually revisit our decision depending on future use cases we chose not to pursue at this moment in time"*.
+
+The doubts deserve their own dedicated documentation structure, which is part of ASC standard workfown process.
+
+TODO define basic, simple structure for those docs + references to the other types of documents.
 
 ## Naming convention
 
