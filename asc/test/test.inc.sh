@@ -759,12 +759,12 @@ f_test_run_case() {
   done
 
   if [[ -z "$mode" ]]; then
-    local make_entries_arr=() real_scripts_arr=()
+    local pivots_arr=() real_scripts_arr=()
     local j=''
 
     f_make_list_entry_points
-    for j in "${!make_entries_arr[@]}"; do
-      if [[ "${make_entries_arr[j]}" == "$batch_task" ]]; then
+    for j in "${!pivots_arr[@]}"; do
+      if [[ "${pivots_arr[j]}" == "$batch_task" ]]; then
         batch_script="${real_scripts_arr[j]}"
         break
       fi

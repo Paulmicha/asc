@@ -479,10 +479,10 @@ f_thread_run_make_step() {
   # otherwise make missing goals look successful.
   if [[ -f data/asc/cache/pivots.sh ]]; then
     # Fresh arrays (cache uses +=).
-    make_entries_arr=()
+    pivots_arr=()
     real_scripts_arr=()
     . data/asc/cache/pivots.sh
-    for e in "${make_entries_arr[@]}"; do
+    for e in "${pivots_arr[@]}"; do
       if [[ "$e" == "$p_entry" ]]; then
         found=1
         break

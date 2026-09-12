@@ -31,14 +31,14 @@ if [[ "$p_script" == *'log.wrap.sh' ]]; then
 fi
 
 # Restrict to make entry points, and convert scripts paths to entry points names.
-make_entries_arr=()
+pivots_arr=()
 real_scripts_arr=()
 is_thread_file_valid=0
 
 f_make_list_entry_points
 
 for index in "${!real_scripts_arr[@]}"; do
-  task="${make_entries_arr[index]}"
+  task="${pivots_arr[index]}"
   script="${real_scripts_arr[index]}"
 
   case "$thread_file" in "$script")

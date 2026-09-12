@@ -46,13 +46,13 @@ if [[ "$p_script" == *'thread.wrap.sh' ]]; then
 fi
 
 # Restrict to make entry points, and convert scripts paths to entry points names.
-make_entries_arr=()
+pivots_arr=()
 real_scripts_arr=()
 
 f_make_list_entry_points
 
 for index in "${!real_scripts_arr[@]}"; do
-  task="${make_entries_arr[index]}"
+  task="${pivots_arr[index]}"
   script="${real_scripts_arr[index]}"
 
   # Convert script path to make entry point name.

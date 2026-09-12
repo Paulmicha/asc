@@ -20,13 +20,13 @@
 #   f_make_check_args arg1 arg2
 #
 f_make_check_args() {
-  local make_entries_arr=()
+  local pivots_arr=()
   local real_scripts_arr=()
 
   f_make_list_hardcoded
   f_make_list_entry_points
 
-  if [[ -z "${make_entries_arr[@]}" ]]; then
+  if [[ -z "${pivots_arr[@]}" ]]; then
     echo >&2
     echo "Error in f_make_check_args() - $BASH_SOURCE line $LINENO: make entry points not found." >&2
     echo "It seems local instance hasn't been initialized yet." >&2
@@ -39,7 +39,7 @@ f_make_check_args() {
   local make_entry_point=''
 
   while [[ $# -gt 0 ]]; do
-    for make_entry_point in "${make_entries_arr[@]}"; do
+    for make_entry_point in "${pivots_arr[@]}"; do
       case "$1" in "$make_entry_point")
         echo >&2
         echo "The value '$1' is reserved as a Make entry point." >&2
@@ -104,17 +104,17 @@ f_make_task_name() {
 # This function writes its result to variables subject to collision in calling
 # scope :
 #
-# @var make_entries_arr
+# @var pivots_arr
 # @var real_scripts_arr
 #
 # @example
-#   make_entries_arr=()
+#   pivots_arr=()
 #   real_scripts_arr=()
 #
 #   f_make_list_entry_points
 #
 #   for i in "${!real_scripts_arr[@]}"; do
-#     task="${make_entries_arr[i]}"
+#     task="${pivots_arr[i]}"
 #     script="${real_scripts_arr[i]}"
 #
 #     echo "Make entry point $i :"
@@ -132,7 +132,7 @@ f_make_list_entry_points() {
   # From our "entry point" scripts' path, we need to provide a unique task
   # name -> we use subject-action pairs while preventing potential collisions
   # in case different extensions implement the same subject-action pair.
-  # Important note : the arrays 'make_entries_arr' and 'real_scripts_arr' must have the
+  # Important note : the arrays 'pivots_arr' and 'real_scripts_arr' must have the
   # exact same order and size.
   local task
   local sp_pair
@@ -157,7 +157,7 @@ f_make_list_entry_points() {
       task="${task#*instance-}"
     esac
 
-    make_entries_arr+=("$task")
+    pivots_arr+=("$task")
     real_scripts_arr+=("asc/$sp_pair.sh")
   done
 
@@ -189,12 +189,12 @@ f_make_list_entry_points() {
           task="${task#*instance-}"
         esac
 
-        if f_in_array "$task" 'make_entries_arr'; then
+        if f_in_array "$task" 'pivots_arr'; then
           task="${extension}-$task"
           f_make_task_name "$task"
         fi
 
-        make_entries_arr+=("$task")
+        pivots_arr+=("$task")
         ext_path=''
         f_asc_extension_path "$extension"
         # TODO [minor] Figure out why this can produce duplicate entries.
@@ -219,7 +219,7 @@ f_make_generate() {
   local make_entry_point
   local real_script
 
-  local make_entries_arr=()
+  local pivots_arr=()
   local real_scripts_arr=()
 
   # All except the hardcoded ones.
@@ -249,8 +249,8 @@ f_make_generate() {
 
 EOF
 
-  for i in "${!make_entries_arr[@]}"; do
-    make_entry_point="${make_entries_arr[i]}"
+  for i in "${!pivots_arr[@]}"; do
+    make_entry_point="${pivots_arr[i]}"
     real_script="${real_scripts_arr[i]}"
 
     echo ".PHONY: $make_entry_point
@@ -291,16 +291,16 @@ $make_entry_point:
 # @see f_make_generate() in asc/make/make.inc.sh
 #
 
-make_entries_arr=()
+pivots_arr=()
 real_scripts_arr=()
 
 SHELL_SCRIPT_HEAD
 
-  for i in "${!make_entries_arr[@]}"; do
-    make_entry_point="${make_entries_arr[i]}"
+  for i in "${!pivots_arr[@]}"; do
+    make_entry_point="${pivots_arr[i]}"
     real_script="${real_scripts_arr[i]}"
 
-    make_entries_code_gen+="make_entries_arr+=('$make_entry_point')
+    make_entries_code_gen+="pivots_arr+=('$make_entry_point')
 "
     real_scripts_code_gen+="real_scripts_arr+=('$real_script')
 "
@@ -310,7 +310,7 @@ SHELL_SCRIPT_HEAD
     # shellcheck disable=SC1090
     . data/asc/cache/test-cases.sh
     for make_entry_point in "${test_case_registry_targets_arr[@]}"; do
-      make_entries_code_gen+="make_entries_arr+=('$make_entry_point')
+      make_entries_code_gen+="pivots_arr+=('$make_entry_point')
 "
       real_scripts_code_gen+="real_scripts_arr+=('asc/test/case.run.sh')
 "
@@ -336,30 +336,30 @@ SHELL_SCRIPT_HEAD
 # This function writes its result to variables subject to collision in calling
 # scope :
 #
-# @var make_entries_arr
+# @var pivots_arr
 # @var real_scripts_arr
 #
 # @example
-#   make_entries_arr=()
+#   pivots_arr=()
 #   real_scripts_arr=()
 #   f_make_list_hardcoded
 #
 f_make_list_hardcoded() {
-  make_entries_arr+=('init')
+  pivots_arr+=('init')
   real_scripts_arr+=('asc/instance/init.make.sh')
-  make_entries_arr+=('init-debug')
+  pivots_arr+=('init-debug')
   real_scripts_arr+=('asc/instance/init.make.sh -d -r')
-  # make_entries_arr+=('reinit')
+  # pivots_arr+=('reinit')
   # real_scripts_arr+=('asc/instance/reinit.sh')
-  make_entries_arr+=('setup')
+  pivots_arr+=('setup')
   real_scripts_arr+=('asc/instance/setup.sh')
-  make_entries_arr+=('hook')
+  pivots_arr+=('hook')
   real_scripts_arr+=('asc/instance/hook.make.sh')
-  make_entries_arr+=('hook-debug')
+  pivots_arr+=('hook-debug')
   real_scripts_arr+=('asc/instance/hook.make.sh -d -t')
-  make_entries_arr+=('globals-lp')
+  pivots_arr+=('globals-lp')
   real_scripts_arr+=('asc/env/global_lookup_paths.make.sh')
-  make_entries_arr+=('debug')
+  pivots_arr+=('debug')
   real_scripts_arr+=('asc/make/echo.make.sh')
 }
 
@@ -398,7 +398,7 @@ f_make_unescape() {
 ##
 # Append per-case make targets and write test-case registry cache.
 #
-# Uses make_entries_arr and real_scripts_arr arrays from calling scope (f_make_generate).
+# Uses pivots_arr and real_scripts_arr arrays from calling scope (f_make_generate).
 #
 f_make_generate_test_cases() {
   local batch_task=''
@@ -423,8 +423,8 @@ f_make_generate_test_cases() {
   cache_dir="${cache_file%/*}"
   mkdir -p "$cache_dir"
 
-  for i in "${!make_entries_arr[@]}"; do
-    batch_task="${make_entries_arr[i]}"
+  for i in "${!pivots_arr[@]}"; do
+    batch_task="${pivots_arr[i]}"
     batch_script="${real_scripts_arr[i]}"
 
     test_case_mode=''

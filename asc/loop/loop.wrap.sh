@@ -25,12 +25,12 @@ if [[ -z "$p_entry" ]]; then
 fi
 
 # Resolve make entry → script path.
-make_entries_arr=()
+pivots_arr=()
 real_scripts_arr=()
 f_make_list_entry_points
 p_script=''
-for index in "${!make_entries_arr[@]}"; do
-  if [[ "${make_entries_arr[index]}" == "$p_entry" ]]; then
+for index in "${!pivots_arr[@]}"; do
+  if [[ "${pivots_arr[index]}" == "$p_entry" ]]; then
     p_script="${real_scripts_arr[index]}"
     break
   fi

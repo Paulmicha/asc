@@ -79,7 +79,7 @@ Type inference: explicit `-a`/`-A` wins; `declare -n` / `local -n` → nameref (
 | Variable | Type | Sites | Suggested | Primary file(s) |
 |----------|------|-------|-----------|-----------------|
 | `db_ids` | indexed | 38 | `db_ids_arr` | `asc/extensions/db/app/install.hook.sh`, `asc/extensions/db/db.inc.sh`… |
-| `make_entries` | indexed | 32 | `make_entries_arr` | `asc/log/log.wrap.sh`, `asc/loop/loop.wrap.sh`… |
+| `make_entries` | indexed | 32 | `pivots_arr` | `asc/log/log.wrap.sh`, `asc/loop/loop.wrap.sh`… |
 | `real_scripts` | indexed | 27 | `real_scripts_arr` | `asc/log/log.wrap.sh`, `asc/loop/loop.wrap.sh`… |
 | `keys` | indexed | 24 | `keys_arr` | `asc/extensions/remote/remote.inc.sh`, `asc/extensions/remote_db/remote/remote.opt-inc.sh` |
 | `git_hooks_whitelist` | indexed | 23 | `git_hooks_whitelist_arr` | `asc/git/git.inc.sh` |
@@ -150,7 +150,7 @@ Type inference: explicit `-a`/`-A` wins; `declare -n` / `local -n` → nameref (
 
 | Variable | Suggested | Why tricky |
 |----------|-----------|------------|
-| `make_entries` | `make_entries_arr` | Paired with `real_scripts`; sourced by wrap scripts (`make.wrap.sh`, `log.wrap.sh`, `loop.wrap.sh`, `thread.wrap.sh`) |
+| `make_entries` | `pivots_arr` | Paired with `real_scripts`; sourced by wrap scripts (`make.wrap.sh`, `log.wrap.sh`, `loop.wrap.sh`, `thread.wrap.sh`) |
 | `real_scripts` | `real_scripts_arr` | Same wrap-script contract; codegen writes `real_scripts+=` into cache files |
 | `test_case_registry_*` | `test_case_registry_*_arr` | Six parallel arrays written to `data/asc/cache/test-cases.sh` by `f_make_generate_test_cases()` |
 | `asc_action_names` | `asc_action_names_arr` | Instance listing / core bootstrap action registry |
@@ -502,7 +502,7 @@ Grouped by path. **OK:** ✓ compliant, ✗ needs rename, ⚠ wrong suffix, — 
 
 | Variable | Type | OK | Suggested | First line | Function | Sites | Notes |
 |----------|------|----|-----------|------------|----------|-------|-------|
-| `make_entries` | indexed | ✗ | `make_entries_arr` | L751 | `(top-level)`, `f_make_check_args` | 32 | Wrap-script contract; sourced across make/log/loop/thread wraps |
+| `make_entries` | indexed | ✗ | `pivots_arr` | L751 | `(top-level)`, `f_make_check_args` | 32 | Wrap-script contract; sourced across make/log/loop/thread wraps |
 | `real_scripts` | indexed | ✗ | `real_scripts_arr` | L50 | `(top-level)`, `f_make_check_args` | 27 | Wrap-script contract; sourced across make/log/loop/thread wraps |
 
 ### `asc/log/rotate.sh`
@@ -515,21 +515,21 @@ Grouped by path. **OK:** ✓ compliant, ✗ needs rename, ⚠ wrong suffix, — 
 
 | Variable | Type | OK | Suggested | First line | Function | Sites | Notes |
 |----------|------|----|-----------|------------|----------|-------|-------|
-| `make_entries` | indexed | ✗ | `make_entries_arr` | L751 | `(top-level)`, `f_make_check_args` | 32 | Wrap-script contract; sourced across make/log/loop/thread wraps |
+| `make_entries` | indexed | ✗ | `pivots_arr` | L751 | `(top-level)`, `f_make_check_args` | 32 | Wrap-script contract; sourced across make/log/loop/thread wraps |
 | `real_scripts` | indexed | ✗ | `real_scripts_arr` | L50 | `(top-level)`, `f_make_check_args` | 27 | Wrap-script contract; sourced across make/log/loop/thread wraps |
 
 ### `asc/make/call_wrap.make.sh`
 
 | Variable | Type | OK | Suggested | First line | Function | Sites | Notes |
 |----------|------|----|-----------|------------|----------|-------|-------|
-| `make_entries` | indexed | ✗ | `make_entries_arr` | L751 | `(top-level)`, `f_make_check_args` | 32 | Wrap-script contract; sourced across make/log/loop/thread wraps |
+| `make_entries` | indexed | ✗ | `pivots_arr` | L751 | `(top-level)`, `f_make_check_args` | 32 | Wrap-script contract; sourced across make/log/loop/thread wraps |
 | `real_scripts` | indexed | ✗ | `real_scripts_arr` | L50 | `(top-level)`, `f_make_check_args` | 27 | Wrap-script contract; sourced across make/log/loop/thread wraps |
 
 ### `asc/make/list_entry_points.sh`
 
 | Variable | Type | OK | Suggested | First line | Function | Sites | Notes |
 |----------|------|----|-----------|------------|----------|-------|-------|
-| `make_entries` | indexed | ✗ | `make_entries_arr` | L751 | `(top-level)`, `f_make_check_args` | 32 | Wrap-script contract; sourced across make/log/loop/thread wraps |
+| `make_entries` | indexed | ✗ | `pivots_arr` | L751 | `(top-level)`, `f_make_check_args` | 32 | Wrap-script contract; sourced across make/log/loop/thread wraps |
 | `output` | indexed | ✗ | `output_arr` | L19 | `(top-level)` | 3 | — |
 | `real_scripts` | indexed | ✗ | `real_scripts_arr` | L50 | `(top-level)`, `f_make_check_args` | 27 | Wrap-script contract; sourced across make/log/loop/thread wraps |
 | `sorted_arr` | indexed | ✓ | — | L20 | `(top-level)`, `f_array_qsort` | 10 | Output var documented in `f_array_*` @var blocks |
@@ -538,7 +538,7 @@ Grouped by path. **OK:** ✓ compliant, ✗ needs rename, ⚠ wrong suffix, — 
 
 | Variable | Type | OK | Suggested | First line | Function | Sites | Notes |
 |----------|------|----|-----------|------------|----------|-------|-------|
-| `make_entries` | indexed | ✗ | `make_entries_arr` | L751 | `(top-level)`, `f_make_check_args` | 32 | Wrap-script contract; sourced across make/log/loop/thread wraps |
+| `make_entries` | indexed | ✗ | `pivots_arr` | L751 | `(top-level)`, `f_make_check_args` | 32 | Wrap-script contract; sourced across make/log/loop/thread wraps |
 | `real_scripts` | indexed | ✗ | `real_scripts_arr` | L50 | `(top-level)`, `f_make_check_args` | 27 | Wrap-script contract; sourced across make/log/loop/thread wraps |
 | `tc_batch_dirs` | indexed | ✗ | `tc_batch_dirs_arr` | L414 | `f_make_generate_test_cases` | 3 | Local scratch in `f_make_generate_test_cases`; maps to `test_case_registry_*` cache |
 | `tc_batch_scripts` | indexed | ✗ | `tc_batch_scripts_arr` | L415 | `f_make_generate_test_cases` | 3 | Local scratch in `f_make_generate_test_cases`; maps to `test_case_registry_*` cache |
@@ -564,7 +564,7 @@ Grouped by path. **OK:** ✓ compliant, ✗ needs rename, ⚠ wrong suffix, — 
 | Variable | Type | OK | Suggested | First line | Function | Sites | Notes |
 |----------|------|----|-----------|------------|----------|-------|-------|
 | `all_lines` | indexed | ✗ | `all_lines_arr` | L314 | `f_test_results_batch_end` | 5 | — |
-| `make_entries` | indexed | ✗ | `make_entries_arr` | L751 | `(top-level)`, `f_make_check_args` | 32 | Wrap-script contract; sourced across make/log/loop/thread wraps |
+| `make_entries` | indexed | ✗ | `pivots_arr` | L751 | `(top-level)`, `f_make_check_args` | 32 | Wrap-script contract; sourced across make/log/loop/thread wraps |
 | `real_scripts` | indexed | ✗ | `real_scripts_arr` | L50 | `(top-level)`, `f_make_check_args` | 27 | Wrap-script contract; sourced across make/log/loop/thread wraps |
 | `test_case_registry_batch_dirs` | indexed | ✗ | `test_case_registry_batch_dirs_arr` | L475 | `f_make_generate_test_cases`, `f_test_run_case` | 3 | Emitted into generated cache `data/asc/cache/test-cases.sh` |
 | `test_case_registry_batch_scripts` | indexed | ✗ | `test_case_registry_batch_scripts_arr` | L476 | `f_make_generate_test_cases`, `f_test_run_case` | 3 | Emitted into generated cache `data/asc/cache/test-cases.sh` |
@@ -593,7 +593,7 @@ Grouped by path. **OK:** ✓ compliant, ✗ needs rename, ⚠ wrong suffix, — 
 |----------|------|----|-----------|------------|----------|-------|-------|
 | `_u_ta_ref` | nameref | ✗ | `_u_ta_ref_arr_nameref` | L456 | `f_thread_args_append` | 1 | `local -n` → indexed array via `$a_arr_name` |
 | `args` | indexed | ✗ | `args_arr` | L472 | `f_git_get_unmerged_paths`, `f_thread_run_make_step` | 3 | — |
-| `make_entries` | indexed | ✗ | `make_entries_arr` | L751 | `(top-level)`, `f_make_check_args` | 32 | Wrap-script contract; sourced across make/log/loop/thread wraps |
+| `make_entries` | indexed | ✗ | `pivots_arr` | L751 | `(top-level)`, `f_make_check_args` | 32 | Wrap-script contract; sourced across make/log/loop/thread wraps |
 | `pids` | indexed | ✗ | `pids_arr` | L697 | `f_thread_run_batch` | 3 | — |
 | `thread_entries` | indexed | ✗ | `thread_entries_arr` | L551 | `f_thread_parse_e_args`, `f_thread_run_batch` | 4 | — |
 | `thread_entry_args` | indexed | ✗ | `thread_entry_args_arr` | L552 | `f_thread_parse_e_args`, `f_thread_run_batch` | 4 | — |
@@ -607,7 +607,7 @@ Grouped by path. **OK:** ✓ compliant, ✗ needs rename, ⚠ wrong suffix, — 
 
 | Variable | Type | OK | Suggested | First line | Function | Sites | Notes |
 |----------|------|----|-----------|------------|----------|-------|-------|
-| `make_entries` | indexed | ✗ | `make_entries_arr` | L751 | `(top-level)`, `f_make_check_args` | 32 | Wrap-script contract; sourced across make/log/loop/thread wraps |
+| `make_entries` | indexed | ✗ | `pivots_arr` | L751 | `(top-level)`, `f_make_check_args` | 32 | Wrap-script contract; sourced across make/log/loop/thread wraps |
 | `real_scripts` | indexed | ✗ | `real_scripts_arr` | L50 | `(top-level)`, `f_make_check_args` | 27 | Wrap-script contract; sourced across make/log/loop/thread wraps |
 | `thread_tree` | indexed | ✗ | `thread_tree_arr` | L53 | `(top-level)`, `f_thread_proc_tree` | 7 | — |
 
@@ -760,7 +760,7 @@ All clusters below were migrated in this session (2026-07-31).
 3. **Wrong-suffix fix** — ✓ `declaration_arr` → `declaration_dict` in `asc/asc/global.inc.sh`.
 4. **Remote DB scripts** — ✓ `dumps_dict` unchanged (already compliant); `cmds_arr`, `db_ids_arr`, `keys_arr` migrated.
 5. **Self-contained modules** — ✓ `asc/git/git.inc.sh`, `asc/extensions/crontab/crontab.inc.sh`, `asc/log/`.
-6. **Make / test codegen** — ✓ `make_entries_arr`, `real_scripts_arr`, `test_case_registry_*_arr`, `tc_*_arr` in generators; **regenerate** `data/asc/cache/test-cases.sh` and `data/asc/cache/pivots.sh` on next `make` reinit (cache absent in workspace at migration time).
+6. **Make / test codegen** — ✓ `pivots_arr`, `real_scripts_arr`, `test_case_registry_*_arr`, `tc_*_arr` in generators; **regenerate** `data/asc/cache/test-cases.sh` and `data/asc/cache/pivots.sh` on next `make` reinit (cache absent in workspace at migration time).
 7. **Contrib** — ✓ `scripts/asc/contrib/**`.
 
 **Out of migration scope:** `GLOBALS`, `GLOBALS_DEFERRED`, `GLOBALS_UNIQUE_KEYS`, `GLOBALS_UNIQUE_NAMES` — left unchanged (verified).
