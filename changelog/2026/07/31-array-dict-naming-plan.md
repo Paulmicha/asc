@@ -760,7 +760,7 @@ All clusters below were migrated in this session (2026-07-31).
 3. **Wrong-suffix fix** — ✓ `declaration_arr` → `declaration_dict` in `asc/asc/global.inc.sh`.
 4. **Remote DB scripts** — ✓ `dumps_dict` unchanged (already compliant); `cmds_arr`, `db_ids_arr`, `keys_arr` migrated.
 5. **Self-contained modules** — ✓ `asc/git/git.inc.sh`, `asc/extensions/crontab/crontab.inc.sh`, `asc/log/`.
-6. **Make / test codegen** — ✓ `make_entries_arr`, `real_scripts_arr`, `test_case_registry_*_arr`, `tc_*_arr` in generators; **regenerate** `data/asc/cache/test-cases.sh` and `data/asc/cache/make.sh` on next `make` reinit (cache absent in workspace at migration time).
+6. **Make / test codegen** — ✓ `make_entries_arr`, `real_scripts_arr`, `test_case_registry_*_arr`, `tc_*_arr` in generators; **regenerate** `data/asc/cache/test-cases.sh` and `data/asc/cache/pivots.sh` on next `make` reinit (cache absent in workspace at migration time).
 7. **Contrib** — ✓ `scripts/asc/contrib/**`.
 
 **Out of migration scope:** `GLOBALS`, `GLOBALS_DEFERRED`, `GLOBALS_UNIQUE_KEYS`, `GLOBALS_UNIQUE_NAMES` — left unchanged (verified).
@@ -776,7 +776,7 @@ All clusters below were migrated in this session (2026-07-31).
 
 - [x] Rename all inventoried variables (108 symbols)
 - [x] Update `@var` / `@example` blocks in `arr.opt-inc.sh`
-- [ ] Regenerate `data/asc/cache/test-cases.sh` (and `make.sh`) after next instance reinit / `f_make_generate`
+- [ ] Regenerate `data/asc/cache/test-cases.sh` (and `pivots.sh`) after next instance reinit / `f_make_generate`
 - [ ] Add array/dict/nameref naming rules to `.cursor/rules/naming.mdc` once convention is locked
 - [x] Re-run audit commands below (post-migration spot-check)
 

@@ -1304,7 +1304,7 @@ data/asc/
       active.sh               ← primitives + ASC_INC (stamp-gated)
       stamp                   ← discovery inputs (not hook file bodies)
     hook/<canonical-key>.sh   ← hook lookup (bodies still sourced from disk)
-    make.sh
+    pivots.sh
     test-cases.sh
     entities/                 ← entity load cache
 ```

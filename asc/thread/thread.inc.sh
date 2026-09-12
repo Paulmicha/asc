@@ -477,11 +477,11 @@ f_thread_run_make_step() {
 
   # Reject unknown entries: Makefile has a silent catch-all (%:) that would
   # otherwise make missing goals look successful.
-  if [[ -f data/asc/cache/make.sh ]]; then
+  if [[ -f data/asc/cache/pivots.sh ]]; then
     # Fresh arrays (cache uses +=).
     make_entries_arr=()
     real_scripts_arr=()
-    . data/asc/cache/make.sh
+    . data/asc/cache/pivots.sh
     for e in "${make_entries_arr[@]}"; do
       if [[ "$e" == "$p_entry" ]]; then
         found=1

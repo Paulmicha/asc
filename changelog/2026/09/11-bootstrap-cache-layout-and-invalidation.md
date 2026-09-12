@@ -58,13 +58,13 @@ data/asc/
       stamp                   ← NEW (see “Best performance win”)
     hook/                     ← today: cache/hook.*.sh (flat in cache/)
       <canonical-key>.sh
-    make.sh                   ← unchanged role (cc wipes; regenerated at init)
+    pivots.sh                 ← unchanged role (cc wipes; regenerated at init)
     test-cases.sh             ← unchanged role
     entities/                 ← entity load cache (cc already wipes this)
     …                         ← other lookup caches (remote ids, etc.)
 ```
 
-`make cc` remains `rm -rf data/asc/cache` (or equivalent: wipe `core/`, `hook/`, `entities/`, `make.sh`, …). Globals and pivots stay.
+`make cc` remains `rm -rf data/asc/cache` (or equivalent: wipe `core/`, `hook/`, `entities/`, `pivots.sh`, …). Globals and pivots stay.
 
 ---
 
@@ -171,7 +171,7 @@ Unchanged policy, restated so layout changes do not silently expand `cc`:
 |---|---|---|---|
 | `cache/core/active.sh`, `cache/core/stamp` | wipe | rewrite | wipe (via cache dir) |
 | `cache/hook/` | wipe | refill on next hook miss / warmup | wipe |
-| `cache/make.sh`, `cache/test-cases.sh`, `cache/entities/` | wipe | rewrite at init | wipe |
+| `cache/pivots.sh`, `cache/test-cases.sh`, `cache/entities/` | wipe | rewrite at init | wipe |
 | `data/asc/global.vars.sh` | **keep** | rewrite | wipe |
 | `data/asc/pivots.mk` | **keep** | rewrite | wipe |
 | `.env` | **keep** | rewrite | wipe |

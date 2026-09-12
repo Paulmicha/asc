@@ -11,7 +11,7 @@
 #
 # @see asc/make/default.mk
 # @see data/asc/pivots.mk
-# @see data/asc/cache/make.sh
+# @see data/asc/cache/pivots.sh
 # @see f_instance_init() in asc/instance/instance.inc.sh
 # @see f_make_generate() in asc/make/make.inc.sh
 #
@@ -74,8 +74,8 @@ make_entries_arr=()
 real_scripts_arr=()
 
 # Use the complete generated list of entries if it exists.
-if [[ -f data/asc/cache/make.sh ]]; then
-  . data/asc/cache/make.sh
+if [[ -f data/asc/cache/pivots.sh ]]; then
+  . data/asc/cache/pivots.sh
 else
   # Default to hardcoded values.
   f_make_list_hardcoded

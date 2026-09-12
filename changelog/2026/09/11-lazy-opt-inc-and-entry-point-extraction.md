@@ -243,7 +243,7 @@ Typical eager includes today: `git`, `host`, `instance`, `make`, `test`, `thread
 |---|---|---|
 | `test.inc.sh` (~960) | Any test helper might be called from a hook | Only `test/*.sh` and `hook -s test` need it → `test.opt-inc.sh` + hook seeding on `asc/test/*.hook.sh` |
 | `git.inc.sh` (~878) | Git hooks / `f_git_write_hooks` | `git.opt-inc.sh` colocated with git hooks; `git/write_hooks.sh` already exists as an entry point — **move the function into that script** (same pattern as `write_globals.sh`) |
-| `make.inc.sh` (~494) | `f_make_generate` at init; wrap uses `f_make_list_hardcoded` | Wrap process still needs a **small** make helper or `cache/make.sh` only. Do not pull `f_make_generate` into every action process. Candidates for entry points: generate, generate_test_cases. |
+| `make.inc.sh` (~494) | `f_make_generate` at init; wrap uses `f_make_list_hardcoded` | Wrap process still needs a **small** make helper or `cache/pivots.sh` only. Do not pull `f_make_generate` into every action process. Candidates for entry points: generate, generate_test_cases. |
 | `thread.inc.sh` (~760) | Cross-subject (`log`/`cron` comments) | Those callers must source `thread.opt-inc.sh` or keep a thin `thread.inc.sh` with **only** the cross-subject API |
 | `host.inc.sh` (~278) | crontab / ip / os / registry / once | `host.opt-inc.sh` + seeding from `host/*.hook.sh`; crontab add/remove are workflow-ish |
 | `instance.inc.sh` (~850) | `f_instance_init`, perms, yaml config parse, registry, once, domain | Init/reinit/setup source `instance.opt-inc.sh`. Perms **hooks** under `instance/` seed `instance.opt-inc.sh` if named that. **fs_perms hooks in other subjects must not call `f_instance_*` without sourcing.** `f_instance_init` is a workflow: keep callable from `init.sh` / `reinit.sh`, do not leave the whole file eager “just in case.” |
@@ -328,7 +328,7 @@ Confirm with grep before moving.
 |---|---|---|
 | `f_git_write_hooks` | `git.inc.sh`; thin `git/write_hooks.sh` | Entry point (move body) |
 | `f_make_generate` / `f_make_generate_test_cases` | `make.inc.sh`; init | Entry point or init-only opt-inc |
-| `f_make_list_hardcoded` | wrap when `cache/make.sh` missing | Keep small; needed in wrap process |
+| `f_make_list_hardcoded` | wrap when `cache/pivots.sh` missing | Keep small; needed in wrap process |
 | `f_instance_init` | `instance.inc.sh`; `init.sh` / `reinit.sh` | Entry-point-adjacent; do not keep 850 lines eager for this |
 | `f_instance_yaml_config_load` / `_parse` | instance + aggregate | Shared with init; source from init/opt-inc, not every `make` |
 | `f_instance_set_permissions` / ownership | perms hooks | `instance.opt-inc.sh` seeded by those hooks |

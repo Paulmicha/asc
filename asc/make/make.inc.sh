@@ -268,12 +268,13 @@ $make_entry_point:
   # We'll also need to generate a "normal" shell script (not bash) to check
   # that among all arguments sent to a Make entry point, none are "reserved"
   # values - i.e. that would trigger unwanted other targets.
-  echo "Creating cache file data/asc/cache/make.sh ..."
+  echo "Creating cache file data/asc/cache/pivots.sh ..."
+  rm -f data/asc/cache/make.sh
 
   # Including the hardcoded ones (this is only used for the safety check).
   f_make_list_hardcoded
 
-  local cache_file='data/asc/cache/make.sh'
+  local cache_file='data/asc/cache/pivots.sh'
   local make_entries_code_gen=''
   local real_scripts_code_gen=''
 
@@ -321,7 +322,7 @@ SHELL_SCRIPT_HEAD
   echo '' >> "$cache_file"
   echo "$real_scripts_code_gen" >> "$cache_file"
 
-  echo "Creating cache file data/asc/cache/make.sh : done."
+  echo "Creating cache file data/asc/cache/pivots.sh : done."
   echo
 }
 
