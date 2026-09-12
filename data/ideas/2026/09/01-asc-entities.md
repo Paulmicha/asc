@@ -459,7 +459,7 @@ Already modeled. Do not add cluster entity types in core.
 
 `remote_instance` extension = lifecycle against a **remote ASC or remote stack** (`remote/init.sh`, `setup.sh`, `destroy.sh`, `stack/deploy.sh`). Enable it only on instances that actually SSH into copies of the same stack.
 
-Default `asc/extensions/.asc_extensions_ignore` **disables** `remote` and `remote_instance`. Projet-complexe-asc must omit those lines in `scripts/asc/override/.asc_extensions_ignore`.
+Default `.asc_extensions_ignore` **disables** `remote` and `remote_instance`. Projet-complexe-asc must omit those lines in `.asc_extensions_ignore`.
 
 ### 8.2 Key list today is hardcoded — this is the main schema gap
 

@@ -424,7 +424,7 @@ hook() {
       fi
 
       # Derive opt-incs from the lookup path (extension/project location), not
-      # from an override path under scripts/overrides.
+      # from an override path under scripts/asc/override.
       f_hook_opt_inc_append_candidates "$inc" opt_incs_arr
 
       f_hook_resolve_source_path "$inc" 'src'
@@ -693,7 +693,7 @@ f_hook_build_project_root_dir_lookup() {
 # etc.) because of the way its patterns work :
 #   - multiple extension (i.e. variants : pre_bootstrap.compose.hook.sh)
 #   - complements (e.g. scripts/asc/extend/test/asc.hook.sh)
-#   - overrides (e.g. scripts/overrides/extensions/compose/instance/init.compose.hook.sh)
+#   - overrides (e.g. scripts/asc/override/extensions/compose/instance/init.compose.hook.sh)
 # @see hook()
 #
 # NB : We must give some advantage to the project-specific 'scripts' path in
@@ -916,7 +916,7 @@ f_hook_opt_inc_append_candidates() {
 }
 
 ##
-# Resolve scripts/overrides counterpart for a path (if any).
+# Resolve scripts/asc/override counterpart for a path (if any).
 #
 # Writes the override path when it exists, otherwise the original.
 #
@@ -928,7 +928,7 @@ f_hook_opt_inc_append_candidates() {
 f_hook_resolve_source_path() {
   local p_path="$1"
   local p_output_var_name="${2:-hook_resolve_source_path}"
-  local override="${p_path/asc/scripts/overrides}"
+  local override="${p_path/asc/scripts/asc/override}"
 
   if [[ -f "$override" ]]; then
     printf -v "$p_output_var_name" '%s' "$override"

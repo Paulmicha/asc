@@ -54,7 +54,7 @@ ASC marks include **kind** with a **double** (sometimes triple) suffix, not with
 
 - `docs/asc/archive/bootstrap.md` describes numbered files `asc/bootstrap/*.bootstrap-inc.sh` and `90-caller-opt-inc`. **Those files do not exist.** Today everything is inlined in `asc/bootstrap.sh`. `software.opt-inc.sh` comments that cite `90-caller-opt-inc.bootstrap-inc.sh` are aspirational.
 - Filename-DSL notes wanted primordial **lazy** `asc/asc/utils/{array,fs,shell,string}.opt-inc.sh`. Today those are **eager** `asc/utils/{arr,fs,shell,str}.inc.sh` pulled by `core_utils.inc.sh`. Wave A of this plan is the practical move toward that intent, without waiting for `ASC_SHELL` or a phase-file split.
-- Archive docs still say `u_asc_extend` / `u_autoload_override` and override root `scripts/asc/override/`. Code is `f_*` and `scripts/overrides` (first `asc` path segment replaced). Follow **code** when placing override opt-incs.
+- Archive docs still say `u_asc_extend` / `u_autoload_override` and override root `scripts/asc/override/`. Code is `f_*` and `scripts/asc/override` (first `asc` path segment replaced). Follow **code** when placing override opt-incs.
 
 ---
 
@@ -117,7 +117,7 @@ append if they exist (deduped via f_array_add_once):
 
 Implemented in `f_hook_opt_inc_append_candidates()`. Custom `-c` lookups that are **not** `*.hook.sh` return immediately.
 
-Then, for each candidate, `f_hook_resolve_source_path` (prefer `scripts/overrides/…` when that file exists) and:
+Then, for each candidate, `f_hook_resolve_source_path` (prefer `scripts/asc/override/…` when that file exists) and:
 
 - append `. $src` to `hook_cache_contents` under `# --- opt-inc (seeded) ---` **before** `# --- hooks ---`
 - `. "$src"` now unless `-w` cache warmup (`b_cache_warmup=1`)
@@ -161,9 +161,9 @@ These are failure modes, not a short pros/cons row.
    Hook action = filename **before the first dot** after stripping `.hook.sh`. Bootstrap action = **whole** stem minus one `.sh`. `call_wrap.make.sh` → `call_wrap.make.opt-inc.sh`. `pre_install.compose.hook.sh` → `pre_install.opt-inc.sh`, not `install.opt-inc.sh`. Do not assume they match.
 
 4. **Overrides are a single-segment path swap, not “search the tree”.**  
-   `f_autoload_override` / `f_hook_resolve_source_path`: first `asc` → `scripts/overrides`.  
-   `asc/host/host.opt-inc.sh` → `scripts/overrides/host/host.opt-inc.sh`.  
-   `asc/extensions/software/host/provision.opt-inc.sh` → `scripts/overrides/extensions/software/host/provision.opt-inc.sh`.  
+   `f_autoload_override` / `f_hook_resolve_source_path`: first `asc` → `scripts/asc/override`.  
+   `asc/host/host.opt-inc.sh` → `scripts/asc/override/host/host.opt-inc.sh`.  
+   `asc/extensions/software/host/provision.opt-inc.sh` → `scripts/asc/override/extensions/software/host/provision.opt-inc.sh`.  
    README/`scripts/asc/override/` is **not** what the functions look for. A lazy file that only exists under contrib is not found from a core hook path.
 
 5. **Hook cache pins the opt-inc list.**  
@@ -383,7 +383,7 @@ After each wave: `bash asc/test/core/*.test.sh` that touch the moved symbols; at
 - [ ] Wave A–C as above.
 - [ ] Drill remaining `*.inc.sh` (instance → make → git → host → test → thread → extensions).
 - [ ] README § Bootstrap / Active Dir: document the **two** loaders, derivation rules, and caveats (1)–(2) (currently one sentence).
-- [ ] Align comments that cite missing `90-caller-opt-inc.bootstrap-inc.sh` / `scripts/asc/override/` with code (`bootstrap.sh` / `scripts/overrides`).
+- [ ] Align comments that cite missing `90-caller-opt-inc.bootstrap-inc.sh` / `scripts/asc/override/` with code (`bootstrap.sh` / `scripts/asc/override`).
 - [ ] Optional: measure wrap vs action bootstrap cost; only then consider a thinner `call_wrap` bootstrap.
 
 ---

@@ -270,7 +270,7 @@ extensions_ignore=${selected_ignore}
 
   for path in \
     "$selected_ignore" \
-    'scripts/asc/override/.asc_extensions_ignore' \
+    '.asc_extensions_ignore' \
     'asc/.asc_subjects_ignore' \
     'asc' \
     'asc/extensions' \

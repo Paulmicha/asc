@@ -12,7 +12,7 @@
 ##
 # Allows to optionally replace or bypass a default script include (sourcing).
 #
-# Checks if its counterpart exists in scripts/overrides, and if it does,
+# Checks if its counterpart exists in scripts/asc/override, and if it does,
 # return the code that will source it and return early in main shell.
 #
 # This function works by populating a variable named inc_override_evaled_code
