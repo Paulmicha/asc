@@ -77,6 +77,7 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
   - [Tests](#tests)
     - [Organization](#organization)
     - [Pre and post test suite execution (shunit2) functions](#pre-and-post-test-suite-execution-shunit2-functions)
+  - [ASC discovery recap](#asc-discovery-recap)
   - [ASC domain-specific language : *DSL* syntax](#asc-domain-specific-language-dsl-syntax)
     - [Entry points](#entry-points)
     - [Arguments](#arguments)
