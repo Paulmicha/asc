@@ -74,10 +74,11 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
     - [Reusable Yaml blocks (`includes` : plural)](#reusable-yaml-blocks-includes-plural)
     - [Instanciation ("concrete" entity instances)](#instanciation-concrete-entity-instances)
     - [Linking, adressing (relationships, references)](#linking-adressing-relationships-references)
-  - [Tests](#tests)
-    - [Organization](#organization)
-    - [Pre and post test suite execution (shunit2) functions](#pre-and-post-test-suite-execution-shunit2-functions)
   - [ASC discovery recap](#asc-discovery-recap)
+  - [Tests](#tests)
+    - [ASC core ("kernel") tests](#asc-core-kernel-tests)
+    - [Pre and post test suite execution (shunit2) functions](#pre-and-post-test-suite-execution-shunit2-functions)
+    - [Test results](#test-results)
   - [ASC domain-specific language : *DSL* syntax](#asc-domain-specific-language-dsl-syntax)
     - [Entry points](#entry-points)
     - [Arguments](#arguments)
@@ -172,7 +173,7 @@ Potential collisions in filesystem :
 
 Resolution : agnostic stance. In terms of ASC entity representation, `$subject` may or may not choose to implement that extra level.
 
-Implications : change ASC core current files discovery mechanisms to support both.
+Implications : change ASC core current files discovery mechanisms to support both. Core primitives + pivots now discover both nestings; remaining work is adopting the extra level in more trees (see README § ASC discovery recap).
 
 1. [x] ~~Finish describing ASC "core" concepts explicitly~~
 1. [x] ~~Stabilize Naming convention~~
@@ -1107,43 +1108,6 @@ required:
       validate: test-software-state(p1,test-and(installed,running))
 ```
 
-### Tests
-
-TODO rewrite / adapt this :
-
-#### Organization
-
-ASC tests are integrated in levels :
-
-- entry point (level 0)
-- test batch (level 1)
-- test suite (level 2)
-- test case (level 3)
-- assertions (level 4)
-
-For example, the "integration" tests would have :
-- entry point (asc action = level 0) : `make test-integration` Or : @scripts/asc/extend/test/integration.sh
-- @scripts/asc/extend/test/integration.sh includes 1 batch (level 1) = 1 call to `u_test_batch_exec()`
-- with 3 suites (level 2) from the @scripts/asc/extend/test/integration dir
-
-At the suite level, for example : @scripts/asc/extend/test/integration/site_api.test.sh , each test case (level 3) is a function whose name starts with "test_", so in our example : `test_site_api_connectivity()`.
-
-The assertions (assertEquals, assertTrue, etc. = level 4) are functions provided by @asc/vendor/shunit2/shunit2
-
-#### Pre and post test suite execution (shunit2) functions
-
-Test suites can implement the following special functions picked up by shunit2 :
-
-```sh
-oneTimeSetUp() {
-  # This runs ONCE before any test starts.
-}
-
-oneTimeTearDown() {
-  # Only when teardown is needed (purge, cleanup). Omit if empty.
-}
-```
-
 ### ASC discovery recap
 
 In the following list, `$ext` means any one of these extension points (paths) :
@@ -1175,6 +1139,7 @@ Also, there are cases where specific hook calls may specify any file extensions,
 
 ```sh
 hook_ms 'dry-run' -s 'stack' -a 'compose' -c 'yml' -v 'DC_YML_VARIANTS' -t
+hook_ms 'dry-run' -s 'stack' -a 'compose.override' -c 'yml' -v 'DC_YML_VARIANTS' -t
 ```
 
 ... which would discover the most specific variant among files like :
@@ -1182,6 +1147,48 @@ hook_ms 'dry-run' -s 'stack' -a 'compose' -c 'yml' -v 'DC_YML_VARIANTS' -t
 - `$ext/stack/compose.yml`
 - `$ext/stack/compose.override.local.dev.yml`
 - etc.
+
+### Tests
+
+ASC tests are integrated in levels :
+
+- entry point (level 0)
+- test batch (level 1)
+- test suite (level 2)
+- test case (level 3)
+- assertions (level 4)
+
+#### ASC core ("kernel") tests
+
+ASC core provides its own ("kernel"-related) coverage, see :
+
+- level 0 (*entry point*) = `asc/test/core.sh` : defines the `test-core` entry point, which triggers a hook so that other extensions may implement their own "kernel"-related tests - i.e. `hook -s 'test' -a 'core' -v 'PROVISION_USING HOST_TYPE HOST_OS'`
+- level 1 (*batch*) = `f_test_batch_exec 'asc/test/core'` in `asc/test/core.hook.sh` : ASC core itself implements its own hook to run default low-level tests
+- level 2 (*suite*) = e.g. `asc/test/core/bootstrap.test.sh` : a test suite is a file named like `$suite.test.sh` in the dir passed as argument to the `f_test_batch_exec()` function
+- level 3 (*case*) = e.g. `test_asc_has_essential_globals()` in `asc/test/core/bootstrap.test.sh` : a single test case is a function named like `test_$case()`
+- level 4 (*assertion*) = individual calls to shunit2 functions like `assertFalse()` or `assertTrue()` inside test case functions (see `asc/vendor/shunit2/shunit2`)
+
+#### Pre and post test suite execution (shunit2) functions
+
+Test suites can implement the following special functions picked up by shunit2 :
+
+```sh
+oneTimeSetUp() {
+  # This runs ONCE before any test starts.
+}
+```
+
+```sh
+oneTimeTearDown() {
+  # Only when teardown is needed (purge, cleanup). Omit if empty.
+}
+```
+
+See the embedded vendor [shunit2 README](asc/vendor/shunit2/README.md) for additional details.
+
+#### Test results
+
+Tests results are (for now) stored in `data/test-results`. This was done to track the current status of unstable branches in git, but the decision is subject to eventually change according to future enhancements to workflow-related implementations.
 
 ### ASC domain-specific language : *DSL* syntax
 
