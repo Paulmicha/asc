@@ -59,6 +59,7 @@ global ASC_SYNONYMS "[append]='logged-loop/ll'"
 global ASC_SYNONYMS "[append]='logged-pipe/lp'"
 global ASC_SYNONYMS "[append]='lookup-path/pl'"
 global ASC_SYNONYMS "[append]='registry/reg'"
+global ASC_SYNONYMS "[append]='nested-git/subgit'"
 # global ASC_SYNONYMS "[append]='wrapper/bridge'"
 
 # Per-case test registry written by f_make_generate_test_cases() during reinit.

@@ -23,6 +23,22 @@ f_global_debug() {
   local key
   local val
 
+  # Bootstrap only loads data/asc/global.vars.sh values. The GLOBALS metadata
+  # array is filled during instance init / f_global_aggregate(). Direct script
+  # runs need a dry-run aggregate so ${GLOBALS['.sorting']} is valid.
+  # @see f_global_list()
+  if [[ ${GLOBALS_COUNT:-0} -eq 0 ]]; then
+    declare -A GLOBALS
+    GLOBALS_COUNT=0
+    GLOBALS_UNIQUE_NAMES=()
+    GLOBALS_UNIQUE_KEYS=()
+    GLOBALS_DEFERRED=()
+    GLOBALS['.defer-max']=0
+    GLOBALS_DRY_RUN=1
+    . asc/env/global.vars.sh
+    f_global_aggregate
+  fi
+
   echo
   echo "Defined globals :"
   echo

@@ -17,15 +17,16 @@
 
 . asc/bootstrap.sh
 
-echo ""
+echo
 echo "List of globals' aggregation paths that would be loaded, in this order, during instance (re)init :"
-echo ""
+echo
 
 echo "asc/env/global.vars.sh"
 echo "  exists"
 
 # 1. Files named without variant (i.e. 'global.vars.sh')
 hook -a 'global' -c 'vars.sh' -t -d
+
 # ... including extra lookup paths at the root of extensions' folders.
 if [ -n "$ASC_EXTENSIONS" ]; then
   for extension in $ASC_EXTENSIONS; do
@@ -58,6 +59,7 @@ echo
 if [[ -n "$HOST_TYPE" ]] && [[ -n "$INSTANCE_TYPE" ]]; then
   hook -s 'instance' -a 'env' -c 'yml' -v 'HOST_TYPE INSTANCE_TYPE' -d -t
   echo "env.yml
+env.$HOST_TYPE.yml
 env.$INSTANCE_TYPE.yml
 env.$STACK_VERSION.yml
 env.$HOST_TYPE.$INSTANCE_TYPE.yml
