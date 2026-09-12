@@ -10,8 +10,8 @@
 #   Defaults to $HOST_TYPE global. Could be a remote ID.
 #
 # @example
-#   asc/test/case.run.sh test-browser-impersonation
-#   asc/test/case.run.sh browser-lighthouse-homepage local
+#   asc/test/single_case.make.sh test-browser-impersonation
+#   asc/test/single_case.make.sh browser-lighthouse-homepage local
 #
 
 . asc/bootstrap.sh
@@ -22,7 +22,7 @@ p_filter="${2:-$HOST_TYPE}"
 if [[ -z "$p_entry" ]]; then
   echo >&2
   echo "Error in $BASH_SOURCE - missing test-case p_entry name." >&2
-  echo "Usage: asc/test/case.run.sh <entry_point> [filter]" >&2
+  echo "Usage: asc/test/single_case.make.sh <entry_point> [filter]" >&2
   echo >&2
   exit 1
 fi

@@ -150,7 +150,7 @@ done
 # echo
 
 case "$p_real_script" in
-  */test/case.run.sh)
+  */test/single_case.make.sh)
     eval "$p_real_script $(printf '%q' "$invoked_make_target") $escaped_args"
     ;;
   *)

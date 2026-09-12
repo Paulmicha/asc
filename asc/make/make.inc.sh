@@ -312,7 +312,7 @@ SHELL_SCRIPT_HEAD
     for make_entry_point in "${test_case_registry_targets_arr[@]}"; do
       make_entries_code_gen+="pivots_arr+=('$make_entry_point')
 "
-      real_scripts_code_gen+="real_scripts_arr+=('asc/test/case.run.sh')
+      real_scripts_code_gen+="real_scripts_arr+=('asc/test/single_case.make.sh')
 "
     done
   fi
@@ -449,7 +449,7 @@ f_make_generate_test_cases() {
 
       echo ".PHONY: $case_target
 $case_target:
-	@ asc/make/call_wrap.make.sh asc/test/case.run.sh \$(MAKECMDGOALS)
+	@ asc/make/call_wrap.make.sh asc/test/single_case.make.sh \$(MAKECMDGOALS)
 " >> data/asc/pivots.mk
     done
   done

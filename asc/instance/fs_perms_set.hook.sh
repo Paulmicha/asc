@@ -138,7 +138,7 @@ for scope in './asc' './scripts/asc'; do
   exec_list="$make_list $wrap_list"
 
   if [[ "$scope" == './asc' ]]; then
-    exec_list+=' escape.sh bootstrap.sh make/list_entry_points.sh test/case.run.sh test/core.sh'
+    exec_list+=' escape.sh bootstrap.sh make/list_entry_points.sh test/core.sh'
     # Nested instance entry points (compat wrappers are depth-1; implementations
     # live one level deeper and are also invoked directly by tests).
     for nf in batch chain loop pipe sequence thread; do
