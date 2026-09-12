@@ -1162,7 +1162,7 @@ The following naming conventions will get automatically discovered :
 - ✅ `$ext/$subject/*.hook.sh` = (default) hook implementations
 - ✅ `$ext/$subject/$type.entity.yml` = entity specs (= entity *type* definitions / declarations)
 - ✅ `$ext/$subject/*.able.yml` = ability (= contract = skill)
-- ✅ `data/entities/$type/*.yml` = *concrete* entity *instance* definition
+- ✅ `data/entities/$type/*.yml` = *concrete* (sidecar.able) entity *instances* definitions
 
 But not :
 
