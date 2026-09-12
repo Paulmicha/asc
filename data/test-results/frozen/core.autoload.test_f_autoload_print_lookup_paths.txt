@@ -1,0 +1,5 @@
+test_f_autoload_print_lookup_paths
+
+Ran 3 tests.
+
+OK

@@ -5,8 +5,6 @@
 #
 # Loads all env vars and Bash functions in the current shell scope.
 #
-# TODO [wip] evaluate how to improve the "lazy sourcing" (opt-inc) part.
-#
 # @example
 #   . asc/bootstrap.sh
 #
@@ -87,7 +85,24 @@ if [[ ${#BASH_SOURCE[@]} -gt 1 && -n "${BASH_SOURCE[1]}" ]]; then
   bootstrap_subject="${bootstrap_caller_dir##*/}"
   bootstrap_action="${bootstrap_caller##*/}"
   bootstrap_action="${bootstrap_action%.sh}"
-  bootstrap_subject_opt="${bootstrap_caller_dir}/${bootstrap_subject}.opt-inc.sh"
+  bootstrap_subject_dir="$bootstrap_caller_dir"
+
+  # 3-level entry point: `$subject/$object/$action.sh` — subject opt-inc lives
+  # in the parent `$subject` dir. Do not use "parent ∈ *_SUBJECTS" (`asc` is a
+  # subject). Classify only from discovered `$subject/$object` pairs.
+  bootstrap_parent_dir="${bootstrap_caller_dir%/*}"
+
+  if [[ -n "$bootstrap_parent_dir" && "$bootstrap_parent_dir" != "$bootstrap_caller_dir" ]]; then
+    bootstrap_object="${bootstrap_caller_dir##*/}"
+    bootstrap_subject_candidate="${bootstrap_parent_dir##*/}"
+
+    if f_asc_objects_has_pair "${bootstrap_subject_candidate}/${bootstrap_object}"; then
+      bootstrap_subject="$bootstrap_subject_candidate"
+      bootstrap_subject_dir="$bootstrap_parent_dir"
+    fi
+  fi
+
+  bootstrap_subject_opt="${bootstrap_subject_dir}/${bootstrap_subject}.opt-inc.sh"
   bootstrap_action_opt="${bootstrap_caller_dir}/${bootstrap_action}.opt-inc.sh"
 
   # Source named opt-incs (override-aware). Deduplicate when subject + action
@@ -112,7 +127,9 @@ if [[ ${#BASH_SOURCE[@]} -gt 1 && -n "${BASH_SOURCE[1]}" ]]; then
   done
 
   unset bootstrap_caller_dir bootstrap_subject bootstrap_action \
-    bootstrap_subject_opt bootstrap_action_opt bootstrap_opt_candidates_arr file
+    bootstrap_subject_dir bootstrap_parent_dir bootstrap_object \
+    bootstrap_subject_candidate bootstrap_subject_opt bootstrap_action_opt \
+    bootstrap_opt_candidates_arr file
 fi
 
 unset bootstrap_caller

@@ -1,0 +1,5 @@
+test_globals_debug_script_without_prior_aggregation
+
+Ran 4 tests.
+
+OK

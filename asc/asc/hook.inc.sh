@@ -552,6 +552,11 @@ f_hook_build_lookup_by_subject() {
 
     for p_path in $actions; do
 
+      # Object-dir actions (`$subject/$object/$action`) are not hook targets.
+      case "$p_path" in */*/*)
+        continue
+      esac
+
       # Ignore actions not "belonging" to current subject.
       case "$p_path" in "$o_subject"*)
 

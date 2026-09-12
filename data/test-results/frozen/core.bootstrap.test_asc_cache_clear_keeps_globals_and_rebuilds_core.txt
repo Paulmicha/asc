@@ -1,0 +1,6 @@
+test_asc_cache_clear_keeps_globals_and_rebuilds_core
+Cleared local data/asc/cache dir.
+
+Ran 6 tests.
+
+OK

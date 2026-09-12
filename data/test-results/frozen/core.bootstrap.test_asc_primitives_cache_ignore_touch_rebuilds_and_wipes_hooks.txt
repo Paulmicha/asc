@@ -1,0 +1,1 @@
+test_asc_primitives_cache_ignore_touch_rebuilds_and_wipes_hooks

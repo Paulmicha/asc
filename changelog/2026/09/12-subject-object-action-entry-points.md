@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-12 |
-| **Status** | proposed (docs only — no code yet). Review pass folded in (opt-inc, hook probe, deeper-wins scope, pivot arrays, ignores, tests). |
+| **Status** | implemented (discovery + pivots + hook skip + caller opt-inc). Builder template YAML/includes in `[object]` removed to match README discovery recap. |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — discover a third nesting level for **entry points only**. Hooks stay `$subject`-scoped. Not entity YAML merge, not stamp v1.1 nested-file watch, not lazy-opt-inc extraction. |
 | **Related** | README § Current status / Active Dir / Actions / Specificity; `f_asc_extend()` / `f_asc_primitive_values()` in `asc/asc/core.inc.sh`; `f_make_list_entry_points()` in `asc/make/make.inc.sh`; `hook()` in `asc/asc/hook.inc.sh`; caller opt-inc in `asc/bootstrap.sh`; builder template `asc/extensions/builder/template/core/[subject]/[object]/`. Prior: [11-bootstrap-cache-layout-and-invalidation.md](./11-bootstrap-cache-layout-and-invalidation.md). |
 | **Lifecycle** | Review this file; implement the waves below. `autoload.inc.sh` is **out of scope** (`p_extra_level_name` is hook **filename** variants, not directories). |
@@ -232,7 +232,7 @@ Do not mix this into stamp v1.1 or the lazy-opt-inc extraction plan.
 
 ## Open tasks
 
-- [ ] Builder template / generator: emit `$subject/$object/$action.sh` without subject includes in the object dir
+- [x] Builder `[object]` template: `$action.sh` only (no subject includes / entity YAML)
 - [ ] Stamp v1.1 nested-file invalidation (separate changelog)
 - [ ] Remaining core/extension trees that should **move** 2-level `foo_bar.sh` into `foo/bar.sh` (optional cleanup; not required for the mechanism)
 - [ ] README “most-specific namespace wins the same make name” vs today’s prefix behavior (separate decision; do not hybridize here)

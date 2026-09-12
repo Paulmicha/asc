@@ -1,7 +1,19 @@
+test_f_autoload_item_split_version
+test_f_autoload_add_lookup_level
+test_f_autoload_print_lookup_paths
+
+Ran 3 tests.
+
+OK
 test_asc_has_essential_globals
 test_asc_autoload_override_works
+test_asc_cache_stamp_includes_instance_identity
+test_asc_primitives_cache_stamp_match_skips_extend
+test_asc_primitives_cache_ignore_touch_rebuilds_and_wipes_hooks
+test_asc_cache_clear_keeps_globals_and_rebuilds_core
+Cleared local data/asc/cache dir.
 
-Ran 2 tests.
+Ran 6 tests.
 
 OK
 test_f_asc_extensions_discovers_contrib
@@ -9,8 +21,12 @@ test_f_asc_extensions_honors_prefixed_ignore
 test_f_asc_extensions_prefixed_ignore_targets_contrib
 test_f_asc_extension_path_contrib
 test_hook_finds_contrib_extension
+test_f_asc_get_extensions_enabled
+test_f_asc_get_extensions_disabled
+test_f_asc_get_extensions_all
+test_f_asc_get_extensions_aliases
 
-Ran 5 tests.
+Ran 9 tests.
 
 OK
 test_asc_can_create_dir
@@ -27,8 +43,11 @@ Ran 9 tests.
 
 OK
 test_asc_global_aggregate
+test_f_global_lookup_paths
+test_f_global_list
+test_globals_debug_script_without_prior_aggregation
 
-Ran 1 test.
+Ran 4 tests.
 
 OK
 test_asc_hook_single_action
@@ -37,8 +56,14 @@ test_asc_hook_combinatory_variants
 test_asc_hook_prefix
 test_asc_hook_prefix_variants
 test_asc_hook_prefix_combinatory_variants
+test_f_hook_cache_key_canonical
+test_f_hook_cache_key_flags
+test_hook_cache_debug_and_warmup_share_file
+test_f_provision_using_lookup_values
+test_f_hook_variant_values_add
+test_f_hook_opt_inc_append_candidates
 
-Ran 6 tests.
+Ran 12 tests.
 
 OK
 test_logged_chain_parent_observability
@@ -54,8 +79,10 @@ asc/test/core/logged_wrappers.test.sh: line 130: _u_test_log_pid: command not fo
 ASSERT:PID parsed
 ASSERT:background pipe finished
 test_sequence_fail_fast
+ASSERT:unknown first entry must fail expected not same
 test_sequence_join_semicolon_continues
+ASSERT:join:; still nonzero when a step fails expected not same
 
 Ran 5 tests.
 
-FAILED (failures=6)
+FAILED (failures=8)

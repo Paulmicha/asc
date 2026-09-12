@@ -1,0 +1,5 @@
+test_f_asc_get_extensions_aliases
+
+Ran 9 tests.
+
+OK

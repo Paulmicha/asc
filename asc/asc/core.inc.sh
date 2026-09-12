@@ -20,6 +20,7 @@
 # of 2nd argument) :
 # @export ASC_SUBJECTS (See 1)
 # @export ASC_ACTIONS (See 2)
+# @export ASC_OBJECTS (See 2b)
 # @export ASC_EXTENSIONS (See 3)
 # @export ASC_INC (See 4)
 #
@@ -41,6 +42,12 @@
 #   The dotfiles '.asc_actions', '.asc_actions_append' and '.asc_actions_ignore'
 #   have the same role as the 'subjects' ones described in 1 but must be placed
 #   inside relevant subject's folder.
+#
+# 2b. ASC_OBJECTS lists `$subject/$object` pairs when an immediate subdir of a
+#   subject contains at least one valid action `*.sh`. Those actions are also
+#   appended to ASC_ACTIONS as `$subject/$object/$action`. Object dirs are not
+#   active dirs (no hooks, globals, or entity specs). `.asc_objects` /
+#   `.asc_objects_ignore` / `.asc_objects_append` live in the subject folder.
 #
 # 3. ASC_EXTENSIONS contains a list of all active extensions. Each one uses the
 #   same structure as the 'asc' folder. The primitive mecanisms explained in
@@ -76,6 +83,7 @@ f_asc_extend() {
   # @see asc/test/asc/hook.test.sh
   export "${p_namespace}_SUBJECTS"=''
   export "${p_namespace}_ACTIONS"=''
+  export "${p_namespace}_OBJECTS"=''
 
   # "Reusable" local var name.
   # @see f_asc_primitive_values()
@@ -90,6 +98,10 @@ f_asc_extend() {
   local inc
   local action
   local actions_list
+  local object
+  local objects_list
+  local object_actions_list
+  local has_object_action
 
   for subject in $subjects_list; do
 
@@ -111,6 +123,26 @@ f_asc_extend() {
     for action in $actions_list; do
       # Build up exported actions list (by subject).
       export "${p_namespace}_ACTIONS"+="${subject}/$action "
+    done
+
+    primitive_values=''
+    f_asc_primitive_values 'objects' "$p_path/$subject"
+    objects_list="$primitive_values"
+
+    for object in $objects_list; do
+      primitive_values=''
+      f_asc_primitive_values 'actions' "$p_path/$subject/$object"
+      object_actions_list="$primitive_values"
+      has_object_action=0
+
+      for action in $object_actions_list; do
+        has_object_action=1
+        export "${p_namespace}_ACTIONS"+="${subject}/$object/$action "
+      done
+
+      if [[ $has_object_action -eq 1 ]]; then
+        export "${p_namespace}_OBJECTS"+="${subject}/$object "
+      fi
     done
   done
 
@@ -141,14 +173,17 @@ f_asc_extend() {
 ASC_INC='$ASC_INC'
 ASC_SUBJECTS='$ASC_SUBJECTS'
 ASC_ACTIONS='$ASC_ACTIONS'
+ASC_OBJECTS='$ASC_OBJECTS'
 ASC_EXTENSIONS='$ASC_EXTENSIONS'
 "
   else
     local prefixed_subjects_var="${p_namespace}_SUBJECTS"
     local prefixed_actions_var="${p_namespace}_ACTIONS"
+    local prefixed_objects_var="${p_namespace}_OBJECTS"
     asc_primitives_cache_str+="
 $prefixed_subjects_var='${!prefixed_subjects_var}'
 $prefixed_actions_var='${!prefixed_actions_var}'
+$prefixed_objects_var='${!prefixed_objects_var}'
 "
   fi
 }
@@ -581,7 +616,7 @@ f_asc_primitive_values() {
     local dyn_values
 
     case "$p_primitive" in
-      subjects)
+      subjects|objects)
         f_fs_dir_list "$p_path"
         dyn_values=$dir_list
       ;;
@@ -711,6 +746,31 @@ f_asc_namespace_has_subject() {
   fi
 
   false
+}
+
+##
+# True when `$subject/$object` is in ASC_OBJECTS or any enabled extension's
+# *_OBJECTS list.
+#
+# @param 1 String : primitive pair (subject/object).
+#
+f_asc_objects_has_pair() {
+  local p_pair="$1"
+  local lists=" ${ASC_OBJECTS:-} "
+  local extension
+  local extension_namespace
+  local objects_var
+
+  for extension in $ASC_EXTENSIONS; do
+    f_asc_extension_namespace "$extension" 'extension_namespace'
+    objects_var="${extension_namespace}_OBJECTS"
+    lists+="${!objects_var} "
+  done
+
+  case " $lists " in *" $p_pair "*)
+    return 0
+  esac
+  return 1
 }
 
 ##

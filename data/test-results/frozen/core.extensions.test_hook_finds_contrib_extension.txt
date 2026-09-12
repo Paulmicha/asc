@@ -1,5 +1,1 @@
 test_hook_finds_contrib_extension
-
-Ran 5 tests.
-
-OK

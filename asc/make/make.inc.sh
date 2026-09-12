@@ -57,7 +57,7 @@ f_make_check_args() {
 #
 # During conversion, some terms are abbreviated - e.g. :
 #   - asc-cache-clear -> cc
-#   - host-dependency -> dep
+#   - host-registry -> host-reg (via registry/reg)
 #   - logged-thread -> lt
 #   - logged-batch -> lb
 #   - logged-chain -> lc
@@ -99,6 +99,73 @@ f_make_task_name() {
 }
 
 ##
+# Count '/' in a primitive pair (`subject/action` = 1, `subject/object/action` = 2).
+#
+# @param 1 String : primitive pair.
+# @param 2 String : output variable name.
+#
+f_make_sp_pair_slash_count() {
+  local p_pair="$1"
+  local p_var="$2"
+  local n=0
+  local rest="$p_pair"
+
+  while [[ "$rest" == */* ]]; do
+    rest="${rest#*/}"
+    n=$((n + 1))
+  done
+
+  printf -v "$p_var" '%s' "$n"
+}
+
+##
+# Register or collide one make entry (keeps pivots_arr / real_scripts_arr zipped).
+#
+# Same namespace + deeper primitive pair replaces the script. Same namespace +
+# shallower or equal depth skips. Returns 1 when the task exists in another
+# namespace (caller prefixes).
+#
+# @requires pivots_arr, real_scripts_arr, pivot_ns_arr, pivot_sp_pairs_arr
+#
+f_make_register_entry_point() {
+  local p_task="$1"
+  local p_sp_pair="$2"
+  local p_script="$3"
+  local p_ns="$4"
+  local i
+  local old_depth=0
+  local new_depth=0
+
+  f_make_sp_pair_slash_count "$p_sp_pair" 'new_depth'
+
+  for i in "${!pivots_arr[@]}"; do
+    if [[ "${pivots_arr[i]}" != "$p_task" ]]; then
+      continue
+    fi
+
+    if [[ "${pivot_ns_arr[i]}" == "$p_ns" ]]; then
+      f_make_sp_pair_slash_count "${pivot_sp_pairs_arr[i]}" 'old_depth'
+
+      if [[ $new_depth -gt $old_depth ]]; then
+        real_scripts_arr[i]="$p_script"
+        pivot_sp_pairs_arr[i]="$p_sp_pair"
+      fi
+
+      return 0
+    fi
+
+    return 1
+  done
+
+  pivots_arr+=("$p_task")
+  real_scripts_arr+=("$p_script")
+  pivot_ns_arr+=("$p_ns")
+  pivot_sp_pairs_arr+=("$p_sp_pair")
+
+  return 0
+}
+
+##
 # Aggregates subject-action entry points to be used as Make tasks.
 #
 # This function writes its result to variables subject to collision in calling
@@ -128,6 +195,8 @@ f_make_list_entry_points() {
   local extension_actions
   local extension_namespace
   local extension_iteration
+  local pivot_ns_arr=()
+  local pivot_sp_pairs_arr=()
 
   # From our "entry point" scripts' path, we need to provide a unique task
   # name -> we use subject-action pairs while preventing potential collisions
@@ -138,27 +207,19 @@ f_make_list_entry_points() {
   local sp_pair
   local ext_path
 
-  # No need to check for collisions in ASC core (we know there aren't any).
   for sp_pair in $ASC_ACTIONS; do
     task=''
     f_make_task_name "$sp_pair"
 
-    # The 'instance' subject is a special case : we remove it to explicitly make
-    # it the default subject. All actions belonging to the 'instance' subject
-    # are transformed to the action part alone.
-    # Exception : instance-init -> init = already hardcoded, so prevent adding
-    # it twice. Same for setup.
-    # @see asc/instance/init.make.sh
-    # @see Makefile (the one in PROJECT_DOCROOT path).
-    case "$task" in instance-*)
-      case "$task" in instance-init|instance-setup)
-        continue
-      esac
+    case "$task" in instance-init|instance-setup)
+      continue
+      ;;
+    instance-*)
       task="${task#*instance-}"
+      ;;
     esac
 
-    pivots_arr+=("$task")
-    real_scripts_arr+=("asc/$sp_pair.sh")
+    f_make_register_entry_point "$task" "$sp_pair" "asc/$sp_pair.sh" 'ASC'
   done
 
   # We need the custom 'extend' scripts folder to have priority for avoiding
@@ -179,8 +240,6 @@ f_make_list_entry_points() {
     extension_actions="${!extension_var}"
 
     if [[ -n "$extension_actions" ]]; then
-      # Extensions' subject-action pairs must yield unique tasks -> check for
-      # collisions.
       for sp_pair in $extension_actions; do
         task=''
         f_make_task_name "$sp_pair"
@@ -189,17 +248,14 @@ f_make_list_entry_points() {
           task="${task#*instance-}"
         esac
 
-        if f_in_array "$task" 'pivots_arr'; then
-          task="${extension}-$task"
-          f_make_task_name "$task"
-        fi
-
-        pivots_arr+=("$task")
         ext_path=''
         f_asc_extension_path "$extension"
-        # TODO [minor] Figure out why this can produce duplicate entries.
-        # real_scripts_arr+=("$ext_path/$extension/$sp_pair.sh")
-        f_array_add_once "$ext_path/$extension/$sp_pair.sh" real_scripts_arr
+
+        if ! f_make_register_entry_point "$task" "$sp_pair" "$ext_path/$extension/$sp_pair.sh" "$extension"; then
+          task="${extension}-$task"
+          f_make_task_name "$task"
+          f_make_register_entry_point "$task" "$sp_pair" "$ext_path/$extension/$sp_pair.sh" "$extension"
+        fi
       done
     fi
   done

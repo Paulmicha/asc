@@ -1,0 +1,1 @@
+test_f_asc_get_extensions_disabled
