@@ -108,12 +108,12 @@ test_asc_primitives_cache_ignore_touch_rebuilds_and_wipes_hooks() {
 #
 test_asc_cache_clear_keeps_globals_and_rebuilds_core() {
   assertTrue 'global.vars.sh present before cc' '[ -f data/asc/global.vars.sh ]'
-  assertTrue 'generated.mk present before cc' '[ -f data/asc/generated.mk ]'
+  assertTrue 'pivots.mk present before cc' '[ -f data/asc/pivots.mk ]'
 
   . asc/asc/cache_clear.sh
 
   assertTrue 'cc must keep global.vars.sh' '[ -f data/asc/global.vars.sh ]'
-  assertTrue 'cc must keep generated.mk' '[ -f data/asc/generated.mk ]'
+  assertTrue 'cc must keep pivots.mk' '[ -f data/asc/pivots.mk ]'
   assertFalse 'cc must remove data/asc/cache' '[ -e data/asc/cache ]'
 
   f_asc_primitives_cache_ensure

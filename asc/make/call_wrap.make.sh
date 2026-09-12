@@ -10,7 +10,7 @@
 # instance is initialized and the generated cache file does not exist yet.
 #
 # @see asc/make/default.mk
-# @see data/asc/generated.mk
+# @see data/asc/pivots.mk
 # @see data/asc/cache/make.sh
 # @see f_instance_init() in asc/instance/instance.inc.sh
 # @see f_make_generate() in asc/make/make.inc.sh

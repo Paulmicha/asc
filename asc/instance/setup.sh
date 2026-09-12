@@ -92,6 +92,7 @@ fi
 purge_list_arr=()
 purge_list_arr+=('.env')
 purge_list_arr+=('data/asc/global.vars.sh')
+purge_list_arr+=('data/asc/pivots.mk')
 purge_list_arr+=('data/asc/generated.mk')
 purge_list_arr+=('data/asc/cache/make.sh')
 

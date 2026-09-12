@@ -206,7 +206,7 @@ f_make_list_entry_points() {
 }
 
 ##
-# Writes make entrypoints to data/asc/generated.mk
+# Writes make entrypoints to data/asc/pivots.mk
 #
 # Generates a Makefile include with tasks corresponding to every subject-action
 # in current instance.
@@ -230,9 +230,10 @@ f_make_generate() {
     return
   fi
 
-  echo "Writing Makefile include data/asc/generated.mk ..."
+  echo "Writing Makefile include data/asc/pivots.mk ..."
+  rm -f data/asc/generated.mk
 
-  cat > data/asc/generated.mk <<'EOF'
+  cat > data/asc/pivots.mk <<'EOF'
 
 ##
 # Current instance Makefile include.
@@ -255,13 +256,13 @@ EOF
     echo ".PHONY: $make_entry_point
 $make_entry_point:
 	@ asc/make/call_wrap.make.sh $real_script \$(MAKECMDGOALS)
-" >> data/asc/generated.mk
+" >> data/asc/pivots.mk
 
   done
 
   f_make_generate_test_cases
 
-  echo "Writing Makefile include data/asc/generated.mk : done."
+  echo "Writing Makefile include data/asc/pivots.mk : done."
   echo
 
   # We'll also need to generate a "normal" shell script (not bash) to check
@@ -448,7 +449,7 @@ f_make_generate_test_cases() {
       echo ".PHONY: $case_target
 $case_target:
 	@ asc/make/call_wrap.make.sh asc/test/case.run.sh \$(MAKECMDGOALS)
-" >> data/asc/generated.mk
+" >> data/asc/pivots.mk
     done
   done
 

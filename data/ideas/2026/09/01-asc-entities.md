@@ -245,7 +245,7 @@ The instance **is** the project folder. Its sidecars are already on disk:
 | Sidecar | Concrete path | Existing contract sketch |
 |---------|---------------|--------------------------|
 | Work tree | instance `path` (git) | `asc/git/state.able.yml` (enum only, no loader) |
-| Generated ASC state | `<path>/data/asc/` (cache, `global.vars.sh`, `generated.mk`, `remote-instances/`) | forget.able / init — already generated, not modeled |
+| Generated ASC state | `<path>/data/asc/` (cache, `global.vars.sh`, `pivots.mk`, `remote-instances/`) | forget.able / init — already generated, not modeled |
 | App data | `<path>/data/` (logs, media, private, …) | often gitignored; this is what backups care about |
 | Compose files | `<path>/compose.yml` (generated) | compose extension |
 

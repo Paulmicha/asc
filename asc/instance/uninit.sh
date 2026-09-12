@@ -28,6 +28,7 @@ purge_list_arr+=('.env')
 purge_list_arr+=('data/asc/global.vars.sh')
 
 # ASC make shortcuts too.
+purge_list_arr+=('data/asc/pivots.mk')
 purge_list_arr+=('data/asc/generated.mk')
 
 # Let extensions clean up their own generated files and/or alter the purge_list_arr.

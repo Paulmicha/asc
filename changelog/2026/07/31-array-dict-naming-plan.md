@@ -38,7 +38,7 @@ This plan inventories array variables so renames can be applied deliberately —
 - **String parameters** that hold another variable’s *name* (`haystack_var_name`, `a_scalars_name`, `a_arr_name`, …) are scalars, not namerefs — no `_arr` / `_dict` / `_nameref` on the param itself (see Exclusions).
 - **Bash built-in special arrays** are out of scope (see Exclusions).
 - **Capitalized global names** (`ALL_CAPS` / SHOUTY globals, especially `readonly`) are out of scope — leave as-is; do not add `_arr` / `_dict` / `_nameref` (see Exclusions). This includes the `GLOBALS*` runtime family.
-- Generated files (`data/asc/cache/*.sh`, `data/asc/generated.mk`) inherit names from generators — rename source + regenerate, not hand-edit cache.
+- Generated files (`data/asc/cache/*.sh`, `data/asc/pivots.mk`) inherit names from generators — rename source + regenerate, not hand-edit cache.
 
 ---
 

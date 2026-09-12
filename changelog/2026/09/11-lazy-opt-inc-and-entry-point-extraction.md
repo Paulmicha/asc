@@ -371,7 +371,7 @@ After each wave: `bash asc/test/core/*.test.sh` that touch the moved symbols; at
 - Hook seeding: existing `test_f_hook_opt_inc_append_candidates`; add a dummy hook + colocated opt-inc, `hook -a …` without `-t`, assert function exists; dry-run `-t` does **not** source it; `-w` writes cache lines without defining the function in that shell.
 - After moving `f_fs_compress`: a caller that did not source `fs.opt-inc.sh` fails `type -t`; the compress action succeeds.
 - After moving `f_git_write_hooks`: `git.inc.sh` no longer defines it; `write_hooks.sh` sourced after bootstrap defines it; `make git-write-hooks` (or current target name) still works.
-- `make cc` still does not delete `global.vars.sh` / `generated.mk` (owned by prerequisite plan).
+- `make cc` still does not delete `global.vars.sh` / `pivots.mk` (owned by prerequisite plan).
 - No leftover `$(f_*` captures when a moved function already has `printf -v` (same as yaml tests).
 
 ---

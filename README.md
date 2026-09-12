@@ -143,7 +143,7 @@ ASC borrows some designs present in Git and in the [Drupal™](https://drupal.or
 | **Globals** | Instance env vars from `env.yml` / `global.vars.sh`, written to `.env` + `data/asc/global.vars.sh` |
 | **Bootstrap** | `. asc/bootstrap.sh` ; eager `*.inc.sh` vs lazy `*.opt-inc.sh` |
 | **Instance init** | Aggregates globals, optional git hooks, generates make shortcuts |
-| **Actions** | Folders = subjects, files = actions → `data/asc/generated.mk` |
+| **Actions** | Folders = subjects, files = actions → `data/asc/pivots.mk` |
 | **Hooks** | File-based events (e.g. `*.hook.sh`) with variant combinations |
 
 The rest of this README contains a bit more details, hopefully enough to decide wether it fits whatever reason have led your eyes here :)
@@ -1293,12 +1293,12 @@ Files placed in `data/*` are usually writeable and specific to a single ASC proj
 
 #### ASC cache : `data/asc/cache`
 
-Lookup artifacts only. `make cc` (`asc/asc/cache_clear.sh`) deletes `data/asc/cache/` and **must not** delete `data/asc/global.vars.sh`, `data/asc/generated.mk`, or `.env`. Those are instance state: `make reinit` rewrites them; `make uninit` wipes them (and the cache).
+Lookup artifacts only. `make cc` (`asc/asc/cache_clear.sh`) deletes `data/asc/cache/` and **must not** delete `data/asc/global.vars.sh`, `data/asc/pivots.mk`, or `.env`. Those are instance state: `make reinit` rewrites them; `make uninit` wipes them (and the cache).
 
 ```text
 data/asc/
   global.vars.sh              ← instance env (reinit / uninit)
-  generated.mk                ← Make include (reinit / uninit)
+  pivots.mk                   ← Make include (reinit / uninit)
   cache/
     core/
       active.sh               ← primitives + ASC_INC (stamp-gated)
@@ -1430,7 +1430,7 @@ asc/instance/setup.sh
 
 Setup runs, in order:
 
-1. **instance init** — write globals (`.env`, `data/asc/global.vars.sh`), generate `data/asc/generated.mk`, optional git hooks, caches
+1. **instance init** — write globals (`.env`, `data/asc/global.vars.sh`), generate `data/asc/pivots.mk`, optional git hooks, caches
 2. **instance start** — start services if hooks implement them
 3. **stage2 / post setup hooks** — e.g. create DBs, import dumps, vendor install (extension-defined)
 
@@ -1532,7 +1532,7 @@ asc/instance/rebuild.sh
   │   │   │       └── $action/
   │   │   │           └── ...
   │   │   ├── registry/       ← [optional] contains keyed "file-based store" values
-  │   │   ├── generated.mk    ← current local instance generated make entry points
+  │   │   ├── pivots.mk       ← current local instance generated make entry points
   │   │   └── global.vars.sh  ← current local instance generated (readonly) ENV vars
   │   ├── logs/               ← [optional, git-ignored] default place for logs (see also log-rotate)
   │   ├── loops/              ← [optional, git-ignored] default place for loops (see also log-rotate)
@@ -1596,7 +1596,7 @@ Generated (do not hand-edit):
 
 - `.env`
 - `data/asc/global.vars.sh`
-- `data/asc/generated.mk`
+- `data/asc/pivots.mk`
 - `data/asc/cache/*`
 
 ## Contributors

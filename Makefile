@@ -15,7 +15,7 @@
 
 # These files are automatically generated during instance init.
 -include .env
--include data/asc/generated.mk
+-include data/asc/pivots.mk
 
 # Project-specific tasks.
 ifdef ASC_MAKE_INC
