@@ -2,7 +2,7 @@
 
 ASC is not a program; it is the “glue” between programs. It is a generic, customizable, extensible toolbox for a wide range of **local development** tasks, with the ambition to serve humans and agentic systems alike.
 
-It allows to set a common, shared vocabulary for anything interacting with the shell somehow. It provides mechanisms allowing to establish "pivots" that represent actions with varying implementations.
+It allows to set a common, shared vocabulary for anything interacting with the shell. It provides mechanisms allowing to establish "pivots" that represent actions with varying implementations.
 
 The only job of ASC is to serve as a thin layer that :
 
@@ -172,18 +172,18 @@ Resolution : agnostic stance. In terms of ASC entity representation, `$subject` 
 
 Implications : change ASC core current files discovery mechanisms to support both.
 
-1. [ ] Finish describing ASC "core" concepts explicitly
+1. [x] ~~Finish describing ASC "core" concepts explicitly~~
 1. [x] ~~Stabilize Naming convention~~
 1. [x] ~~Stabilize hooks~~
 1. [x] ~~Stabilize DSL~~
-1. [ ] Stabilize Yml
-1. [ ] Refactor Bootstrap
+1. [x] ~~Stabilize Yml~~
+1. [ ] Refactor Bootstrap (wip : almost there)
 1. [ ] Stabilize workflow + git flow
-1. [ ] Refactor core + core extensions
-1. [ ] Refactor tests (switch to nestable entity)
+1. [ ] Refactor core + core extensions (todo : only subject/object/action level remains)
+1. [ ] Refactor tests
 1. [ ] Complete the Builder
 1. [ ] Complete the baseline implementations
-1. [ ] Implement agents (for now : Ollama and Cursor to test MVP)
+1. [ ] Implement agents (for now : Ollama and Cursor to test MVP, next : Codex + Claude code)
 
 ## Core ASC concepts
 
@@ -384,7 +384,7 @@ On init, *globals* are written to:
 
 Mutables (`DB_*`, `REMOTE_INSTANCE_*`, …) are **not** written by `u_global_write`; hooks/loaders set them mid-run.
 
-#### Declaring _env vars_
+#### Declaring globals (= constants)
 
 There are 2 ways to customize or add globals :
 
@@ -409,7 +409,7 @@ In the list above, in case of collision, the last file "wins". Ex :
 - `env.yml` declares `STACK_VERSION='foobar-2025'`
 - `env.local.dev.yml` declares `STACK_VERSION='foobar-2026'`
 
-Result : any "local dev" project instance gets the `foobar-2026` stack. The rest (e.g. `remote` instances, or `prod` local instances, etc.) still stay on the `foobar-2025` stack 😎.
+Result : any "local dev" project instance gets the `foobar-2026` stack. The rest (e.g. `remote` instances, or `prod` local instances, etc.) still stay on the `foobar-2025` stack.
 
 Switching between stack versions has its own little convenience script, usually followed by an "instance rebuild" action :
 
@@ -1372,7 +1372,7 @@ ASC core (`asc/`) may sit inside the app (same docroot), in a parent “dev stac
 
 1. Copy this repo’s files into the chosen docroot (or clone and use as the stack root).
 2. Review [`.gitignore`](.gitignore) and adapt it.
-3. Override extension defaults: copy `asc/extensions/.asc_extensions_ignore` → `scripts/asc/override/.asc_extensions_ignore` and edit (delete a line to **enable** that extension).
+3. Override extension defaults: edit `.asc_extensions_ignore` (delete a line to **enable** that extension).
 4. Copy [`SPECIMEN.env.yml`](SPECIMEN.env.yml) → `env.yml` and edit. Settings that **do not vary** much between instance types belong here (stack version, apps, paths). Use gitignored `.env-local.yml` for machine-private overrides.
 5. Optionally implement project code under `scripts/asc/extend/` and overrides under `scripts/asc/override/`.
 6. Run **instance setup**:
@@ -1468,7 +1468,7 @@ asc/instance/rebuild.sh
   │   │   └── ...
   │   ├── git/                ← git hooks integration + utilities
   │   ├── host/               ← host provision, registry, vitals
-  │   ├── instance/           ← lifecycle + logged runners + chain/pipe
+  │   ├── instance/           ← core unprefixed entry points (generic init, setup, etc)
   │   ├── log/,sidecar/,loop/,thread/ ← core ASC wrappers
   │   ├── make/               ← default.mk + call_wrap
   │   ├── test/               ← shunit2 low-level tests suite
@@ -1508,17 +1508,14 @@ asc/instance/rebuild.sh
   │       │   │   └── ...          ← ... as well as some vendor-specific default implementations
   │       │   ├── $provider/       ← yields : $provider.$ext exclusions patterns in .asc_extensions_ignore
   │       │   │   ├── $ext/            ← [$subject/$action ext.point] contrib asc extension
-  │       │   │   │   ├── .asc_subjects_ignore  ← [nested $ext] submodule(s) (recursive)
   │       │   │   │   └── ...
-  │       │   │   ├── .asc_extensions_ignore  ← blacklisted contrib asc extensions
   │       │   │   └── ...
   │       │   └── ...
   │       ├── extend/             ← [$subject/$action ext.point] project-specific asc implementations
-  │       │       ├── .asc_subjects_ignore  ← [nested $ext] submodule(s) (recursive)
-  │       │       └── ...
+  │       │   ├── instance        ← [optional] active dir allowing unprefixed entry points
+  │       │   └── ...
   │       └── override/           ← replace any sourced (core or contrib) ASC path
-  │           ├── .asc_extensions_ignore  ← this instance's blacklisted (core or contrib) asc extensions
-  │           └── ...
+  ├── .asc_extensions_ignore      ← lists disabled core and contrib extensions
   ├── .gitignore
   ├── Makefile
   ├── .env                    ← [git-ignored] generated current local instance ENV vars
@@ -1527,7 +1524,6 @@ asc/instance/rebuild.sh
   ├── env.yml                 ← this project instance global env vars declaration
   ├── env.foobar.yml          ← [optional] conditional (hook-based) global env vars declaration
   ├── SPECIMEN.env.yml        ← copy to env.yml
-  ├── SPECIMEN.remote_instances.yml  ← [optional] copy to remote_instances.yml
   └── ...
 ```
 
