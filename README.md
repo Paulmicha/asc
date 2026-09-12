@@ -1086,7 +1086,25 @@ TODO detailed example using a "concrete" host entity *instance* : `data/entities
 
 #### Linking, adressing (relationships, references)
 
-TODO
+There are 2 kinds of references (= links = relationships) between entities :
+
+1. Direct references : `subject--object`
+1. Triples : `subject--predicate--object`
+
+Here, `predicate` and `object` can either refer to entity types (`*.entity.yml`) or abilities (`*.able.yml`). The notation to use in Yaml specs is e.g `host.entity` or `field.able` :
+
+```yml
+required:
+  field:
+    foobar:
+      reference: field.able
+    host:
+      reference: host.entity
+      validate: test-host-is(p1,ssh.able)
+    needs:
+      reference: software.entity
+      validate: test-software-state(p1,test-and(installed,running))
+```
 
 ### Tests
 

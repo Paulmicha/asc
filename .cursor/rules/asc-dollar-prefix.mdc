@@ -16,6 +16,8 @@ In markdown and other prose, a `$` prefix marks an **ASC conceptual placeholder*
 - `$subject--$predicate--$object` (describes relations)
 - `$entity`
 - `$field`
+- `$extension` or `$ext`
+- `$vendor`
 
 ## Not allowed
 
