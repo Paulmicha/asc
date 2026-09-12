@@ -321,7 +321,7 @@ See *Usage / Getting started* for *(re)init* and/or *setup* details.
 
 ### Extension Point
 
-An **extension point** (noted "ext.point" in the *File structure* section) designates folders containing *active dir(s)* (see below). It's possible to exclude some sub-folders from the detection mechanism (during *(re)init*) using `.asc_subjects_ignore` files, which are essentially `.gitignore` files for ASC discovery.
+An **extension point** (noted "ext.point" in the *File structure* section, or `$extension`, or just `$ext`) designates folders containing *active dir(s)* (see below). It's possible to exclude some sub-folders from the detection mechanism (during *(re)init*) using `.asc_subjects_ignore` files, which are essentially `.gitignore` files for ASC discovery.
 
 **List of extension points** (containing implementations from **most generic** to **most specific**) :
 
@@ -1142,6 +1142,45 @@ oneTimeTearDown() {
   # Only when teardown is needed (purge, cleanup). Omit if empty.
 }
 ```
+
+### ASC discovery recap
+
+In the following list, `$ext` means a dir name inside any of these paths (extension point) :
+
+- `./asc` : core (kernel)
+- `./asc/extensions` : (mostly) opt-in *core* extensions
+- `./scripts/asc/contrib/asc` : opt-in ASC-provided *contrib* extensions
+- `./scripts/asc/contrib/$vendor` : opt-in third-party (= vendor) *contrib* extensions
+- and finally, `$ext` can also be the `./scripts/asc/extend` dir itself (for custom, project-specific implementations)
+
+The following naming conventions will get automatically discovered :
+
+- ✅ `$ext/$subject/$action.sh` = (action) script = entry point = pivot
+- ✅ `$ext/$subject/$object/$action.sh` = entry points = pivots *regrouped* (by object)
+- ✅ `$ext/$subject/global.vars.sh` = constants declarations
+- ✅ `$ext/$subject/*.hook.sh` = (default) hook implementations
+- ✅ `$ext/$subject/$type.entity.yml` = entity specs (= entity *type* definitions / declarations)
+- ✅ `$ext/$subject/*.able.yml` = ability (= contract = skill)
+- ✅ `data/entities/$type/*.yml` = *concrete* entity *instance* definition
+
+But not :
+
+- ❌ `$ext/$subject/$object/global.vars.sh`
+- ❌ `$ext/$subject/$object/*.hook.sh`
+- ❌ `$ext/$subject/$object/*.entity.yml`
+- ❌ `$ext/$subject/$object/*.able.yml`
+
+Also, there are cases where specific hook calls may specify any file extensions, like :
+
+```sh
+hook_ms 'dry-run' -s 'stack' -a 'compose' -c 'yml' -v 'DC_YML_VARIANTS' -t
+```
+
+... which would discover the most specific variant among files like :
+
+- `$ext/stack/compose.yml`
+- `$ext/stack/compose.override.local.dev.yml`
+- etc.
 
 ### ASC domain-specific language : *DSL* syntax
 
