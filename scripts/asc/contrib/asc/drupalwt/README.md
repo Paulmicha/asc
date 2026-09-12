@@ -25,10 +25,11 @@ rm -rf .git
 
 # Enable required ASC extensions (same principle as .gitignore : list the
 # disabled ones in this file).
-cat > 'scripts/asc/override/.asc_extensions_ignore' <<EOF
-apache
-pgsql
-EOF
+# TODO 2026-09 update this / helpers ?
+# cat > '.asc_extensions_ignore' <<EOF
+# apache
+# pgsql
+# EOF
 
 # Create basic settings (server docroot folder name is 'web' by default, but
 # here we choose to use 'docroot' as in distributions like 'lightning' and

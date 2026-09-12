@@ -121,7 +121,7 @@ When `data/asc/global.vars.sh` is missing (`make uninit` then `make init`), thos
 **Inputs (discovery only, not file bodies).** Compute **after** sourcing `data/asc/global.vars.sh` when that file exists (`HOST_TYPE` / `INSTANCE_TYPE` / `STACK_VERSION` select the ignore file):
 
 - **Instance identity:** `HOST_TYPE`, `INSTANCE_TYPE`, `STACK_VERSION`, and the **selected** `.asc_extensions_ignore` path (`f_asc_extensions_ignore_load` last-wins among unprefixed + `.$HOST_TYPE` / `.$INSTANCE_TYPE` / `.$STACK_VERSION` combinations). Reinit that only changes instance type must miss even when ignore-file mtimes are unchanged.
-- **Ignore file mtimes:** that selected path; `scripts/asc/override/.asc_extensions_ignore` if present; `asc/.asc_subjects_ignore`
+- **Ignore file mtimes:** that selected path; `.asc_extensions_ignore` if present; `asc/.asc_subjects_ignore`
 - **Directory mtimes** (add/remove **children**): `asc/`, `asc/extensions/`, `scripts/asc/`, `scripts/asc/contrib/`, `scripts/asc/extend/`
 - Do **not** hash `.asc_actions*` / `.asc_subjects` / `_append` (none in ATB, IGS, home, or this repo). Nested new `*.hook.sh` / `$subject/$action.sh` stay a v1 hole (`cc` or v1.1 `find`).
 - optional light `find` of `*.inc.sh` / `*.hook.sh` **path + mtime** (names appearing/disappearing), **not** hashing contents — **v1.1 only**

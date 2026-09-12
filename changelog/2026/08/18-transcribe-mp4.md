@@ -353,7 +353,7 @@ Run: `asc/extensions/transcription/transcribe/asc/transcribe.test.sh`
 
 `hook_ms` declared `local most_specific_match`, which hid the dry-run result from callers — including `transcribe.hook.sh` looking up `transcribe.py`. Removed that `local` so dry-run writes the caller-scope variable documented on `hook_ms`. Core `asc/test/core/hook.test.sh`: 6/6 OK.
 
-This instance had `transcription` in `scripts/asc/override/.asc_extensions_ignore`, so hook lookup never saw the extension. Removed that line and regenerated `data/asc/cache/asc.sh` (`TRANSCRIPTION_SUBJECTS='convert instance transcribe '`). After changing ignore lists, run `make cc` (or delete `data/asc/cache`) so primitives refresh.
+This instance had `transcription` in `.asc_extensions_ignore`, so hook lookup never saw the extension. Removed that line and regenerated `data/asc/cache/asc.sh` (`TRANSCRIPTION_SUBJECTS='convert instance transcribe '`). After changing ignore lists, run `make cc` (or delete `data/asc/cache`) so primitives refresh.
 
 ### Verification (2026-08-18)
 

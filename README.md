@@ -257,12 +257,33 @@ The default extensions provided by the main ASC repo are all *disabled* by defau
 
 ##### Enabling and disabling extensions
 
-> Create or edit `scripts/asc/override/.asc_extensions_ignore`.
+Edit `.asc_extensions_ignore` : like `.gitignore` files, it lists *disabled extensions* (extensions *not* listed in there are *enabled*). Each line must be either :
 
-Like the `.asc_subjects_ignore` files, it essentially acts like `.gitignore` files for the ASC discovery mechanism. See :
+- an extension dir name in `asc/extensions` (e.g. `db`, `workflow`, `rules`, etc.),
+- or a namespace-prefixed contrib extension dir name in `scripts/asc/contrib` (e.g. `asc/arcadedb`, `asc/docling`, `asc/ollama`, etc. - where the prefix is the `$vendor/` name).
 
-- `asc/extensions/.asc_extensions_ignore` for the ASC core extensions disabled by default,
-- and `scripts/asc/contrib/.asc_extensions_ignore` for the ASC contrib extensions disabled by default.
+The `make list-extensions` allows to inspect what's in current project instance :
+
+```yml
+# List enabled extensions only (default) :
+make list-extensions
+# Or :
+asc/instance/list_extensions.sh
+
+# List all extensions (enabled + disabled) :
+make list-extensions 'a'
+make list-extensions 'all'
+# Or :
+asc/instance/list_extensions.sh 'a'
+asc/instance/list_extensions.sh 'all'
+
+# List disabled extensions only :
+make list-extensions 'd'
+make list-extensions 'disabled'
+# Or :
+asc/instance/list_extensions.sh 'd'
+asc/instance/list_extensions.sh 'disabled'
+```
 
 #### Overrides
 
@@ -1530,7 +1551,7 @@ asc/instance/rebuild.sh
   │       ├── contrib/             ← contrib asc implementations
   │       │   ├── asc/             ← asc ships its own "vendor" contrib "namespace"
   │       │   │   └── ...          ← ... as well as some vendor-specific default implementations
-  │       │   ├── $provider/       ← yields : $provider.$ext exclusions patterns in .asc_extensions_ignore
+  │       │   ├── $vendor/         ← yields : $vendor.$ext exclusions patterns in .asc_extensions_ignore
   │       │   │   ├── $ext/            ← [$subject/$action ext.point] contrib asc extension
   │       │   │   │   └── ...
   │       │   │   └── ...
@@ -1538,7 +1559,11 @@ asc/instance/rebuild.sh
   │       ├── extend/             ← [$subject/$action ext.point] project-specific asc implementations
   │       │   ├── instance        ← [optional] active dir allowing unprefixed entry points
   │       │   └── ...
-  │       └── override/           ← replace any sourced (core or contrib) ASC path
+  │       ├── local/              ← [git-ignored] manual debug scripts
+  │       ├── override/           ← replace any sourced (core or contrib) ASC path
+  │       └── sandbox/            ← [optional, git-ignored] Contains code generators results to evaluate (see builder)
+  │           ├── prototype/      ← [optional] Iterative generated code results
+  │           └── review/         ← [optional] Generated code ready for evaluation
   ├── .asc_extensions_ignore      ← lists disabled core and contrib extensions
   ├── .gitignore
   ├── Makefile
@@ -1550,8 +1575,6 @@ asc/instance/rebuild.sh
   ├── SPECIMEN.env.yml        ← copy to env.yml
   └── ...
 ```
-
-TODO 2026/07/23 the .asc_extensions_ignore must be modified to accept dot prefix for new $provider/$ext paths.
 
 The canonical path for writing files related to time-recurrent or long processes is :
 

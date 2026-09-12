@@ -28,7 +28,7 @@ else
   echo >&2
   echo "Error in $BASH_SOURCE line $LINENO: the '$DRUSH_DB_DRIVER_FALLBACK' extension appears to be missing or is not enabled." >&2
   echo "It needs to be enabled first." >&2
-  echo "@see scripts/asc/override/.asc_extensions_ignore" >&2
+  echo "@see .asc_extensions_ignore" >&2
   echo "-> Aborting (1)." >&2
   echo >&2
   exit 1
@@ -39,7 +39,7 @@ if [[ ! -f "$fallback_hook_implementation" ]]; then
   echo "Error in $BASH_SOURCE line $LINENO: the fallback hook implementation appears to be missing." >&2
   echo "Make sure the extension is enabled." >&2
   echo "@see $fallback_hook_implementation" >&2
-  echo "@see scripts/asc/override/.asc_extensions_ignore" >&2
+  echo "@see .asc_extensions_ignore" >&2
   echo "-> Aborting (2)." >&2
   echo >&2
   exit 2
