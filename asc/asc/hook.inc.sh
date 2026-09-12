@@ -130,28 +130,65 @@
 #
 # We exceptionally name that function without following the usual convention.
 #
-hook() {
-  # Update 2024-06 cache results.
-  local cache_key="$@"
-  local regex="-v ([^\-]+)"
 
-  if [[ $cache_key =~ $regex ]]; then
-    for var in ${BASH_REMATCH[1]}; do
-      cache_key="${cache_key/$var/${!var}}"
+##
+# Builds hook lookup cache key from parsed hook() flags (calling-scope o_* / b_*).
+#
+# Canonical order: s, a, p, v, e, c, then flags t / r. Variant *values* (not
+# names). Multi-value lists joined with comma. Missing filters omitted.
+# Debug (-d) and warmup (-w) are not part of the key.
+#
+# Writes $hook_cache_key in calling scope.
+#
+f_hook_cache_key() {
+  local p_var="${1:-hook_cache_key}"
+  local parts_arr=()
+  local vals_arr=()
+  local name
+  local joined
+  local saved_ifs="$IFS"
+
+  if [[ -n "${o_subjects_filter:-}" ]]; then
+    parts_arr+=("s-${o_subjects_filter// /,}")
+  fi
+  if [[ -n "${o_actions_filter:-}" ]]; then
+    parts_arr+=("a-${o_actions_filter// /,}")
+  fi
+  if [[ -n "${o_prefixes_filter:-}" ]]; then
+    parts_arr+=("p-${o_prefixes_filter// /,}")
+  fi
+  if [[ -n "${o_variants_filter:-}" ]]; then
+    vals_arr=()
+    for name in $o_variants_filter; do
+      vals_arr+=("${!name}")
     done
+    IFS=,
+    joined="${vals_arr[*]}"
+    IFS="$saved_ifs"
+    parts_arr+=("v-${joined}")
+  fi
+  if [[ -n "${o_extensions_filter:-}" ]]; then
+    parts_arr+=("e-${o_extensions_filter// /,}")
+  fi
+  if [[ -n "${o_custom_filter:-}" ]]; then
+    parts_arr+=("c-${o_custom_filter// /,}")
+  fi
+  if [[ ${b_dry_run:-0} -eq 1 ]]; then
+    parts_arr+=("t")
+  fi
+  if [[ ${b_root_lookup:-0} -eq 1 ]]; then
+    parts_arr+=("r")
   fi
 
-  cache_key="${cache_key// -/-}"
-  f_str_sanitize_var_name "$cache_key" 'cache_key'
-  local hook_cache_file="data/asc/cache/hook.${cache_key}.sh"
+  IFS=.
+  joined="${parts_arr[*]}"
+  IFS="$saved_ifs"
+  joined="${joined//\//_}"
 
-  if [[ -f "$hook_cache_file" ]]; then
-    . "$hook_cache_file"
-    return
-  fi
+  printf -v "$p_var" '%s' "$joined"
+}
 
-  local hook_cache_contents=''
-
+hook() {
   local o_actions_filter
   local o_subjects_filter
   local o_prefixes_filter
@@ -193,6 +230,18 @@ hook() {
     echo
     return 1
   fi
+
+  local hook_cache_key
+  f_hook_cache_key
+  mkdir -p data/asc/cache/hook
+  local hook_cache_file="data/asc/cache/hook/${hook_cache_key}.sh"
+
+  if [[ -f "$hook_cache_file" ]]; then
+    . "$hook_cache_file"
+    return
+  fi
+
+  local hook_cache_contents=''
 
   local prim_var
   local subjects="$ASC_SUBJECTS"
@@ -429,7 +478,7 @@ hook() {
 #!/usr/bin/env bash
 
 ##
-# Generated cache file for hook $cache_key
+# Generated cache file for hook $hook_cache_key
 #
 # @see asc/utilities/hook.sh
 #

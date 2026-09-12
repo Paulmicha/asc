@@ -1272,7 +1272,31 @@ Files placed in `data/*` are usually writeable and specific to a single ASC proj
 
 #### ASC cache : `data/asc/cache`
 
-TODO
+Lookup artifacts only. `make cc` (`asc/asc/cache_clear.sh`) deletes `data/asc/cache/` and **must not** delete `data/asc/global.vars.sh`, `data/asc/generated.mk`, or `.env`. Those are instance state: `make reinit` rewrites them; `make uninit` wipes them (and the cache).
+
+```text
+data/asc/
+  global.vars.sh              ← instance env (reinit / uninit)
+  generated.mk                ← Make include (reinit / uninit)
+  cache/
+    core/
+      active.sh               ← primitives + ASC_INC (stamp-gated)
+      stamp                   ← discovery inputs (not hook file bodies)
+    hook/<canonical-key>.sh   ← hook lookup (bodies still sourced from disk)
+    make.sh
+    test-cases.sh
+    entities/                 ← entity load cache
+```
+
+Bootstrap always sources the six kernel includes. Then, if `global.vars.sh` exists, it is sourced. Then `f_asc_primitives_cache_ensure`: stamp match → source `core/active.sh`; miss → `f_asc_extend`, rewrite `active.sh` + stamp, wipe `cache/hook/` only. `pre_bootstrap` / `alias` / `bootstrap` still run on both the cold and warm paths.
+
+Stamp v1 watches instance identity (`HOST_TYPE`, `INSTANCE_TYPE`, `STACK_VERSION`, selected `.asc_extensions_ignore` path), ignore-file mtimes, and directory mtimes of `asc/`, `asc/extensions/`, `scripts/asc/`, contrib, and extend. A new `*.hook.sh` or `$subject/$action.sh` inside an **existing** folder still needs `make cc` (and `make reinit` when a new Make target is required). Nested-file discovery is v1.1.
+
+Hook cache keys come from **parsed** flags (not `"$@"`): `s`, `a`, `p`, `v`, `e`, `c`, then `t` / `r`. Variant **values** stay in the key. `-d` and `-w` do not. Multi-value lists use comma.
+
+After `make cc`, the next bootstrap is a stamp miss: one `f_asc_extend`, then hook files refill on miss. Make targets and env remain.
+
+See `changelog/2026/09/11-bootstrap-cache-layout-and-invalidation.md`.
 
 #### Default file-based entity storage : `data/entities`
 

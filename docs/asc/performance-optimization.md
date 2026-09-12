@@ -64,7 +64,7 @@ Builder (templates / blueprints / prototypes) and nestable agent workflows can *
 
 | Mechanism | Role |
 |-----------|------|
-| Hook cache under `data/asc/cache/hook.*.sh` | Avoids re-resolving hook graphs every run when cache is warm |
+| Hook cache under `data/asc/cache/hook/<key>.sh` | Avoids re-resolving hook graphs every run when cache is warm |
 | Explicit autoload / lookup path construction | Structured discovery vs grepping the whole tree for every hook |
 | File registry / instance registry surfaces | Known paths instead of ad-hoc full-tree search |
 | Nested list constrained by layout | e.g. nested ASC list under Documents at limited depth — not a host-wide recursive content search |
@@ -191,7 +191,7 @@ It is **not**:
 
 | Path | Tool that helps |
 |------|-----------------|
-| Hook resolve when `data/asc/cache/hook.*.sh` is warm | Cache hit — not rg |
+| Hook resolve when `data/asc/cache/hook/<key>.sh` is warm | Cache hit — not rg |
 | Constructed lookup levels (autoload) | Path construction — not rg |
 | `utils/fs` list files/dirs, recent files (current `find`) | `find` / **[fd](https://github.com/sharkdp/fd)**; rg only loosely via `--files` |
 | Nested instance **layout list** (bounded depth under Documents) | Structural discovery — not host-wide content search |

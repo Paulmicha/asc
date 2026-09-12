@@ -154,9 +154,7 @@ $prefixed_actions_var='${!prefixed_actions_var}'
 }
 
 ##
-# Loads the active '.asc_extensions_ignore' contents.
-#
-# @requires local var $extensions_ignore_arr in calling scope.
+# Resolves the active '.asc_extensions_ignore' path (last existing wins).
 #
 # Lookups in this order (the last found takes precedence) :
 # - .asc_extensions_ignore
@@ -168,17 +166,16 @@ $prefixed_actions_var='${!prefixed_actions_var}'
 # - .$STACK_VERSION.$INSTANCE_TYPE.asc_extensions_ignore
 # - .$STACK_VERSION.$HOST_TYPE.$INSTANCE_TYPE.asc_extensions_ignore
 #
-# Unprefixed entries apply to asc/extensions. Prefixed entries (e.g. asc/apache)
-# apply to scripts/asc/contrib.
+# @param 1 [optional] String output variable name. Defaults to
+#   extensions_ignore_filepath.
 #
-f_asc_extensions_ignore_load() {
-  local extensions_ignore_filepath='.asc_extensions_ignore'
+# @see f_asc_extensions_ignore_load()
+#
+f_asc_extensions_ignore_filepath() {
+  local p_var="${1:-extensions_ignore_filepath}"
+  local filepath='.asc_extensions_ignore'
   local ei_override_lookup_arr=()
   local ei_override
-  local exclusions
-  local excl
-
-  extensions_ignore_arr=()
 
   if [[ -n "$HOST_TYPE" ]]; then
     ei_override_lookup_arr+=(".$HOST_TYPE.asc_extensions_ignore")
@@ -210,9 +207,30 @@ f_asc_extensions_ignore_load() {
 
   for ei_override in "${ei_override_lookup_arr[@]}"; do
     if [[ -f "$ei_override" ]]; then
-      extensions_ignore_filepath="$ei_override"
+      filepath="$ei_override"
     fi
   done
+
+  printf -v "$p_var" '%s' "$filepath"
+}
+
+##
+# Loads the active '.asc_extensions_ignore' contents.
+#
+# @requires local var $extensions_ignore_arr in calling scope.
+#
+# Unprefixed entries apply to asc/extensions. Prefixed entries (e.g. asc/apache)
+# apply to scripts/asc/contrib.
+#
+# @see f_asc_extensions_ignore_filepath()
+#
+f_asc_extensions_ignore_load() {
+  local extensions_ignore_filepath
+  local exclusions
+  local excl
+
+  extensions_ignore_arr=()
+  f_asc_extensions_ignore_filepath 'extensions_ignore_filepath'
 
   if [[ -f "$extensions_ignore_filepath" ]]; then
     f_fs_get_file_contents "$extensions_ignore_filepath" 'exclusions'
@@ -223,6 +241,109 @@ f_asc_extensions_ignore_load() {
       done
     fi
   fi
+}
+
+##
+# Builds the discovery stamp for primitives + hook lookup cache.
+#
+# Inputs: instance identity, selected extensions-ignore path, ignore-file
+# mtimes, and directory mtimes of discovery roots. Not hook file contents.
+#
+# @param 1 [optional] String output variable name. Defaults to asc_cache_stamp.
+#
+# @see f_asc_primitives_cache_ensure()
+#
+f_asc_cache_stamp_compute() {
+  local p_var="${1:-asc_cache_stamp}"
+  local selected_ignore
+  local path
+  local mtime
+  local stamp
+
+  f_asc_extensions_ignore_filepath 'selected_ignore'
+
+  stamp="HOST_TYPE=${HOST_TYPE}
+INSTANCE_TYPE=${INSTANCE_TYPE}
+STACK_VERSION=${STACK_VERSION}
+extensions_ignore=${selected_ignore}
+"
+
+  for path in \
+    "$selected_ignore" \
+    'scripts/asc/override/.asc_extensions_ignore' \
+    'asc/.asc_subjects_ignore' \
+    'asc' \
+    'asc/extensions' \
+    'scripts/asc' \
+    'scripts/asc/contrib' \
+    'scripts/asc/extend'
+  do
+    mtime=0
+    if [[ -e "$path" ]]; then
+      mtime=$(stat -c '%Y' "$path")
+    fi
+    stamp+="mtime:${path}=${mtime}
+"
+  done
+
+  printf -v "$p_var" '%s' "$stamp"
+}
+
+##
+# Deletes hook lookup cache (directory layout and leftover flat files).
+#
+f_asc_cache_hook_wipe() {
+  rm -rf data/asc/cache/hook
+  rm -f data/asc/cache/hook.*
+}
+
+##
+# Writes data/asc/cache/core/active.sh from $asc_primitives_cache_str.
+#
+f_asc_primitives_cache_write() {
+  mkdir -p data/asc/cache/core
+
+  cat > data/asc/cache/core/active.sh <<CACHE
+#!/usr/bin/env bash
+
+##
+# Generated cache file for ASC primitives.
+#
+# @see f_asc_primitives_cache_ensure()
+#
+
+${asc_primitives_cache_str}
+
+CACHE
+}
+
+##
+# Sources primitives cache when the discovery stamp matches; otherwise rebuilds
+# via f_asc_extend, rewrites active.sh + stamp, and wipes hook lookup.
+#
+f_asc_primitives_cache_ensure() {
+  local expected
+  local actual=''
+
+  mkdir -p data/asc/cache/core
+  f_asc_cache_stamp_compute 'expected'
+
+  if [[ -f data/asc/cache/core/active.sh && -f data/asc/cache/core/stamp ]]; then
+    IFS= read -r -d '' actual < data/asc/cache/core/stamp || true
+    if [[ "$actual" == "$expected" ]]; then
+      . data/asc/cache/core/active.sh
+      return
+    fi
+    f_asc_cache_hook_wipe
+  fi
+
+  ASC_INC=''
+  ASC_EXTENSIONS=''
+  asc_primitives_cache_str=''
+  f_asc_extend
+  f_asc_primitives_cache_write
+  printf '%s' "$expected" > data/asc/cache/core/stamp
+  rm -f data/asc/cache/asc.sh
 }
 
 ##
