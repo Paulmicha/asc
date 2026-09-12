@@ -69,7 +69,7 @@ fi
 instance_type='dev'
 host_type='local'
 stack_version=''
-provision_using='compose'
+provision_using='asc'
 
 if [[ -n "$1" ]]; then
   instance_type="$1"
