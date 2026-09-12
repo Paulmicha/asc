@@ -78,13 +78,27 @@ Already half-true (`global.vars.sh` optional; `asc.sh` miss → `f_asc_extend`).
 
 | Option | Pros | Cons |
 |---|---|---|
-| **A — One `bootstrap.sh`, two branches (picked)** | No new include graph. Cold: core includes + `f_asc_extend`, skip alias/bootstrap hooks that need `INSTANCE_TYPE` if globals missing. Warm: source `active.sh` + globals + existing three hooks. | Must list which hooks run on bare (init still needs *some* bootstrap). Easy to get wrong if a hook is required for `make init`. |
+| **A — One `bootstrap.sh`, two branches (picked)** | No new include graph. Cold: core includes + `f_asc_extend`. Warm: source `active.sh` + globals. Same three `hook` calls on both paths in v1 (see below). | Bare vs warm is only stamp / `active.sh`; cold init still pays three lookups. |
 | **B — `bootstrap.bare.sh` + `bootstrap.warm.sh`** | Clear files. | Two sources of truth; every caller still `. asc/bootstrap.sh`; more to keep in sync. |
 | **C — Concatenate core `*.inc.sh` + primitives into one `active.sh` blob** | Fewer `source` parses on warm path. | Editing `hook.inc.sh` does nothing until `cc`. Hostile to ASC development. Blob size grows with every function. **Rejected** (not lightweight in *maintenance*). |
 
 **Pick A.** Bare vs warm is an `if [[ -f cache/core/active.sh ]]` (plus stamp — §3). Do not skip sourcing the six core includes on warm: they are small; skipping them requires the blob.
 
 Cold path must remain enough to run `make init` (core utils, `f_asc_extend`, hook lookup without instance variants if needed).
+
+#### Bare-path hooks (`pre_bootstrap` / `alias` / `bootstrap`)
+
+When `data/asc/global.vars.sh` is missing (`make uninit` then `make init`), those three calls still run today with empty `STACK_VERSION` / `PROVISION_USING`.
+
+| Option | Pros | Cons |
+|---|---|---|
+| **Skip `alias` + `bootstrap`, keep `pre_bootstrap`** | Matches an earlier sketch (“skip hooks that need instance vars”). | Split is arbitrary: the only `pre_bootstrap` in-tree is compose-variant, so it does not match on bare anyway. |
+| **Run all three (picked v1)** | No init surprise. Same as today. Stamp work does not change which hooks fire. | Three extra lookups on a rare cold path (noise next to `f_asc_extend`). |
+| **Skip all three until globals exist** | Cleaner “no instance hooks until instance”. | Behavior change to verify; a future bootstrap hook could be required for `make init`. |
+
+**Pick v1: run all three** on bare and warm. Checked against ASC, ATB, and IGS (and home): real `alias` / `bootstrap` / `pre_bootstrap` files are almost all variant-specific (`.compose.hook.sh`); empty variants do not load them; generic files (e.g. drush `alias.hook.sh`) no-op without `SERVER_DOCROOT`.
+
+**Reevaluate later** (not this slice): skip all three on bare (cleanest later option) **or** skip `alias` + `bootstrap` and keep `pre_bootstrap`, if real-world init or a new hook needs a different split. Gate: `make uninit` then `make init` on a compose-enabled instance (ATB / IGS), not only this repo (compose is ignored here).
 
 ### 2. Where primitives live (`asc.sh` → `core/active.sh`)
 
@@ -104,13 +118,15 @@ Cold path must remain enough to run `make init` (core utils, `f_asc_extend`, hoo
 
 **Stamp file:** `data/asc/cache/core/stamp` (one line or a few: checksum or `mtime` tuple).
 
-**Inputs (discovery only, not file bodies):**
+**Inputs (discovery only, not file bodies).** Compute **after** sourcing `data/asc/global.vars.sh` when that file exists (`HOST_TYPE` / `INSTANCE_TYPE` / `STACK_VERSION` select the ignore file):
 
-- ignore files: `.asc_subjects_ignore`, `.asc_extensions_ignore`, override copies under `scripts/asc/override/`
-- directory mtimes of `asc/extensions`, `scripts/asc/contrib`, `scripts/asc/extend` (add/remove **children**)
-- optional light `find` of `*.inc.sh` / `*.hook.sh` **path + mtime** (names appearing/disappearing), **not** hashing contents
+- **Instance identity:** `HOST_TYPE`, `INSTANCE_TYPE`, `STACK_VERSION`, and the **selected** `.asc_extensions_ignore` path (`f_asc_extensions_ignore_load` last-wins among unprefixed + `.$HOST_TYPE` / `.$INSTANCE_TYPE` / `.$STACK_VERSION` combinations). Reinit that only changes instance type must miss even when ignore-file mtimes are unchanged.
+- **Ignore file mtimes:** that selected path; `scripts/asc/override/.asc_extensions_ignore` if present; `asc/.asc_subjects_ignore`
+- **Directory mtimes** (add/remove **children**): `asc/`, `asc/extensions/`, `scripts/asc/`, `scripts/asc/contrib/`, `scripts/asc/extend/`
+- Do **not** hash `.asc_actions*` / `.asc_subjects` / `_append` (none in ATB, IGS, home, or this repo). Nested new `*.hook.sh` / `$subject/$action.sh` stay a v1 hole (`cc` or v1.1 `find`).
+- optional light `find` of `*.inc.sh` / `*.hook.sh` **path + mtime** (names appearing/disappearing), **not** hashing contents — **v1.1 only**
 
-On bootstrap, after core includes:
+On bootstrap, after core includes **and** globals (if present):
 
 1. If no `core/active.sh` → cold: `f_asc_extend`, write `active.sh` + stamp, continue.
 2. If `active.sh` exists and stamp **matches** → source it (warm).
@@ -118,12 +134,12 @@ On bootstrap, after core includes:
 
 | Option | Pros | Cons |
 |---|---|---|
-| **A — Stamp vs ignore files + top-level extension dir mtimes only (picked v1)** | A handful of `stat`s. Catches enable/disable extension, ignore-list edits, new contrib folder. No `find` on every `make`. | Misses a **new `*.hook.sh` / `*.sh` action inside an existing subject** (parent dir mtime may not change on all FS when a nested file is added). Those still need `cc` or v1.1. |
+| **A — Stamp vs instance identity + named ignore files + listed dir mtimes (picked v1)** | A handful of `stat`s. Catches enable/disable extension, ignore-list edits, new child under `asc/` / `extensions/` / `scripts/asc/` (IGS `deployment.inc.sh` case) / contrib / extend. No `find` on every `make`. | Misses a **new `*.hook.sh` / `*.sh` action inside an existing subject** (parent dir mtime may not change on all FS when a nested file is added). Those still need `cc` or v1.1. New `$subject/$action.sh` also needs `reinit` for `generated.mk`. |
 | **B — A + cheap `find` of hook/inc/action names+mtimes, checksum** | Catches new action/hook files. Still no content hash. | One `find` per bootstrap (~tens of ms on this tree). Heavier than A. **v1.1 if A is too deaf.** |
 | **C — Compare every hook cache file mtime to every matching `*.hook.sh`** | Precise. | Can cost as much as a lookup miss. Defeats the cache. **Rejected.** |
 | **D — Keep existence-only + document `make cc`** | Zero code. | Status quo; stale cache is the bug we are fixing. **Rejected as the end state.** |
 
-**Pick A for v1** (lightest that fixes the usual “I toggled an extension / ignore file” case). If nested new hooks stay invisible in practice, add **B** (still no content hashing).
+**Pick A for v1** (lightest that fixes the usual “I toggled an extension / ignore file” case; stamped dirs include `asc/` and `scripts/asc/` after checking ATB / IGS / home). If nested new hooks stay invisible in practice, add **B** (still no content hashing).
 
 Do **not** rebuild `global.vars.sh` or `generated.mk` on stamp mismatch.
 
@@ -133,11 +149,11 @@ Today: `data/asc/cache/hook.${sanitized_argv}.sh` with variant **values** substi
 
 | Option | Pros | Cons |
 |---|---|---|
-| **A — `cache/hook/<canonical-key>.sh` from **parsed** flags, not `"$@"` (picked)** | One builder. Readable enough (`s-asc.a-bootstrap.v-v1.asc.sh`). Drop `-d` from key (debug ≠ different matches). Multi-value join with **`,`** (comma): `-s 'site instance'` → `s-site,instance`. Missing filters omitted. `-t` / `-r` / `-c` stay in the key. No extra `mkdir` per miss beyond `cache/hook/`. Tests glob `cache/hook/*nftaschhnc*`. | Not a directory tree per subject. Long filenames if many variants (same risk as today). Comma is legal on Linux; **always quote** the cache path (`"$hook_cache_file"`) so IFS never splits. |
+| **A — `cache/hook/<canonical-key>.sh` from **parsed** flags, not `"$@"` (picked)** | One builder. Readable enough (`s-asc.a-bootstrap.v-v1.asc.sh`). Drop `-d` and `-w` from key (debug / warmup ≠ different matches). Multi-value join with **`,`** (comma): `-s 'site instance'` → `s-site,instance`. Missing filters omitted. `-t` / `-r` stay in the key (`-c` is a filter, not a flag). No extra `mkdir` per miss beyond `cache/hook/`. Tests glob `cache/hook/*nftaschhnc*`. | Not a directory tree per subject. Long filenames if many variants (same risk as today). Comma is legal on Linux; **always quote** the cache path (`"$hook_cache_file"`) so IFS never splits. |
 | **B — Nested `$subject/$action/$variants.sh` plus six layout rules** (original sketch) | Nice to browse by subject. Can `rm -rf hook/foo` if that were a single subject. | `-s` is often **several** subjects. Six layouts to keep in sync. `mkdir -p` on every miss. Tests and `cc` partial wipes get messier. **Heavier than A for little lookup gain.** |
 | **C — Leave flat `cache/hook.*` names as today** | No path migration. | Opaque; `-d` duplicates; `"$@"` order-sensitive. Stamp (§3) still works. |
 
-**Pick A.** Values stay in the key. The different hook calls arguments get separated by a dot. Canonical order: `s`, `a`, `p`, `v`, `e`, `c`, then flags `t`/`r`/`w`. Never six different directory shapes. Multi-subject / multi-action / multi-variant lists use **comma** as separator.
+**Pick A.** Values stay in the key. The different hook calls arguments get separated by a dot. Canonical order: `s`, `a`, `p`, `v`, `e`, `c`, then flags `t`/`r`. Never `-d` or `-w` in the key. Never six different directory shapes. Multi-subject / multi-action / multi-variant lists use **comma** as separator.
 
 Example:
 
@@ -172,6 +188,7 @@ After `cc`, next bootstrap is a **stamp miss** (no `active.sh`): `f_asc_extend` 
 | Second bootstrap script | Duplicate graph. |
 | Per-hook nested dirs for every flag combination | Complexity without faster hits. |
 | Rebuild pivots.mk when stamp mismatches | Wrong artifact; needs `f_make_generate` + full instance. That is reinit. |
+| Skip `pre_bootstrap` / `alias` / `bootstrap` on bare (v1) | Safe default is run all three (today). Reevaluate later — §1. |
 | Split kernel / `ASC_INC` into `*.opt-inc.sh`, or move one-shot `f_*` into `$subject/$action.sh` | Parse-cost work. **Follow-up:** [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md). Alias / `pre_bootstrap` / `bootstrap` still run on warm path; mixing that into stamp is how those hooks break without a lookup miss. |
 
 ---
@@ -190,8 +207,8 @@ Do **not** ship layout + stamp + hook-key rewrite as one ball of mud if a smalle
 
 1. **Stamp + rebuild primitives + wipe `cache/hook*` on mismatch** (paths can stay `asc.sh` / `hook.*` for this step). This is the **best performance/correctness win**.
 2. Rename `asc.sh` → `cache/core/active.sh`; send hook files to `cache/hook/`. Update bootstrap, tests, docs.
-3. Canonical hook key from parsed flags; drop `-d` from the key.
-4. Document bare vs warm in `bootstrap.sh` comments (same file, two branches). Skip alias/bootstrap hooks on bare only if init still works — verify with `make uninit` then `make init`.
+3. Canonical hook key from parsed flags; drop `-d` and `-w` from the key.
+4. Document bare vs warm in `bootstrap.sh` comments (same file, two branches). **v1: still run `pre_bootstrap` / `alias` / `bootstrap` on bare.** Do not skip them in this slice. Reevaluate skip-all-three (or skip `alias`+`bootstrap`) later — see §1.
 
 v1.1 only if needed: stamp input **B** (`find` names+mtimes of `*.hook.sh` / `*.inc.sh` / action `*.sh`).
 
@@ -202,7 +219,7 @@ v1.1 only if needed: stamp input **B** (`find` names+mtimes of `*.hook.sh` / `*.
 - Stamp match: do not call `f_asc_extend` (spy: `active.sh` mtime unchanged; or a counter).
 - Ignore-file touch: next bootstrap rewrites `active.sh`, hook lookup dir empty or regenerated.
 - `make cc`: `global.vars.sh` and `generated.mk` still present; `cache/` gone; next bootstrap recreates `core/active.sh`.
-- Hook cache: same `-s/-a/-v` with and without `-d` share one file (after step 3).
+- Hook cache: same `-s/-a/-v` with and without `-d` or `-w` share one file (after step 3). `-t` / `-r` remain distinct keys.
 - Existing `asc/test/core/hook.test.sh` / `global.test.sh`: update globs (`cache/hook/*nftaschhnc*` vs `cache/hook.*nftaschhnc*`).
 
 ---
@@ -211,8 +228,8 @@ v1.1 only if needed: stamp input **B** (`find` names+mtimes of `*.hook.sh` / `*.
 
 - [ ] Implement stamp v1 (decision 3A) against current paths or against `core/active.sh` if rename is done in the same change.
 - [ ] Rename primitives cache + hook dir (decisions 2A, 4A).
-- [ ] Canonical hook key; exclude `-d`.
-- [ ] Bare-path hook skip: confirm `make init` from uninit does not need `alias` / `bootstrap` with empty variants.
+- [ ] Canonical hook key; exclude `-d` and `-w`.
+- [ ] Later (not v1): reevaluate skipping `pre_bootstrap` / `alias` / `bootstrap` on bare (skip all three, or skip `alias`+`bootstrap` only). Evidence from ATB / IGS / home: they currently no-op on empty variants. Revisit if a compose-enabled `make uninit` + `make init` needs a different split.
 - [ ] README `#### ASC cache` (currently TODO): document cc vs reinit vs this layout.
 - [ ] v1.1 find-based stamp if nested new hooks stay stale.
 - [ ] After this lands: [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) (opt-inc / `ASC_INC` shrink / entry-point sweep). Do not start it in the stamp change.
@@ -224,8 +241,9 @@ v1.1 only if needed: stamp input **B** (`find` names+mtimes of `*.hook.sh` / `*.
 | Topic | Pick |
 |---|---|
 | `make cc` | Lookup only (`data/asc/cache/`). Globals + `generated.mk` stay. |
-| Best performance win | **Discovery stamp** (ignore files + extension dir mtimes). Mismatch → `f_asc_extend` + wipe hook lookup only. |
+| Best performance win | **Discovery stamp** (instance identity + selected ignore path + named ignore mtimes + dir mtimes of `asc/`, `asc/extensions/`, `scripts/asc/`, contrib, extend). Mismatch → `f_asc_extend` + wipe hook lookup only. |
 | Layout | `cache/core/active.sh` + `cache/hook/<canonical-key>.sh`. No nested six-layout tree. No globals/mk under `cache/`. |
-| Bootstrap | One file, bare vs warm branches. No concatenated lib blob. |
+| Bootstrap | One file, bare vs warm branches. **v1: same three hooks on both paths.** Reevaluate bare skip later (§1). No concatenated lib blob. |
+| Hook key | Parsed flags; drop `-d` and `-w`. Keep `-t` / `-r`. |
 | Weight | Stamp first; rename second; fancy hook directories never (v1). |
 | Not this PR | Lazy `*.opt-inc.sh` / moving leftover `f_*` into entry points — see follow-up plan. |
