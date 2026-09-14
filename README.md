@@ -324,65 +324,31 @@ There are 3 kinds of bootstrapped contexts :
 1. after initialization has run (usually once in a local project instance),
 1. and after initialization has run but with some changes that make the cached files outdated (e.g. when some env vars change, or when a new extension is added or removed, etc).
 
-See *Usage / Getting started* for *(re)init* and/or *setup* details.
+The "warming" process (= instance *setup* or *init* or *reinit*) (re)generates the following files :
 
-**Initial (= cold)** means ASC has not written the local instance files yet (`data/asc/global.vars.sh`, make shortcuts, cache). Bootstrap still works enough to *run* init, but most `make $subject-$action` shortcuts do not exist until that has happened. This is what you get in a fresh clone, or after `make uninit`. Run `make setup` (or `make init` when you also need the interactive first-time questions).
+- `data/asc/global.vars.sh` : discovered readonly global env vars,
+- `data/asc/cache/core/active.sh` (and `data/asc/cache/core/stamp`) : discovered enabled extensions and active dirs,
+- `data/asc/pivots.mk` (and `data/asc/cache/pivots.sh`) : discovered entry points (= actions) mapped as `make` entries,
+- and a bunch of hardcoded pre-warmed `data/asc/cache/hook/*.sh` cache files.
 
-**Initialized (= warm)** means those files exist and still match the project as it is on disk. Everyday commands just use them : bootstrap reuses the last discovery instead of walking the tree again. You do not need to reinit between normal `make $subject-$action` calls.
+**Initial (= cold)** state is the "out of the box" state (or after `make uninit`). In this state, none of the files above have been generated yet. See `Makefile` and `asc/make/default.mk` to see the default `make` entries that will work in this state (basically ). If the optional `scripts/asc/extend/custom.mk` file exists, the entries it contains will also work out of the box, before instance (re)init or setup has run.
 
-**"Out of sync" (= stale)** means the instance *was* initialized, but something you changed is invisible until you refresh generated files. Two different refreshes :
+**Initialized (= warm)** means the generated files listed above exist and correctly match the current local project instance state. The bootstrap runs faster because there is no need for the core discovery mechanisms to run (they just get sourced where appropriate). The hook cache progressively gets more and more complete, i.e. : if any hook call does not yet have a corresponding cache file, the corresponding discovery process runs once and generate the missing cache file (until all variants in use for the local project instance are exhausted).
 
-1. `make cc` (= `asc/asc/cache_clear.sh`) only forgets *lookup* cache (which hooks exist, which includes were listed). Use it after adding or removing a hook, or when a new helper should appear but make shortcuts and env vars are already correct.
-1. `make reinit` rewrites globals + make shortcuts (and clears that same lookup cache). Use it after editing `env.yml` / instance settings, enabling or disabling an extension, or adding a new `$subject/$action.sh` entry point you want as a `make` target.
-
-If you are unsure which of the two is stale, `make reinit` is the safe one. `make uninit` then `make init` (or `make setup`) is the full reset. You will be asked again / start from `env.yml`.
-
-| Kind | What it means | What to run |
-|---|---|---|
-| **Cold** | No local instance files yet | `make init` or `make setup` |
-| **Warm** | Files exist and still match the project | Just `make $subject-$action` |
-| **Stale** (lookup only) | New hook / helper, shortcuts and env still fine | `make cc` |
-| **Stale** (entry points or env) | New `$subject/$action.sh`, extension on/off, `env.yml` | `make reinit` |
-| **Reset** | Throw generated instance files away | `make uninit` then `make init` or `make setup` |
+**"Out of sync" (= stale)** means some or all of the generated files listed above do not correctly match the state of the local project instance discoverable files, `env.yml` files, etc. Running `make reinit` ensures the generated files are in sync again after any impacting modification. The `data/asc/cache/core/stamp` file informs wether something has changed and warrants to reinit the local project instance.
 
 #### Always (= eager) VS conditionally (= lazy) sourced includes
 
 Typical ASC use cases aren't complex or "big" *by design*, but its extensibility mechanisms may easily load relatively big amounts of bash code, potentially mostly unused.
 
-So the bootstrap process implements 2 ways to attempt to load less of such potentially unused code on every command call. The *lazy sourcing* is either based on :
+**Always (= eager)** includes all the files using the `*.inc.sh` double extension whose filename matches the parent dir name in *active dirs* and *extension points* (e.g. `asc/instance/instance.inc.sh`, `asc/extensions/compose/compose.inc.sh`, etc). They contain functions that are always loaded and shared in every bootstrapped context.
 
-1. Entry point script's `$subject` and `$action`
-1. Hook's cache
+**Conditionally (= lazy)** includes some of the files using the `*.opt-inc.sh` double extension. This convention allows the bootstrap process to attempt to load less potentially unused code on every bootstrapped context. The *lazy sourcing* is either based on :
 
-**Always (= eager)** includes use the `*.inc.sh` double extension (e.g. `git/git.inc.sh`). Once a shell has sourced `asc/bootstrap.sh`, those files are loaded for *that* shell, whatever command you ran. They are the shared toolbox.
+1. Ean entry point's `$subject` (= script's parent dir name) and `$action` (= script's file name),
+1. or on a cached hook call.
 
-**Conditionally (= lazy)** includes use `*.opt-inc.sh`. They are *not* part of that shared toolbox. They load only when the name can be derived from *where you are* :
-
-1. **From the entry point** : the script that sourced bootstrap lives in a folder named `$subject`, and the file is `$action.sh`. ASC then looks next to it for `$subject.opt-inc.sh` and `$action.opt-inc.sh` (if those files exist). Example : `make software-status` runs `…/software/status.sh`, so `software.opt-inc.sh` in that same folder is loaded. Interactive `. asc/bootstrap.sh` has no such caller folder, so nothing lazy is loaded that way.
-1. **From a hook** : when an event runs, matching `*.hook.sh` files are sourced. *Before* each of those, ASC also loads `$subject.opt-inc.sh` / `$action.opt-inc.sh` sitting in *that hook file's folder* (not necessarily the folder of the `make` entry point). Example : `make host-provision` starts in `asc/host/provision.sh` (no opt-inc there), but the real work is `asc/extensions/software/host/provision.hook.sh`, which sits next to `provision.opt-inc.sh` — that is what actually loads the helpers.
-
-NB : `make` starts a small wrapper script first, *then* the real `$action.sh` in a new shell. Only the real script's folder counts for (1). A hook in another subject does *not* inherit that entry point's lazy files ; it only sees opt-incs colocated with *its own* hook file (2).
-
-Once a hook has been resolved, ASC remembers those extra includes in `data/asc/cache` so the next call does not have to search again. If you add a new `*.opt-inc.sh` next to an existing hook, run `make cc` (or `make reinit`) or the cache will keep skipping it.
-
-| | Always (eager) `*.inc.sh` | Conditionally (lazy) `*.opt-inc.sh` |
-|---|---|---|
-| **When** | Every bootstrapped shell | Only if the filename matches the *caller* folder or a *hook* folder |
-| **What for** | Shared toolbox | Helpers for one `$subject` / `$action` (or one hook) |
-| **Example** | `asc/git/git.inc.sh` | `…/software/software.opt-inc.sh` next to `status.sh` |
-| **Who does *not* get it** | — | Interactive `. asc/bootstrap.sh` (no caller folder) ; the `make` wrapper script (different folder) |
-
-```mermaid
-flowchart TD
-  subgraph status["make software-status"]
-    S1["status.sh sources bootstrap"] --> S2["Loader 1: software.opt-inc.sh in that folder"]
-  end
-  subgraph provision["make host-provision"]
-    P1["asc/host/provision.sh sources bootstrap"] --> P2["Loader 1: nothing in asc/host/"]
-    P2 --> P3["hook finds software/host/provision.hook.sh"]
-    P3 --> P4["Loader 2: provision.opt-inc.sh next to that hook"]
-  end
-```
+TODO table with real examples for all cases.
 
 ### Extension Point
 
