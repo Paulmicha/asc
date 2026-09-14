@@ -314,12 +314,28 @@ A *bootstrapped* context is any shell context that has sourced `asc/bootstrap.sh
 
 Sourcing the ASC bootstrap file loads *env vars* and Bash functions in the current *shell scope*, depending on "auto" (= "eager" = files using the `*.inc.sh` double extension), or "lazy" (= files using the `*.opt-inc.sh` double extension) loading of Bash shell script includes *corresponding to the entry point used*.
 
-There are 2 kinds of bootstrapped contexts :
+#### Initial (= cold) VS initialized (= hot) VS "out of sync" (= stale) contexts
 
-1. when a project instance is not initialized yet (i.e. before `make init` = `asc/instance/init.sh`, also called during `reinit` and/or `setup` has run),
-1. and after initialization has run (usually once in a local project instance).
+There are 3 kinds of bootstrapped contexts :
+
+1. when a project instance is not initialized yet (i.e. before `make init` = `asc/instance/init.sh` has run, also called during `reinit` and/or `setup`),
+1. after initialization has run (usually once in a local project instance),
+1. and after initialization has run but with some changes that make the cached files outdated (e.g. when some env vars change, or when a new extension is added or removed, etc).
 
 See *Usage / Getting started* for *(re)init* and/or *setup* details.
+
+TODO [wip] explanation of what happens, in what conditions, and what to run in which situation.
+
+#### Always (= eager) VS conditionally (= lazy) sourced includes
+
+Typical ASC use cases aren't complex or "big" *by design*, but its extensibility mechanisms may easily load relatively big amounts of bash code, potentially mostly unused.
+
+So the bootstrap process implements 2 ways to attempt to load less of such potentially unused code on every command call. The *leazy sourcing* is either based on :
+
+1. Entry point script's `$subject` and `$action`
+1. Hook's cache
+
+TODO [wip] detailed explanations here.
 
 ### Extension Point
 
