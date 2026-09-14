@@ -27,7 +27,7 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
 ### Non-goals ("out of scope"s)
 
 - code refactoring
-- self-organizing abominable all-orchestrating plaform
+- self-organizing abominable all-orchestrating platform
 - complex NL-related or agent-related stuff should be delegated to dedicated project instances
 - in fact, anything complex is off limits
 
@@ -151,7 +151,7 @@ ASC borrows some designs present in Git and in the [Drupal™](https://drupal.or
 | **Actions** | Folders = subjects, files = actions → `data/asc/pivots.mk` |
 | **Hooks** | File-based events (e.g. `*.hook.sh`) with variant combinations |
 
-The rest of this README contains a bit more details, hopefully enough to decide wether it fits whatever reason have led your eyes here :)
+The rest of this README contains a bit more details, hopefully enough to decide whether it fits whatever reason have led your eyes here :)
 
 ## Example project (demo / case study)
 
@@ -300,7 +300,7 @@ This allows to replace any includes or hook implementations.
 
 Example : if we want to override `asc/git/init.hook.sh` - effectively *bypassing* the existing default implementation provided by the ASC main repo, we'll create the following file : `scripts/asc/override/git/init.hook.sh`.
 
-The matching is done by by replacing the leading `asc/` or `scripts/asc/contrib/` in filepaths with `scripts/asc/override/`. It works on extensions too.
+The matching is done by replacing the leading `asc/` or `scripts/asc/contrib/` in filepaths with `scripts/asc/override/`. It works on extensions too.
 
 Here's another example to illustrate overriding a Bash shell script include :
 
@@ -316,7 +316,7 @@ A *bootstrapped* context is any shell context that has sourced `asc/bootstrap.sh
 
 Sourcing the ASC bootstrap file loads *env vars* and Bash functions in the current *shell scope*, depending on "auto" (= "eager" = files using the `*.inc.sh` double extension), or "lazy" (= files using the `*.opt-inc.sh` double extension) loading of Bash shell script includes *corresponding to the entry point used*.
 
-#### Initial (= cold) VS initialized (= hot) VS "out of sync" (= stale) contexts
+#### Initial (= cold) VS initialized (= warm) VS "out of sync" (= stale) contexts
 
 There are 3 kinds of bootstrapped contexts :
 
@@ -326,18 +326,63 @@ There are 3 kinds of bootstrapped contexts :
 
 See *Usage / Getting started* for *(re)init* and/or *setup* details.
 
-TODO [wip] explanation of what happens, in what conditions, and what to run in which situation.
+**Initial (= cold)** means ASC has not written the local instance files yet (`data/asc/global.vars.sh`, make shortcuts, cache). Bootstrap still works enough to *run* init, but most `make $subject-$action` shortcuts do not exist until that has happened. This is what you get in a fresh clone, or after `make uninit`. Run `make setup` (or `make init` when you also need the interactive first-time questions).
+
+**Initialized (= warm)** means those files exist and still match the project as it is on disk. Everyday commands just use them : bootstrap reuses the last discovery instead of walking the tree again. You do not need to reinit between normal `make $subject-$action` calls.
+
+**"Out of sync" (= stale)** means the instance *was* initialized, but something you changed is invisible until you refresh generated files. Two different refreshes :
+
+1. `make cc` (= `asc/asc/cache_clear.sh`) only forgets *lookup* cache (which hooks exist, which includes were listed). Use it after adding or removing a hook, or when a new helper should appear but make shortcuts and env vars are already correct.
+1. `make reinit` rewrites globals + make shortcuts (and clears that same lookup cache). Use it after editing `env.yml` / instance settings, enabling or disabling an extension, or adding a new `$subject/$action.sh` entry point you want as a `make` target.
+
+If you are unsure which of the two is stale, `make reinit` is the safe one. `make uninit` then `make init` (or `make setup`) is the full reset. You will be asked again / start from `env.yml`.
+
+| Kind | What it means | What to run |
+|---|---|---|
+| **Cold** | No local instance files yet | `make init` or `make setup` |
+| **Warm** | Files exist and still match the project | Just `make $subject-$action` |
+| **Stale** (lookup only) | New hook / helper, shortcuts and env still fine | `make cc` |
+| **Stale** (entry points or env) | New `$subject/$action.sh`, extension on/off, `env.yml` | `make reinit` |
+| **Reset** | Throw generated instance files away | `make uninit` then `make init` or `make setup` |
 
 #### Always (= eager) VS conditionally (= lazy) sourced includes
 
 Typical ASC use cases aren't complex or "big" *by design*, but its extensibility mechanisms may easily load relatively big amounts of bash code, potentially mostly unused.
 
-So the bootstrap process implements 2 ways to attempt to load less of such potentially unused code on every command call. The *leazy sourcing* is either based on :
+So the bootstrap process implements 2 ways to attempt to load less of such potentially unused code on every command call. The *lazy sourcing* is either based on :
 
 1. Entry point script's `$subject` and `$action`
 1. Hook's cache
 
-TODO [wip] detailed explanations here.
+**Always (= eager)** includes use the `*.inc.sh` double extension (e.g. `git/git.inc.sh`). Once a shell has sourced `asc/bootstrap.sh`, those files are loaded for *that* shell, whatever command you ran. They are the shared toolbox.
+
+**Conditionally (= lazy)** includes use `*.opt-inc.sh`. They are *not* part of that shared toolbox. They load only when the name can be derived from *where you are* :
+
+1. **From the entry point** : the script that sourced bootstrap lives in a folder named `$subject`, and the file is `$action.sh`. ASC then looks next to it for `$subject.opt-inc.sh` and `$action.opt-inc.sh` (if those files exist). Example : `make software-status` runs `…/software/status.sh`, so `software.opt-inc.sh` in that same folder is loaded. Interactive `. asc/bootstrap.sh` has no such caller folder, so nothing lazy is loaded that way.
+1. **From a hook** : when an event runs, matching `*.hook.sh` files are sourced. *Before* each of those, ASC also loads `$subject.opt-inc.sh` / `$action.opt-inc.sh` sitting in *that hook file's folder* (not necessarily the folder of the `make` entry point). Example : `make host-provision` starts in `asc/host/provision.sh` (no opt-inc there), but the real work is `asc/extensions/software/host/provision.hook.sh`, which sits next to `provision.opt-inc.sh` — that is what actually loads the helpers.
+
+NB : `make` starts a small wrapper script first, *then* the real `$action.sh` in a new shell. Only the real script's folder counts for (1). A hook in another subject does *not* inherit that entry point's lazy files ; it only sees opt-incs colocated with *its own* hook file (2).
+
+Once a hook has been resolved, ASC remembers those extra includes in `data/asc/cache` so the next call does not have to search again. If you add a new `*.opt-inc.sh` next to an existing hook, run `make cc` (or `make reinit`) or the cache will keep skipping it.
+
+| | Always (eager) `*.inc.sh` | Conditionally (lazy) `*.opt-inc.sh` |
+|---|---|---|
+| **When** | Every bootstrapped shell | Only if the filename matches the *caller* folder or a *hook* folder |
+| **What for** | Shared toolbox | Helpers for one `$subject` / `$action` (or one hook) |
+| **Example** | `asc/git/git.inc.sh` | `…/software/software.opt-inc.sh` next to `status.sh` |
+| **Who does *not* get it** | — | Interactive `. asc/bootstrap.sh` (no caller folder) ; the `make` wrapper script (different folder) |
+
+```mermaid
+flowchart TD
+  subgraph status["make software-status"]
+    S1["status.sh sources bootstrap"] --> S2["Loader 1: software.opt-inc.sh in that folder"]
+  end
+  subgraph provision["make host-provision"]
+    P1["asc/host/provision.sh sources bootstrap"] --> P2["Loader 1: nothing in asc/host/"]
+    P2 --> P3["hook finds software/host/provision.hook.sh"]
+    P3 --> P4["Loader 2: provision.opt-inc.sh next to that hook"]
+  end
+```
 
 ### Extension Point
 
@@ -364,7 +409,7 @@ These folders are automatically discovered during instance init (and setup). The
 - which **extensions** are enabled (using `.gitignore`-like declarations, see `.asc_subjects_ignore` files),
 - which **env vars values** are set,
 - which **level of genericity** the contained implementations have (this determines conflicted "winners"),
-- and wether they relate to a `$subject` or an `$object` (by subject) given the **entry point** (= `$action`) used.
+- and whether they relate to a `$subject` or an `$object` (by subject) given the **entry point** (= `$action`) used.
 
 **List of active dirs** (containing implementations from **most generic** to **most specific**) :
 
