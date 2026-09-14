@@ -53,6 +53,8 @@ Like the Go game, but with (make) entry points, (global) env vars, hooks (varian
     - [Overrides](#overrides)
     - [Project-specific implementations](#project-specific-implementations)
   - [Bootstrap (ASC-bootstrapped context)](#bootstrap-asc-bootstrapped-context)
+    - [Initial (= cold) VS initialized (= hot) VS "out of sync" (= stale) contexts](#initial-cold-vs-initialized-hot-vs-out-of-sync-stale-contexts)
+    - [Always (= eager) VS conditionally (= lazy) sourced includes](#always-eager-vs-conditionally-lazy-sourced-includes)
   - [Extension Point](#extension-point)
   - [Active Dir](#active-dir)
   - [Specificity and collisions handling](#specificity-and-collisions-handling)
