@@ -331,24 +331,29 @@ The "warming" process (= instance *setup* or *init* or *reinit*) (re)generates t
 - `data/asc/pivots.mk` (and `data/asc/cache/pivots.sh`) : discovered entry points (= actions) mapped as `make` entries,
 - and a bunch of hardcoded pre-warmed `data/asc/cache/hook/*.sh` cache files.
 
-**Initial (= cold)** state is the "out of the box" state (or after `make uninit`). In this state, none of the files above have been generated yet. See `Makefile` and `asc/make/default.mk` to see the default `make` entries that will work in this state (basically ). If the optional `scripts/asc/extend/custom.mk` file exists, the entries it contains will also work out of the box, before instance (re)init or setup has run.
+**Initial (= cold)** state is the "out of the box" state (or after `make uninit`). In this state, none of the files above have been generated yet. See `Makefile` and `asc/make/default.mk` to see the default `make` entries that will work in this state (notably `init`, `setup`, and `globals-lp`). If the optional `scripts/asc/extend/custom.mk` file exists, the entries it contains will also work out of the box, before instance (re)init or setup has run.
 
-**Initialized (= warm)** means the generated files listed above exist and correctly match the current local project instance state. The bootstrap runs faster because there is no need for the core discovery mechanisms to run (they just get sourced where appropriate). The hook cache progressively gets more and more complete, i.e. : if any hook call does not yet have a corresponding cache file, the corresponding discovery process runs once and generate the missing cache file (until all variants in use for the local project instance are exhausted).
+**Initialized (= warm)** means the generated files listed above exist and correctly match the current local project instance state. The bootstrap runs faster because there is no need for the core discovery mechanisms to run (they just get sourced where appropriate). The hook cache progressively gets more and more complete, i.e. : if any hook call does not yet have a corresponding cache file, the corresponding discovery process runs once and generates the missing cache file.
 
 **"Out of sync" (= stale)** means some or all of the generated files listed above do not correctly match the state of the local project instance discoverable files, `env.yml` files, etc. Running `make reinit` ensures the generated files are in sync again after any impacting modification. The `data/asc/cache/core/stamp` file informs wether something has changed and warrants to reinit the local project instance.
 
 #### Always (= eager) VS conditionally (= lazy) sourced includes
 
-Typical ASC use cases aren't complex or "big" *by design*, but its extensibility mechanisms may easily load relatively big amounts of bash code, potentially mostly unused.
+Typical ASC use cases aren't complex or "big" *by design*, but its extensibility mechanisms may easily load relatively big amounts of bash code, potentially mostly unused. That is why there are 2 types of automatic scripts sourcing :
 
-**Always (= eager)** includes all the files using the `*.inc.sh` double extension whose filename matches the parent dir name in *active dirs* and *extension points* (e.g. `asc/instance/instance.inc.sh`, `asc/extensions/compose/compose.inc.sh`, etc). They contain functions that are always loaded and shared in every bootstrapped context.
+1. **Eager** : all the files using the `*.inc.sh` double extension whose filename matches the parent dir name in *active dirs* and *extension points* (e.g. `asc/instance/instance.inc.sh`, `asc/extensions/compose/compose.inc.sh`, etc) are always loaded. They contain functions that are shared in every bootstrapped context.
+1. **Lazy** : files using the `*.opt-inc.sh` double extension are conditionally loaded depending on where the ASC bootstrap include is sourced. This convention allows to load less potentially unused code on every bootstrapped context. This *lazy sourcing* is either based on :
+    1. an entry point's `$subject` (= script's parent dir name) and `$action` (= script's file name),
+    1. or on a cached hook call.
 
-**Conditionally (= lazy)** includes some of the files using the `*.opt-inc.sh` double extension. This convention allows the bootstrap process to attempt to load less potentially unused code on every bootstrapped context. The *lazy sourcing* is either based on :
+Here are a few examples to illustrate how this works :
 
-1. Ean entry point's `$subject` (= script's parent dir name) and `$action` (= script's file name),
-1. or on a cached hook call.
+| File | Type | Bootstrapping context | Sourced | Why |
+|------|------|-----------------------|---------|-----|
+| `asc/git/git.inc.sh` | eager | (any) | ✅ yes | `asc/git` is an *active dir* and `git.inc.sh` matches its name |
+| `asc/extensions/compose/compose.inc.sh` | eager | (any) | ✅ yes | `asc/extensions/compose` is an *extension point* and `compose.inc.sh` matches its name |
 
-TODO table with real examples for all cases.
+TODO [wip] complete the examples to match all cases.
 
 ### Extension Point
 
