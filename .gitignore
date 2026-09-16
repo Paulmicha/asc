@@ -90,3 +90,5 @@ docker-runtime
 ._*
 .bash_aliases
 *.sshconfig
+__pycache__
+*.py[cod]
