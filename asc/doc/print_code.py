@@ -49,12 +49,19 @@ class _CodeLineExploder(HTMLParser):
         self, tag: str, attrs: list[tuple[str, str | None]]
     ) -> None:
         classes = _classes(attrs)
-        ancestor_is_mermaid = any("mermaid-wrap" in item for item in self.elements)
+        ancestor_is_skip = any(
+            "mermaid-wrap" in item or "graphviz-wrap" in item
+            for item in self.elements
+        )
         self.elements.append(classes)
 
         if not self.in_pre and tag.lower() == "pre":
             self.in_pre = True
-            self.skip_pre = "mermaid" in classes or ancestor_is_mermaid
+            self.skip_pre = (
+                "mermaid" in classes
+                or "graphviz-error" in classes
+                or ancestor_is_skip
+            )
             self._write_start_tag(tag)
             return
 

@@ -555,6 +555,22 @@ pre.mermaid foreignObject p {
   padding: 0 !important;
 }
 
+/* Graphviz: inline SVG from system `dot` (see print_graphviz.py), not PNG */
+.graphviz-wrap {
+  margin: var(--pico-spacing) 0;
+  text-align: center;
+  overflow: visible;
+}
+.graphviz-wrap svg {
+  max-width: 100%;
+  height: auto;
+  display: inline-block;
+}
+pre.graphviz-error {
+  color: #8b0000;
+  white-space: pre-wrap;
+}
+
 .asc-print-push {
   margin: 0;
   padding: 0;

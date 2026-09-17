@@ -3,9 +3,9 @@
 ASC-styled md2pdf wrapper (Spectral + Source Code Pro + compact type).
 
 Pipeline (do not reorder; pagination is last):
-  protect math → markdown → restore math → explode code lines → inject CSS/boot
-  → write HTML → fonts → Mermaid → KaTeX → emulate print → mark long paras
-  → paginate orphans/widows → page.pdf
+  protect math → Graphviz fences→SVG → markdown → restore math → explode code lines
+  → inject CSS/boot → write HTML → fonts → Mermaid → KaTeX → emulate print
+  → mark long paras → paginate orphans/widows → page.pdf
   Preview stops before paginate.
 
 Usage:
@@ -18,6 +18,7 @@ import argparse
 import hashlib
 import os
 import re
+import shutil
 import sys
 from pathlib import Path
 
@@ -29,6 +30,7 @@ from print_katex import (
     protect_katex_math,
     restore_katex_math,
 )
+from print_graphviz import iter_graphviz_fences, render_graphviz_fences
 from print_mermaid import (
     inject_mermaid_candidates,
     mermaid_run_js,
@@ -365,6 +367,7 @@ def patch_html_renderer() -> None:
                          enable_mermaid: bool = True) -> str:
         # Protect math before Python-Markdown turns _…_ into <em>.
         protected, katex_placeholders = protect_katex_math(markdown_text)
+        protected = render_graphviz_fences(protected)
         html = orig(protected, title=title, enable_mermaid=enable_mermaid)
         html = restore_katex_math(html, katex_placeholders)
         html = explode_pre_code_lines(html)
@@ -559,11 +562,22 @@ def main() -> int:
 
     markdown_content = input_path.read_text(encoding="utf-8")
     title = args.title or input_path.stem
+    gv_note = ""
+    if iter_graphviz_fences(markdown_content):
+        binary = shutil.which("dot")
+        if binary:
+            gv_note = f"; Graphviz local dot ({binary})"
+        else:
+            gv_note = (
+                "; Graphviz: 'dot' not on PATH; fences become error blocks "
+                "(sudo apt install graphviz)"
+            )
     print(f"Converting {input_path} to PDF...")
     print(
         f"  (ASC style: {FONT_FAMILY} + {MONO_FONT_FAMILY} + 9pt body; "
         f"Mermaid local {display_path(MERMAID_VENDOR, _PROJECT_ROOT, PROJECT_ROOT_DEFAULT)}; "
-        f"KaTeX local {display_path(KATEX_VENDOR, _PROJECT_ROOT, PROJECT_ROOT_DEFAULT)}; "
+        f"KaTeX local {display_path(KATEX_VENDOR, _PROJECT_ROOT, PROJECT_ROOT_DEFAULT)}"
+        f"{gv_note}; "
         "local images rewritten for print HTML)"
     )
     try:

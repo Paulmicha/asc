@@ -465,4 +465,322 @@ PY
   assertEquals 'pipeline order assertions failed' 0 $?
 }
 
+test_graphviz_engine_and_fences() {
+  "$PDF_PY" - <<'PY'
+import re
+import subprocess
+from print_graphviz import (
+    graphviz_engine_for,
+    iter_graphviz_fences,
+    sanitize_graphviz_svg,
+    render_graphviz_fences,
+)
+
+assert graphviz_engine_for("dot") == "dot"
+assert graphviz_engine_for("DOT") == "dot"
+assert graphviz_engine_for("graphviz") == "dot"
+assert graphviz_engine_for("fdp extra") == "fdp"
+assert graphviz_engine_for("mermaid") is None
+assert graphviz_engine_for("python") is None
+
+md = (
+    "Intro\n\n"
+    "```dot\n"
+    "digraph G { a -> b }\n"
+    "```\n\n"
+    "```fdp\n"
+    "graph H { x -- y }\n"
+    "```\n\n"
+    "```python\n"
+    "print(1)\n"
+    "```\n"
+)
+fences = iter_graphviz_fences(md)
+assert len(fences) == 2
+assert fences[0][2] == "dot" and "a -> b" in fences[0][3]
+assert fences[1][2] == "fdp" and "x -- y" in fences[1][3]
+
+svg = '''<?xml version="1.0"?>
+<!DOCTYPE svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" width="72pt" height="72pt">
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10">
+      <path d="M0,0 L10,5 L0,10"/>
+    </marker>
+    <clipPath id="clip1"><rect width="10" height="10"/></clipPath>
+  </defs>
+  <style type="text/css">
+    .node { stroke: none; }
+    ellipse { fill: #ffffcc; }
+  </style>
+  <script>alert(1)</script>
+  <g id="node1" class="node" clip-path="url(#clip1)">
+    <polygon fill="url(#clip1)"/>
+    <text font-family="Times,serif">Hi</text>
+    <path marker-end="url(#arrowhead)" d="M0,0 L10,10"/>
+  </g>
+</svg>
+'''
+out = sanitize_graphviz_svg(svg, "gv0-")
+assert out.startswith("<svg")
+assert "<?xml" not in out
+assert "<!DOCTYPE" not in out
+assert "<script" not in out
+assert 'id="gv0-node1"' in out
+assert 'id="gv0-arrowhead"' in out
+assert 'id="gv0-clip1"' in out
+assert 'url(#gv0-arrowhead)' in out
+assert 'url(#gv0-clip1)' in out
+assert 'url(#arrowhead)' not in out
+assert 'url(#clip1)' not in out
+assert "Source Sans 3" in out
+assert 'width="100%"' not in out
+assert 'viewBox="0 0 10 10"' in out
+assert "72pt" in out  # intrinsic Graphviz size kept
+# Scoped CSS: substring checks would false-fail on `.graphviz-wrap .node {`.
+assert ".graphviz-wrap .node" in out or ".graphviz-wrap ellipse" in out
+assert re.search(r"(?<!graphviz-wrap )\.node\s*\{", out) is None
+assert re.search(r"(?<!graphviz-wrap )ellipse\s*\{", out) is None
+
+# Non-Graphviz fences stay fences. A ```dot fence without `dot` becomes
+# graphviz-error (not a leftover fence).
+plain = render_graphviz_fences("```python\nprint(1)\n```\n")
+assert "```python" in plain
+
+class _Proc:
+    def __init__(self, returncode=0, stdout=b"", stderr=b""):
+        self.returncode = returncode
+        self.stdout = stdout
+        self.stderr = stderr
+
+def _no_dot(_name="dot"):
+    return None
+
+missing = render_graphviz_fences(
+    "```dot\ndigraph G { a -> b }\n```\n",
+    which_dot=_no_dot,
+)
+assert "graphviz-error" in missing
+assert "```dot" not in missing
+assert "digraph G" in missing
+
+def _bad_runner(argv, input, timeout):
+    return _Proc(1, b"", b"syntax error")
+
+nonzero = render_graphviz_fences(
+    "```dot\ndigraph G { a -> b }\n```\n",
+    which_dot=lambda name="dot": "/usr/bin/dot",
+    runner=_bad_runner,
+)
+assert "graphviz-error" in nonzero
+assert "```dot" not in nonzero
+
+def _timeout_runner(argv, input, timeout):
+    raise subprocess.TimeoutExpired(cmd=argv, timeout=timeout)
+
+timed = render_graphviz_fences(
+    "```dot\ndigraph G { a -> b }\n```\n",
+    which_dot=lambda name="dot": "/usr/bin/dot",
+    runner=_timeout_runner,
+)
+assert "graphviz-error" in timed
+assert "```dot" not in timed
+
+_FAKE_SVG = (
+    b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" width="72pt" height="72pt">'
+    b'<g id="n1"><text>ok</text></g></svg>'
+)
+
+def _ok_runner(argv, input, timeout):
+    assert "-Tsvg" in argv and any(a.startswith("-K") for a in argv)
+    return _Proc(0, _FAKE_SVG, b"")
+
+ok = render_graphviz_fences(
+    "```dot\ndigraph G { a -> b }\n```\n",
+    which_dot=lambda name="dot": "/usr/bin/dot",
+    runner=_ok_runner,
+)
+assert 'class="graphviz-wrap"' in ok
+assert "<svg" in ok
+assert "```dot" not in ok
+assert "digraph" not in ok
+
+import shutil
+from print_graphviz import render_dot_svg, sanitize_graphviz_svg
+
+if shutil.which("dot"):
+    raw = render_dot_svg('digraph G { a [label="Article"]; a -> b; }', "dot")
+    svg = sanitize_graphviz_svg(raw, "gv0-")
+    assert "Article" in svg
+    assert 'width="100%"' not in svg
+    html = render_graphviz_fences("```dot\ndigraph G { x -> y }\n```\n")
+    assert 'class="graphviz-wrap"' in html
+    assert "<svg" in html
+    assert "```dot" not in html
+else:
+    print("skip live dot")
+print("ok")
+PY
+  assertEquals 'graphviz engine/fence Python assertions failed' 0 $?
+}
+
+test_graphviz_survives_markdown_nl2br() {
+  "$PDF_PY" - <<'PY'
+# md2pdf markdown_to_html enables nl2br. Graphviz SVG is inserted before orig();
+# newlines inside <svg> must not become <br>.
+import re
+from md2pdf.html_renderer import markdown_to_html as orig
+from print_graphviz import render_graphviz_fences
+
+class _Proc:
+    def __init__(self, returncode=0, stdout=b"", stderr=b""):
+        self.returncode = returncode
+        self.stdout = stdout
+        self.stderr = stderr
+
+_FAKE_SVG = b'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" width="72pt" height="72pt">
+  <g id="n1">
+    <text>ok</text>
+  </g>
+</svg>'''
+
+def _ok_runner(argv, input, timeout):
+    return _Proc(0, _FAKE_SVG, b"")
+
+md = render_graphviz_fences(
+    "```dot\ndigraph G { a -> b }\n```\n",
+    which_dot=lambda name="dot": "/usr/bin/dot",
+    runner=_ok_runner,
+)
+html = orig(md, title="t", enable_mermaid=False)
+assert "<svg" in html
+m = re.search(r"<svg\b[^>]*>.*?</svg>", html, re.I | re.S)
+assert m, "svg missing after orig()"
+assert "<br" not in m.group(0).lower()
+print("ok")
+PY
+  assertEquals 'graphviz nl2br round-trip failed' 0 $?
+}
+
+test_explode_skips_graphviz() {
+  "$PDF_PY" - <<'PY'
+from print_code import explode_pre_code_lines
+
+# Success path has no <pre> inside .graphviz-wrap (only <svg>), so explode is a
+# no-op. That is NOT a skip test — explode only mutates <pre>.
+wrap = '<div class="graphviz-wrap"><svg><text>a\nb</text></svg></div>'
+assert explode_pre_code_lines(wrap) == wrap
+
+# Real skip: error fences are <pre class="graphviz-error">.
+err = '<pre class="graphviz-error">digraph G {\na -> b\n}</pre>'
+assert explode_pre_code_lines(err) == err
+assert "code-line" not in explode_pre_code_lines(err)
+
+# Ancestor skip is unused on the success path. Keep it as defense in depth;
+# this nested <pre> is synthetic (the pipeline never emits it):
+nested = '<div class="graphviz-wrap"><pre>a\nb</pre></div>'
+assert "code-line" not in explode_pre_code_lines(nested)
+print("ok")
+PY
+  assertEquals 'explode skip graphviz failed' 0 $?
+}
+
+test_pipeline_mentions_graphviz() {
+  "$PDF_PY" - <<'PY'
+from pathlib import Path
+import re
+src = Path("asc/doc/md2pdf_asc.py").read_text(encoding="utf-8")
+assert "render_graphviz_fences" in src
+# protect → graphviz → orig (markdown/mermaid)
+fn = src.split("def markdown_to_html", 1)[1].split("hr.markdown_to_html", 1)[0]
+assert fn.index("protect_katex_math") < fn.index("render_graphviz_fences")
+assert fn.index("render_graphviz_fences") < fn.index("orig(")
+# Conversion banner is in main(), not render_html() / html_preview.sh.
+main = src.split("def main", 1)[1]
+assert "Graphviz" in main
+css = Path("asc/doc/pdf_styles.css").read_text(encoding="utf-8")
+assert ".graphviz-wrap" in css
+assert "pre.graphviz-error" in css
+gv_svg = css.split(".graphviz-wrap svg", 1)[1].split("}", 1)[0]
+assert "max-width: 100%" in gv_svg
+assert re.search(r"(?<!max-)width:\s*100%", gv_svg) is None
+pag = Path("asc/doc/print_paginate.py").read_text(encoding="utf-8")
+assert "graphviz-wrap" in pag
+katex = Path("asc/doc/print_katex.py").read_text(encoding="utf-8")
+assert "graphviz-wrap" in katex and "graphviz-error" in katex
+sh = Path("asc/doc/pdf_export.sh").read_text(encoding="utf-8")
+assert "graphviz" in sh.lower() and "dot" in sh.lower()
+assert "fatal only" not in sh.lower()
+preview = Path("asc/doc/html_preview.sh").read_text(encoding="utf-8")
+assert "graphviz" in preview.lower()
+print("ok")
+PY
+  assertEquals 'pipeline graphviz wiring assertions failed' 0 $?
+}
+
+test_graphviz_does_not_restyle_mermaid() {
+  "$PDF_PY" - <<'PY'
+import re
+from md2pdf.html_renderer import markdown_to_html as orig
+from print_graphviz import render_graphviz_fences
+
+class _Proc:
+    def __init__(self, returncode=0, stdout=b"", stderr=b""):
+        self.returncode = returncode
+        self.stdout = stdout
+        self.stderr = stderr
+
+_FAKE_SVG = b'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">
+  <style>.node { fill: red !important; }</style>
+  <g class="node" id="n1"/>
+</svg>'''
+
+def _ok_runner(argv, input, timeout):
+    return _Proc(0, _FAKE_SVG, b"")
+
+md = (
+    "```mermaid\nflowchart LR\n  A-->B\n```\n\n"
+    "```dot\ndigraph G { a -> b }\n```\n"
+)
+out = render_graphviz_fences(
+    md,
+    which_dot=lambda name="dot": "/usr/bin/dot",
+    runner=_ok_runner,
+)
+assert "```mermaid" in out
+assert 'class="graphviz-wrap"' in out
+assert "```dot" not in out
+assert re.search(r"(?<!graphviz-wrap )\.node\s*\{", out) is None
+html = orig(out, title="t", enable_mermaid=False)
+assert "```mermaid" in html or 'class="mermaid"' in html or "flowchart LR" in html
+print("ok")
+PY
+  assertEquals 'graphviz must not restyle mermaid' 0 $?
+}
+
+test_graphviz_er_fixture_pdf() {
+  if ! command -v dot >/dev/null 2>&1; then
+    echo "skip graphviz fixture (dot not on PATH)"
+    return 0
+  fi
+  ./asc/doc/pdf_export.sh --force 'asc/doc/fixtures/graphviz-er.md' || return 1
+  html="$(ls -1 data/tmp/doc-print/*graphviz-er.html \
+    "$HOME/data/tmp/doc-print/"*graphviz-er.html 2>/dev/null | head -1)"
+  [ -n "$html" ] || return 1
+  grep -q 'class="graphviz-wrap"' "$html" || return 1
+  grep -q '<svg' "$html" || return 1
+  grep -q 'fill="#ffffcc"' "$html" || true  # optional; Graphviz may emit rgb()
+  grep -q 'digraph' "$html" && return 1
+  grep -q 'fillcolor' "$html" && return 1
+  grep -q '```dot' "$html" && return 1
+  text="$(pdftotext -layout asc/doc/fixtures/graphviz-er.pdf -)"
+  echo "$text" | grep -q 'Article' || return 1
+  echo "$text" | grep -q 'Article category' || return 1
+  echo "$text" | grep -q 'Author' || return 1
+  echo "$text" | grep -q 'digraph' && return 1
+  echo "$text" | grep -q 'fillcolor' && return 1
+  echo "$text" | grep -q '```dot' && return 1
+  return 0
+}
+
 . asc/vendor/shunit2/shunit2

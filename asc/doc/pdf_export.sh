@@ -10,11 +10,14 @@
 # Styled via asc/doc/md2pdf_asc.py + pdf_styles.css (Spectral, 9pt body).
 # Mermaid: local asc/vendor/mermaid.esm.min.mjs (offline).
 # KaTeX: local asc/vendor/katex/ (CSS + JS + auto-render, offline).
+# Graphviz: ```dot / ```graphviz / ```fdp / …  (user host dep: sudo apt install graphviz)
+# Missing `dot` never aborts export. Each Graphviz fence becomes pre.graphviz-error
+# plus a stderr warning (including when every fence failed).
 #
 # Print pipeline (do not reorder; heading/table pagination is last):
-#   protect math → markdown → restore math → explode code lines → inject CSS/boot
-#   → fonts → Mermaid → KaTeX flatten → emulate print → mark long paragraphs
-#   → paginate orphans/widows → page.pdf
+#   protect math → Graphviz fences→SVG → markdown → restore math → explode code
+#   → inject CSS/boot → fonts → Mermaid → KaTeX flatten → emulate print
+#   → mark long paragraphs → paginate orphans/widows → page.pdf
 #
 # @param n [optional] String : any additional named option.
 #   --force (flag) : Force re-compiling already compiled pdfs. By default, only

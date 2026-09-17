@@ -2,7 +2,10 @@
 
 ##
 # Build an HTML preview of a markdown file using the same PDF pipeline
-# (pdf_styles.css + Spectral + local Mermaid.js).
+# (pdf_styles.css + Spectral + local Mermaid.js; Graphviz via system `dot` if present).
+#
+# Graphviz fences (```dot / ```graphviz / ```fdp / …) become inline SVG when `dot`
+# is on PATH. Missing `dot` never aborts: those fences become pre.graphviz-error.
 #
 # @example
 #   asc/doc/html_preview.sh 'data/ideas/2026/08/Agents of Redirection (Donella Meadows, Alexandre Monnin, Pierre Lévy).md'
@@ -94,5 +97,9 @@ out_path.write_text(html, encoding="utf-8")
 print(f"Wrote {out_path} ({len(html)} bytes)")
 if 'class="mermaid"' in html:
     print("  Mermaid: local asc/vendor/mermaid.esm.min.mjs (relative import)")
+if 'class="graphviz-wrap"' in html:
+    print("  Graphviz: inline SVG")
+if 'class="graphviz-error"' in html:
+    print("  warning: Graphviz fences rendered as error blocks (install: sudo apt install graphviz)")
 print("  local images: rewritten relative to this HTML")
 PY

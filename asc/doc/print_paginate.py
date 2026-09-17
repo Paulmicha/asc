@@ -370,7 +370,7 @@ def choose_bottom_issue(
 _MARK_BODY = """
   const lineH = parseFloat(getComputedStyle(document.body).lineHeight) || 16;
   document.querySelectorAll('p').forEach((p) => {
-    if (p.closest('table, pre, .mermaid, .mermaid-wrap')) return;
+    if (p.closest('table, pre, .mermaid, .mermaid-wrap, .graphviz-wrap')) return;
     const lines = p.getBoundingClientRect().height / lineH;
     if (lines >= 3) p.classList.add('asc-para-long');
   });
@@ -472,7 +472,9 @@ PAGINATE_JS = r"""
         n = n.previousElementSibling;
         continue;
       }
-      if (n.tagName === 'TABLE' || (n.classList && n.classList.contains('mermaid-wrap'))) {
+      if (n.tagName === 'TABLE' || (n.classList && (
+            n.classList.contains('mermaid-wrap') ||
+            n.classList.contains('graphviz-wrap')))) {
         break;
       }
       if (isHeading(n)) {

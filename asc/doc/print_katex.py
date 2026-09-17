@@ -119,7 +119,7 @@ async function ascRunKatex() {
       throwOnError: false,
       output: 'html',
       ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
-      ignoredClasses: ['mermaid', 'mermaid-wrap']
+      ignoredClasses: ['mermaid', 'mermaid-wrap', 'graphviz-wrap', 'graphviz-error']
     });
   } catch (err) {
     console.error('KaTeX render failed', err);
