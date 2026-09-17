@@ -5,7 +5,9 @@
 # (pdf_styles.css + Spectral + local Mermaid.js; Graphviz via system `dot` if present).
 #
 # Graphviz fences (```dot / ```graphviz / ```fdp / …) become inline SVG when `dot`
-# is on PATH. Missing `dot` never aborts: those fences become pre.graphviz-error.
+# is on PATH. Add `labels` to the fence (```twopi labels) for the optional gvpr
+# edge-label pass. Missing `dot` never aborts: those fences become
+# pre.graphviz-error.
 #
 # @example
 #   asc/doc/html_preview.sh 'data/ideas/2026/08/Agents of Redirection (Donella Meadows, Alexandre Monnin, Pierre Lévy).md'

@@ -471,6 +471,7 @@ import re
 import subprocess
 from print_graphviz import (
     graphviz_engine_for,
+    graphviz_improve_labels,
     iter_graphviz_fences,
     sanitize_graphviz_svg,
     render_graphviz_fences,
@@ -482,6 +483,10 @@ assert graphviz_engine_for("graphviz") == "dot"
 assert graphviz_engine_for("fdp extra") == "fdp"
 assert graphviz_engine_for("mermaid") is None
 assert graphviz_engine_for("python") is None
+assert graphviz_improve_labels("dot") is False
+assert graphviz_improve_labels("twopi labels") is True
+assert graphviz_improve_labels("dot LABELS") is True
+assert graphviz_improve_labels("fdp extra") is False
 
 md = (
     "Intro\n\n"
@@ -556,6 +561,9 @@ class _Proc:
 def _no_dot(_name="dot"):
     return None
 
+def _only_dot(name="dot"):
+    return "/usr/bin/dot" if name == "dot" else None
+
 missing = render_graphviz_fences(
     "```dot\ndigraph G { a -> b }\n```\n",
     which_dot=_no_dot,
@@ -569,7 +577,7 @@ def _bad_runner(argv, input, timeout):
 
 nonzero = render_graphviz_fences(
     "```dot\ndigraph G { a -> b }\n```\n",
-    which_dot=lambda name="dot": "/usr/bin/dot",
+    which_dot=_only_dot,
     runner=_bad_runner,
 )
 assert "graphviz-error" in nonzero
@@ -580,7 +588,7 @@ def _timeout_runner(argv, input, timeout):
 
 timed = render_graphviz_fences(
     "```dot\ndigraph G { a -> b }\n```\n",
-    which_dot=lambda name="dot": "/usr/bin/dot",
+    which_dot=_only_dot,
     runner=_timeout_runner,
 )
 assert "graphviz-error" in timed
@@ -597,7 +605,7 @@ def _ok_runner(argv, input, timeout):
 
 ok = render_graphviz_fences(
     "```dot\ndigraph G { a -> b }\n```\n",
-    which_dot=lambda name="dot": "/usr/bin/dot",
+    which_dot=_only_dot,
     runner=_ok_runner,
 )
 assert 'class="graphviz-wrap"' in ok
@@ -622,6 +630,130 @@ else:
 print("ok")
 PY
   assertEquals 'graphviz engine/fence Python assertions failed' 0 $?
+}
+
+test_graphviz_gvpr_edge_labels() {
+  "$PDF_PY" - <<'PY'
+from pathlib import Path
+from print_graphviz import (
+    GVPR_SCRIPT,
+    inject_edge_label_attrs,
+    render_dot_svg,
+    render_graphviz_fences,
+)
+
+src = "digraph G {\n  a -> b [label=\"Auteur\"];\n}\n"
+out = inject_edge_label_attrs(src)
+assert "labelOverlay=true" in out
+assert "label2node=true" in out
+assert inject_edge_label_attrs(out) == out  # already present
+
+assert GVPR_SCRIPT.is_file(), GVPR_SCRIPT
+assert 'fillcolor="white"' not in GVPR_SCRIPT.read_text(encoding="utf-8")
+
+class _Proc:
+    def __init__(self, returncode=0, stdout=b"", stderr=b""):
+        self.returncode = returncode
+        self.stdout = stdout
+        self.stderr = stderr
+
+_FAKE_SVG = (
+    b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">'
+    b'<g id="n1"><text>ok</text></g></svg>'
+)
+_FAKE_DOT = b'digraph G { a [pos="0,0"]; a -> b [lp="1,1", label="Auteur"]; }\n'
+
+calls = []
+
+def which_all(name="dot"):
+    return {
+        "dot": "/usr/bin/dot",
+        "gvpr": "/usr/bin/gvpr",
+        "neato": "/usr/bin/neato",
+    }.get(name)
+
+def runner(argv, input, timeout):
+    calls.append(argv)
+    names = [Path(a).name for a in argv]
+    joined = " ".join(argv)
+    data = input if isinstance(input, (bytes, bytearray)) else (input or b"")
+    if "-Tdot" in argv:
+        assert any(a.startswith("-K") for a in argv)
+        assert b"labelOverlay=true" in data
+        assert b"label2node=true" in data
+        return _Proc(0, _FAKE_DOT, b"")
+    if "gvpr" in names:
+        assert "-cf" in argv
+        assert any("improve_edge_labels.gvpr" in a for a in argv)
+        return _Proc(0, data + b"\n// gvpr-ok\n", b"")
+    if "-Tsvg" in argv and "-n2" in argv:
+        assert names[0] == "neato"
+        return _Proc(0, _FAKE_SVG, b"")
+    raise AssertionError(joined)
+
+html = render_graphviz_fences(
+    "```dot labels\ndigraph G { a -> b [label=\"Auteur\"]; }\n```\n",
+    which_dot=which_all,
+    runner=runner,
+)
+assert 'class="graphviz-wrap"' in html
+assert "<svg" in html
+assert len(calls) == 3
+assert "-Tdot" in calls[0]
+assert any(Path(a).name == "gvpr" for a in calls[1])
+assert "-n2" in calls[2] and "-Tsvg" in calls[2]
+
+# Default fence (no `labels` token) stays on dot -Tsvg.
+calls.clear()
+
+def runner_direct(argv, input, timeout):
+    calls.append(argv)
+    data = input if isinstance(input, (bytes, bytearray)) else (input or b"")
+    assert b"labelOverlay" not in data
+    if "-Tsvg" in argv and any(a.startswith("-K") for a in argv):
+        return _Proc(0, _FAKE_SVG, b"")
+    raise AssertionError(argv)
+
+plain = render_graphviz_fences(
+    "```dot\ndigraph G { a -> b [label=\"Auteur\"]; }\n```\n",
+    which_dot=which_all,
+    runner=runner_direct,
+)
+assert 'class="graphviz-wrap"' in plain
+assert len(calls) == 1
+
+# gvpr failure falls back to dot -Tsvg
+calls.clear()
+
+def runner_gvpr_fail(argv, input, timeout):
+    calls.append(argv)
+    if "-Tdot" in argv:
+        return _Proc(0, _FAKE_DOT, b"")
+    if any(Path(a).name == "gvpr" for a in argv):
+        return _Proc(1, b"", b"gvpr boom")
+    if "-Tsvg" in argv:
+        return _Proc(0, _FAKE_SVG, b"")
+    raise AssertionError(argv)
+
+fb = render_graphviz_fences(
+    "```dot labels\ndigraph G { a -> b }\n```\n",
+    which_dot=which_all,
+    runner=runner_gvpr_fail,
+)
+assert 'class="graphviz-wrap"' in fb
+assert any("-Tsvg" in c and "-K" in "".join(c) for c in calls)
+
+import shutil
+if shutil.which("dot") and shutil.which("gvpr") and shutil.which("neato"):
+    raw = render_dot_svg(
+        'digraph G { a -> b [label="Auteur"]; }',
+        "dot",
+        improve_labels=True,
+    )
+    assert "Auteur" in raw
+print("ok")
+PY
+  assertEquals 'graphviz gvpr edge-label pipeline failed' 0 $?
 }
 
 test_graphviz_survives_markdown_nl2br() {
@@ -649,7 +781,7 @@ def _ok_runner(argv, input, timeout):
 
 md = render_graphviz_fences(
     "```dot\ndigraph G { a -> b }\n```\n",
-    which_dot=lambda name="dot": "/usr/bin/dot",
+    which_dot=lambda name="dot": "/usr/bin/dot" if name == "dot" else None,
     runner=_ok_runner,
 )
 html = orig(md, title="t", enable_mermaid=False)
@@ -744,7 +876,7 @@ md = (
 )
 out = render_graphviz_fences(
     md,
-    which_dot=lambda name="dot": "/usr/bin/dot",
+    which_dot=lambda name="dot": "/usr/bin/dot" if name == "dot" else None,
     runner=_ok_runner,
 )
 assert "```mermaid" in out

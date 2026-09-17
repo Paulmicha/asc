@@ -11,6 +11,9 @@
 # Mermaid: local asc/vendor/mermaid.esm.min.mjs (offline).
 # KaTeX: local asc/vendor/katex/ (CSS + JS + auto-render, offline).
 # Graphviz: ```dot / ```graphviz / ```fdp / …  (user host dep: sudo apt install graphviz)
+# Optional edge-label pass: ```dot labels  →  dot -Tdot | gvpr | neato -n2 -Tsvg
+# (falls back to dot -Tsvg if gvpr/neato missing or the improve pass fails).
+# Default fences stay on dot -K<engine> -Tsvg.
 # Missing `dot` never aborts export. Each Graphviz fence becomes pre.graphviz-error
 # plus a stderr warning (including when every fence failed).
 #

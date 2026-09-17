@@ -1,0 +1,130 @@
+/***********************************************
+Reposition Graphviz edge labels after layout.
+
+Pipeline:
+  dot -K<engine> -Tdot | gvpr -cf improve_edge_labels.gvpr | neato -n2 -Tsvg
+
+Adapted from Steve Roush, 2023-06
+https://gist.github.com/steveroush/b45d4c2b79019128d64e7292da955436
+
+Edge attributes (optional, combinable):
+  labelOverlay=true     center label/xlabel on the edge
+  labelOverlay=n%       n% of the way from tail to head
+  labelAdjust="X,Y"     nudge lp by X,Y points
+  label2node=true       replace the edge label with a plaintext node at lp (no fill)
+*************************************************/
+BEGIN{
+  int     i, cnt, LN=0;
+  string  tStr, tok[int];
+  graph_t Root;
+
+  void doError(string eString) {
+    printf(2, "Error:: %s\n", eString);
+  }
+
+  int istrue(string checkme) {
+    int rc;
+    if (tolower(checkme) == "@(1|yes|true)")
+      rc=1;
+    else
+      rc=0;
+    return(rc);
+  }
+
+  string overlayPos(string Pos, string cmd) {
+    string p1, p2;
+    float x1, y1, x2, y2, dx, dy, percent;
+    p1="";
+    if (cmd=="(+([0-9])\%)") {
+      percent=.01 * (float)sub(cmd,"%");
+    } else {
+      percent=.5;
+    }
+    cnt=tokens(Pos, tok);
+    for (i=0; i<cnt; i++) {
+      if (tok[i]=="[es]*")
+        continue;
+      if (p1=="") {
+        p1=tok[i];
+      }
+      if (i==cnt-1)
+        p2=tok[i];
+    }
+    x1=(float)xOf(p1);
+    x2=(float)xOf(p2);
+    y1=(float)yOf(p1);
+    y2=(float)yOf(p2);
+    dx=x2-x1;
+    dy=y2-y1;
+    return (string)(x1 + percent*dx) + ", " + (string)(y1 + percent*dy);
+  }
+
+  string adjustPos(string Pos, string adj) {
+    string newPt;
+    newPt=(string)((float)xOf(Pos) + (float)xOf(adj)) + ", " + (string)((float)yOf(Pos) + (float)yOf(adj));
+    return newPt;
+  }
+}
+BEG_G{
+  Root=$G;
+  if (!(hasAttr(Root, "splines") && Root.splines!=""))
+    Root.splines="true";
+}
+N{
+  $.orig_pos=$.pos;
+}
+E{
+  if (hasAttr($, "labelOverlay") && $.labelOverlay!="") {
+    if (istrue($.labelOverlay) || $.labelOverlay=="(+([0-9])\%)") {
+      if (hasAttr($, "lp") && $.lp!="") {
+        $.preOverlaylp=$.lp;
+        $.lp=overlayPos($.pos, $.labelOverlay);
+      }
+    } else {
+      doError("For edge " + $.name + ", invalid value (" + $.labelOverlay + ") for labelOverlay attribute");
+    }
+  }
+  if (hasAttr($, "labelAdjust") && ($.labelAdjust!="")) {
+    if (hasAttr($, "lp") && $.lp!="") {
+      $.preAdjustlp=$.lp;
+      $.lp=adjustPos($.lp, $.labelAdjust);
+    }
+  }
+  if (hasAttr($, "label2node") && $.label2node!="" && istrue($.label2node)) {
+    node_t aNode;
+    string lbl, rep, s1, s2;
+    if (hasAttr($, "lp") && $.lp!="") {
+      $.preL2Nlp=$.lp;
+      $.preL2Nlabel=$.label;
+      tStr="__labelNODE__" + (string)++LN;
+      aNode=node($G, tStr);
+      lbl=$.label;
+      rep=$.tail.name;
+      while (i=index(lbl,"\\T"), i!=-1) {
+        if (i>0)
+          s1=substr(lbl,0,i-1);
+        else
+          s1="";
+        if (i<(length(lbl)-2))
+          s2=substr(lbl,i+1);
+        else
+          s2="";
+        lbl=s1 + rep + s2;
+      }
+      while (i=index(lbl,"\\H"), i!=-1) {
+        lbl=substr(lbl,0,i-1) + rep + substr(lbl,i+1);
+      }
+      while (i=index(lbl,"\\E"), i!=-1) {
+        lbl=substr(lbl,0,i-1) + rep + substr(lbl,i+1);
+      }
+      aNode.label=lbl;
+      aNode.shape="plaintext";
+      aNode.width=".05";
+      aNode.height=".05";
+      aNode.margin="0.01,0.01";
+      aNode.pos=$.lp;
+      $.label="";
+      $.lp="";
+    }
+  }
+}
