@@ -2,12 +2,32 @@
 
 | Field | Value |
 |-------|--------|
-| **Date** | 2026-09-11 |
-| **Status** | proposed (docs only — no code yet). **Do not implement until** [11-bootstrap-cache-layout-and-invalidation.md](./11-bootstrap-cache-layout-and-invalidation.md) stamp + `core/active.sh` + hook keys have landed (or that plan is explicitly abandoned). |
+| **Date** | 2026-09-11 (index updated 2026-09-19) |
+| **Status** | **split** — stamp prerequisite is **done** ([11-bootstrap-cache-layout-and-invalidation.md](./11-bootstrap-cache-layout-and-invalidation.md)). Do **not** implement this file as one PR. Use the 2026-09-19 sub-plans below. Caveats (1)–(14) and the keep/move/drop drill in this file remain the SoT. |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — what bootstrap **parses** every run (kernel, `ASC_INC`, `*.opt-inc.sh`), plus the same “keep vs move vs drop” drill used 2026-09-11 on `arr` / `str` / `fs` / `core` / `global` / `hook` / `autoload` / `yml`, continued across **remaining core subjects and extensions**. |
-| **Prerequisite** | Cache/stamp plan. That work avoids `f_asc_extend` and stale hook **lookup**. It does **not** shrink what is sourced. This plan does. |
-| **Related** | `asc/bootstrap.sh` (caller opt-inc, lines 100–138); `f_hook_opt_inc_append_candidates()` / `f_hook_source_opt_incs_for_path()` in `asc/asc/hook.inc.sh`; `f_autoload_override()` in `asc/asc/autoload.inc.sh`; README § Bootstrap / Active Dir; `docs/asc/organization.md` § bootstrap; `docs/asc/archive/bootstrap.md` (planned numbered phases — **not** on disk); `asc/utils/core_utils.inc.sh`; already-extracted `asc/instance/write_globals.sh`, `list_actions.sh`, `list_makefiles.sh`, `globals_debug.sh`; model lazy files `asc/extensions/software/host/provision.opt-inc.sh` + `software/software/software.opt-inc.sh`. |
-| **Lifecycle** | Come back after cache/stamp. Implement in waves (kernel last). Do **not** mix this into the stamp PR. |
+| **Prerequisite** | Cache/stamp plan — **landed**. That work avoids `f_asc_extend` and stale hook **lookup**. It does **not** shrink what is sourced. The sub-plans do. |
+| **Related** | `asc/bootstrap.sh` (caller opt-inc, including `$subject/$object/$action` since [12-subject-object-action-entry-points.md](./12-subject-object-action-entry-points.md)); `f_hook_opt_inc_append_candidates()` / `f_hook_source_opt_incs_for_path()` in `asc/asc/hook.inc.sh`; README § Bootstrap / Active Dir. Prefer **db / fs / mysql / pgsql** examples over `software` / `host/provision.sh`. |
+| **Lifecycle** | Implement **one sub-plan at a time**. Kernel last. Do **not** mix parse-shrink into an unrelated PR. |
+
+`$` in this file is the ASC docs placeholder (`$subject` / `$action` / `$object`), not a shell variable.
+
+---
+
+## Split (2026-09-19)
+
+The 2026-09-11 waves are still correct, but they mix **docs**, **utils**, **db**, **contrib drivers**, and **the rest of `ASC_INC`**. That is too much for one implementation pass. README also needs a complete eager/lazy case table *now*, and the only on-disk lazy models were `software` / `host/provision` — the wrong teaching examples.
+
+| Order | Sub-plan | What it produces | Parse win |
+|-------|----------|------------------|-----------|
+| 0 | [19-eager-vs-lazy-include-cases.md](./19-eager-vs-lazy-include-cases.md) | README table: every auto-loader case, using `fs` + `db` + mysql/pgsql + existing `remote_db` / `remote_instance` opt-incs | docs only |
+| 1 | [19-fs-archive-lazy-include.md](./19-fs-archive-lazy-include.md) | Compress/extract/merge/watch leave kernel `fs.inc.sh`. **Not** auto-derived from `asc/utils/` | ~600 lines off every bootstrap |
+| 2 | [19-db-thin-inc-and-opt-inc.md](./19-db-thin-inc-and-opt-inc.md) | Thin eager `db.inc.sh` (creds/flags); dump/exec/restore cluster → `db/db.opt-inc.sh`; keep already-extracted entry points | ~1k lines off `ASC_INC` when db is enabled |
+| 3 | [19-mysql-pgsql-hook-opt-inc.md](./19-mysql-pgsql-hook-opt-inc.md) | Shared driver helpers next to `dump.mysql.hook.sh` / `dump.pgsql.hook.sh` so hook seeding has a real contrib example | small; teaching + DRY |
+| later | [19-lazy-opt-inc-remaining-core-waves.md](./19-lazy-opt-inc-remaining-core-waves.md) | Original Wave A (str/yml duplicate), B (globals), C (`test`/`git`/`make`/…), D (hook lookup) | the rest of ~9k |
+
+**Do not** start 1–3 until 0’s table is agreed (paths in the table are the filenames the code sub-plans will create).
+
+**ArcadeDB:** no dump/exec hooks today (aliases + compose globals only). It stays a negative example: contrib can be hook-only; it does **not** get a fake `arcadedb.opt-inc.sh`.
 
 `$` in this file is the ASC docs placeholder (`$subject` / `$action`), not a shell variable.
 
@@ -49,12 +69,6 @@ ASC marks include **kind** with a **double** (sometimes triple) suffix, not with
 **Not a third loader.** There is no `ASC_OPT_INC` list. A `*.opt-inc.sh` that is neither next to the process that sourced bootstrap **nor** next to a matched `*.hook.sh` is never read. Putting helpers in `asc/utils/foo.opt-inc.sh` does nothing unless some caller/hook path derives that exact filename.
 
 **Filename derivation is mechanical** (see the two loaders below). There is no glob of “all `*.opt-inc.sh` under the subject.”
-
-**Docs vs disk (do not implement as part of this plan):**
-
-- `docs/asc/archive/bootstrap.md` describes numbered files `asc/bootstrap/*.bootstrap-inc.sh` and `90-caller-opt-inc`. **Those files do not exist.** Today everything is inlined in `asc/bootstrap.sh`. `software.opt-inc.sh` comments that cite `90-caller-opt-inc.bootstrap-inc.sh` are aspirational.
-- Filename-DSL notes wanted primordial **lazy** `asc/asc/utils/{array,fs,shell,string}.opt-inc.sh`. Today those are **eager** `asc/utils/{arr,fs,shell,str}.inc.sh` pulled by `core_utils.inc.sh`. Wave A of this plan is the practical move toward that intent, without waiting for `ASC_SHELL` or a phase-file split.
-- Archive docs still say `u_asc_extend` / `u_autoload_override` and override root `scripts/asc/override/`. Code is `f_*` and `scripts/asc/override` (first `asc` path segment replaced). Follow **code** when placing override opt-incs.
 
 ---
 
@@ -378,12 +392,13 @@ After each wave: `bash asc/test/core/*.test.sh` that touch the moved symbols; at
 
 ## Open tasks
 
-- [ ] Wait for [11-bootstrap-cache-layout-and-invalidation.md](./11-bootstrap-cache-layout-and-invalidation.md).
-- [ ] Wave 1: yaml dual-source.
-- [ ] Wave A–C as above.
-- [ ] Drill remaining `*.inc.sh` (instance → make → git → host → test → thread → extensions).
-- [ ] README § Bootstrap / Active Dir: document the **two** loaders, derivation rules, and caveats (1)–(2) (currently one sentence).
-- [ ] Align comments that cite missing `90-caller-opt-inc.bootstrap-inc.sh` / `scripts/asc/override/` with code (`bootstrap.sh` / `scripts/asc/override`).
+- [x] Wait for [11-bootstrap-cache-layout-and-invalidation.md](./11-bootstrap-cache-layout-and-invalidation.md). **Done.** Continue in the 2026-09-19 sub-plans (top of this file).
+- [ ] README case table: [19-eager-vs-lazy-include-cases.md](./19-eager-vs-lazy-include-cases.md).
+- [ ] Fs archive split: [19-fs-archive-lazy-include.md](./19-fs-archive-lazy-include.md).
+- [ ] Thin db + `db/db.opt-inc.sh`: [19-db-thin-inc-and-opt-inc.md](./19-db-thin-inc-and-opt-inc.md).
+- [ ] Mysql/pgsql hook DRY (only if shared): [19-mysql-pgsql-hook-opt-inc.md](./19-mysql-pgsql-hook-opt-inc.md).
+- [ ] Later core waves: [19-lazy-opt-inc-remaining-core-waves.md](./19-lazy-opt-inc-remaining-core-waves.md) (yaml dual-source, str tail, globals, `test`/`git`/…).
+- [ ] Align comments that cite missing `90-caller-opt-inc.bootstrap-inc.sh` with `bootstrap.sh`.
 - [ ] Optional: measure wrap vs action bootstrap cost; only then consider a thinner `call_wrap` bootstrap.
 
 ---
