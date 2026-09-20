@@ -32,6 +32,7 @@ Live work is leftover core lazy waves after fs+db+yaml. Meadows loop **skipped**
 | [20-readme-eager-lazy-rows.md](2026/09/20-readme-eager-lazy-rows.md) | Recap table + `utils/` never-auto sentence (applied) |
 | [20-readme-kernel-includes.md](2026/09/20-readme-kernel-includes.md) | Five kernel includes; yaml is `ASC_INC` (applied) |
 | [20-readme-pivot-nl-and-harness.md](2026/09/20-readme-pivot-nl-and-harness.md) | Pivot NL + harness clauses (applied) |
+| [20-readme-genericity-scale.md](2026/09/20-readme-genericity-scale.md) | Scale vs lookup axis (applied) |
 | [19-fs-archive-lazy-include.md](2026/09/19-fs-archive-lazy-include.md) | Archive helpers in `fs.opt-inc.sh`; gzip-of-SQL; `f_fs_watch_poll` dropped |
 | [19-db-thin-inc-and-opt-inc.md](2026/09/19-db-thin-inc-and-opt-inc.md) | Creds eager; dump/exec cluster at `db/db/db.opt-inc.sh` |
 | [19-mysql-pgsql-hook-opt-inc.md](2026/09/19-mysql-pgsql-hook-opt-inc.md) | Skipped — no shared mysql/pgsql hook helpers |
