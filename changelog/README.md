@@ -1,6 +1,6 @@
 # Changelog
 
-Dated notes for this ASC **core** repo. Long form lives here; the root README stays short.
+Dated notes for this ASC **core** repo. Long form lives here. The root [`README.md`](../README.md) is the **only** source of truth (human-written). These files do not override it.
 
 Files: `YYYY/MM/DD-short-label.md`. Each file starts with a status table. `$` in these notes is an ASC placeholder (`$subject` / `$action` / …), not a shell variable.
 
@@ -8,7 +8,7 @@ Files: `YYYY/MM/DD-short-label.md`. Each file starts with a status table. `$` in
 
 ## Current frontier (2026-09-20)
 
-Live work is the lazy-include split. Meadows loop **skipped** — hunts apply in chat ([2026/09/20-meadows-plan-review-feedback-loop.md](2026/09/20-meadows-plan-review-feedback-loop.md)). Case-table SoT is [2026/09/19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md). Entity discovery is a separate unstarted plan. Print/PDF is shipped.
+Live work is the lazy-include split. Meadows loop **skipped** — hunts apply in chat ([2026/09/20-meadows-plan-review-feedback-loop.md](2026/09/20-meadows-plan-review-feedback-loop.md)). Eager/lazy **working table** (not SoT — root README is): [2026/09/19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md). Entity discovery is a separate unstarted plan. Print/PDF is shipped.
 
 ## 2026-09
 
@@ -26,6 +26,7 @@ Live work is the lazy-include split. Meadows loop **skipped** — hunts apply in
 | [20-garage-lightweight-rule.md](2026/09/20-garage-lightweight-rule.md) | Garage clause in `asc-lightweight.mdc` |
 | [20-self-explainable-labels.md](2026/09/20-self-explainable-labels.md) | Labels / human↔token loop; `phase 90` → caller opt-inc |
 | [20-match-script-not-clone-includes.md](2026/09/20-match-script-not-clone-includes.md) | Sibling `. include` is not a caller |
+| [20-readme-is-sot.md](2026/09/20-readme-is-sot.md) | Root README is the only SoT; agents must flag mismatches |
 
 ### Live (do not implement as one PR)
 

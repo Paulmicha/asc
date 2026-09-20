@@ -13,15 +13,21 @@ This is a **garage** project. Explore. Break a frozen checklist when a smaller o
 
 Apply when this workspace is ASC, the tree has `asc/bootstrap.sh`, or the task touches such a tree. Otherwise skip.
 
-## Root `README.md` (human)
+## Root `README.md` (human, single source of truth)
 
-The human writes the canonical README. Agents do not create, fill, or “complete” it unless **explicitly asked**.
+`README.md` at this repo root is the **only** source of truth for what ASC is. The human writes it. Changelog, plans, tests, and this rule are working notes: they must not silently override it.
+
+Agents do not create, fill, or “complete” it unless **explicitly asked**.
+
+When README is wrong, incomplete, internally inconsistent, or in conflict with code / a changelog pick / this rule: **say so in the chat, every time**. Do not paper over it. Do not treat `changelog/` as a competing SoT. Do not dump the long form into README to “make it true.”
 
 Each accepted README edit must make the file **lighter or clearer**, not larger. One example per idea. No plan dumps, no hypothetical files, no exhaustive matrices.
 
 ```text
 ❌ Unsolicited README.md patches
 ❌ Paste a 20-row loader table “so every case is covered”
+❌ “Changelog is the SoT; README can wait”
+✅ Point out the mismatch; wait for the human
 ✅ Changelog / docs / plans for the long form
 ✅ If asked: 3–5 rows, then stop; human continues
 ```
