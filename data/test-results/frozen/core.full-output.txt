@@ -12,8 +12,10 @@ test_asc_primitives_cache_stamp_match_skips_extend
 test_asc_primitives_cache_ignore_touch_rebuilds_and_wipes_hooks
 test_asc_cache_clear_keeps_globals_and_rebuilds_core
 Cleared local data/asc/cache dir.
+test_asc_yml_inc_not_in_kernel_includes
+test_asc_yml_inc_on_asc_inc_defines_parse
 
-Ran 6 tests.
+Ran 8 tests.
 
 OK
 test_asc_caller_opt_inc_nested_subject_loads_caller_dir_not_extension_root
@@ -21,6 +23,12 @@ test_asc_caller_opt_inc_same_name_extension_and_subject_is_two_level
 test_asc_caller_opt_inc_wrong_caller_does_not_load_nested_subject
 
 Ran 3 tests.
+
+OK
+test_f_db_workflow_absent_from_eager_inc
+test_f_db_workflow_loads_from_caller_dir_opt_inc
+
+Ran 2 tests.
 
 OK
 test_f_asc_extensions_discovers_contrib
@@ -36,63 +44,6 @@ test_f_asc_get_extensions_aliases
 Ran 9 tests.
 
 OK
-test_asc_can_create_dir
-test_asc_can_chmod
-test_asc_can_create_file
-test_f_fs_get_file_contents
-test_f_fs_relative_path
-test_f_fs_dir_file_list_and_most_recent
-test_f_fs_merge_change_trim
-test_f_fs_compress_and_extract
-test_f_fs_watch_poll
-
-Ran 9 tests.
-
-OK
-test_asc_global_aggregate
-test_f_global_lookup_paths
-test_f_global_list
-test_globals_debug_script_without_prior_aggregation
-
-Ran 4 tests.
-
-OK
-test_asc_hook_single_action
-test_asc_hook_subject
-test_asc_hook_combinatory_variants
-test_asc_hook_prefix
-test_asc_hook_prefix_variants
-test_asc_hook_prefix_combinatory_variants
-test_f_hook_cache_key_canonical
-test_f_hook_cache_key_flags
-test_hook_cache_debug_and_warmup_share_file
-test_f_provision_using_lookup_values
-test_f_hook_variant_values_add
-test_f_hook_opt_inc_append_candidates
-
-Ran 12 tests.
-
-OK
-test_logged_chain_parent_observability
-asc/test/core/logged_wrappers.test.sh: line 67: _u_test_log_pid: command not found
-ASSERT:PID parsed
-ASSERT:background chain finished
-test_logged_batch_parent_observability
-asc/test/core/logged_wrappers.test.sh: line 98: _u_test_log_pid: command not found
-ASSERT:PID parsed
-ASSERT:background batch finished
-test_logged_pipe_shell_stages_observability
-asc/test/core/logged_wrappers.test.sh: line 130: _u_test_log_pid: command not found
-ASSERT:PID parsed
-ASSERT:background pipe finished
-test_sequence_fail_fast
-ASSERT:unknown first entry must fail expected not same
-test_sequence_join_semicolon_continues
-ASSERT:join:; still nonzero when a step fails expected not same
-
-Ran 5 tests.
-
-FAILED (failures=8)
 test_f_fs_archive_helpers_absent_from_kernel_bootstrap
 test_asc_can_create_dir
 test_asc_can_chmod
@@ -134,17 +85,8 @@ Ran 12 tests.
 
 OK
 test_logged_chain_parent_observability
-asc/test/core/logged_wrappers.test.sh: line 67: _u_test_log_pid: command not found
-ASSERT:PID parsed
-ASSERT:background chain finished
 test_logged_batch_parent_observability
-asc/test/core/logged_wrappers.test.sh: line 98: _u_test_log_pid: command not found
-ASSERT:PID parsed
-ASSERT:background batch finished
 test_logged_pipe_shell_stages_observability
-asc/test/core/logged_wrappers.test.sh: line 130: _u_test_log_pid: command not found
-ASSERT:PID parsed
-ASSERT:background pipe finished
 test_sequence_fail_fast
 ASSERT:unknown first entry must fail expected not same
 test_sequence_join_semicolon_continues
@@ -152,4 +94,4 @@ ASSERT:join:; still nonzero when a step fails expected not same
 
 Ran 5 tests.
 
-FAILED (failures=8)
+FAILED (failures=2)

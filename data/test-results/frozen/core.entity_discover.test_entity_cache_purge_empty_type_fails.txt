@@ -1,0 +1,5 @@
+test_entity_cache_purge_empty_type_fails
+
+Ran 6 tests.
+
+OK

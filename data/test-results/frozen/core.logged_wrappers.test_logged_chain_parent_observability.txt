@@ -1,4 +1,1 @@
 test_logged_chain_parent_observability
-asc/test/core/logged_wrappers.test.sh: line 67: _u_test_log_pid: command not found
-ASSERT:PID parsed
-ASSERT:background chain finished

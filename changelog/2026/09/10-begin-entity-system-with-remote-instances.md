@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-10 |
-| **Status** | plan (corrected: contracts vs types; discovery → cache → load). **Unstarted.** Stub still uses `asc/cache/entities/` (wrong). Not in the 2026-09-19 lazy-include order. |
+| **Status** | plan (corrected: contracts vs types; discovery → cache → load). Task 1 load/purge path is `data/asc/cache/entities/<type>/<id>.sh`. Tasks 2+ unstarted. Not in the 2026-09-19 lazy-include order. |
 | **Scope** | README `#### Instanciation`: implement the missing functions that (1) discover entity **types**, (2) discover concrete **instances**, (3) generate **cached** instances for `f_entity_load`. First consumer: replace the body of `f_remote_instance_load()`. |
 | **SoT** | Root `README.md` § Entities. Stub already started: `asc/extensions/entity/entity.inc.sh`. Fixture: `data/entities/host/foobar.home.arpa.yml`. |
 | **Not this file** | Treating `sidecar.able` as an entity type or filling `*.able.yml` as if they were `*.entity.yml`; full `include` / `override` / `alter` / `append` schema merger; Linking vs Nesting; DB storage; `dirs.yml`; enabling `remote` in this repo’s ignore file. |

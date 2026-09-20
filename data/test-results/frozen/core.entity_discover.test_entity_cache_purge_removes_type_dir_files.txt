@@ -1,0 +1,4 @@
+test_entity_cache_purge_removes_type_dir_files
+Clearing '_probe' entity instances cache entries ...
+Clearing '_probe' entity instances cache entries : done.
+

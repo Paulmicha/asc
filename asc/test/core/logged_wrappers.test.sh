@@ -64,9 +64,9 @@ test_logged_chain_parent_observability() {
   assertTrue 'parent log path is data/logs/chain.txt' \
     "[[ '$output' == *'data/logs/chain.txt'* ]]"
 
-  pid="$(_u_test_log_pid "$output")"
+  pid="$(f_test_log_pid "$output")"
   assertTrue 'PID parsed' "[[ -n '$pid' ]]"
-  assertTrue 'background chain finished' "_u_test_wait_pid '$pid'"
+  assertTrue 'background chain finished' "f_test_wait_pid '$pid'"
 
   assertTrue 'sidecar exists' "[[ -f data/logs/chain.sidecar.txt ]]"
   assertTrue 'output log exists' "[[ -f data/logs/chain.txt ]]"
@@ -95,9 +95,9 @@ test_logged_batch_parent_observability() {
   assertTrue 'parent log path is data/logs/thread-batch.txt' \
     "[[ '$output' == *'data/logs/thread-batch.txt'* ]]"
 
-  pid="$(_u_test_log_pid "$output")"
+  pid="$(f_test_log_pid "$output")"
   assertTrue 'PID parsed' "[[ -n '$pid' ]]"
-  assertTrue 'background batch finished' "_u_test_wait_pid '$pid'"
+  assertTrue 'background batch finished' "f_test_wait_pid '$pid'"
 
   assertTrue 'sidecar exists' \
     "[[ -f data/logs/thread-batch.sidecar.txt ]]"
@@ -127,9 +127,9 @@ test_logged_pipe_shell_stages_observability() {
   assertTrue 'parent log path is data/logs/thread-pipe.txt' \
     "[[ '$output' == *'data/logs/thread-pipe.txt'* ]]"
 
-  pid="$(_u_test_log_pid "$output")"
+  pid="$(f_test_log_pid "$output")"
   assertTrue 'PID parsed' "[[ -n '$pid' ]]"
-  assertTrue 'background pipe finished' "_u_test_wait_pid '$pid'"
+  assertTrue 'background pipe finished' "f_test_wait_pid '$pid'"
 
   assertTrue 'sidecar exists' \
     "[[ -f data/logs/thread-pipe.sidecar.txt ]]"

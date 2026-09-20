@@ -3,4 +3,4 @@ ASSERT:join:; still nonzero when a step fails expected not same
 
 Ran 5 tests.
 
-FAILED (failures=8)
+FAILED (failures=2)
