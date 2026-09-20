@@ -1,0 +1,2 @@
+test_f_yaml_parse_no_caller_capture_subshell
+asc/test/core/yml.test.sh: line 127: rg: command not found
