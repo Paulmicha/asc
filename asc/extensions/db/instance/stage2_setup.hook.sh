@@ -6,7 +6,13 @@
 # Makes sure all DBs exist.
 #
 # @see asc/instance/setup.sh
+# @see asc/extensions/db/db/db.opt-inc.sh
 #
+
+if ! type f_db_setup &>/dev/null; then
+  # shellcheck disable=SC1091
+  . asc/extensions/db/db/db.opt-inc.sh
+fi
 
 db_ids_arr=()
 f_db_get_ids

@@ -25,5 +25,5 @@
 
 . asc/bootstrap.sh
 
-# @see asc/extensions/db/db.inc.sh
+# @see asc/extensions/db/db/db.opt-inc.sh
 f_db_setup $@

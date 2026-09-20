@@ -53,13 +53,13 @@ Legend: **on disk** = file exists today. **planned** = filename the follow-up su
 | (any, mysql enabled) | eager | `scripts/asc/contrib/asc/mysql/mysql.inc.sh` | ❌ no file | Contrib **may** ship `$extension.inc.sh`. Mysql/pgsql/arcadedb currently do **not** — they are hook-only drivers. |
 | `…/remote/db_upload.sh` (e.g. remote db upload) | lazy caller | `asc/extensions/remote_db/remote/remote.opt-inc.sh` | ✅ yes (**on disk**) | 2-level: caller dir `remote`, `$subject` = `remote` → `remote.opt-inc.sh` |
 | `…/db/sync_to.sh` | lazy caller | `asc/extensions/remote_instance/db/db.opt-inc.sh` | ✅ yes (**on disk**) | 2-level inner subject `db` (not 3-level `remote_instance/db`) |
-| `make db-dump` → `db/dump.sh` | lazy caller | `asc/extensions/db/db/db.opt-inc.sh` | planned | Subject-wide lazy API for dump/exec/restore. See db sub-plan. |
+| `make db-dump` → `db/dump.sh` | lazy caller | `asc/extensions/db/db/db.opt-inc.sh` | ✅ yes (**on disk**) | Subject-wide lazy API for dump/exec/restore. |
 | `make db-dump` only | lazy caller | `asc/extensions/db/db/dump.opt-inc.sh` | optional / usually skip | Action-only opt-inc. Prefer **one** `db.opt-inc.sh` unless dump-only helpers appear. |
 | `make instance-registry-get` | lazy caller (3-level) | `asc/instance/registry/get.opt-inc.sh` | if file exists | `$action` opt-inc stays in the **object** dir. Pair `instance/registry`. |
 | same | lazy caller (3-level) | `asc/instance/instance.opt-inc.sh` | if file exists | `$subject` opt-inc is the **parent** `instance/`, not `registry/registry.opt-inc.sh` |
-| `hook_ms -s db -a dump` when `dump.mysql.hook.sh` wins | lazy **hook** | `scripts/asc/contrib/asc/mysql/db/db.opt-inc.sh` | planned | Hook dir basename `db` → `db.opt-inc.sh`, seeded **before** the hook body |
+| `hook_ms -s db -a dump` when `dump.mysql.hook.sh` wins | lazy **hook** | `scripts/asc/contrib/asc/mysql/db/db.opt-inc.sh` | skipped (no file) | Derivation example. Mysql hooks are self-contained. |
 | same | lazy **hook** | `scripts/asc/contrib/asc/mysql/db/dump.opt-inc.sh` | optional | `dump.mysql.hook.sh` → action = `dump` (stem **before first `.`**), **not** `dump.mysql.opt-inc.sh` |
-| `dump.pgsql.hook.sh` wins | lazy **hook** | `scripts/asc/contrib/asc/pgsql/db/db.opt-inc.sh` | planned | Same derivation as mysql |
+| `dump.pgsql.hook.sh` wins | lazy **hook** | `scripts/asc/contrib/asc/pgsql/db/db.opt-inc.sh` | skipped (no file) | Same derivation as mysql |
 | any **auto** loader | include (manual) | `asc/utils/fs.opt-inc.sh` | ❌ never (**on disk**) | `utils/` is not a caller dir and has no `*.hook.sh`. Bootstrap will not derive this path. Callers must `.` it. See fs sub-plan. |
 | `make git-status` | caller opt-inc | `asc/extensions/db/db/db.opt-inc.sh` | ❌ no | Wrong caller. Caller opt-inc only looks next to `BASH_SOURCE[1]`. |
 | `make db-dump` **before** `hook_ms dump` | lazy hook | `scripts/asc/contrib/asc/mysql/db/db.opt-inc.sh` | ❌ not yet | Caller is `asc/extensions/db/db/dump.sh`, not contrib. Mysql helpers arrive when the **hook** runs (`hook_ms`), not at caller opt-inc. |
@@ -89,4 +89,4 @@ Legend: **on disk** = file exists today. **planned** = filename the follow-up su
 
 - [x] Agree the table (especially: skip per-action `dump.opt-inc.sh` in favor of subject-wide `db.opt-inc.sh`; 3-level example = `instance/registry` not `host/provision`). **Pick A:** caller-dir only; no extension-root auto-load. Tests: `asc/test/core/caller_opt_inc.test.sh`.
 - [x] README Recap: 3–5 rows ([20-readme-eager-lazy-rows.md](./20-readme-eager-lazy-rows.md) applied). Do not paste this matrix.
-- [ ] After fs/db/mysql sub-plans land, change *planned* rows to **on disk**.
+- [ ] After remaining-core waves, change leftover *planned* rows to **on disk**. Mysql/pgsql contrib opt-incs **skipped**.

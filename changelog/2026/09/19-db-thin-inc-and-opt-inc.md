@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-19 |
-| **Status** | pick A locked (caller-dir `db/db/db.opt-inc.sh`). Loader coverage in `asc/test/core/caller_opt_inc.test.sh`. Function move still later. Fs slice **landed** — `db.inc.sh` already `.`s `fs.opt-inc.sh` for dump/exec. |
+| **Status** | **implemented** (2026-09-20). Creds/flags stay in eager `db.inc.sh`. Workflow cluster at `asc/extensions/db/db/db.opt-inc.sh` (pick A). Tests: `asc/test/core/db_thin_opt_inc.test.sh`. |
 | **Scope** | `asc/extensions/db/db.inc.sh` (~1501 lines) is `$extension/$extension.inc.sh` → **every** bootstrap when db is enabled. Most of it is dump/exec/restore orchestration only needed for `db-*` actions (and two setup hooks). |
 | **Parent** | [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) function drill + Wave C (this extension only). |
 | **Examples SoT** | [19-eager-vs-lazy-include-cases.md](./19-eager-vs-lazy-include-cases.md) |
@@ -112,7 +112,7 @@ Do **not** fold `dump_reduce.sh` back into an include.
 
 ## Open tasks
 
-- [ ] Move the workflow cluster; keep creds/flags eager.
-- [ ] Explicit `.` in `stage2_setup.hook.sh`, `app/install.hook.sh`, `remote_instance/db/db.opt-inc.sh`.
-- [ ] Point wrapper comments at `db/db.opt-inc.sh`.
-- [ ] Mark case-table *planned* row on disk.
+- [x] Move the workflow cluster; keep creds/flags eager.
+- [x] Explicit `.` in `stage2_setup.hook.sh`, `app/install.hook.sh`, `remote_instance/db/db.opt-inc.sh`.
+- [x] Point wrapper comments at `db/db/db.opt-inc.sh`.
+- [x] Mark case-table *planned* row on disk.

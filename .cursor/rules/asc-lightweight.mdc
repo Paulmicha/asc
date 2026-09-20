@@ -58,16 +58,26 @@ Ask before adding a loader, hook, wrapper, or global. Changelog may be long; REA
 
 A **label** is a **self-explainable name**: it says what the thing does without a footnote. `caller opt-inc` is a label; `phase 90` is not (that was a numbered filename; the code now lives at the tail of `asc/bootstrap.sh`).
 
-The human writes French, English, or Brazilian Portuguese. Natural language is redundant; human memory is **disparate** (nicknames, near-misses, three languages). Machine concepts need to stay more or less **deterministic** (tokens, loaders, make pivots, harnesses). **Synonyms** declare **equivalences**. They raise the hit rate of disparate recall onto a small, self-explainable set (primordial YAML; `synonym:` on entities/ables; `ASC_SYNONYMS` on make task names).
+The human writes French, English, or Brazilian Portuguese. **English** is the **pivot NL** in this tree: the canonical natural-language spelling of a label (not a make `$subject-$action` pivot). FR and PT-BR are redundant routes onto that same English label, then onto the token. A later **Projet Complexe** instance may declare its own counterpart; that stays in that instance, not here.
+
+Natural language is redundant; human memory is **disparate** (nicknames, near-misses, three languages). Machine concepts need to stay more or less **deterministic** (tokens, loaders, make pivots, harnesses).
+
+A **harness** is generic ASC-level hook/pivot vs contrib-level specificity — not a test runner. One abstract `$subject-$action`; contrib is the `hook_ms` winner. They share the same `*.entity.yml` / `*.able.yml` contracts. Do not mint a parallel pivot or a second entity spec per tool. Shape: `agent-swarm-start` (generic) vs `cursor-swarm-start` / `codex-swarm-start` (contrib). Those swarm names are **not** files in this tree. Same law on disk: `make agent-start` → `hook_ms -s agent -a start`; `make db-dump` vs `dump.mysql.hook.sh` / `dump.pgsql.hook.sh`.
+
+**Synonyms** declare **equivalences**. They raise the hit rate of disparate recall onto a small, self-explainable set (primordial YAML; `synonym:` on entities/ables; `ASC_SYNONYMS` on make task names).
 
 **Every step, hunt the language gap** (same loop as the rule/changelog upgrade above):
 
-1. **NL → token.** Map redundant human words to the existing token or its synonym. Do not invent a parallel nickname or a glossary `.mdc`.
+1. **NL → token.** Map redundant human words (any of the three languages) onto the English label (generic harness, not the contrib tool name), then the existing token or its synonym. Do not invent a parallel nickname or a glossary `.mdc`.
 2. **Token → NL.** Reply in the language the human is using. Keep ASC tokens untranslated (or via synonym). Speak the **self-explainable token**, not the private shorthand. One name per idea.
 3. If a durable name still needs a footnote: **rename it** (smallest line here and/or `changelog/`). Skip if one-off.
 
 ```text
 ❌ Numbered phases, weight jargon, teaching the nickname
 ❌ FR/EN/PT synonym table in this rule
-✅ Existing ASC synonym; or one clearer label
+❌ Projet Complexe language policy in this tree
+❌ A per-tool pivot that does not implement the abstract ASC hook
+❌ A second entity/able contract per contrib tool
+✅ English as pivot NL; existing ASC synonym; or one clearer label
+✅ One abstract `$subject-$action`; contrib is hook_ms specificity
 ```

@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-19 |
-| **Status** | proposed (no code yet). After [19-db-thin-inc-and-opt-inc.md](./19-db-thin-inc-and-opt-inc.md) if you want abstract dump to be lazy first; can also land independently (DRY only). |
+| **Status** | **skipped** (2026-09-20). Grep: mysql/pgsql hooks are self-contained; no duplicated helper to extract. Do not add empty contrib `db.opt-inc.sh`. Case-table rows stay mechanism examples (file optional). |
 | **Scope** | `scripts/asc/contrib/asc/mysql/db/*.mysql.hook.sh` and `…/pgsql/db/*.pgsql.hook.sh`. Give hook seeding a **real** contrib example in the case table. ArcadeDB is **out** (no dump/exec hooks). |
 | **Parent** | [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md); cases in [19-eager-vs-lazy-include-cases.md](./19-eager-vs-lazy-include-cases.md). |
 
@@ -70,6 +70,5 @@ If grep shows **no** real sharing beyond comments, **skip this plan** and keep c
 
 ## Open tasks
 
-- [ ] Grep mysql/pgsql hooks for duplicated blocks; extract only if duplicated.
-- [ ] If extracted, case-table *planned* contrib rows become **on disk**.
-- [ ] If not extracted, leave the table rows as mechanism examples (file optional).
+- [x] Grep mysql/pgsql hooks for duplicated blocks; extract only if duplicated. **Skip:** dump `db_dump_file` guard and `--ignore-table` are dump-only; exec tar workaround is exec-only; no shared `f_*` across hooks.
+- [x] Not extracted. Case-table contrib rows stay mechanism examples (file optional).

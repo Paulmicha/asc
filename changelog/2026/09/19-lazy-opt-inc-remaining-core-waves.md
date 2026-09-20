@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-19 |
-| **Status** | proposed, **later**. Do not start until [19-fs-archive-lazy-include.md](./19-fs-archive-lazy-include.md) and [19-db-thin-inc-and-opt-inc.md](./19-db-thin-inc-and-opt-inc.md) have landed (or been dropped). |
+| **Status** | proposed. Fs+db **landed**. First leftover: yaml dual-source (`yml.inc.sh` in kernel **and** `ASC_INC`). |
 | **Scope** | Everything still listed in [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) that is **not** fs-archive, db-thin, or mysql/pgsql hook DRY. **Not** host catalog of project instances — [20-host-scan-project-instances.md](./20-host-scan-project-instances.md) (later, separate). |
 | **SoT for caveats** | Parent plan caveats (1)–(14). Especially: hooks do not see caller opt-incs; alias hook runs **before** `ASC_INC`. |
 

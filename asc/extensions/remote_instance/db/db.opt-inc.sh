@@ -14,6 +14,12 @@
 # Convention : functions names are all prefixed by "f".
 #
 
+if ! type f_db_routine_backup &>/dev/null; then
+  # shellcheck disable=SC1091
+  . asc/extensions/db/db/db.opt-inc.sh
+fi
+
+
 ##
 # Sends local instance DB dump to given remote.
 #

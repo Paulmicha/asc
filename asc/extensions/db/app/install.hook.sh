@@ -19,6 +19,11 @@
 #   asc/app/install.sh
 #
 
+if ! type f_db_setup &>/dev/null; then
+  # shellcheck disable=SC1091
+  . asc/extensions/db/db/db.opt-inc.sh
+fi
+
 case "$ASC_DB_INITIAL_IMPORT" in true)
   db_ids_arr=()
   f_db_get_ids
