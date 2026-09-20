@@ -476,22 +476,24 @@ f_thread_run_make_step() {
   local e=''
 
   # Reject unknown entries: Makefile has a silent catch-all (%:) that would
-  # otherwise make missing goals look successful.
+  # otherwise make missing goals look successful. Same list as wrap: generated
+  # cache when present, else hardcoded defaults (cache is wiped by make cc).
+  pivots_arr=()
+  real_scripts_arr=()
   if [[ -f data/asc/cache/pivots.sh ]]; then
-    # Fresh arrays (cache uses +=).
-    pivots_arr=()
-    real_scripts_arr=()
     . data/asc/cache/pivots.sh
-    for e in "${pivots_arr[@]}"; do
-      if [[ "$e" == "$p_entry" ]]; then
-        found=1
-        break
-      fi
-    done
-    if [[ $found -ne 1 ]]; then
-      echo >&2 "Error: unknown make entry '$p_entry'."
-      return 127
+  else
+    f_make_list_hardcoded
+  fi
+  for e in "${pivots_arr[@]}"; do
+    if [[ "$e" == "$p_entry" ]]; then
+      found=1
+      break
     fi
+  done
+  if [[ $found -ne 1 ]]; then
+    echo >&2 "Error: unknown make entry '$p_entry'."
+    return 127
   fi
 
   if [[ -n "$p_encoded" ]]; then

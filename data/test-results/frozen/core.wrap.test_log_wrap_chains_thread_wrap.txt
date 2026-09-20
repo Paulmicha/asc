@@ -1,0 +1,6 @@
+test_log_wrap_chains_thread_wrap
+ASSERT:yaml record must exist
+
+Ran 3 tests.
+
+FAILED (failures=1)

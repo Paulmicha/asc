@@ -1,0 +1,1 @@
+test_asc_objects_ignore_dotfile

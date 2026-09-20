@@ -1,0 +1,1 @@
+test_asc_objects_skip_double_ext_yaml_and_nested

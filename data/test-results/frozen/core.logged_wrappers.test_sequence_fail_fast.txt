@@ -1,2 +1,1 @@
 test_sequence_fail_fast
-ASSERT:unknown first entry must fail expected not same

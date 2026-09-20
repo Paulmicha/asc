@@ -1,5 +1,5 @@
 batch: core
-updated: 2026-09-20T03:19:14-03:00
+updated: 2026-09-20T03:27:01-03:00
 exit: 1
 autoload:
   test_f_autoload_add_lookup_level: PASS
@@ -65,4 +65,42 @@ logged_wrappers:
   test_logged_chain_parent_observability: PASS
   test_logged_pipe_shell_stages_observability: PASS
   test_sequence_fail_fast: PASS
-  test_sequence_join_semicolon_continues: FAIL
+  test_sequence_join_semicolon_continues: PASS
+primitives:
+  test_asc_bootstrap_opt_inc_three_level: PASS
+  test_asc_bootstrap_opt_inc_two_level: PASS
+  test_asc_hook_unfiltered_skips_object_dir: PASS
+  test_asc_make_cross_namespace_prefixes: PASS
+  test_asc_make_deeper_wins_same_namespace: PASS
+  test_asc_make_equal_depth_first_wins: PASS
+  test_asc_objects_coexistence_two_and_three_level: PASS
+  test_asc_objects_ignore_dotfile: PASS
+  test_asc_objects_skip_double_ext_yaml_and_nested: PASS
+  test_asc_objects_three_level_discover: PASS
+required_programs:
+  test_asc_required_programs: PASS
+shell:
+  test_f_print_current_user: PASS
+  test_i_am_su: PASS
+  test_wait_for: PASS
+test_results:
+  test_u_test_results_parse_shunit_suite: PASS
+utilities:
+  test_f_array_qsort: PASS
+  test_f_array_reverse: PASS
+  test_f_in_array_and_add_once: PASS
+  test_f_str_basic_auth_credentials: PASS
+  test_f_str_case_join_escape_append: PASS
+  test_f_str_convert_tokens_datestamp: PASS
+  test_f_str_convert_tokens_nested: PASS
+  test_f_str_slug_helpers_absent_from_kernel_bootstrap: PASS
+  test_f_str_split1: PASS
+  test_f_str_subsequences_slug_random: PASS
+  test_u_fs_compress_in_place: PASS
+  test_u_fs_extract_in_place: PASS
+  test_u_str_sanitize: PASS
+  test_u_str_sanitize_var_name: PASS
+wrap:
+  test_log_wrap_chains_thread_wrap: FAIL
+  test_thread_wrap_starts_debug: PASS
+  test_wrap_rejects_invalid_entry: PASS

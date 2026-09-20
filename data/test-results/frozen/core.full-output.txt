@@ -88,10 +88,65 @@ test_logged_chain_parent_observability
 test_logged_batch_parent_observability
 test_logged_pipe_shell_stages_observability
 test_sequence_fail_fast
-ASSERT:unknown first entry must fail expected not same
 test_sequence_join_semicolon_continues
-ASSERT:join:; still nonzero when a step fails expected not same
 
 Ran 5 tests.
 
-FAILED (failures=2)
+OK
+test_asc_objects_three_level_discover
+test_asc_objects_coexistence_two_and_three_level
+test_asc_objects_skip_double_ext_yaml_and_nested
+test_asc_objects_ignore_dotfile
+test_asc_make_deeper_wins_same_namespace
+test_asc_make_equal_depth_first_wins
+test_asc_make_cross_namespace_prefixes
+test_asc_hook_unfiltered_skips_object_dir
+test_asc_bootstrap_opt_inc_two_level
+test_asc_bootstrap_opt_inc_three_level
+
+Ran 10 tests.
+
+OK
+test_asc_required_programs
+
+Ran 1 test.
+
+OK
+test_f_print_current_user
+test_i_am_su
+test_wait_for
+
+Ran 3 tests.
+
+OK
+test_u_test_results_parse_shunit_suite
+
+Ran 1 test.
+
+OK
+test_u_str_sanitize
+test_u_str_sanitize_var_name
+test_u_fs_compress_in_place
+test_u_fs_extract_in_place
+test_f_in_array_and_add_once
+test_f_array_qsort
+test_f_array_reverse
+test_f_str_split1
+test_f_str_convert_tokens_nested
+test_f_str_convert_tokens_datestamp
+test_f_str_case_join_escape_append
+test_f_str_slug_helpers_absent_from_kernel_bootstrap
+test_f_str_subsequences_slug_random
+test_f_str_basic_auth_credentials
+
+Ran 14 tests.
+
+OK
+test_wrap_rejects_invalid_entry
+test_thread_wrap_starts_debug
+test_log_wrap_chains_thread_wrap
+ASSERT:yaml record must exist
+
+Ran 3 tests.
+
+FAILED (failures=1)
