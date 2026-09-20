@@ -19,7 +19,7 @@
 f_entity_load() {
   local p_entity_type="$1"
   local p_entity_id="$2"
-  local cache="asc/cache/entities/$p_entity_type/${p_entity_id}.sh"
+  local cache="data/asc/cache/entities/${p_entity_type}/${p_entity_id}.sh"
 
   if [[ ! -f "$cache" ]]; then
     echo >&2
@@ -192,18 +192,33 @@ f_entity_spec_get_key() {
 #
 f_entity_cache_purge() {
   local p_entity_type="$1"
+  local cache_dir="data/asc/cache/entities/${p_entity_type}"
   local file=''
+
+  if [[ -z "$p_entity_type" ]]; then
+    echo >&2
+    echo "Error in f_entity_cache_purge() - $BASH_SOURCE line $LINENO: missing entity type." >&2
+    echo "-> Aborting (1)." >&2
+    echo >&2
+    return 1
+  fi
 
   echo "Clearing '$p_entity_type' entity instances cache entries ..."
 
-  f_fs_file_list "asc/cache/entities/$p_entity_type"
+  if [[ ! -d "$cache_dir" ]]; then
+    echo "Clearing '$p_entity_type' entity instances cache entries : done."
+    echo
+    return 0
+  fi
+
+  f_fs_file_list "$cache_dir"
 
   for file in $file_list; do
-    rm "asc/cache/entities/$file"
+    rm "${cache_dir}/${file}"
 
     if [[ $? -ne 0 ]]; then
       echo >&2
-      echo "Error in f_entity_cache_purge() - $BASH_SOURCE line $LINENO: failed to remove locally generated entity instance '$file' (in asc/cache/entities/$p_entity_type)." >&2
+      echo "Error in f_entity_cache_purge() - $BASH_SOURCE line $LINENO: failed to remove locally generated entity instance '$file' (in ${cache_dir})." >&2
       echo "-> Aborting (1)." >&2
       echo >&2
       return 1

@@ -1,0 +1,7 @@
+test_f_fs_compress_gz_is_gzip_not_tar
+File was uncompressed successfully to :
+  _asc_dir_test/gz/dump.sql
+
+Ran 10 tests.
+
+OK

@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-19 |
-| **Status** | yaml dual-source **done** (2026-09-20): kernel no longer `.`s `yml.inc.sh`; one home is `ASC_INC`. Next leftover: `str.inc.sh` tail. |
+| **Status** | yaml dual-source **done** (2026-09-20). Str tail **done** (2026-09-20): slug/snake/transliterate → `asc/utils/str.opt-inc.sh` (explicit `.`). Next leftover: Wave B. |
 | **Scope** | Everything still listed in [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) that is **not** fs-archive, db-thin, or mysql/pgsql hook DRY. **Not** host catalog of project instances — [20-host-scan-project-instances.md](./20-host-scan-project-instances.md) (later, separate). |
 | **SoT for caveats** | Parent plan caveats (1)–(14). Especially: hooks do not see caller opt-incs; alias hook runs **before** `ASC_INC`. |
 
@@ -17,7 +17,7 @@ Implement as **separate** small PRs, one row at a time. Inventory → classify (
 
 | Wave | Work | First concrete leftover |
 |------|------|-------------------------|
-| A rest | Remove **duplicate** `yml.inc.sh` (kernel **and** `ASC_INC`). `str.inc.sh` tail (slug/snake/random/…) → `str.opt-inc.sh` with the same **explicit `.` vs auto-derive** rule as fs (`asc/utils/` is not a caller dir). | **Yaml done.** Next: str tail |
+| A rest | Remove **duplicate** `yml.inc.sh` (kernel **and** `ASC_INC`). `str.inc.sh` tail (slug/snake/random/…) → `str.opt-inc.sh` with the same **explicit `.` vs auto-derive** rule as fs (`asc/utils/` is not a caller dir). | **Yaml done. Str tail done** (random/basic-auth stayed eager). Next: Wave B |
 | B | `f_global_aggregate` / `global()` off kernel; init/reinit source them | `hook -s asc -a bootstrap -t` before moving `global()` |
 | C | Shrink `ASC_INC`: `test.inc.sh`, then `git.inc.sh`, `make.inc.sh`, `thread.inc.sh`, `host.inc.sh`, `instance.inc.sh` | Move `f_git_write_hooks` **into** `asc/git/write_hooks.sh` (write_globals shape). `test.opt-inc.sh` first if few production hooks |
 | D | Optional: hook lookup builders sourced only on cache miss | after A–C |
@@ -45,5 +45,6 @@ Confirm with grep before moving:
 ## Open tasks
 
 - [x] Yaml dual-source PR (can be done anytime; no opt-inc). Kernel line removed; `yml.inc.sh` stays on `ASC_INC`. Tests: `test_asc_yml_inc_not_in_kernel_includes`, `test_asc_yml_inc_on_asc_inc_defines_parse`.
-- [ ] Then str tail, then Wave B, then `test`/`git` as first `ASC_INC` subjects.
+- [x] Str tail: slug/snake/transliterate → `asc/utils/str.opt-inc.sh` (explicit `.` from `host.inc.sh` slug path, `instance/slug.sh`, `instance/snake.sh`, `utilities.test.sh`). `f_str_random` / `f_str_basic_auth_credentials` stay eager (global.vars). Test: `test_f_str_slug_helpers_absent_from_kernel_bootstrap`.
+- [ ] Then Wave B, then `test`/`git` as first `ASC_INC` subjects.
 - [x] README: six → five kernel includes — [20-readme-kernel-includes.md](./20-readme-kernel-includes.md) **applied**.

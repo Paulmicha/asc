@@ -144,6 +144,10 @@ f_host_os() {
   fi
 
   # Prevent unexpected characters.
+  if ! type f_str_slug &>/dev/null; then
+    # shellcheck disable=SC1091
+    . asc/utils/str.opt-inc.sh
+  fi
   f_str_slug "$os" '-' 'os'
   f_str_slug "$version" '.' 'version'
 

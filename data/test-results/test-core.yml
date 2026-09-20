@@ -1,5 +1,5 @@
 batch: core
-updated: 2026-09-20T01:08:23-03:00
+updated: 2026-09-20T03:10:45-03:00
 exit: 1
 autoload:
   test_f_autoload_add_lookup_level: PASS
@@ -12,10 +12,15 @@ bootstrap:
   test_asc_has_essential_globals: PASS
   test_asc_primitives_cache_ignore_touch_rebuilds_and_wipes_hooks: PASS
   test_asc_primitives_cache_stamp_match_skips_extend: PASS
+  test_asc_yml_inc_not_in_kernel_includes: PASS
+  test_asc_yml_inc_on_asc_inc_defines_parse: PASS
 caller_opt_inc:
   test_asc_caller_opt_inc_nested_subject_loads_caller_dir_not_extension_root: PASS
   test_asc_caller_opt_inc_same_name_extension_and_subject_is_two_level: PASS
   test_asc_caller_opt_inc_wrong_caller_does_not_load_nested_subject: PASS
+db_thin_opt_inc:
+  test_f_db_workflow_absent_from_eager_inc: PASS
+  test_f_db_workflow_loads_from_caller_dir_opt_inc: PASS
 extensions:
   test_f_asc_extension_path_contrib: PASS
   test_f_asc_extensions_discovers_contrib: PASS
@@ -30,12 +35,13 @@ file_system:
   test_asc_can_chmod: PASS
   test_asc_can_create_dir: PASS
   test_asc_can_create_file: PASS
+  test_f_fs_archive_helpers_absent_from_kernel_bootstrap: PASS
   test_f_fs_compress_and_extract: PASS
+  test_f_fs_compress_gz_is_gzip_not_tar: PASS
   test_f_fs_dir_file_list_and_most_recent: PASS
   test_f_fs_get_file_contents: PASS
   test_f_fs_merge_change_trim: PASS
   test_f_fs_relative_path: PASS
-  test_f_fs_watch_poll: PASS
 global:
   test_asc_global_aggregate: PASS
   test_f_global_list: PASS

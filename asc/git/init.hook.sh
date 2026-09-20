@@ -7,7 +7,7 @@
 # - the application source files (clones repo if separate & not done already);
 # - a default selection of Git hooks (overwritten by ASC hooks).
 #
-# @see f_git_write_hooks() in asc/git/git.inc.sh
+# @see f_git_write_hooks() in asc/git/write_hooks.sh
 #
 
 # Automatically clones the app repo if it is separate from the "dev stack" repo.
@@ -41,5 +41,6 @@ esac
 
 # (over)Writes Git hooks to use ASC hooks.
 case "$APP_GIT_INIT_HOOK" in [Yy]*)
+  . asc/git/write_hooks.sh
   f_git_write_hooks
 esac

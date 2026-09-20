@@ -16,6 +16,7 @@
 
 . asc/bootstrap.sh
 . asc/utils/fs.opt-inc.sh
+. asc/utils/str.opt-inc.sh
 
 ##
 # Creates temporary files for verification purposes in current test case.
@@ -230,6 +231,31 @@ test_f_str_case_join_escape_append() {
   assertEquals 'f_str_append_once first' 'Foo--A--B' "$str_append_once"
   f_str_append_once '--B' "$str_append_once" 'str_append_once'
   assertEquals 'f_str_append_once idempotent' 'Foo--A--B' "$str_append_once"
+}
+
+##
+# Slug/snake/transliterate must not load from kernel `str.inc.sh` (nested
+# bootstrap). Callers `.` `asc/utils/str.opt-inc.sh`. `f_str_random` stays eager
+# (global.vars / drupalwt hash salt).
+# @see changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md
+#
+test_f_str_slug_helpers_absent_from_kernel_bootstrap() {
+  local out
+  out="$(bash -c '. asc/bootstrap.sh
+printf "%s" "$(type -t f_str_slug)"
+printf " %s" "$(type -t f_str_snake)"
+printf " %s" "$(type -t f_transliterate_char)"
+printf " %s" "$(type -t f_str_random)"')"
+  assertEquals 'slug/snake/transliterate unset; random still eager' \
+    '   function' "$out"
+
+  out="$(bash -c '. asc/bootstrap.sh
+. asc/utils/str.opt-inc.sh
+printf "%s" "$(type -t f_str_slug)"
+printf " %s" "$(type -t f_str_snake)"
+printf " %s" "$(type -t f_transliterate_char)"')"
+  assertEquals 'slug/snake/transliterate exist after opt-inc' \
+    'function function function' "$out"
 }
 
 ##
