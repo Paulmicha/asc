@@ -3,8 +3,9 @@
 ##
 # YAML-related utility functions.
 #
-# This file is sourced during core ASC bootstrap.
+# Eager via ASC_INC (`asc/yml` is an active dir). Not a kernel include.
 # @see asc/bootstrap.sh
+# @see changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md
 #
 # Convention : functions names are all prefixed by "f".
 #

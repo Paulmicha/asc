@@ -25,7 +25,6 @@ if [[ $ASC_BS_FLAG -ne 1 ]]; then
   . asc/asc/global.inc.sh
   . asc/asc/hook.inc.sh
   . asc/asc/autoload.inc.sh
-  . asc/yml/yml.inc.sh
 
   # If instance init was run at least once, automatically load locally generated
   # global env vars.

@@ -154,7 +154,7 @@ fi
 
 Plus, when namespace is `ASC`: `scripts/asc/*.inc.sh` if that dir exists, and for each enabled extension `$ext_path/$extension/${inc_stem}.inc.sh` (`inc_stem=${extension##*/}`).
 
-Bootstrap sources **every** `ASC_INC` path every heavy bootstrap (override-aware). `yml.inc.sh` is currently **both** in the six-file kernel **and** in `ASC_INC` (double source). Harmless, wasteful.
+Bootstrap sources **every** `ASC_INC` path every heavy bootstrap (override-aware). `yml.inc.sh` was **both** in the kernel **and** in `ASC_INC`; the kernel line is **gone** (2026-09-20) — one home is `ASC_INC`.
 
 ---
 
@@ -236,7 +236,7 @@ Order is **impact / risk**, not file name. Lightest first.
 | compress/extract/merge/watch | `fs.inc.sh` (~1088 lines, most of the file) | `fs.opt-inc.sh` sourced by the few actions/hooks that call them; **or** keep a ~50-line `fs-min.inc.sh` (dir list / relative path / get_file_contents) in kernel if those are used during extend | Grep every `f_fs_*` in hooks **and** `ASC_INC` before cutting. |
 | slug/snake/random/basic-auth/transliterate | `str.inc.sh` tail (~722) | `str.opt-inc.sh` | Kernel must keep sanitize/split/subseq/case. |
 | `f_array_qsort` / reverse | `arr.inc.sh` (~143, already small) | opt-inc or keep | Confirm unused-at-bootstrap again; `list_actions.sh` still calls qsort when executed as `$0`. |
-| `yml.inc.sh` (~298) | kernel **and** `ASC_INC` | **one** home | `f_instance_yaml_config_parse`, thread, remote, cron, software all need it **before** they parse. Init path must `.` yaml explicitly if it leaves `ASC_INC`. Remove the duplicate kernel line first (zero-behavior win). |
+| `yml.inc.sh` (~298) | kernel **and** `ASC_INC` | **one** home (`ASC_INC`, 2026-09-20) | `f_instance_yaml_config_parse`, thread, remote, cron, software all need it **before** they parse. Init path must `.` yaml explicitly if it leaves `ASC_INC`. Kernel line **removed**. |
 
 This is the filename-DSL “utils should be lazy” intent, without moving files to `asc/asc/utils/` in the same change unless that rename is requested.
 
@@ -368,7 +368,7 @@ Confirm with grep before moving.
 ## Implementation waves (when coming back)
 
 0. Prerequisite plan done (stamp + paths + hook keys).  
-1. Remove duplicate `yml.inc.sh` from kernel **or** `ASC_INC` (measure nothing else).  
+1. Remove duplicate `yml.inc.sh` from kernel **or** `ASC_INC` — **done** 2026-09-20 (kernel line gone; one home `ASC_INC`).  
 2. Wave A: `fs.inc.sh` / `str.inc.sh` tails; grep + tests.  
 3. Wave B: global aggregate off kernel; `make init` / `reinit` still work.  
 4. Wave C: one `ASC_INC` subject at a time (`test` first — few production hooks). Move `f_git_write_hooks` into `write_hooks.sh` as the first “this conversation” extraction in that wave.  

@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-20 |
-| **Status** | done (rule). No runtime code. No README edit. |
+| **Status** | done (rule). 2026-09-20: human asked the agent to apply the listed `*-readme-*` deltas; working table stayed out of README. |
 | **Scope** | [asc-lightweight.mdc](../../../.cursor/rules/asc-lightweight.mdc) — root `README.md` is the human SoT; agents always point out when it is wrong. |
 
 `$` in this file is the ASC docs placeholder (`$subject` / `$action`), not a shell variable.

@@ -8,7 +8,7 @@ Files: `YYYY/MM/DD-short-label.md`. Each file starts with a status table. `$` in
 
 ## Current frontier (2026-09-20)
 
-Live work is leftover core lazy waves after fs+db. Meadows loop **skipped**. Eager/lazy **working table** (not SoT — root README is): [2026/09/19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md). Entity discovery is a separate unstarted plan. Print/PDF is shipped.
+Live work is leftover core lazy waves after fs+db+yaml. Meadows loop **skipped**. Eager/lazy **working table** (not SoT — root README is): [2026/09/19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md). Entity discovery is a separate unstarted plan. Print/PDF is shipped.
 
 ## 2026-09
 
@@ -30,6 +30,8 @@ Live work is leftover core lazy waves after fs+db. Meadows loop **skipped**. Eag
 | [20-two-include-kinds.md](2026/09/20-two-include-kinds.md) | Two include kinds only; `utils/` opt-inc is explicit `.` |
 | [20-readme-proposals-rule.md](2026/09/20-readme-proposals-rule.md) | README deltas in changelog `*-readme-*`; human applies |
 | [20-readme-eager-lazy-rows.md](2026/09/20-readme-eager-lazy-rows.md) | Recap table + `utils/` never-auto sentence (applied) |
+| [20-readme-kernel-includes.md](2026/09/20-readme-kernel-includes.md) | Five kernel includes; yaml is `ASC_INC` (applied) |
+| [20-readme-pivot-nl-and-harness.md](2026/09/20-readme-pivot-nl-and-harness.md) | Pivot NL + harness clauses (applied) |
 | [19-fs-archive-lazy-include.md](2026/09/19-fs-archive-lazy-include.md) | Archive helpers in `fs.opt-inc.sh`; gzip-of-SQL; `f_fs_watch_poll` dropped |
 | [19-db-thin-inc-and-opt-inc.md](2026/09/19-db-thin-inc-and-opt-inc.md) | Creds eager; dump/exec cluster at `db/db/db.opt-inc.sh` |
 | [19-mysql-pgsql-hook-opt-inc.md](2026/09/19-mysql-pgsql-hook-opt-inc.md) | Skipped — no shared mysql/pgsql hook helpers |
@@ -40,7 +42,7 @@ Live work is leftover core lazy waves after fs+db. Meadows loop **skipped**. Eag
 |------|------|
 | [11-lazy-opt-inc-and-entry-point-extraction.md](2026/09/11-lazy-opt-inc-and-entry-point-extraction.md) | Parent split + caveats (1)–(14). Keep/move/drop drill |
 | [19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md) | Two loaders, case table. **Pick A locked**. Tests: `caller_opt_inc.test.sh` |
-| [19-lazy-opt-inc-remaining-core-waves.md](2026/09/19-lazy-opt-inc-remaining-core-waves.md) | After fs+db. First leftover: yaml dual-source |
+| [19-lazy-opt-inc-remaining-core-waves.md](2026/09/19-lazy-opt-inc-remaining-core-waves.md) | After fs+db+yaml. Next leftover: `str.inc.sh` tail |
 | [20-meadows-plan-review-feedback-loop.md](2026/09/20-meadows-plan-review-feedback-loop.md) | Meta-plan. Loop skipped; hunts apply in chat |
 
 ### Later / out of that loop

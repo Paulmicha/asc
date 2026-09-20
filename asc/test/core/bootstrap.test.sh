@@ -123,6 +123,26 @@ test_asc_cache_clear_keeps_globals_and_rebuilds_core() {
 }
 
 ##
+# yml.inc.sh has one home: ASC_INC (active dir `yml`). Not the kernel block.
+# @see changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md
+#
+test_asc_yml_inc_not_in_kernel_includes() {
+  local kernel
+  kernel="$(sed -n '/Include ASC core utilities/,/ASC_BS_SKIP_GLOBALS/p' asc/bootstrap.sh)"
+  assertFalse 'kernel block must not source yml.inc.sh' \
+    "printf '%s' \"$kernel\" | grep -q 'yml/yml.inc.sh'"
+}
+
+##
+# After bootstrap, yaml helpers still exist (ASC_INC active-dir name match).
+#
+test_asc_yml_inc_on_asc_inc_defines_parse() {
+  assertTrue 'ASC_INC lists yml.inc.sh' \
+    "[[ \" \$ASC_INC \" == *'asc/yml/yml.inc.sh'* ]]"
+  assertEquals 'f_yaml_parse is defined' 'function' "$(type -t f_yaml_parse)"
+}
+
+##
 # Cleans up any leftovers from previous tests.
 #
 # (Internal shunit2 function called after all tests have run.)

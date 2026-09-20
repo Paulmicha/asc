@@ -5,7 +5,7 @@
 | **Date** | 2026-09-20 |
 | **Status** | proposed, **later**. No code. Not in the 2026-09-19 lazy-include order. Not in the [meadows review loop](./20-meadows-plan-review-feedback-loop.md). Prefer after fs/db so a tree move does not fight stamp / `pivots.mk` churn. |
 | **Scope** | Promote `asc/extensions/builder` to **one kernel subject** `asc/builder/`. Placement lock + `template.able` / `literal.able` contract **sketches** (YAML bodies in this file). |
-| **Not this plan** | Flatten `prototype` / `template` / `code` as sibling subjects under `asc/`. Kernel **include** (the six always-sourced bootstrap files). `builder.inc.sh` on `ASC_INC`. Implementing `TODO` in hydrate/build. Entity “builder code entity”. YAML loader / merge for this sketch. [24-subject-asc-extensions.md](../07/24-subject-asc-extensions.md) nest declaration. README matrix. Third loader. New `.mdc`. |
+| **Not this plan** | Flatten `prototype` / `template` / `code` as sibling subjects under `asc/`. Kernel **include** (the five always-sourced bootstrap files). `builder.inc.sh` on `ASC_INC`. Implementing `TODO` in hydrate/build. Entity “builder code entity”. YAML loader / merge for this sketch. [24-subject-asc-extensions.md](../07/24-subject-asc-extensions.md) nest declaration. README matrix. Third loader. New `.mdc`. |
 
 `$` in this file is the ASC docs placeholder (`$subject` / `$object` / `$action` / `$extension`), not a shell variable.
 
@@ -13,7 +13,7 @@
 
 ## Kernel subject ≠ kernel include
 
-**Kernel include** = the six files every bootstrap sources (`asc/utils/core_utils.inc.sh`, `asc/asc/core.inc.sh`, `global.inc.sh`, `hook.inc.sh`, `autoload.inc.sh`, `yml.inc.sh`). Builder must **not** join that list.
+**Kernel include** = the five files every bootstrap sources (`asc/utils/core_utils.inc.sh`, `asc/asc/core.inc.sh`, `global.inc.sh`, `hook.inc.sh`, `autoload.inc.sh`). `yml.inc.sh` is **ASC_INC** (active dir `yml`), not kernel ([19-lazy-opt-inc-remaining-core-waves.md](./19-lazy-opt-inc-remaining-core-waves.md)). Builder must **not** join the kernel list.
 
 **Kernel subject** = a folder under `asc/` that discovery always treats as a `$subject` (like `host`, `instance`). Promotion is filesystem + primitives / `pivots.mk`. Functions stay in the entry point or a colocated `*.opt-inc.sh` until a real always-needed caller exists.
 

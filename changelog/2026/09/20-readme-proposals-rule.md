@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-20 |
-| **Status** | done (rule). No README.md edit. |
+| **Status** | done (rule). 2026-09-20: human asked the agent to apply listed `changelog/2026/09/20-readme-*.md` files to root README. |
 | **Scope** | New always-applied [asc-readme-proposals.mdc](../../../.cursor/rules/asc-readme-proposals.mdc). Pointer in [asc-lightweight.mdc](../../../.cursor/rules/asc-lightweight.mdc). |
 
 `$` in this file is the ASC docs placeholder (`$subject` / `$action`), not a shell variable.
