@@ -25,15 +25,16 @@ Live work is the lazy-include split. Meadows loop **skipped** — hunts apply in
 | [17-pdf-graphviz-edge-labels.md](2026/09/17-pdf-graphviz-edge-labels.md) | Opt-in gvpr edge labels |
 | [20-garage-lightweight-rule.md](2026/09/20-garage-lightweight-rule.md) | Garage clause in `asc-lightweight.mdc` |
 | [20-self-explainable-labels.md](2026/09/20-self-explainable-labels.md) | Labels / human↔token loop; `phase 90` → caller opt-inc |
+| [20-match-script-not-clone-includes.md](2026/09/20-match-script-not-clone-includes.md) | Sibling `. include` is not a caller |
 
 ### Live (do not implement as one PR)
 
 | File | Role |
 |------|------|
 | [11-lazy-opt-inc-and-entry-point-extraction.md](2026/09/11-lazy-opt-inc-and-entry-point-extraction.md) | Parent split + caveats (1)–(14). SoT for keep/move/drop |
-| [19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md) | Two loaders, case table. Paths for the code slices |
+| [19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md) | Two loaders, case table. **Pick A locked** (caller-dir). Tests: `caller_opt_inc.test.sh` |
 | [19-fs-archive-lazy-include.md](2026/09/19-fs-archive-lazy-include.md) | First code slice: archive helpers off kernel `fs.inc.sh` |
-| [19-db-thin-inc-and-opt-inc.md](2026/09/19-db-thin-inc-and-opt-inc.md) | Creds eager; dump/exec cluster lazy. Mirror vs caller opt-inc unresolved |
+| [19-db-thin-inc-and-opt-inc.md](2026/09/19-db-thin-inc-and-opt-inc.md) | Creds eager; dump/exec cluster lazy at `db/db/db.opt-inc.sh` (pick A). Function move later |
 | [19-mysql-pgsql-hook-opt-inc.md](2026/09/19-mysql-pgsql-hook-opt-inc.md) | DRY only if grep shows sharing; otherwise skip |
 | [20-meadows-plan-review-feedback-loop.md](2026/09/20-meadows-plan-review-feedback-loop.md) | Meta-plan. Loop skipped; hunts apply in chat |
 

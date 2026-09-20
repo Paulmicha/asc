@@ -77,6 +77,9 @@ fi
 
 # Always: caller opt-inc — lazy-load *.opt-inc.sh for the script that sourced
 # this file (subject + action). Interactive `. asc/bootstrap.sh` has no caller.
+# Nested `$extension/$subject/$action.sh` is 2-level (caller-dir only). It does
+# not load `$extension/$extension.opt-inc.sh`. Pick A.
+# @see asc/test/core/caller_opt_inc.test.sh
 bootstrap_caller=''
 
 if [[ ${#BASH_SOURCE[@]} -gt 1 && -n "${BASH_SOURCE[1]}" ]]; then

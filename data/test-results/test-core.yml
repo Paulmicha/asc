@@ -1,5 +1,5 @@
 batch: core
-updated: 2026-09-12T17:47:38-03:00
+updated: 2026-09-20T01:08:23-03:00
 exit: 1
 autoload:
   test_f_autoload_add_lookup_level: PASS
@@ -12,6 +12,10 @@ bootstrap:
   test_asc_has_essential_globals: PASS
   test_asc_primitives_cache_ignore_touch_rebuilds_and_wipes_hooks: PASS
   test_asc_primitives_cache_stamp_match_skips_extend: PASS
+caller_opt_inc:
+  test_asc_caller_opt_inc_nested_subject_loads_caller_dir_not_extension_root: PASS
+  test_asc_caller_opt_inc_same_name_extension_and_subject_is_two_level: PASS
+  test_asc_caller_opt_inc_wrong_caller_does_not_load_nested_subject: PASS
 extensions:
   test_f_asc_extension_path_contrib: PASS
   test_f_asc_extensions_discovers_contrib: PASS

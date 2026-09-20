@@ -16,6 +16,13 @@ Cleared local data/asc/cache dir.
 Ran 6 tests.
 
 OK
+test_asc_caller_opt_inc_nested_subject_loads_caller_dir_not_extension_root
+test_asc_caller_opt_inc_same_name_extension_and_subject_is_two_level
+test_asc_caller_opt_inc_wrong_caller_does_not_load_nested_subject
+
+Ran 3 tests.
+
+OK
 test_f_asc_extensions_discovers_contrib
 test_f_asc_extensions_honors_prefixed_ignore
 test_f_asc_extensions_prefixed_ignore_targets_contrib

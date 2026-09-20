@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-19 |
-| **Status** | proposed (docs). **This file is SoT.** Root README already has two example rows + `TODO [wip]`; do **not** paste this matrix there (lightweight: 3–5 rows max, human continues). No code. **Open design:** nested `db/dump.sh` vs opt-inc-mirrors-eager — see [meadows pre-launch](./20-meadows-plan-review-feedback-loop.md). |
+| **Status** | **pick A locked** (2026-09-20). Nested `$extension/$subject/$action.sh` uses **caller-dir** opt-inc (`db/db/db.opt-inc.sh`). Caller opt-inc does **not** load `$extension/$extension.opt-inc.sh`. Coverage: `asc/test/core/caller_opt_inc.test.sh` (`make test-core`). Root README stays two example rows + `TODO [wip]`. Function move still later. |
 | **Scope** | Document **every** auto-loader case. Examples from `asc/utils/fs.inc.sh`, `asc/extensions/db`, `scripts/asc/contrib/asc/mysql`, `pgsql`, `arcadedb`, plus the two **existing** db-related opt-incs. Do **not** use `asc/extensions/software` or `asc/host/provision.sh`. |
 | **Parent** | [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) |
 | **Follows** | [19-fs-archive-lazy-include.md](./19-fs-archive-lazy-include.md), [19-db-thin-inc-and-opt-inc.md](./19-db-thin-inc-and-opt-inc.md), [19-mysql-pgsql-hook-opt-inc.md](./19-mysql-pgsql-hook-opt-inc.md) create the rows marked *planned*. |
@@ -36,7 +36,7 @@ Interactive `. asc/bootstrap.sh` has no `BASH_SOURCE[1]` → **no** caller opt-i
 | `asc/extensions/remote_instance/db/sync_to.sh` | same shape | 2-level subject `db` | `asc/extensions/remote_instance/db/db.opt-inc.sh` (**on disk today**) |
 | `asc/instance/registry/get.sh` | subject + object + action | 3-level (`instance/registry` is in `ASC_OBJECTS`) | `asc/instance/instance.opt-inc.sh` and `asc/instance/registry/get.opt-inc.sh` |
 
-Putting dump helpers in `asc/extensions/db/db.opt-inc.sh` (beside the eager include) would **not** load for `make db-dump`.
+Putting dump helpers in `asc/extensions/db/db.opt-inc.sh` (beside the eager include) would **not** load for `make db-dump`. **Pick A (locked):** that is correct, not a spelling mistake. Tests: `asc/test/core/caller_opt_inc.test.sh`.
 
 ---
 
@@ -87,6 +87,6 @@ Legend: **on disk** = file exists today. **planned** = filename the follow-up su
 
 ## Open tasks
 
-- [ ] Agree the table (especially: skip per-action `dump.opt-inc.sh` in favor of subject-wide `db.opt-inc.sh`; 3-level example = `instance/registry` not `host/provision`). Resolve **mirror vs caller opt-inc** here before any db code (loader look / explicit `.` of the eager twin / narrowed “everywhere”) — not a third loader.
+- [x] Agree the table (especially: skip per-action `dump.opt-inc.sh` in favor of subject-wide `db.opt-inc.sh`; 3-level example = `instance/registry` not `host/provision`). **Pick A:** caller-dir only; no extension-root auto-load. Tests: `asc/test/core/caller_opt_inc.test.sh`.
 - [ ] Optional, human: 3–5 README rows from this table; drop or keep `TODO [wip]`. Do not paste the whole matrix.
 - [ ] After fs/db/mysql sub-plans land, change *planned* rows to **on disk**.

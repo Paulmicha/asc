@@ -33,10 +33,13 @@ Ship the smallest thing that still works. Prefer fewer files, fewer always-sourc
 ```text
 ❌ New include “for completeness” with no caller
 ❌ Eager *.inc.sh for a function one action/hook needs
+❌ Clone a sibling’s `. foo.inc.sh` when this file never calls it
 ❌ Document or create a file that does not exist yet
-✅ Match an existing script; stop when the action runs
+✅ Match an existing script’s *shape that still runs*; drop unused sources
 ✅ Lazy or in-entry-point only after a real caller exists
 ```
+
+A sibling’s source line is **not** a caller in this file. Example: `caller_opt_inc.test.sh` is bootstrap + shunit2 — not `test.inc.sh` (that was `primitives.test.sh`; and `asc/test/test.inc.sh` is already eager). A human “why is this `.` here?” is a patch to **this rule** and/or `changelog/` when the include has no caller. Skip if one-off.
 
 Ask before adding a loader, hook, wrapper, or global. Changelog may be long; README and runtime paths may not.
 
