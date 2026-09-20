@@ -352,21 +352,19 @@ Typical ASC use cases aren't complex or "big" *by design*, but its extensibility
 
 That is an invitation to get creative. There's a lot of space to explore. This is fundamentally a fun garage project.
 
+`asc/utils/` is not a caller dir and has no `*.hook.sh`, so a `*.opt-inc.sh` there is never auto-derived; callers must `.` it.
+
 ##### Recap
 
 Here are a few examples to illustrate how this works :
 
-| File | Type | Bootstrapping context | Sourced | Why |
-|------|------|-----------------------|---------|-----|
-| `asc/git/git.inc.sh` | eager | (any) | ✅ yes | `asc/git` is an *active dir* and `git.inc.sh` matches its name |
-| `asc/extensions/compose/compose.inc.sh` | eager | (any) | ✅ yes | `asc/extensions/compose` is an *extension point* and `compose.inc.sh` matches its name |
-
-TODO [wip] complete the examples to match all cases.
-
-asc/utils/fs.inc.sh — eager, but not an active-dir name match.
-Kernel via core_utils.inc.sh.
-Your bullets currently imply eager = parent-dir filename match only.
-That is incomplete.
+| Bootstrapping context | Type | File | Sourced | Why |
+|-----------------------|------|------|---------|-----|
+| (any) | eager | `asc/git/git.inc.sh` | ✅ yes | `asc/git` is an *active dir* and `git.inc.sh` matches its name |
+| (any) | eager | `asc/extensions/compose/compose.inc.sh` | ✅ yes | `asc/extensions/compose` is an *extension point* and `compose.inc.sh` matches its name |
+| (any heavy bootstrap) | eager | `asc/utils/fs.inc.sh` | ✅ yes | Kernel: `core_utils.inc.sh` always `.`s it. Not an active-dir name match. |
+| `make db-sync-to` | subject-lazy | `asc/extensions/remote_instance/db/db.opt-inc.sh` | ✅ yes | Caller dir `db/` → 2-level `$subject` `db`. |
+| `make git-write-hooks` | subject-lazy | `asc/extensions/remote_instance/db/db.opt-inc.sh` | ❌ no | Wrong caller. Caller opt-inc only looks next to `BASH_SOURCE[1]`. |
 
 ### Extension Point
 

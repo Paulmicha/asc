@@ -19,7 +19,7 @@ The 2026-09-11 waves are still correct, but they mix **docs**, **utils**, **db**
 
 | Order | Sub-plan | What it produces | Parse win |
 |-------|----------|------------------|-----------|
-| 0 | [19-eager-vs-lazy-include-cases.md](./19-eager-vs-lazy-include-cases.md) | Changelog case table (SoT): loaders + paths, using `fs` + `db` + mysql/pgsql + existing `remote_db` / `remote_instance` opt-incs | docs only |
+| 0 | [19-eager-vs-lazy-include-cases.md](./19-eager-vs-lazy-include-cases.md) | Changelog working table: loaders + paths, using `fs` + `db` + mysql/pgsql + existing `remote_db` / `remote_instance` opt-incs (root README is SoT) | docs only |
 | 1 | [19-fs-archive-lazy-include.md](./19-fs-archive-lazy-include.md) | Compress/extract/merge/watch leave kernel `fs.inc.sh`. **Not** auto-derived from `asc/utils/` | ~600 lines off every bootstrap |
 | 2 | [19-db-thin-inc-and-opt-inc.md](./19-db-thin-inc-and-opt-inc.md) | Thin eager `db.inc.sh` (creds/flags); dump/exec/restore cluster → `db/db.opt-inc.sh`; keep already-extracted entry points | ~1k lines off `ASC_INC` when db is enabled |
 | 3 | [19-mysql-pgsql-hook-opt-inc.md](./19-mysql-pgsql-hook-opt-inc.md) | Shared driver helpers next to `dump.mysql.hook.sh` / `dump.pgsql.hook.sh` so hook seeding has a real contrib example | small; teaching + DRY |

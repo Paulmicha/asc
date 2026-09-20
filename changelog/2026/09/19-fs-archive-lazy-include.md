@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-19 |
-| **Status** | proposed (no code yet). Filename **locked**: `asc/utils/fs.opt-inc.sh` (not `private-inc`; two include kinds — [20-two-include-kinds.md](./20-two-include-kinds.md)). After human README example rows. |
+| **Status** | proposed (no code yet). Filename **locked**: `asc/utils/fs.opt-inc.sh` (not `private-inc`; two include kinds — [20-two-include-kinds.md](./20-two-include-kinds.md)). README Recap applied; gzip vs `tar`+`.gz` and `f_fs_watch_poll` still open. |
 | **Scope** | `asc/utils/fs.inc.sh` (~1088 lines) is sourced on **every** heavy bootstrap via `asc/utils/core_utils.inc.sh`. Move compress/extract/merge/watch off that path. Align `f_db_dump` / `dump_reduce.sh` with those helpers. |
 | **Parent** | [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) Wave A (fs slice only). |
 | **Not this plan** | `str.inc.sh` tail, yaml dual-source, `db.inc.sh` thinning (see sibling sub-plans). |

@@ -29,18 +29,18 @@ Live work is the lazy-include split. Meadows loop **skipped** — hunts apply in
 | [20-readme-is-sot.md](2026/09/20-readme-is-sot.md) | Root README is the only SoT; agents must flag mismatches |
 | [20-two-include-kinds.md](2026/09/20-two-include-kinds.md) | Two include kinds only; `utils/` opt-inc is explicit `.` |
 | [20-readme-proposals-rule.md](2026/09/20-readme-proposals-rule.md) | README deltas in changelog `*-readme-*`; human applies |
+| [20-readme-eager-lazy-rows.md](2026/09/20-readme-eager-lazy-rows.md) | Recap table + `utils/` never-auto sentence (applied) |
 
 ### Live (do not implement as one PR)
 
 | File | Role |
 |------|------|
-| [11-lazy-opt-inc-and-entry-point-extraction.md](2026/09/11-lazy-opt-inc-and-entry-point-extraction.md) | Parent split + caveats (1)–(14). SoT for keep/move/drop |
+| [11-lazy-opt-inc-and-entry-point-extraction.md](2026/09/11-lazy-opt-inc-and-entry-point-extraction.md) | Parent split + caveats (1)–(14). Keep/move/drop drill |
 | [19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md) | Two loaders, case table. **Pick A locked** (caller-dir). Tests: `caller_opt_inc.test.sh` |
 | [19-fs-archive-lazy-include.md](2026/09/19-fs-archive-lazy-include.md) | First code slice: archive helpers off kernel `fs.inc.sh` |
 | [19-db-thin-inc-and-opt-inc.md](2026/09/19-db-thin-inc-and-opt-inc.md) | Creds eager; dump/exec cluster lazy at `db/db/db.opt-inc.sh` (pick A). Function move later |
 | [19-mysql-pgsql-hook-opt-inc.md](2026/09/19-mysql-pgsql-hook-opt-inc.md) | DRY only if grep shows sharing; otherwise skip |
 | [20-meadows-plan-review-feedback-loop.md](2026/09/20-meadows-plan-review-feedback-loop.md) | Meta-plan. Loop skipped; hunts apply in chat |
-| [20-readme-eager-lazy-rows.md](2026/09/20-readme-eager-lazy-rows.md) | **proposed README delta** — Recap table; you apply |
 
 ### Later / out of that loop
 
