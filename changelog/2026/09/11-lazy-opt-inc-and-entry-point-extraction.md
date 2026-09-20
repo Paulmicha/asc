@@ -41,7 +41,7 @@ Warm `make $subject-$action` still **parses ~9k lines** of function definitions 
 |---|---|---|
 | Kernel (six files + utils they pull) | ~4.8k | Every `ASC_BS_FLAG` bootstrap |
 | `ASC_INC` (`$subject/$subject.inc.sh` + extension `*.inc.sh` + `scripts/asc/*.inc.sh`) | ~4.5k | Every bootstrap after primitives |
-| Caller `*.opt-inc.sh` | varies | Phase 90: the **process** that sourced `bootstrap.sh` |
+| Caller `*.opt-inc.sh` | varies | Caller opt-inc: the **process** that sourced `bootstrap.sh` |
 | Hook-seeded `*.opt-inc.sh` | varies | When `hook()` matches a `*.hook.sh` (written into that hook cache) |
 
 Stamp does not change those numbers.
@@ -76,7 +76,7 @@ ASC marks include **kind** with a **double** (sometimes triple) suffix, not with
 
 Two independent loaders. A file can be loaded by one, both, or neither.
 
-### 1. Bootstrap caller (phase 90) — `asc/bootstrap.sh`
+### 1. Caller opt-inc — `asc/bootstrap.sh`
 
 Runs **every time** `bootstrap.sh` is sourced, **including** when `ASC_BS_FLAG` is already 1 (second `.` in the same shell still runs this block). Heavy bootstrap (kernel, globals, primitives, three hooks, `ASC_INC`) is the `if [[ $ASC_BS_FLAG -ne 1 ]]` block above it.
 
@@ -142,7 +142,7 @@ A later **cache hit** re-sources those same lines. Adding a **new** colocated op
 
 `hook_ms` uses `f_hook_source_opt_incs_for_path` for the single winning path (ad hoc), not the full `hook()` batch.
 
-**Canonical example:** `asc/extensions/software/host/provision.hook.sh` is a one-liner (`f_software_provision apply`). Helpers live in `provision.opt-inc.sh` in the **same** directory. `hook -s host -a provision` seeds that file before the hook body. `make host-provision` also loads it via phase 90 if the action is `asc/host/provision.sh` — **only if** an opt-inc exists under `asc/host/`. The extension file is **not** the same path; software provision relies on **hook seeding**, not on the core `host/` caller opt-inc.
+**Canonical example:** `asc/extensions/software/host/provision.hook.sh` is a one-liner (`f_software_provision apply`). Helpers live in `provision.opt-inc.sh` in the **same** directory. `hook -s host -a provision` seeds that file before the hook body. `make host-provision` also loads it via caller opt-inc if the action is `asc/host/provision.sh` — **only if** an opt-inc exists under `asc/host/`. The extension file is **not** the same path; software provision relies on **hook seeding**, not on the core `host/` caller opt-inc.
 
 ### 3. Eager `*.inc.sh` (`f_asc_extend` → `ASC_INC`) — not lazy
 
@@ -184,7 +184,7 @@ These are failure modes, not a short pros/cons row.
    After a miss, the cache contains `. path/to/foo.opt-inc.sh`. New colocated opt-inc → stale until `cc` or stamp wipe of `cache/hook/`. Same class of bug as a new `*.hook.sh` (stamp v1 may not see nested file adds — see prerequisite plan).
 
 6. **`source` is not `type -t`.**  
-   Functions in an unsourced opt-inc are **undefined**. Tests that call `f_yaml_parse` after only kernel bootstrap will fail if yaml left the kernel. Every test file that uses a helper must source the new home (or keep a tiny kernel stub). Existing `test_f_hook_opt_inc_append_candidates` only checks **candidate discovery**, not that bootstrap phase 90 loaded a dummy file.
+   Functions in an unsourced opt-inc are **undefined**. Tests that call `f_yaml_parse` after only kernel bootstrap will fail if yaml left the kernel. Every test file that uses a helper must source the new home (or keep a tiny kernel stub). Existing `test_f_hook_opt_inc_append_candidates` only checks **candidate discovery**, not that caller opt-inc loaded a dummy file.
 
 7. **Circular / order deps.**  
    `f_global_aggregate` calls `f_instance_yaml_config_load`. If aggregate stays in `global.inc.sh` and yaml parse moves to opt-inc, **init** must source yaml before aggregate. Today kernel/`ASC_INC` order hides this.
@@ -198,7 +198,7 @@ These are failure modes, not a short pros/cons row.
 10. **Do not lazy-load the kernel of the kernel.**  
     `hook()`, `f_asc_extend`, `f_autoload_override`, `f_array_add_once`, `f_str_sanitize_var_name` must stay eager or bootstrap cannot load anything else.
 
-11. **`ASC_BS_SKIP_GLOBALS=1`** (`asc/instance/init.sh`) still runs kernel + primitives + hooks + `ASC_INC` + phase 90. Demoting yaml/instance helpers still breaks init unless init sources them.
+11. **`ASC_BS_SKIP_GLOBALS=1`** (`asc/instance/init.sh`) still runs kernel + primitives + hooks + `ASC_INC` + caller opt-inc. Demoting yaml/instance helpers still breaks init unless init sources them.
 
 12. **Nested / virgin exec** starts a new bash; parent `ASC_BS_FLAG` does not apply. Child pays full parse cost again. Another reason to shrink kernel/`ASC_INC`, not to invent a third loader.
 
@@ -398,7 +398,7 @@ After each wave: `bash asc/test/core/*.test.sh` that touch the moved symbols; at
 - [ ] Thin db + `db/db.opt-inc.sh`: [19-db-thin-inc-and-opt-inc.md](./19-db-thin-inc-and-opt-inc.md).
 - [ ] Mysql/pgsql hook DRY (only if shared): [19-mysql-pgsql-hook-opt-inc.md](./19-mysql-pgsql-hook-opt-inc.md).
 - [ ] Later core waves: [19-lazy-opt-inc-remaining-core-waves.md](./19-lazy-opt-inc-remaining-core-waves.md) (yaml dual-source, str tail, globals, `test`/`git`/…).
-- [ ] Align comments that cite missing `90-caller-opt-inc.bootstrap-inc.sh` with `bootstrap.sh`.
+- [x] Align comments that cite missing `90-caller-opt-inc.bootstrap-inc.sh` with `bootstrap.sh`.
 - [ ] Optional: measure wrap vs action bootstrap cost; only then consider a thinner `call_wrap` bootstrap.
 
 ---
@@ -408,7 +408,7 @@ After each wave: `bash asc/test/core/*.test.sh` that touch the moved symbols; at
 | Topic | Pick |
 |---|---|
 | When | **After** cache/stamp/hook-key plan |
-| Lazy mechanism | Existing `*.opt-inc.sh` only (caller phase 90 + hook seed). No third loader. No phase-file rewrite. |
+| Lazy mechanism | Existing `*.opt-inc.sh` only (caller opt-inc + hook seed). No third loader. No numbered `NN-*.bootstrap-inc.sh` split. |
 | One-shot functions | Sourcable + executable `$subject/$action.sh` (write_globals / list_actions pattern) |
 | Kernel | Stay eager (hook, extend, autoload, arr/str minimum) |
 | Biggest parse win | `fs.inc.sh` + drop yaml duplicate + shrink `ASC_INC` (`test`/`git` first) |

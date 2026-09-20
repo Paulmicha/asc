@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-19 |
-| **Status** | proposed (no code yet). After [19-fs-archive-lazy-include.md](./19-fs-archive-lazy-include.md) if dump/exec should `.` `fs.opt-inc.sh`. **Do not implement** until mirror vs phase 90 is picked in [19-eager-vs-lazy-include-cases.md](./19-eager-vs-lazy-include-cases.md) (this file currently prefers `db/db/db.opt-inc.sh`; meadows wants `$extension/$extension.opt-inc.sh` to work too). |
+| **Status** | proposed (no code yet). After [19-fs-archive-lazy-include.md](./19-fs-archive-lazy-include.md) if dump/exec should `.` `fs.opt-inc.sh`. **Do not implement** until mirror vs caller opt-inc is picked in [19-eager-vs-lazy-include-cases.md](./19-eager-vs-lazy-include-cases.md) (this file currently prefers `db/db/db.opt-inc.sh`; meadows wants `$extension/$extension.opt-inc.sh` to work too). |
 | **Scope** | `asc/extensions/db/db.inc.sh` (~1501 lines) is `$extension/$extension.inc.sh` → **every** bootstrap when db is enabled. Most of it is dump/exec/restore orchestration only needed for `db-*` actions (and two setup hooks). |
 | **Parent** | [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) function drill + Wave C (this extension only). |
 | **Examples SoT** | [19-eager-vs-lazy-include-cases.md](./19-eager-vs-lazy-include-cases.md) |
@@ -36,10 +36,10 @@ Those functions **call each other** (`restore` → `clear` + `exec`; `setup` →
 | File | Role |
 |------|------|
 | `asc/extensions/db/db.inc.sh` | Eager extension-root include (`ASC_INC`) |
-| `asc/extensions/db/db/db.opt-inc.sh` | Lazy, loaded by phase 90 from `db/dump.sh` etc. |
+| `asc/extensions/db/db/db.opt-inc.sh` | Lazy, loaded by caller opt-inc from `db/dump.sh` etc. |
 | `asc/extensions/db/db.opt-inc.sh` | **Wrong** — caller dir is `db/db/`, not `db/` |
 
-Phase 90 for `asc/extensions/db/db/dump.sh`:
+Caller opt-inc for `asc/extensions/db/db/dump.sh`:
 
 ```text
 <dir>     = asc/extensions/db/db

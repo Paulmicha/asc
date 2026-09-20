@@ -32,7 +32,7 @@ tries   = mysql/db/db.opt-inc.sh
 
 **Not** `dump.mysql.opt-inc.sh`. Same for `dump.pgsql.hook.sh`.
 
-Phase 90 for `make db-dump` does **not** load these files (caller is `asc/extensions/db/db/dump.sh`).
+Caller opt-inc for `make db-dump` does **not** load these files (caller is `asc/extensions/db/db/dump.sh`).
 
 ---
 

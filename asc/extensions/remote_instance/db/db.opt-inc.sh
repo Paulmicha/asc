@@ -4,12 +4,12 @@
 # Contains utilities for remote instances using ASC.
 #
 # Lazy subject-wide include for remote_asc/db — not on ASC_INC.
-# Loaded by bootstrap phase 90 when any action in this subject dir sources
+# Loaded by caller opt-inc when any action in this subject dir sources
 # asc/bootstrap.sh. Do not restore as extension-root remote_asc.inc.sh.
 #
 # Complements the 'db' extension (if enabled).
 # @see asc/extensions/db
-# @see asc/bootstrap/90-caller-opt-inc.bootstrap-inc.sh
+# @see asc/bootstrap.sh (caller opt-inc)
 #
 # Convention : functions names are all prefixed by "f".
 #

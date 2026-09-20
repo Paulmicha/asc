@@ -19,7 +19,7 @@ There is **no** `ASC_OPT_INC` glob and **no** scan of `asc/utils/*.opt-inc.sh`.
 | Loader | When | Derives |
 |--------|------|---------|
 | **Eager** | Heavy bootstrap (`ASC_BS_FLAG` was not 1): kernel, then every path in `ASC_INC` | `$subject/$subject.inc.sh` in an *active dir*; `$extension/$extension.inc.sh` in an *extension point* (core, `asc/extensions/…`, contrib). Kernel utils are sourced by `asc/utils/core_utils.inc.sh` even though `utils/` is not an active dir. |
-| **Lazy caller** (bootstrap phase 90) | **Every** `. asc/bootstrap.sh`, including when already bootstrapped | From `BASH_SOURCE[1]`: `<dir>/<subject>.opt-inc.sh` then `<dir>/<action>.opt-inc.sh`. If `<parent>/<dir>` is a discovered `$subject/$object` pair, `<subject>` is the **parent** folder (3-level). |
+| **Caller opt-inc** | **Every** `. asc/bootstrap.sh`, including when already bootstrapped | From `BASH_SOURCE[1]`: `<dir>/<subject>.opt-inc.sh` then `<dir>/<action>.opt-inc.sh`. If `<parent>/<dir>` is a discovered `$subject/$object` pair, `<subject>` is the **parent** folder (3-level). |
 | **Lazy hook** | `hook()` / `hook_ms()` non-dry-run, for each existing `*.hook.sh` path (ms: the winning path only) | `<hook-dir>/<hook-dir-basename>.opt-inc.sh` and `<hook-dir>/<action>.opt-inc.sh` where `<action>` is the hook basename with `.hook.sh` stripped, then **everything before the first `.`**. |
 
 Interactive `. asc/bootstrap.sh` has no `BASH_SOURCE[1]` → **no** caller opt-inc. `hook -t` never sources opt-incs.
@@ -61,8 +61,8 @@ Legend: **on disk** = file exists today. **planned** = filename the follow-up su
 | `scripts/asc/contrib/asc/mysql/db/dump.opt-inc.sh` | lazy **hook** | same | optional | `dump.mysql.hook.sh` → action = `dump` (stem **before first `.`**), **not** `dump.mysql.opt-inc.sh` |
 | `scripts/asc/contrib/asc/pgsql/db/db.opt-inc.sh` | lazy **hook** | `dump.pgsql.hook.sh` wins | planned | Same derivation as mysql |
 | `asc/utils/fs.opt-inc.sh` | include (manual) | any **auto** loader | ❌ never | `utils/` is not a caller dir and has no `*.hook.sh`. Bootstrap will not derive this path. Callers must `.` it. See fs sub-plan. |
-| `asc/extensions/db/db/db.opt-inc.sh` | lazy caller | `make git-status` | ❌ no | Wrong caller. Phase 90 only looks next to `BASH_SOURCE[1]`. |
-| `scripts/asc/contrib/asc/mysql/db/db.opt-inc.sh` | lazy hook | `make db-dump` **before** `hook_ms dump` | ❌ not yet | Caller is `asc/extensions/db/db/dump.sh`, not contrib. Mysql helpers arrive when the **hook** runs (`hook_ms`), not at phase 90. |
+| `asc/extensions/db/db/db.opt-inc.sh` | caller opt-inc | `make git-status` | ❌ no | Wrong caller. Caller opt-inc only looks next to `BASH_SOURCE[1]`. |
+| `scripts/asc/contrib/asc/mysql/db/db.opt-inc.sh` | lazy hook | `make db-dump` **before** `hook_ms dump` | ❌ not yet | Caller is `asc/extensions/db/db/dump.sh`, not contrib. Mysql helpers arrive when the **hook** runs (`hook_ms`), not at caller opt-inc. |
 | *(none)* | lazy caller | interactive `. asc/bootstrap.sh` | ❌ no | No `BASH_SOURCE[1]` |
 | `asc/make/make.opt-inc.sh` | lazy caller | wrap process `call_wrap.make.sh` | if file exists | Wrap and action are **two** processes. Wrap does **not** see `db/db.opt-inc.sh`. |
 | `scripts/asc/contrib/asc/arcadedb/*.opt-inc.sh` | — | — | ❌ not needed | ArcadeDB is aliases + compose globals only. Do not invent an opt-inc for the table. |
@@ -71,7 +71,7 @@ Legend: **on disk** = file exists today. **planned** = filename the follow-up su
 
 ## Short “why two loaders” paragraph
 
-`make db-dump` sources `asc/extensions/db/db/dump.sh` → phase 90 can load `db/db.opt-inc.sh` (abstract dump/exec/compress). The mysql (or pgsql) implementation lives in `scripts/asc/contrib/asc/mysql/db/dump.mysql.hook.sh`. That path is **not** the bootstrap caller, so its colocated opt-inc is loaded only when `hook_ms -s db -a dump` seeds it. Same action, two directories, two loaders.
+`make db-dump` sources `asc/extensions/db/db/dump.sh` → caller opt-inc can load `db/db.opt-inc.sh` (abstract dump/exec/compress). The mysql (or pgsql) implementation lives in `scripts/asc/contrib/asc/mysql/db/dump.mysql.hook.sh`. That path is **not** the bootstrap caller, so its colocated opt-inc is loaded only when `hook_ms -s db -a dump` seeds it. Same action, two directories, two loaders.
 
 `f_db_set` / `f_db_set_all` stay **eager** (`db.inc.sh`): `asc/extensions/db/asc/bootstrap.compose.hook.sh` and `instance/pre_start.hook.sh` (etc.) call them from **other** subjects. Those hook dirs would seed `asc.opt-inc.sh` / `instance.opt-inc.sh`, not `db/db.opt-inc.sh`.
 
@@ -87,6 +87,6 @@ Legend: **on disk** = file exists today. **planned** = filename the follow-up su
 
 ## Open tasks
 
-- [ ] Agree the table (especially: skip per-action `dump.opt-inc.sh` in favor of subject-wide `db.opt-inc.sh`; 3-level example = `instance/registry` not `host/provision`). Resolve **mirror vs phase 90** here before any db code (loader look / explicit `.` of the eager twin / narrowed “everywhere”) — not a third loader.
+- [ ] Agree the table (especially: skip per-action `dump.opt-inc.sh` in favor of subject-wide `db.opt-inc.sh`; 3-level example = `instance/registry` not `host/provision`). Resolve **mirror vs caller opt-inc** here before any db code (loader look / explicit `.` of the eager twin / narrowed “everywhere”) — not a third loader.
 - [ ] Optional, human: 3–5 README rows from this table; drop or keep `TODO [wip]`. Do not paste the whole matrix.
 - [ ] After fs/db/mysql sub-plans land, change *planned* rows to **on disk**.

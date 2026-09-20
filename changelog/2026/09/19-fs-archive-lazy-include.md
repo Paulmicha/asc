@@ -14,7 +14,7 @@
 
 ## Why utils cannot use the auto loaders
 
-Phase 90 and hook seeding derive `<dir>/<subject>.opt-inc.sh` from a **caller script** or a `*.hook.sh`. `asc/utils/` is neither an active dir nor a hook dir.
+Caller opt-inc and hook seeding derive `<dir>/<subject>.opt-inc.sh` from a **caller script** or a `*.hook.sh`. `asc/utils/` is neither an active dir nor a hook dir.
 
 | Path | Auto-sourced? |
 |------|----------------|

@@ -75,7 +75,8 @@ if [[ $ASC_BS_FLAG -ne 1 ]]; then
   hook -s 'asc' -a 'bootstrap' -v 'STACK_VERSION PROVISION_USING'
 fi
 
-# Always: lazy-load optional includes for the bootstrap caller (subject + action).
+# Always: caller opt-inc — lazy-load *.opt-inc.sh for the script that sourced
+# this file (subject + action). Interactive `. asc/bootstrap.sh` has no caller.
 bootstrap_caller=''
 
 if [[ ${#BASH_SOURCE[@]} -gt 1 && -n "${BASH_SOURCE[1]}" ]]; then

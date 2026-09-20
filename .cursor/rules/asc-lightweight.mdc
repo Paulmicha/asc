@@ -1,5 +1,5 @@
 ---
-description: Garage ASC — wild but minimal; every claim is an ASC test; improve this rule every step.
+description: Garage ASC — wild but minimal; self-explainable labels; every claim is an ASC test; improve this rule every step.
 alwaysApply: true
 ---
 
@@ -39,3 +39,21 @@ Ship the smallest thing that still works. Prefer fewer files, fewer always-sourc
 ```
 
 Ask before adding a loader, hook, wrapper, or global. Changelog may be long; README and runtime paths may not.
+
+## Labels (human ↔ token)
+
+A **label** is a **self-explainable name**: it says what the thing does without a footnote. `caller opt-inc` is a label; `phase 90` is not (that was a numbered filename; the code now lives at the tail of `asc/bootstrap.sh`).
+
+The human writes French, English, or Brazilian Portuguese. Natural language is redundant; human memory is **disparate** (nicknames, near-misses, three languages). Machine concepts need to stay more or less **deterministic** (tokens, loaders, make pivots, harnesses). **Synonyms** declare **equivalences**. They raise the hit rate of disparate recall onto a small, self-explainable set (primordial YAML; `synonym:` on entities/ables; `ASC_SYNONYMS` on make task names).
+
+**Every step, hunt the language gap** (same loop as the rule/changelog upgrade above):
+
+1. **NL → token.** Map redundant human words to the existing token or its synonym. Do not invent a parallel nickname or a glossary `.mdc`.
+2. **Token → NL.** Reply in the language the human is using. Keep ASC tokens untranslated (or via synonym). Speak the **self-explainable token**, not the private shorthand. One name per idea.
+3. If a durable name still needs a footnote: **rename it** (smallest line here and/or `changelog/`). Skip if one-off.
+
+```text
+❌ Numbered phases, weight jargon, teaching the nickname
+❌ FR/EN/PT synonym table in this rule
+✅ Existing ASC synonym; or one clearer label
+```

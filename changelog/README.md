@@ -8,7 +8,7 @@ Files: `YYYY/MM/DD-short-label.md`. Each file starts with a status table. `$` in
 
 ## Current frontier (2026-09-20)
 
-Live work is the lazy-include split. The gate is [2026/09/20-meadows-plan-review-feedback-loop.md](2026/09/20-meadows-plan-review-feedback-loop.md) (human launch; garage clause already in `asc-lightweight.mdc`). Case-table SoT is [2026/09/19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md), not a README matrix. Entity discovery is a separate unstarted plan. Print/PDF is shipped.
+Live work is the lazy-include split. Meadows loop **skipped** — hunts apply in chat ([2026/09/20-meadows-plan-review-feedback-loop.md](2026/09/20-meadows-plan-review-feedback-loop.md)). Case-table SoT is [2026/09/19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md). Entity discovery is a separate unstarted plan. Print/PDF is shipped.
 
 ## 2026-09
 
@@ -24,6 +24,7 @@ Live work is the lazy-include split. The gate is [2026/09/20-meadows-plan-review
 | [17-pdf-graphviz-support.md](2026/09/17-pdf-graphviz-support.md) | Graphviz fences in the print pipeline |
 | [17-pdf-graphviz-edge-labels.md](2026/09/17-pdf-graphviz-edge-labels.md) | Opt-in gvpr edge labels |
 | [20-garage-lightweight-rule.md](2026/09/20-garage-lightweight-rule.md) | Garage clause in `asc-lightweight.mdc` |
+| [20-self-explainable-labels.md](2026/09/20-self-explainable-labels.md) | Labels / human↔token loop; `phase 90` → caller opt-inc |
 
 ### Live (do not implement as one PR)
 
@@ -32,9 +33,9 @@ Live work is the lazy-include split. The gate is [2026/09/20-meadows-plan-review
 | [11-lazy-opt-inc-and-entry-point-extraction.md](2026/09/11-lazy-opt-inc-and-entry-point-extraction.md) | Parent split + caveats (1)–(14). SoT for keep/move/drop |
 | [19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md) | Two loaders, case table. Paths for the code slices |
 | [19-fs-archive-lazy-include.md](2026/09/19-fs-archive-lazy-include.md) | First code slice: archive helpers off kernel `fs.inc.sh` |
-| [19-db-thin-inc-and-opt-inc.md](2026/09/19-db-thin-inc-and-opt-inc.md) | Creds eager; dump/exec cluster lazy. Mirror vs phase 90 unresolved |
+| [19-db-thin-inc-and-opt-inc.md](2026/09/19-db-thin-inc-and-opt-inc.md) | Creds eager; dump/exec cluster lazy. Mirror vs caller opt-inc unresolved |
 | [19-mysql-pgsql-hook-opt-inc.md](2026/09/19-mysql-pgsql-hook-opt-inc.md) | DRY only if grep shows sharing; otherwise skip |
-| [20-meadows-plan-review-feedback-loop.md](2026/09/20-meadows-plan-review-feedback-loop.md) | Meta-plan. Launch only after human approval |
+| [20-meadows-plan-review-feedback-loop.md](2026/09/20-meadows-plan-review-feedback-loop.md) | Meta-plan. Loop skipped; hunts apply in chat |
 
 ### Later / out of that loop
 

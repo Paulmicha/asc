@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-20 |
-| **Status** | proposed (meta-plan). **Human reviews this file first.** Agents **must not launch** until a later, explicit approval. Garage clause **landed** ([20-garage-lightweight-rule.md](./20-garage-lightweight-rule.md)). Mirror-path rule line still later. No code. |
+| **Status** | loop **skipped** (2026-09-20). Apply hunts in this chat. Garage clause **landed** ([20-garage-lightweight-rule.md](./20-garage-lightweight-rule.md)). Mirror-path pick still open. No code. |
 | **Scope** | Strengthen four existing *plans* (not the runtime) via a short cooperative feedback loop. The same loop is a **continual memory-upgrade process**: every durable ASC fact that Cursor would otherwise forget is proposed as the smallest patch to the mother always-applied rule and/or this repo’s changelog — never as a new loader. Lens: [asc-lightweight.mdc](../../../.cursor/rules/asc-lightweight.mdc). |
 | **Does not change (this step)** | The four source plans (until the apply step). Code, loaders, `README.md`, git. `.cursor/rules/*.mdc` except the garage clause already applied. |
 | **Parent** | [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) (split 2026-09-19). Adjacent docs SoT, not in the review set: [19-eager-vs-lazy-include-cases.md](./19-eager-vs-lazy-include-cases.md). |
@@ -230,7 +230,7 @@ One example per idea. Stop.
 
 | | |
 |--|--|
-| **Name / job** | Mistakes. Find contradictions **across** the four plans: naming, include path (opt-inc must **mirror** eager: `$subject/$action.inc.sh` ↔ `$subject/$action.opt-inc.sh`, `$extension/$extension.inc.sh` ↔ `$extension/$extension.opt-inc.sh` — same path must work both ways; today’s phase 90 vs that rule is the hunt, not “pick one abbreviation”), hook seeding vs phase 90, duplication, missing callers, eager vs lazy, wave order, README-as-gate. Memory check at the end: a cross-plan contradiction that is actually an ASC law (two loaders, mirror paths) may deserve a mother-rule line; a one-off ordering note does not. |
+| **Name / job** | Mistakes. Find contradictions **across** the four plans: naming, include path (opt-inc must **mirror** eager: `$subject/$action.inc.sh` ↔ `$subject/$action.opt-inc.sh`, `$extension/$extension.inc.sh` ↔ `$extension/$extension.opt-inc.sh` — same path must work both ways; today’s caller opt-inc vs that rule is the hunt, not “pick one abbreviation”), hook seeding vs caller opt-inc, duplication, missing callers, eager vs lazy, wave order, README-as-gate. Memory check at the end: a cross-plan contradiction that is actually an ASC law (two loaders, mirror paths) may deserve a mother-rule line; a one-off ordering note does not. |
 | **Starts** | After all four reviews have returned. Human trigger. Not parallel with reviews (needs their output). Parallel with improvements is intended. |
 | **Inputs** | The four source plan paths above; the four review outputs; lightweight rule; parent split order if needed. |
 | **Must not edit** | Anything. Must not “resolve” by proposing a new loader or a new `.mdc`. |
@@ -347,7 +347,7 @@ The memory check does not add a phase. It is an information-flow tap on every st
 - `$subject/$action.inc.sh` ↔ `$subject/$action.opt-inc.sh`
 - `$extension/$extension.inc.sh` ↔ `$extension/$extension.opt-inc.sh`
 
-Do not “fix” that by pinning only `db/db/db.opt-inc.sh`. If phase 90 does not load `$extension/$extension.opt-inc.sh` today, that is a plan/loader gap to apply — not a docs abbreviation.
+Do not “fix” that by pinning only `db/db/db.opt-inc.sh`. If caller opt-inc does not load `$extension/$extension.opt-inc.sh` today, that is a plan/loader gap to apply — not a docs abbreviation.
 
 **Overview (the rest).** Loop shape is fine (human holds it; no launch from this file). Gaps: hunt list is not in the prompts; four independent reviews hide cross-plan issues and are extra machinery; case table is the filename SoT but out of the apply set; chat-only reviews have no handoff. Extra hunts: mysql `exec` tar workaround is a third compression site; remaining-core says wait for fs+db *and* yaml anytime; `data/asc/` is gitignored so `active.sh` dual-`yml.inc.sh` is easy to miss; `dump.sh` always runs `f_db_dump` (test claim).
 
@@ -391,7 +391,7 @@ The **four plans** are good enough to review, not good enough to implement as wr
 | Mysql | Correct **skip** unless grep shows sharing. Least need of a dedicated review agent. |
 | Remaining | A pointer at the parent, not a slice. Status “wait for fs+db” vs “yaml anytime” is unresolved. Yaml dual-source is still true (`bootstrap.sh` **and** `ASC_INC` via gitignored `data/asc/cache/core/active.sh`). |
 
-**Biggest unresolved design fact:** opt-inc must mirror eager, but phase 90 derives from `BASH_SOURCE[1]`’s directory, so `make db-dump` does not load `asc/extensions/db/db.opt-inc.sh` today. Apply must pick: change what the loader looks at, explicit `.` of the eager twin, or drop the “everywhere” claim for nested `$extension/$subject/$action.sh`. Do not invent a third loader (`ASC_OPT_INC`).
+**Biggest unresolved design fact:** opt-inc must mirror eager, but caller opt-inc derives from `BASH_SOURCE[1]`’s directory, so `make db-dump` does not load `asc/extensions/db/db.opt-inc.sh` today. Apply must pick: change what the loader looks at, explicit `.` of the eager twin, or drop the “everywhere” claim for nested `$extension/$subject/$action.sh`. Do not invent a third loader (`ASC_OPT_INC`).
 
 Case table is still **proposed**. Parent still gates code on agreeing it. This loop’s apply must touch that file or the gate stays folklore.
 
@@ -415,7 +415,7 @@ Missing, one example each:
 ### Other quality (easy to miss)
 
 - **Prompt ≠ role table.** Hunts, mirror rule, and case table are in this file; prompt-as-spec still omits them. Agents will follow the short block.
-- **Wrap ≠ action.** `call_wrap.make.sh` is another bash; phase 90 in the wrap does not see `db/dump.sh`’s opt-inc. In-process tests ≠ `make`.
+- **Wrap ≠ action.** `call_wrap.make.sh` is another bash; caller opt-inc in the wrap does not see `db/dump.sh`’s opt-inc. In-process tests ≠ `make`.
 - **Stale `@see`.** Wrappers still point at `db.inc.sh` and `asc/extensions/mysql` (contrib lives under `scripts/asc/contrib/`). Comment drift will teach the wrong path after the move.
 - **Overrides.** Single-segment `asc` → `scripts/asc/override`. A lazy file that only exists under contrib is not found from a core hook path (parent caveat 4).
 - **Other trees.** Parent caveat 9: CWT twins / `u_*` in other repos. This workspace is mother ASC only; a move can break a project instance without failing `make test-core` here.
@@ -435,6 +435,6 @@ Missing, one example each:
 - [ ] Put this file’s hunt list + **mirror rule** in those prompts; require the case table as input; allow apply to touch it.
 - [ ] Handoff: persist reviews only if siblings stay; otherwise nothing to forward.
 - [x] Small [`asc-lightweight.mdc`](../../../.cursor/rules/asc-lightweight.mdc) garage clause ([20-garage-lightweight-rule.md](./20-garage-lightweight-rule.md)). Mirror paths still later. No new `.mdc`.
-- [ ] Launch only after that. Then apply high-leverage edits to the four plans **and** the case table (still not code). Resolve mirror vs phase 90 in writing (loader look / explicit `.` / narrowed “everywhere”) — not a third loader.
+- [ ] Launch only after that. Then apply high-leverage edits to the four plans **and** the case table (still not code). Resolve mirror vs caller opt-inc in writing (loader look / explicit `.` / narrowed “everywhere”) — not a third loader.
 - [ ] During apply and later implementation: use **Monitoring, judgement, testing, quality** above. Mark test claims run vs unverified. No test agent in this loop.
 - [ ] Optional second pass only if leftover contradictions are material. Implementation stays on each source plan’s open tasks.

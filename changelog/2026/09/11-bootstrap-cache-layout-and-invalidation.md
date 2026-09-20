@@ -197,7 +197,7 @@ After `cc`, next bootstrap is a **stamp miss** (no `active.sh`): `f_asc_extend` 
 
 This plan does **not** change which functions exist after `. asc/bootstrap.sh`. Warm path still sources the six kernel files and every `ASC_INC` path (~9k lines).
 
-Lazy `*.opt-inc.sh` (caller phase 90 + hook-seeded colocated files), demoting fat utils / `ASC_INC` subjects, and continuing the 2026-09-11 “keep vs dedicated entry point vs drop” drill across leftover core + extensions: **[11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md)**. Implement that **after** stamp + `core/active.sh` + hook keys.
+Lazy `*.opt-inc.sh` (caller opt-inc + hook-seeded colocated files), demoting fat utils / `ASC_INC` subjects, and continuing the 2026-09-11 “keep vs dedicated entry point vs drop” drill across leftover core + extensions: **[11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md)**. Implement that **after** stamp + `core/active.sh` + hook keys.
 
 ---
 
