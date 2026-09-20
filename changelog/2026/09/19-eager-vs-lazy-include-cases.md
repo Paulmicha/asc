@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-19 |
-| **Status** | **pick A locked** (2026-09-20). Nested `$extension/$subject/$action.sh` uses **caller-dir** opt-inc (`db/db/db.opt-inc.sh`). Caller opt-inc does **not** load `$extension/$extension.opt-inc.sh`. Coverage: `asc/test/core/caller_opt_inc.test.sh` (`make test-core`). Two include kinds only (`*.inc.sh` / `*.opt-inc.sh`); `utils/fs.opt-inc.sh` stays that name ([20-two-include-kinds.md](./20-two-include-kinds.md)). Root README Recap applied ([20-readme-eager-lazy-rows.md](./20-readme-eager-lazy-rows.md)). Function move still later. |
+| **Status** | **pick A locked** (2026-09-20). Nested `$extension/$subject/$action.sh` uses **caller-dir** opt-inc (`db/db/db.opt-inc.sh`). Caller opt-inc does **not** load `$extension/$extension.opt-inc.sh`. Coverage: `asc/test/core/caller_opt_inc.test.sh` (`make test-core`). Two include kinds only (`*.inc.sh` / `*.opt-inc.sh`); `utils/fs.opt-inc.sh` stays that name ([20-two-include-kinds.md](./20-two-include-kinds.md)). Root README Recap applied (eager/lazy rows in root README). Function move still later. |
 | **Scope** | Document **every** auto-loader case. Examples from `asc/utils/fs.inc.sh`, `asc/extensions/db`, `scripts/asc/contrib/asc/mysql`, `pgsql`, `arcadedb`, plus the two **existing** db-related opt-incs. Do **not** use `asc/extensions/software` or `asc/host/provision.sh`. |
 | **Parent** | [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) |
 | **Follows** | [19-fs-archive-lazy-include.md](./19-fs-archive-lazy-include.md), [19-db-thin-inc-and-opt-inc.md](./19-db-thin-inc-and-opt-inc.md), [19-mysql-pgsql-hook-opt-inc.md](./19-mysql-pgsql-hook-opt-inc.md) create the rows marked *planned*. |
@@ -88,5 +88,5 @@ Legend: **on disk** = file exists today. **planned** = filename the follow-up su
 ## Open tasks
 
 - [x] Agree the table (especially: skip per-action `dump.opt-inc.sh` in favor of subject-wide `db.opt-inc.sh`; 3-level example = `instance/registry` not `host/provision`). **Pick A:** caller-dir only; no extension-root auto-load. Tests: `asc/test/core/caller_opt_inc.test.sh`.
-- [x] README Recap: 3–5 rows ([20-readme-eager-lazy-rows.md](./20-readme-eager-lazy-rows.md) applied). Do not paste this matrix.
+- [x] README Recap: 3–5 rows (applied in root README). Do not paste this matrix.
 - [ ] After remaining-core waves, change leftover *planned* rows to **on disk**. Mysql/pgsql contrib opt-incs **skipped**.

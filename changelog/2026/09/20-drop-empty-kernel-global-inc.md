@@ -5,7 +5,7 @@
 | **Date** | 2026-09-20 |
 | **Status** | **done** (runtime). README still lists five kernel includes — [20-readme-four-kernel-includes.md](./20-readme-four-kernel-includes.md). |
 | **Scope** | After Wave B, `asc/asc/global.inc.sh` was a comment-only stub still sourced every heavy bootstrap. Deleted it and the bootstrap `.` line. Helpers stay in `asc/asc/global.opt-inc.sh` (explicit `.`). |
-| **Related** | [19-lazy-opt-inc-remaining-core-waves.md](./19-lazy-opt-inc-remaining-core-waves.md) Wave B; [20-readme-kernel-includes.md](./20-readme-kernel-includes.md) (applied: six → five, including this stub). |
+| **Related** | [19-lazy-opt-inc-remaining-core-waves.md](./19-lazy-opt-inc-remaining-core-waves.md) Wave B; [20-readme-four-kernel-includes.md](./20-readme-four-kernel-includes.md). |
 
 `$` in this file is the ASC docs placeholder, not a shell variable.
 

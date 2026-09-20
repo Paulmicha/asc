@@ -251,7 +251,6 @@ Runtime discovery (`ASC_SUBJECTS` / `ASC_ACTIONS`, `data/asc/cache/core/active.s
     - `asc/extensions/file_registry` : minimalist local file-based key/value store (supports host-level and instance-level scopes)
     - `asc/extensions/interaction` : generic abstract placeholders (hooks) for interaction-related operations (like triggering input devices actions - e.g. mouse, keyboard, touch events, etc.)
     - `asc/extensions/memory` : generic abstract placeholders (hooks) for memory-related operations (like : find out if and where something is stored, using which storage, etc.)
-    - `asc/extensions/nested_git`, `nested_host`, `nested_instance` : default implementations related to sub-git work trees (nested git clones), virtual machines (nested hosts), or even nested ASC project instances
     - `asc/extensions/remote` : default implementations related to remote communication (ssh, etc)
     - `asc/extensions/remote_instance` : implementations related to remote ASC project instances
     - `asc/extensions/rules` : generic abstract placeholders (hooks) for implementing conditionally executed actions based on occurring events (known as reactive or ECA rules)
@@ -447,7 +446,7 @@ Note that `$object` dirs do not support hook implementations. They are a conveni
 
 _Env vars_ are (Bash) shell variables containing values that are either :
 
-1. **readonly globals** declared using the `global` bash function that ASC provides, see `asc/asc/global.inc.sh` (generated readonly *constants*) ;
+1. **readonly globals** declared using the `global` bash function that ASC provides, see `asc/asc/global.opt-inc.sh` (generated readonly *constants*) ;
 1. or **calling-scope mutables** - as in any "normal" shell script.
 
 They aren't the same thing as variables only used inside the scope of a bash function. In these cases, they must be declared as `local` variables, and they must follow the naming conventions detailed below.
@@ -1139,6 +1138,24 @@ TODO replace the existing `f_remote_instance_load()` implementation with this sy
 
 TODO detailed example using a "concrete" host entity *instance* : `data/entities/host/foobar.home.arpa.yml`
 
+TODO evaluate the following edit proposal :
+
+&lt;proposal-2026-09-20&gt;
+
+During instance (re)init: `f_entity_types_discover`, then `f_entity_instances_discover`, then `f_entity_cache_generate_all`. Types that include the **sidecar.able** contract store each instance as YAML under `data/entities/<type>/`. **sidecar.able** is a contract, never a type name.
+
+| Call | Result |
+|------|--------|
+| `f_entity_types_discover` | Index `*.entity.yml` in active dirs |
+| `f_entity_instances_discover` | Index concrete instances of those types |
+| `f_entity_cache_generate_all` | Write `data/asc/cache/entities/<type>/<id>.sh` |
+| `f_entity_load <type> <id>` | Source that cache file |
+| `f_remote_instance_load <id>` | Wrapper: `f_entity_load remote_instance <id>` |
+
+Host fixture `data/entities/host/foobar.home.arpa.yml`: `HOST_HOSTNAME` from the filename map.
+
+&lt;/proposal-2026-09-20&gt;
+
 #### Linking, adressing (relationships, references)
 
 There are 2 kinds of references (= links = relationships) between entities :
@@ -1428,7 +1445,7 @@ data/asc/
     entities/                 ← entity load cache
 ```
 
-Bootstrap always sources the five kernel includes (`core_utils.inc.sh`, `core.inc.sh`, `global.inc.sh`, `hook.inc.sh`, `autoload.inc.sh`). `yml.inc.sh` is eager via `ASC_INC` (`asc/yml` is an *active dir*). Then, if `global.vars.sh` exists, it is sourced. Then `f_asc_primitives_cache_ensure`: stamp match → source `core/active.sh`; miss → `f_asc_extend`, rewrite `active.sh` + stamp, wipe `cache/hook/` only. `pre_bootstrap` / `alias` / `bootstrap` still run on both the cold and warm paths.
+Bootstrap always sources the four kernel includes (`core_utils.inc.sh`, `core.inc.sh`, `hook.inc.sh`, `autoload.inc.sh`). `yml.inc.sh` is eager via `ASC_INC` (`asc/yml` is an *active dir*). Then, if `global.vars.sh` exists, it is sourced. Then `f_asc_primitives_cache_ensure`: stamp match → source `core/active.sh`; miss → `f_asc_extend`, rewrite `active.sh` + stamp, wipe `cache/hook/` only. `pre_bootstrap` / `alias` / `bootstrap` still run on both the cold and warm paths.
 
 Stamp v1 watches instance identity (`HOST_TYPE`, `INSTANCE_TYPE`, `STACK_VERSION`, selected `.asc_extensions_ignore` path), ignore-file mtimes, and directory mtimes of `asc/`, `asc/extensions/`, `scripts/asc/`, contrib, and extend. A new `*.hook.sh` or `$subject/$action.sh` inside an **existing** folder still needs `make cc` (and `make reinit` when a new Make target is required). Nested-file discovery is v1.1.
 

@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-20 |
-| **Status** | **proposed README delta** |
+| **Status** | **applied** (2026-09-20). Agent applied to root `README.md` (uncommitted) for human review. |
 | **Target** | [`README.md`](../../../README.md) — **Genericity (scale)** → **Core** (opt-in extensions bullet list). |
 
 `$` in this file is the ASC docs placeholder (`$subject` / `$action` / `$extension`), not a shell variable.
