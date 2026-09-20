@@ -13,6 +13,20 @@
 
 p_test_entry='make-list-entry-points'
 
+# log.wrap returns before inner thread.wrap writes YAML; poll instead of sleep.
+f_test_wait_yml() {
+  local p_yml="$1"
+  local i
+
+  for i in $(seq 1 80); do
+    if [[ -f "$p_yml" ]]; then
+      return 0
+    fi
+    sleep 0.1
+  done
+  return 1
+}
+
 oneTimeTearDown() {
   rm -f \
     "data/threads/${p_test_entry}.txt" \
@@ -40,11 +54,8 @@ test_thread_wrap_starts_debug() {
 
   output="$(asc/thread/thread.wrap.sh "$p_test_entry" 2>&1)" || exit_code=$?
 
-  # Allow supervisor to write / finalize YAML.
-  sleep 0.2
-
   assertEquals 'thread wrap must succeed' 0 "$exit_code"
-  assertTrue 'yaml record must exist' "[[ -f '$p_yml' ]]"
+  assertTrue 'yaml record must exist' "f_test_wait_yml '$p_yml'"
   assertTrue 'output mentions PID' "[[ '$output' == *'Thread started'* ]]"
   assertFalse 'thread output file must not exist' \
     "[[ -f 'data/threads/${p_test_entry}.txt' ]]"
@@ -74,15 +85,13 @@ test_log_wrap_chains_thread_wrap() {
 
   output="$(asc/log/log.wrap.sh asc/thread/thread.wrap.sh "$p_test_entry" 2>&1)" || exit_code=$?
 
-  sleep 0.2
-
   assertEquals 'log wrap chain must succeed' 0 "$exit_code"
   assertTrue 'log sidecar must exist' \
     "[[ -f 'data/logs/${p_test_entry}.sidecar.txt' ]]"
   assertTrue 'log output must exist' \
     "[[ -f 'data/logs/${p_test_entry}.txt' ]]"
   assertTrue 'output mentions PID' "[[ '$output' == *'Log started'* ]]"
-  assertTrue 'yaml record must exist' "[[ -f '$p_yml' ]]"
+  assertTrue 'yaml record must exist' "f_test_wait_yml '$p_yml'"
   assertFalse 'thread output file must not exist' \
     "[[ -f 'data/threads/${p_test_entry}.txt' ]]"
 }
