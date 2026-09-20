@@ -1,0 +1,11 @@
+include:
+  - sidecar.able
+map:
+  hostname: filename
+required:
+  field:
+    hostname:
+      is: string
+      size: 1 - 999
+      default: localhost
+      validate: test-hostname(p1)

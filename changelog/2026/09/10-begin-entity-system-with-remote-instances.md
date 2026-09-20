@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-10 |
-| **Status** | plan (corrected: contracts vs types; discovery → cache → load). Task 1 load/purge path is `data/asc/cache/entities/<type>/<id>.sh`. Tasks 2+ unstarted. Not in the 2026-09-19 lazy-include order. |
+| **Status** | plan (corrected: contracts vs types; discovery → cache → load). Tasks 1–7 done (`f_entity_load` cache path, discover, generate, `post_init.hook.sh`, type-aware spec getters, `f_remote_instance_load` wrap). Task 8 unstarted (README). Not in the 2026-09-19 lazy-include order. |
 | **Scope** | README `#### Instanciation`: implement the missing functions that (1) discover entity **types**, (2) discover concrete **instances**, (3) generate **cached** instances for `f_entity_load`. First consumer: replace the body of `f_remote_instance_load()`. |
 | **SoT** | Root `README.md` § Entities. Stub already started: `asc/extensions/entity/entity.inc.sh`. Fixture: `data/entities/host/foobar.home.arpa.yml`. |
 | **Not this file** | Treating `sidecar.able` as an entity type or filling `*.able.yml` as if they were `*.entity.yml`; full `include` / `override` / `alter` / `append` schema merger; Linking vs Nesting; DB storage; `dirs.yml`; enabling `remote` in this repo’s ignore file. |
@@ -109,7 +109,7 @@ data/entities/<type>/<id>.yml                    # concrete instance if type inc
 - Consumes: stub `f_entity_load`, `f_entity_cache_purge`
 - Produces: load/purge against `data/asc/cache/entities/<type>/<id>.sh`
 
-- [ ] **Step 1: Test-core hook**
+- [x] **Step 1: Test-core hook**
 
 ```sh
 #!/usr/bin/env bash
@@ -119,7 +119,7 @@ data/entities/<type>/<id>.yml                    # concrete instance if type inc
 f_test_batch_exec 'asc/extensions/entity/test/core' || exit $?
 ```
 
-- [ ] **Step 2: Failing tests (cache path + load)**
+- [x] **Step 2: Failing tests (cache path + load)**
 
 ```sh
 #!/usr/bin/env bash
@@ -175,11 +175,11 @@ test_entity_cache_purge_removes_type_dir_files() {
 . asc/vendor/shunit2/shunit2
 ```
 
-- [ ] **Step 3: Run — expect FAIL** on `test_entity_load_sources_data_asc_cache` (stub looks at `asc/cache/entities/`).
+- [x] **Step 3: Run — expect FAIL** on `test_entity_load_sources_data_asc_cache` (stub looks at `asc/cache/entities/`).
 
 Run: `make reinit && make test-core`
 
-- [ ] **Step 4: Fix paths in `entity.inc.sh`**
+- [x] **Step 4: Fix paths in `entity.inc.sh`**
 
 `f_entity_load`:
 
@@ -199,9 +199,9 @@ done
 
 If `p_entity_type` is empty, fail (same pattern as load). If the dir is missing, return 0 (nothing to purge).
 
-- [ ] **Step 5: Run — expect PASS** for Task 1 tests. `make test-core`
+- [x] **Step 5: Run — expect PASS** for Task 1 tests. `make test-core`
 
-- [ ] **Step 6: Commit** (only if the user asked)
+- [x] **Step 6: Commit** (only if the user asked)
 
 ```bash
 git add asc/extensions/entity/entity.inc.sh \
@@ -245,7 +245,7 @@ scripts/asc/override/…   # if a type file is overridden, that path wins — re
 
 Do not treat `*.able.yml` as types.
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```sh
 test_entity_types_discover_includes_host() {
@@ -281,9 +281,9 @@ test_entity_types_discover_does_not_index_able_files() {
 }
 ```
 
-- [ ] **Step 2: Run — expect FAIL** (`f_entity_types_discover` missing).
+- [x] **Step 2: Run — expect FAIL** (`f_entity_types_discover` missing).
 
-- [ ] **Step 3: Implement `f_entity_types_discover`**
+- [x] **Step 3: Implement `f_entity_types_discover`**
 
 ```sh
 f_entity_types_discover() {
@@ -311,7 +311,7 @@ f_entity_types_discover() {
 
 Use `f_array_add_once` or the dict so the calling-scope array has unique stems in final-win order.
 
-- [ ] **Step 4: Minimal `asc/host/host.entity.yml`** — this is a **type** including a **contract**:
+- [x] **Step 4: Minimal `asc/host/host.entity.yml`** — this is a **type** including a **contract**:
 
 ```yml
 include:
@@ -329,7 +329,9 @@ required:
 
 Do **not** copy this shape into `sidecar.able.yml`.
 
-- [ ] **Step 5: `make test-core` — expect PASS** for type-discovery tests.
+- [x] **Step 5: `make test-core` — expect PASS** for type-discovery tests.
+
+Isolated entity batch only (Wave-B / cache collision; do not `make test-core` / `make reinit` this slice): `f_test_batch_exec 'asc/extensions/entity/test/core'` — 8/8 OK.
 
 - [ ] **Step 6: Commit** (only if the user asked)
 
@@ -368,7 +370,7 @@ Instance id for sidecar.able types = YAML filename stem: `foobar.home.arpa.yml` 
 
 If `data/entities/<type>/` is missing, that type has zero file instances (OK).
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```sh
 test_entity_instances_discover_finds_host_fixture() {
@@ -388,9 +390,9 @@ test_entity_instances_discover_finds_host_fixture() {
 }
 ```
 
-- [ ] **Step 2: Run — expect FAIL**.
+- [x] **Step 2: Run — expect FAIL**.
 
-- [ ] **Step 3: Implement `f_entity_type_includes_able` + `f_entity_instances_discover`**
+- [x] **Step 3: Implement `f_entity_type_includes_able` + `f_entity_instances_discover`**
 
 ```sh
 # Return 0 if type YAML include chain contains the contract stem (e.g. sidecar.able).
@@ -425,7 +427,7 @@ f_entity_instances_discover() {
 
 Types that do not include sidecar.able are skipped here. Their instances may come from other storage later (`f_entity_instanciate` / memory). **remote_instance** rows still live in `remote_instances.yml` this slice — they are **not** required to appear in `data/entities/remote_instance/` yet. Task 5 feeds their cache from the existing compiler.
 
-- [ ] **Step 4: `make test-core` — expect PASS.**
+- [x] **Step 4: `make test-core` — expect PASS.**
 
 - [ ] **Step 5: Commit** (only if the user asked)
 
@@ -463,7 +465,7 @@ Flatten nested YAML with bash-yaml (`ssh.user` → `ssh_user` → `HOST_SSH_USER
 
 `include:` on the **instance** file (`include: [host.entity]`) is reserved — do not export it, and **do not** merge the type file into the instance this slice (no schema merger). Filename map still fills `hostname` when missing.
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 ```sh
 test_entity_cache_generate_host_fixture() {
@@ -482,9 +484,9 @@ test_entity_cache_generate_skips_include_field() {
 }
 ```
 
-- [ ] **Step 2: Run — expect FAIL.**
+- [x] **Step 2: Run — expect FAIL.** Isolated batch: `f_entity_cache_generate: command not found`.
 
-- [ ] **Step 3: Implement generate**
+- [x] **Step 3: Implement generate**
 
 ```sh
 f_entity_type_prefix() {
@@ -522,7 +524,7 @@ f_entity_cache_generate_all() {
 }
 ```
 
-- [ ] **Step 4: `make test-core` — expect PASS.**
+- [x] **Step 4: `make test-core` — expect PASS.** Isolated entity batch only (do not `make test-core` / `make reinit` this slice): `f_test_batch_exec 'asc/extensions/entity/test/core'` — 12/12 OK.
 
 - [ ] **Step 5: Commit** (only if the user asked)
 
@@ -547,7 +549,7 @@ EOF
 - Consumes: `f_entity_types_discover`, `f_entity_instances_discover`, `f_entity_cache_generate_all`
 - Produces: cache files after every `make init` / `reinit`
 
-- [ ] **Step 1: Hook**
+- [x] **Step 1: Hook**
 
 ```sh
 #!/usr/bin/env bash
@@ -567,7 +569,7 @@ Purge-before-write: `f_entity_cache_generate_all` should purge per type it will 
 
 Safer: `f_entity_cache_generate` overwrites one file; `f_entity_cache_purge "$type"` only for types whose instances come from `data/entities` (sidecar.able), before regenerating that type.
 
-- [ ] **Step 2: `make reinit` then assert cache exists**
+- [x] **Step 2: `make reinit` then assert cache exists**
 
 ```sh
 test -f data/asc/cache/entities/types.sh
@@ -576,7 +578,7 @@ test -f data/asc/cache/entities/host/foobar.home.arpa.sh
 # expected: foobar.home.arpa
 ```
 
-- [ ] **Step 3: `make test-core` still PASS.**
+- [x] **Step 3: `make test-core` still PASS.**
 
 - [ ] **Step 4: Commit** (only if the user asked)
 
@@ -601,7 +603,7 @@ EOF
 - Consumes: `f_entity_load <type> <id>`, `f_entity_type_prefix`
 - Produces: type-aware key list / key read with token replace via `f_str_convert_tokens` on the **value**, not `f_str_convert_tokens "$p_remote_id" "$val"` (the stub passes an id as a var name — that is leftover remote code and is wrong)
 
-- [ ] **Step 1: Change signatures**
+- [x] **Step 1: Change signatures**
 
 ```sh
 # @param 1 String : entity type.
@@ -628,9 +630,9 @@ f_entity_spec_get_key() {
 
 Hardcoded remote dump/file keys stay in `f_remote_definition_get_keys` until schema merger. Do not keep them as the body of `f_entity_spec_get_keys`.
 
-- [ ] **Step 2: Test** `f_entity_spec_get_key host foobar.home.arpa hostname out` → `foobar.home.arpa`.
+- [x] **Step 2: Test** `f_entity_spec_get_key host foobar.home.arpa hostname out` → `foobar.home.arpa`. Keys test: `hostname` / `id` appear for type `host`.
 
-- [ ] **Step 3: `make test-core` — PASS.**
+- [x] **Step 3: `make test-core` — PASS.** Isolated entity batch only (do not `make test-core` / `make reinit` this slice): `f_test_batch_exec 'asc/extensions/entity/test/core'` — 16/16 OK.
 
 - [ ] **Step 4: Commit** (only if the user asked)
 
@@ -659,7 +661,7 @@ EOF
 - Consumes: `f_entity_load` (entity extension is enabled by default even when `remote` is ignored)
 - Produces: same `REMOTE_INSTANCE_*` exports; compiler writes `data/asc/cache/entities/remote_instance/<id>.sh`
 
-- [ ] **Step 1: Wrapper test** (source `remote.inc.sh` because this repo still ignores `remote`):
+- [x] **Step 1: Wrapper test** (source `remote.inc.sh` because this repo still ignores `remote`):
 
 ```sh
 test_remote_instance_load_wraps_entity_load() {
@@ -678,7 +680,7 @@ EOF
 }
 ```
 
-- [ ] **Step 2: Replace load**
+- [x] **Step 2: Replace load**
 
 ```sh
 f_remote_instance_load() {
@@ -697,11 +699,11 @@ f_remote_instance_load() {
 }
 ```
 
-- [ ] **Step 3: Compiler output dir** in `f_remote_instances_setup`: write each id to `data/asc/cache/entities/remote_instance/<id>.sh`. Intermediate parse dump: `data/asc/cache/entities/remote_instance/_parsed.sh`. `f_remote_purge_instances` → `f_entity_cache_purge remote_instance` (then also remove `_parsed.sh` if purge only deletes `*.sh` in that dir — it will). `f_remote_get_instances` lists that dir, skips `_parsed.sh`.
+- [x] **Step 3: Compiler output dir** in `f_remote_instances_setup`: write each id to `data/asc/cache/entities/remote_instance/<id>.sh`. Intermediate parse dump: `data/asc/cache/entities/remote_instance/_parsed.sh`. `f_remote_purge_instances` → `f_entity_cache_purge remote_instance` (then also remove `_parsed.sh` if purge only deletes `*.sh` in that dir — it will). `f_remote_get_instances` lists that dir, skips `_parsed.sh`.
 
 Do **not** invent `data/entities/remote_instance/*.yml` this slice. Catalog YAML remains how remote rows are authored.
 
-- [ ] **Step 4: `make test-core` — PASS.** On a project with `remote` enabled and `remote_instances.yml`, `make reinit` then `f_remote_instance_load <id>` still sets `REMOTE_INSTANCE_HOST`.
+- [x] **Step 4: `make test-core` — PASS.** Isolated entity batch only (do not `make test-core` / `make reinit` this slice): `f_test_batch_exec 'asc/extensions/entity/test/core'` — 17/17 OK. On a project with `remote` enabled and `remote_instances.yml`, `make reinit` then `f_remote_instance_load <id>` still sets `REMOTE_INSTANCE_HOST` (unrun here: remote stays ignored).
 
 - [ ] **Step 5: Commit** (only if the user asked)
 

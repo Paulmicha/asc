@@ -8,7 +8,7 @@
 #
 # @requires running the tests with the same user that will use ASC.
 #
-# @see f_test_batch_exec() in asc/test/test.inc.sh
+# @see f_test_batch_exec() in asc/test/test.opt-inc.sh
 #
 # @example
 #   make test-core

@@ -13,7 +13,7 @@
 
 ## Kernel subject ≠ kernel include
 
-**Kernel include** = the five files every bootstrap sources (`asc/utils/core_utils.inc.sh`, `asc/asc/core.inc.sh`, `global.inc.sh`, `hook.inc.sh`, `autoload.inc.sh`). `yml.inc.sh` is **ASC_INC** (active dir `yml`), not kernel ([19-lazy-opt-inc-remaining-core-waves.md](./19-lazy-opt-inc-remaining-core-waves.md)). Builder must **not** join the kernel list.
+**Kernel include** = the four files every bootstrap sources (`asc/utils/core_utils.inc.sh`, `asc/asc/core.inc.sh`, `hook.inc.sh`, `autoload.inc.sh`). Empty `global.inc.sh` was dropped after Wave B. `yml.inc.sh` is **ASC_INC** (active dir `yml`), not kernel ([19-lazy-opt-inc-remaining-core-waves.md](./19-lazy-opt-inc-remaining-core-waves.md)). Builder must **not** join the kernel list.
 
 **Kernel subject** = a folder under `asc/` that discovery always treats as a `$subject` (like `host`, `instance`). Promotion is filesystem + primitives / `pivots.mk`. Functions stay in the entry point or a colocated `*.opt-inc.sh` until a real always-needed caller exists.
 

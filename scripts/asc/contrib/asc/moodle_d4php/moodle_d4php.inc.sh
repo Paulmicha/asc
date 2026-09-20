@@ -88,6 +88,10 @@ f_moodle_write_settings() {
   fi
 
   # Start with read-only global vars (supports any global).
+  if [[ "$(type -t f_global_list)" != function ]]; then
+    # shellcheck disable=SC1091
+    . asc/asc/global.opt-inc.sh
+  fi
   f_global_list
   for var_name in "${asc_globals_var_names_arr[@]}"; do
     if grep -Fq "${token_prefix}${var_name}${token_suffix}" "$MOODLE_CONFIG_FILE"; then

@@ -1,0 +1,5 @@
+test_f_global_aggregate_helpers_absent_from_kernel_bootstrap
+
+Ran 5 tests.
+
+OK

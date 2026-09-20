@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 
 ##
-# GLobals-related utility functions.
-#
-# This file is sourced during core ASC bootstrap.
-# @see asc/bootstrap.sh
-#
-# Convention : functions names are all prefixed by "f".
+# Init-only global aggregate helpers — not derived by bootstrap.
+# Callers must `.` this file. `asc/asc/` does not auto-load this name.
+# @see changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md
 #
 
 ##

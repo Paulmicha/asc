@@ -7,7 +7,7 @@
 # @see f_instance_init() in asc/instance/instance.inc.sh
 #
 
-if [[ ! -d "data/asc/remote-instances" ]]; then
-  echo "Creating required dir data/asc/remote-instances"
-  mkdir -p "data/asc/remote-instances"
+if [[ ! -d "data/asc/cache/entities/remote_instance" ]]; then
+  echo "Creating required dir data/asc/cache/entities/remote_instance"
+  mkdir -p "data/asc/cache/entities/remote_instance"
 fi

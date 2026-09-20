@@ -4,6 +4,8 @@
 # Git-related utility functions.
 #
 # This file is sourced during core ASC bootstrap.
+# find_changed_files: `. asc/git/find_changed_files.sh`
+# @see f_git_find_changed_files() in asc/git/find_changed_files.sh
 # @see asc/bootstrap.sh
 #
 # Convention : functions names are all prefixed by "f".
@@ -81,47 +83,6 @@ f_git_log() {
     s="${git_commits_timestamps_arr[$i]}"
     eval "$p_evaled_code"
   done
-}
-
-##
-# Searches log messages and gets all files changed in all matching commits.
-#
-# This function writes its result to a variable subject to collision in calling
-# scope :
-# @var git_changed_files_arr
-#
-# @param 1 String : The (grep) search pattern.
-# @param 2 [optional] String : A branch name to restrict the search.
-#   Defaults to all branches.
-#
-# @example
-#   # Search log messages in all branches and get all files changed in all
-#   # matching commits :
-#   f_git_find_changed_files 'JRA-224'
-#   for f in "${git_changed_files_arr[@]}"; do
-#     echo "$f"
-#   done
-#
-#   # Same, by only search in a specific branch only :
-#   f_git_find_changed_files 'JRA-224' 'my-branch-name'
-#   for f in "${git_changed_files_arr[@]}"; do
-#     echo "$f"
-#   done
-#
-f_git_find_changed_files() {
-  local p_search="$1"
-  local p_source_branch="$2"
-
-  # By default, search in all branches.
-  if [[ -z "$p_source_branch" ]]; then
-    p_source_branch='--all'
-  fi
-
-  f_git_find_commits \
-    -m "$p_search" \
-    -f '<have-changed>' \
-    -b "$p_source_branch" \
-    -v
 }
 
 ##

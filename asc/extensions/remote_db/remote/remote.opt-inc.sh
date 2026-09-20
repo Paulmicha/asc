@@ -232,7 +232,7 @@ f_remote_db_get_latest_dump() {
 # to dump. The result depends on the remote instances definitions (they can have
 # only 1 database to dump, or many).
 #
-# @see data/asc/remote-instances/${p_remote_id}.sh
+# @see data/asc/cache/entities/remote_instance/${p_remote_id}.sh
 # @see f_remote_instances_setup() in asc/extensions/remote/remote.inc.sh
 # @see asc/extensions/remote_db/remote/db_dump.sh
 #
@@ -408,7 +408,7 @@ f_remote_db_prepare_dumps() {
 #
 # @see f_remote_db_prepare_dumps()
 # @see asc/extensions/remote_db/remote/db_download.sh
-# @see data/asc/remote-instances/${p_remote_id}.sh
+# @see data/asc/cache/entities/remote_instance/${p_remote_id}.sh
 # @see f_remote_instances_setup() in asc/extensions/remote/remote.inc.sh
 #
 # Uses the following dictionary which must already have been initialized in

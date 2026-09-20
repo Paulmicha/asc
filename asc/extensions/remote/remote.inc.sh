@@ -350,6 +350,10 @@ f_remote_definition_tokens_replace() {
   done
 
   # Same for any global var.
+  if [[ "$(type -t f_global_list)" != function ]]; then
+    # shellcheck disable=SC1091
+    . asc/asc/global.opt-inc.sh
+  fi
   f_global_list
 
   for var in "${asc_globals_var_names_arr[@]}"; do
@@ -510,14 +514,14 @@ f_remote_definition_tokens_replace() {
 #   f_remote_instances_setup
 #
 #   # Will (re)generate the following files :
-#   # - data/asc/remote-instances/dev.sh
-#   # - data/asc/remote-instances/dev_node.sh
-#   # - data/asc/remote-instances/staging.sh
-#   # - data/asc/remote-instances/staging_node.sh
-#   # - data/asc/remote-instances/prod.sh
-#   # - data/asc/remote-instances/prod_node.sh
+#   # - data/asc/cache/entities/remote_instance/dev.sh
+#   # - data/asc/cache/entities/remote_instance/dev_node.sh
+#   # - data/asc/cache/entities/remote_instance/staging.sh
+#   # - data/asc/cache/entities/remote_instance/staging_node.sh
+#   # - data/asc/cache/entities/remote_instance/prod.sh
+#   # - data/asc/cache/entities/remote_instance/prod_node.sh
 #
-#   # Example content - e.g. of file data/asc/remote-instances/dev.sh :
+#   # Example content - e.g. of file data/asc/cache/entities/remote_instance/dev.sh :
 #   export REMOTE_INSTANCE_DOCROOT='/var/www/drupal/root'
 #   export REMOTE_INSTANCE_DOMAIN='dev.foobar.com'
 #   export REMOTE_INSTANCE_DUMPS_DEFAULT_BASE_DIR='/var/www/drupal/dump'
@@ -552,8 +556,23 @@ f_remote_instances_setup() {
     return
   fi
 
+  local cache_dir='data/asc/cache/entities/remote_instance'
+  local parsed_file="${cache_dir}/_parsed.sh"
+
+  if [[ ! -d "$cache_dir" ]]; then
+    mkdir -p "$cache_dir"
+
+    if [[ $? -ne 0 ]]; then
+      echo >&2
+      echo "Error in $BASH_SOURCE line $LINENO: failed to create missing required dir ${cache_dir}." >&2
+      echo "-> Aborting (1)." >&2
+      echo >&2
+      return 1
+    fi
+  fi
+
   # (Re)init destination file (make empty).
-  cat > 'data/asc/remote-instances.sh' <<EOF
+  cat > "$parsed_file" <<EOF
 #!/usr/bin/env bash
 
 ##
@@ -573,11 +592,11 @@ EOF
   # Write remotes definitions.
   local parsed_yaml_remotes=''
   f_yaml_parse "$most_specific_match" 'ascri_' 'parsed_yaml_remotes'
-  echo "$parsed_yaml_remotes" >> 'data/asc/remote-instances.sh'
+  echo "$parsed_yaml_remotes" >> "$parsed_file"
 
   # Process & adapt parsed result for use with f_remote_instance_load().
-  if [[ -f 'data/asc/remote-instances.sh' ]]; then
-    . data/asc/remote-instances.sh
+  if [[ -f "$parsed_file" ]]; then
+    . "$parsed_file"
 
     local remote_id
     local var_prefix
@@ -698,19 +717,7 @@ EOF
       fi
 
       # Finally, create the resulting definition file.
-      if [[ ! -d 'data/asc/remote-instances' ]]; then
-        mkdir -p 'data/asc/remote-instances'
-
-        if [[ $? -ne 0 ]]; then
-          echo >&2
-          echo "Error in $BASH_SOURCE line $LINENO: failed to create missing required dir data/asc/remote-instances." >&2
-          echo "-> Aborting (1)." >&2
-          echo >&2
-          return 1
-        fi
-      fi
-
-      local conf="data/asc/remote-instances/${remote_id}.sh"
+      local conf="${cache_dir}/${remote_id}.sh"
 
       cat > "$conf" <<EOF
 #!/usr/bin/env bash
@@ -887,7 +894,8 @@ f_remote_definition_get_key() {
 #
 # @param 1 [optional] String : remote instance's id (short name, no space,
 #   _a-zA-Z0-9 only). Defaults to the first *.sh file found in folder :
-#   data/asc/remote-instances.
+#   data/asc/cache/entities/remote_instance (skips types.sh, instances.sh,
+#   _parsed.sh).
 #
 # @example
 #   # Only need to call the function for exporting globals in current shell :
@@ -895,17 +903,19 @@ f_remote_definition_get_key() {
 #
 f_remote_instance_load() {
   local p_id="$1"
-  local conf="data/asc/remote-instances/${p_id}.sh"
+  local cache_dir='data/asc/cache/entities/remote_instance'
 
-  if [[ ! -f "$conf" ]]; then
-    echo >&2
-    echo "Error in f_remote_instance_load() - $BASH_SOURCE line $LINENO: file '$conf' not found." >&2
-    echo "-> Aborting (1)." >&2
-    echo >&2
-    return 1
+  if [[ -z "$p_id" ]]; then
+    local file=''
+    f_fs_file_list "$cache_dir" '*.sh'
+    for file in $file_list; do
+      case "$file" in types.sh|instances.sh|_parsed.sh) continue ;; esac
+      p_id="${file%.sh}"
+      break
+    done
   fi
 
-  . "$conf"
+  f_entity_load remote_instance "$p_id"
 }
 
 ##
@@ -915,26 +925,8 @@ f_remote_instance_load() {
 #   f_remote_purge_instances
 #
 f_remote_purge_instances() {
-  local file=''
-
-  echo "Clearing generated remote instances definitions ..."
-
-  f_fs_file_list 'data/asc/remote-instances'
-
-  for file in $file_list; do
-    rm "data/asc/remote-instances/$file"
-
-    if [[ $? -ne 0 ]]; then
-      echo >&2
-      echo "Error in f_remote_purge_instances() - $BASH_SOURCE line $LINENO: failed to remove locally generated instance '$file' (in data/asc/remote-instances)." >&2
-      echo "-> Aborting (1)." >&2
-      echo >&2
-      return 1
-    fi
-  done
-
-  echo "Clearing generated remote instances definitions : done."
-  echo
+  rm -f data/asc/cache/remote_instance_ids.sh
+  f_entity_cache_purge remote_instance
 }
 
 ##
@@ -963,9 +955,10 @@ f_remote_get_instances() {
     local remote_id
     local remote_instance_ids_cache_str=''
 
-    f_fs_file_list 'data/asc/remote-instances'
+    f_fs_file_list 'data/asc/cache/entities/remote_instance'
 
     for file in $file_list; do
+      case "$file" in _parsed.sh) continue ;; esac
       remote_id="${file%.sh}"
       instance_ids_arr+=("$remote_id")
       remote_instance_ids_cache_str+="instance_ids_arr+=('$remote_id')

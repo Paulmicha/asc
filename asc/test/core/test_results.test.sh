@@ -7,6 +7,10 @@
 #
 
 . asc/bootstrap.sh
+if [[ "$(type -t f_test_batch_exec)" != function ]]; then
+  # shellcheck disable=SC1091
+  . asc/test/test.opt-inc.sh
+fi
 
 test_results_self_tmp=''
 

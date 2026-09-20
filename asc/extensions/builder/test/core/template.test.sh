@@ -21,6 +21,7 @@
 #
 test_generate_from_temlate() {
   # TODO
+  :
 }
 
 # Load and run shUnit2.

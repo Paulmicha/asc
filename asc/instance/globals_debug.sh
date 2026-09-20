@@ -35,6 +35,10 @@ f_global_debug() {
     GLOBALS_DEFERRED=()
     GLOBALS['.defer-max']=0
     GLOBALS_DRY_RUN=1
+    if [[ "$(type -t global)" != function ]]; then
+      # shellcheck disable=SC1091
+      . asc/asc/global.opt-inc.sh
+    fi
     . asc/env/global.vars.sh
     f_global_aggregate
   fi

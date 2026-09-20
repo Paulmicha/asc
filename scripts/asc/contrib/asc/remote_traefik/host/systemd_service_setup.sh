@@ -17,7 +17,13 @@ fi
 cp "asc/extensions/remote_traefik/host/systemd_service_conf.tpl.service" "$systemd_service_conf"
 
 # Replace read-only global vars (supports any global) placeholders.
+if [[ "$(type -t f_global_list)" != function ]]; then
+  # shellcheck disable=SC1091
+  . asc/asc/global.opt-inc.sh
+fi
+
 f_global_list
+
 for var_name in "${asc_globals_var_names_arr[@]}"; do
   if grep -Fq "{{ ${var_name} }}" "$traefik_conf"; then
     var_val="${!var_name}"

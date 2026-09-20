@@ -134,6 +134,17 @@ test_asc_yml_inc_not_in_kernel_includes() {
 }
 
 ##
+# Wave B emptied kernel `global.inc.sh`; the stub was deleted. Helpers live in
+# `asc/asc/global.opt-inc.sh` with explicit `.`.
+#
+test_asc_global_inc_not_in_kernel_includes() {
+  local kernel
+  kernel="$(sed -n '/Include ASC core utilities/,/ASC_BS_SKIP_GLOBALS/p' asc/bootstrap.sh)"
+  assertFalse 'kernel block must not source global.inc.sh' \
+    "printf '%s' \"$kernel\" | grep -q 'global.inc.sh'"
+}
+
+##
 # After bootstrap, yaml helpers still exist (ASC_INC active-dir name match).
 #
 test_asc_yml_inc_on_asc_inc_defines_parse() {

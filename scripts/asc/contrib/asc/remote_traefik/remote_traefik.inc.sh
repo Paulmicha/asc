@@ -53,7 +53,13 @@ f_traefik_generate_acme_conf() {
   cp "$most_specific_match" "$traefik_conf"
 
   # Replace read-only global vars (supports any global) placeholders.
+  if [[ "$(type -t f_global_list)" != function ]]; then
+    # shellcheck disable=SC1091
+    . asc/asc/global.opt-inc.sh
+  fi
+
   f_global_list
+
   for var_name in "${asc_globals_var_names_arr[@]}"; do
     if grep -Fq "${token_prefix}${var_name}${token_suffix}" "$traefik_conf"; then
       var_val="${!var_name}"

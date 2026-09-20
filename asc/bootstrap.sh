@@ -22,7 +22,6 @@ if [[ $ASC_BS_FLAG -ne 1 ]]; then
   # Include ASC core utilities (always; do not concatenate these into active.sh).
   . asc/utils/core_utils.inc.sh
   . asc/asc/core.inc.sh
-  . asc/asc/global.inc.sh
   . asc/asc/hook.inc.sh
   . asc/asc/autoload.inc.sh
 

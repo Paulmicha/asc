@@ -15,7 +15,7 @@
 p_id="$1"
 p_id=${p_id//[^a-zA-Z0-9_\-\.]/}
 
-conf="data/asc/remote-instances/${p_id}.sh"
+conf="data/asc/cache/entities/remote_instance/${p_id}.sh"
 
 if [[ -f "$conf" ]]; then
   rm "$conf"

@@ -17,7 +17,10 @@
 #
 
 . asc/bootstrap.sh
-. asc/test/test.inc.sh
+if [[ "$(type -t f_test_batch_exec)" != function ]]; then
+  # shellcheck disable=SC1091
+  . asc/test/test.opt-inc.sh
+fi
 
 ##
 # Creates temporary files for verification purposes in current test case.

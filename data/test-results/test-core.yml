@@ -1,10 +1,21 @@
 batch: core
-updated: 2026-09-20T03:32:36-03:00
+updated: 2026-09-20T09:58:34-03:00
 exit: 0
 entity_discover:
+  test_entity_cache_generate_all_purges_stale_sidecar_cache: PASS
+  test_entity_cache_generate_host_fixture: PASS
+  test_entity_cache_generate_skips_include_field: PASS
   test_entity_cache_purge_empty_type_fails: PASS
   test_entity_cache_purge_removes_type_dir_files: PASS
+  test_entity_instances_discover_finds_host_fixture: PASS
   test_entity_load_is_defined: PASS
   test_entity_load_missing_cache_fails: PASS
   test_entity_load_requires_type_and_id: PASS
   test_entity_load_sources_data_asc_cache: PASS
+  test_entity_post_init_hook_file_exists: PASS
+  test_entity_spec_get_key_host_hostname: PASS
+  test_entity_spec_get_keys_host_includes_id_and_hostname: PASS
+  test_entity_type_includes_able_host_sidecar: PASS
+  test_entity_types_discover_does_not_index_able_files: PASS
+  test_entity_types_discover_includes_host: PASS
+  test_remote_instance_load_wraps_entity_load: PASS

@@ -220,4 +220,23 @@ test_asc_bootstrap_opt_inc_three_level() {
   ASC_EXTENSIONS="$saved_ext"
 }
 
+##
+# Test helpers must not load from eager `test.inc.sh` (nested bootstrap).
+# Callers `.` `asc/test/test.opt-inc.sh`. `asc/test/` entry points seed it.
+# @see changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md
+#
+test_f_test_batch_exec_helpers_absent_from_kernel_bootstrap() {
+  local out
+  out="$(bash -c '. asc/bootstrap.sh
+printf "%s" "$(type -t f_test_batch_exec)"')"
+  assertEquals 'f_test_batch_exec unset after kernel bootstrap' \
+    '' "$out"
+
+  out="$(bash -c '. asc/bootstrap.sh
+. asc/test/test.opt-inc.sh
+printf "%s" "$(type -t f_test_batch_exec)"')"
+  assertEquals 'f_test_batch_exec exists after opt-inc' \
+    'function' "$out"
+}
+
 . asc/vendor/shunit2/shunit2

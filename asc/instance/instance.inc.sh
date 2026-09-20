@@ -18,7 +18,7 @@
 #
 # @see f_global_aggregate()
 # @see f_global_write() in asc/instance/write_globals.sh
-# @see f_make_generate()
+# @see f_make_generate() in asc/make/generate.sh
 #
 # Default values :
 # @see asc/env/global.vars.sh
@@ -194,6 +194,11 @@ f_instance_init() {
 
   # Load default ASC 'core' globals.
   # These contain paths required for aggregating env vars and services.
+  # `global()` lives in opt-inc; source before env/global.vars.sh (not a subject).
+  if [[ "$(type -t global)" != function ]]; then
+    # shellcheck disable=SC1091
+    . asc/asc/global.opt-inc.sh
+  fi
   . asc/env/global.vars.sh
 
   # Any global vars defined in YAML takes precedence. Use the dynamic lookup now
@@ -244,6 +249,10 @@ f_instance_init() {
   . asc/instance/write_globals.sh
   f_global_write
 
+  if [[ "$(type -t f_make_generate)" != function ]]; then
+    # shellcheck disable=SC1091
+    . asc/make/generate.sh
+  fi
   f_make_generate
 
   # Trigger instance init (optional) extra processes.

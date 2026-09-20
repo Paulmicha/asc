@@ -7,7 +7,24 @@ Clearing '_probe' entity instances cache entries ...
 Clearing '_probe' entity instances cache entries : done.
 
 test_entity_cache_purge_empty_type_fails
+test_entity_types_discover_includes_host
+test_entity_types_discover_does_not_index_able_files
+test_entity_type_includes_able_host_sidecar
+test_entity_instances_discover_finds_host_fixture
+test_entity_cache_generate_host_fixture
+Clearing 'host' entity instances cache entries ...
+Clearing 'host' entity instances cache entries : done.
 
-Ran 6 tests.
+test_entity_cache_generate_skips_include_field
+test_entity_cache_generate_all_purges_stale_sidecar_cache
+Clearing 'host' entity instances cache entries ...
+Clearing 'host' entity instances cache entries : done.
+
+test_entity_post_init_hook_file_exists
+test_entity_spec_get_keys_host_includes_id_and_hostname
+test_entity_spec_get_key_host_hostname
+test_remote_instance_load_wraps_entity_load
+
+Ran 17 tests.
 
 OK

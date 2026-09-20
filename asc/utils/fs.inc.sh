@@ -224,7 +224,7 @@ f_fs_dir_list() {
 #   echo "$file_list"
 #
 #   # Looping example :
-#   f_fs_file_list 'data/asc/remote-instances'
+#   f_fs_file_list 'data/asc/cache/entities/remote_instance'
 #   while read -r file; do
 #     echo "$file"
 #   done <<< "$file_list"

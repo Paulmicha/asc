@@ -64,8 +64,6 @@ if [[ -f '.env' ]]; then
   done < '.env'
 elif [[ -f 'env.yml' ]]; then
   # The file env.yml, if it exists, is the "fallback" source of truth.
-  . asc/utils/shell/shell.opt-inc.sh
-  . asc/utils/str/str.opt-inc.sh
   . asc/yml/yml.inc.sh
 
   parsed=''
