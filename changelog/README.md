@@ -27,9 +27,6 @@ Live work is leftover core lazy waves after fs+db+yaml. Meadows loop **skipped**
 | [20-self-explainable-labels.md](2026/09/20-self-explainable-labels.md) | Labels / pivot NL; harness = abstract hook vs contrib `hook_ms` |
 | [20-match-script-not-clone-includes.md](2026/09/20-match-script-not-clone-includes.md) | Sibling `. include` is not a caller |
 | [20-two-include-kinds.md](2026/09/20-two-include-kinds.md) | Two include kinds only; `utils/` opt-inc is explicit `.` |
-| [20-readme-four-kernel-includes.md](2026/09/20-readme-four-kernel-includes.md) | Four kernel includes; `global()` in `global.opt-inc.sh` |
-| [20-readme-entity-instantiation.md](2026/09/20-readme-entity-instantiation.md) | Instantiation names discover/load functions |
-| [20-readme-nested-extensions-absent.md](2026/09/20-readme-nested-extensions-absent.md) | Drop listed `nested_*` dirs that are not on disk |
 | [19-fs-archive-lazy-include.md](2026/09/19-fs-archive-lazy-include.md) | Archive helpers in `fs.opt-inc.sh`; gzip-of-SQL; `f_fs_watch_poll` dropped |
 | [19-db-thin-inc-and-opt-inc.md](2026/09/19-db-thin-inc-and-opt-inc.md) | Creds eager; dump/exec cluster at `db/db/db.opt-inc.sh` |
 | [19-mysql-pgsql-hook-opt-inc.md](2026/09/19-mysql-pgsql-hook-opt-inc.md) | Skipped — no shared mysql/pgsql hook helpers |

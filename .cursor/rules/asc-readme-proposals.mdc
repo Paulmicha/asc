@@ -18,7 +18,7 @@ Do not put `README.<timestamp>.<slug>.md` (or any `README.*` sibling) at repo ro
 ❌ README.2026-09-20-eager-lazy.md next to README.md
 ❌ README.*.diff or changelog/*.diff
 ❌ Paste the working case table into README
-✅ changelog/2026/09/20-readme-four-kernel-includes.md
+✅ changelog/YYYY/MM/DD-readme-<slug>.md
 ✅ Exact rows or one short paragraph; why; which heading
 ```
 

@@ -6,7 +6,7 @@
 | **Status** | garage note. Survey only. No deletes. No runtime. No README.md patch. |
 | **Scope** | Misleading **enabled pivots that no-op**. Not a 200-row dump. Not a `gap` entity. |
 | **Survey** | ~62 `bootstrap` + `#TODO` entry points; ~236 empty YAML. No `gap.entity.yml` / `gap.able.yml`. |
-| **Related** | [20-gap-entity-not-core.md](./20-gap-entity-not-core.md); [20-two-include-kinds.md](./20-two-include-kinds.md); [20-host-scan-project-instances.md](./20-host-scan-project-instances.md); [10-begin-entity-system-with-remote-instances.md](./10-begin-entity-system-with-remote-instances.md); [20-readme-nested-extensions-absent.md](./20-readme-nested-extensions-absent.md) |
+| **Related** | [20-gap-entity-not-core.md](./20-gap-entity-not-core.md); [20-two-include-kinds.md](./20-two-include-kinds.md); [20-host-scan-project-instances.md](./20-host-scan-project-instances.md); [10-begin-entity-system-with-remote-instances.md](./10-begin-entity-system-with-remote-instances.md) |
 
 `$` in this file is the ASC docs placeholder (`$subject` / `$action` / `$extension`), not a shell variable.
 

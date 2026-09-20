@@ -50,4 +50,4 @@ Confirm with grep before moving:
 - [x] `f_make_generate` / `f_make_generate_test_cases` → `asc/make/generate.sh` (write_globals shape; list/unescape/hardcoded stay eager).
 - [x] Wave C leftover: `f_test_*` → `asc/test/test.opt-inc.sh` (explicit `.` from generate + hooks outside `asc/test/`). Empty `test.inc.sh` **deleted** so `test` leaves `ASC_INC` (same as empty kernel `global.inc.sh`). Test: `test_f_test_batch_exec_helpers_absent_from_kernel_bootstrap`.
 - [ ] Then Wave C: `git` as next `ASC_INC` subject.
-- [x] README: four kernel includes — [20-readme-four-kernel-includes.md](./20-readme-four-kernel-includes.md) (six → five was applied then superseded when empty `global.inc.sh` was deleted).
+- [x] README: four kernel includes (empty `global.inc.sh` deleted; `global()` in `global.opt-inc.sh`).
