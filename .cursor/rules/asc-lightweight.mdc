@@ -1,0 +1,35 @@
+---
+description: ASC stays light. Root README is human-written. Minimal sufficiency everywhere an ASC tree is used.
+alwaysApply: true
+---
+
+# ASC: light enough to load, just enough to run
+
+Apply when this workspace is ASC, the tree has `asc/bootstrap.sh`, or the task touches such a tree. Otherwise skip.
+
+## Root `README.md` (human)
+
+The human writes the canonical README. Agents do not create, fill, or “complete” it unless **explicitly asked**.
+
+Each accepted README edit must make the file **lighter or clearer**, not larger. One example per idea. No plan dumps, no hypothetical files, no exhaustive matrices.
+
+```text
+❌ Unsolicited README.md patches
+❌ Paste a 20-row loader table “so every case is covered”
+✅ Changelog / docs / plans for the long form
+✅ If asked: 3–5 rows, then stop; human continues
+```
+
+## Any ASC tree (core, ext, contrib, instance)
+
+Ship the smallest thing that still works. Prefer fewer files, fewer always-sourced lines, fewer wrappers.
+
+```text
+❌ New include “for completeness” with no caller
+❌ Eager *.inc.sh for a function one action/hook needs
+❌ Document or create a file that does not exist yet
+✅ Match an existing script; stop when the action runs
+✅ Lazy or in-entry-point only after a real caller exists
+```
+
+Ask before adding a loader, hook, wrapper, or global. Changelog may be long; README and runtime paths may not.
