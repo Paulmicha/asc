@@ -428,6 +428,14 @@ TODO explain the score-based specificity resolution mechanism here.
 
 Make `$subject-$action` is not this list: the same name across namespaces is prefixed (`extend-…`), not stolen. `$object` rows are nesting, not a scale rung. Overrides (`scripts/asc/override`) are a swap, not a row here.
 
+That sentence is drawing a line between two different collision rules.
+
+The numbered list under it is hook lookup: later / more-specific files win the same hook. Contrib does not invent a second name; hook_ms picks the most-specific dump.*.hook.sh.
+
+Make targets are not that list. make host-registry-get is one short name. If core already owns it, a project copy at scripts/asc/extend/host/registry/get.sh does not take make host-registry-get. It gets a prefixed target: make extend-host-registry-get. “Stolen” would mean the extend script silently replacing core’s make host-….
+
+So: hooks overlay; make names stay unique by prefixing the namespace (extend-…, or $extension-…).
+
 The `$subject-$action` pivot stays generic. Contrib is Extension; `scripts/asc/extend/` is Specifics. Both implement via `hook_ms`. Same `*.entity.yml` / `*.able.yml` contracts; they do not mint a parallel pivot per tool. Example: `make db-dump` vs `dump.mysql.hook.sh` / `dump.pgsql.hook.sh`.
 
 &lt;/proposal-2026-09-20&gt;
