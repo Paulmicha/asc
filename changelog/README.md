@@ -44,6 +44,7 @@ Live work is the lazy-include split. Meadows loop **skipped** — hunts apply in
 |------|------|
 | [19-lazy-opt-inc-remaining-core-waves.md](2026/09/19-lazy-opt-inc-remaining-core-waves.md) | After fs+db. First leftover: yaml dual-source |
 | [20-host-scan-project-instances.md](2026/09/20-host-scan-project-instances.md) | Catalog `$PROJECT_DOCROOT` trees on this host |
+| [20-builder-kernel-subject.md](2026/09/20-builder-kernel-subject.md) | `asc/builder/` one kernel subject + `template.able` / `literal.able` sketches |
 | [10-begin-entity-system-with-remote-instances.md](2026/09/10-begin-entity-system-with-remote-instances.md) | Entity types → instances → cache. Stub path still wrong |
 
 ## 2026-08
