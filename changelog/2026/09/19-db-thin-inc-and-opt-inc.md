@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-19 |
-| **Status** | pick A locked (caller-dir `db/db/db.opt-inc.sh`). Loader coverage in `asc/test/core/caller_opt_inc.test.sh`. Function move still later. After [19-fs-archive-lazy-include.md](./19-fs-archive-lazy-include.md) if dump/exec should `.` `fs.opt-inc.sh`. |
+| **Status** | pick A locked (caller-dir `db/db/db.opt-inc.sh`). Loader coverage in `asc/test/core/caller_opt_inc.test.sh`. Function move still later. Fs slice **landed** — `db.inc.sh` already `.`s `fs.opt-inc.sh` for dump/exec. |
 | **Scope** | `asc/extensions/db/db.inc.sh` (~1501 lines) is `$extension/$extension.inc.sh` → **every** bootstrap when db is enabled. Most of it is dump/exec/restore orchestration only needed for `db-*` actions (and two setup hooks). |
 | **Parent** | [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) function drill + Wave C (this extension only). |
 | **Examples SoT** | [19-eager-vs-lazy-include-cases.md](./19-eager-vs-lazy-include-cases.md) |

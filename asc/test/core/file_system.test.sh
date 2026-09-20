@@ -13,6 +13,23 @@
 #
 
 . asc/bootstrap.sh
+. asc/utils/fs.opt-inc.sh
+
+##
+# Archive helpers must not load from kernel `fs.inc.sh` (nested bootstrap).
+# Callers `.` `asc/utils/fs.opt-inc.sh`. `f_fs_watch_poll` is dropped.
+# @see changelog/2026/09/19-fs-archive-lazy-include.md
+#
+test_f_fs_archive_helpers_absent_from_kernel_bootstrap() {
+  local out
+  out="$(bash -c '. asc/bootstrap.sh
+printf "%s" "$(type -t f_fs_compress)"
+printf " %s" "$(type -t f_fs_extract)"
+printf " %s" "$(type -t f_fs_merge_dirs)"
+printf " %s" "$(type -t f_fs_watch_poll)"')"
+  assertEquals 'compress/extract/merge/watch_poll unset after kernel bootstrap' \
+    '   ' "$out"
+}
 
 ##
 # Can ASC create directories in current dir ?
@@ -162,26 +179,21 @@ test_f_fs_compress_and_extract() {
 }
 
 ##
-# f_fs_watch_poll: one change detection then exit via callback.
+# Preferred extension `gz` on a file is gzip of that file, not tar.gz bytes.
 #
-test_f_fs_watch_poll() {
-  mkdir -p '_asc_dir_test/watch'
-  rm -f '_asc_dir_test/watch_fired'
-  (
-    f_fs_watch_poll '_asc_dir_test/watch' \
-      'touch _asc_dir_test/watch_fired; exit 0' '' 1
-  ) >/dev/null 2>&1 &
-  local poll_pid=$!
-  sleep 0.3
-  echo x > '_asc_dir_test/watch/changed.txt'
-  local i
-  for ((i=0; i<20; i++)); do
-    [[ -f '_asc_dir_test/watch_fired' ]] && break
-    sleep 0.2
-  done
-  kill "$poll_pid" 2>/dev/null || true
-  wait "$poll_pid" 2>/dev/null || true
-  assertTrue 'watch_poll should fire on change' "[ -f '_asc_dir_test/watch_fired' ]"
+test_f_fs_compress_gz_is_gzip_not_tar() {
+  mkdir -p '_asc_dir_test/gz'
+  printf '%s' 'SELECT 1;' > '_asc_dir_test/gz/dump.sql'
+
+  f_fs_compress '_asc_dir_test/gz/dump.sql' '_asc_dir_test/gz' 'gz'
+  assertTrue 'creates dump.sql.gz' "[ -f '_asc_dir_test/gz/dump.sql.gz' ]"
+  assertTrue 'must be gzip' "gzip -t '_asc_dir_test/gz/dump.sql.gz'"
+  assertEquals 'gzip -dc is the SQL file, not a tar member' \
+    'SELECT 1;' "$(gzip -dc '_asc_dir_test/gz/dump.sql.gz')"
+
+  rm -f '_asc_dir_test/gz/dump.sql'
+  f_fs_extract_in_place '_asc_dir_test/gz/dump.sql.gz'
+  assertEquals 'round-trip SQL' 'SELECT 1;' "$(<'_asc_dir_test/gz/dump.sql')"
 }
 
 ##

@@ -13,6 +13,11 @@
 
 . asc/bootstrap.sh
 
+if ! type f_fs_extract_in_place &>/dev/null; then
+  # shellcheck disable=SC1091
+  . asc/utils/fs.opt-inc.sh
+fi
+
 db_dump_file="$1"
 
 if [[ -z "$db_dump_file" || ! -f "$db_dump_file" ]]; then
@@ -127,7 +132,7 @@ if [[ -f "$extracted_file" && -f "$compressed_file" ]]; then
   mv "$compressed_file" "${db_dump_dir}/${db_dump_file_name}.before-reduce.sql.gz"
 
   # Compress & remove uncompressed dump file (gzip, not tar: restores use gunzip).
-  gzip -c "$reduced_dump" > "${reduced_dump}.gz"
+  f_fs_compress "$reduced_dump" "$db_dump_dir" 'gz'
 
   if [[ $? -ne 0 ]]; then
     if [[ -f "${db_dump_dir}/${db_dump_file_name}.before-reduce.sql.gz" ]]; then

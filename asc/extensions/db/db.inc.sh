@@ -4,8 +4,14 @@
 # Basic database utility functions.
 #
 # This file is sourced during core ASC bootstrap.
+# @see changelog/2026/09/19-fs-archive-lazy-include.md
 # @see asc/bootstrap.sh
 #
+
+if ! type f_fs_extract_in_place &>/dev/null; then
+  # shellcheck disable=SC1091
+  . asc/utils/fs.opt-inc.sh
+fi
 
 ##
 # Exports the complete set of DB info by ID, and (re)sets corresponding values.
@@ -970,10 +976,10 @@ f_db_dump() {
     exit 2
   fi
 
-  # Compress & remove uncompressed dump file.
+  # Compress & remove uncompressed dump file (gzip of the SQL file, not tar).
   db_dump_file_name="${db_dump_file##*/}"
 
-  tar czf "$db_dump_file.gz" -C "$db_dump_dir" "$db_dump_file_name"
+  f_fs_compress "$db_dump_file" "$db_dump_dir" 'gz'
 
   if [[ $? -ne 0 ]]; then
     echo >&2

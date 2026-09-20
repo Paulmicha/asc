@@ -45,6 +45,11 @@
 
 . asc/bootstrap.sh
 
+if ! type f_fs_merge_dirs &>/dev/null; then
+  # shellcheck disable=SC1091
+  . asc/utils/fs.opt-inc.sh
+fi
+
 # Prerequisites checks.
 if [[ -z "$1" ]]; then
   echo >&2

@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-19 |
-| **Status** | proposed (no code yet). Filename **locked**: `asc/utils/fs.opt-inc.sh` (not `private-inc`; two include kinds — [20-two-include-kinds.md](./20-two-include-kinds.md)). README Recap applied; gzip vs `tar`+`.gz` and `f_fs_watch_poll` still open. |
+| **Status** | **implemented** (2026-09-20). `asc/utils/fs.opt-inc.sh` on disk. Gzip-of-SQL. `f_fs_watch_poll` dropped. Tests: `test_f_fs_archive_helpers_absent_from_kernel_bootstrap`, `test_f_fs_compress_gz_is_gzip_not_tar` (`asc/test/core/file_system.test.sh`). |
 | **Scope** | `asc/utils/fs.inc.sh` (~1088 lines) is sourced on **every** heavy bootstrap via `asc/utils/core_utils.inc.sh`. Move compress/extract/merge/watch off that path. Align `f_db_dump` / `dump_reduce.sh` with those helpers. |
 | **Parent** | [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) Wave A (fs slice only). |
 | **Not this plan** | `str.inc.sh` tail, yaml dual-source, `db.inc.sh` thinning (see sibling sub-plans). |
@@ -40,16 +40,16 @@ Production callers (this repo, excluding tests):
 | `f_fs_compress` / `_in_place` / `f_fs_trim_compression_ext` | **move** | tests + (should be) db dump |
 | `f_fs_extract` / `_in_place` | **move** | `f_db_exec`, `db/dump_reduce.sh` |
 | `f_fs_merge_dirs` | **move** | `scripts/asc/contrib/asc/drupalwt/new/project.sh` only |
-| `f_fs_watch_poll` | **move** | tests / comments only |
+| `f_fs_watch_poll` | **drop** | tests / comments only — do not relocate |
 
-Approx. lines moved: `fs.inc.sh:37-231` (watch + merge) + `:696-1088` (compress/extract) ≈ **600**.
+Approx. lines moved: `fs.inc.sh` merge (`:37-231` minus watch) + compress/extract (`:696-1088`). Watch is **deleted**, not moved.
 
 ---
 
 ## Target files
 
 - **Keep:** `asc/utils/fs.inc.sh` — list/path/contents/most-recent/change-line only.
-- **New:** `asc/utils/fs.opt-inc.sh` — watch, merge, compress, extract (same function names). Header comment: *not derived by bootstrap; callers must `.` this file*.
+- **New:** `asc/utils/fs.opt-inc.sh` — merge, compress, extract (same function names). Header comment: *not derived by bootstrap; callers must `.` this file*. **Not** `f_fs_watch_poll`.
 - **Do not** add `asc/utils` to `ASC_INC` or invent `ASC_OPT_INC`.
 
 ### Who `.`s the new file
@@ -67,26 +67,15 @@ Idempotent source: wrap with `if ! type f_fs_extract_in_place &>/dev/null; then 
 
 ## Compression inconsistency (fix in this plan)
 
-Today:
-
-| Site | What it writes |
-|------|----------------|
-| `f_db_dump` | `tar czf "$db_dump_file.gz"` — **tar.gz bytes**, `.gz` name |
-| `dump_reduce.sh` | `gzip -c` — real gzip (comment: restores use gunzip) |
-| `f_fs_compress` | `tar -czf` default extension **`tgz`** |
-
-`f_db_exec` already goes through `f_fs_extract_in_place`, which is why mixed archives still restore. The dump vs reduce mismatch is still a footgun for humans and for `gunzip` without `f_fs_extract`.
-
-**Pick:** dump/reduce/exec all use `f_fs_compress*` / `f_fs_extract*` after the split. Choose **one** on-disk convention (prefer **gzip of a single SQL file**, matching `dump_reduce.sh` and typical `*.sql.gz` names) and make `f_fs_compress` honor it when the preferred extension is `gz` (today’s TODO in `f_fs_compress`: “adapt tar parameters depending on extension”). Do not leave `tar czf file.sql.gz` as a special case in `f_db_dump`.
-
-If gzip-vs-tar is too behavior-changing for one PR, split: (1) move functions + explicit `.`, keep `tar czf` in `f_db_dump` for this PR; (2) format unification as a tiny follow-up. Prefer doing both if tests in `file_system.test.sh` + a db dump/exec test can lock the format.
+**Now:** dump/reduce/exec call `f_fs_compress` / `f_fs_extract*` with preferred extension `gz` (gzip of a single SQL file). Default `f_fs_compress` without `gz` is still `tgz` (tar). `remote_db` still has its own `tar czf` (not this slice).
 
 ---
 
 ## Tests
 
 - Existing `test_f_fs_compress_and_extract` / in-place tests: fail with `type -t f_fs_compress` → empty **before** the test file sources `fs.opt-inc.sh`; pass after.
-- `test_f_fs_watch_poll` / merge tests: same.
+- Merge tests: same.
+- **Drop** `test_f_fs_watch_poll` with the function.
 - A kernel-only bootstrap (`ASC_INC` empty or `make` of a non-db action) must **not** define `f_fs_extract`.
 - After dump alignment: `f_db_exec` on a file produced by `f_db_dump` still works (extract in place).
 
@@ -94,6 +83,7 @@ If gzip-vs-tar is too behavior-changing for one PR, split: (1) move functions + 
 
 ## Open tasks
 
-- [ ] Confirm gzip-of-SQL vs keep tar+`.gz` name.
-- [ ] Move functions; add explicit `.` at the callers above.
-- [ ] Case-table row for `asc/utils/fs.opt-inc.sh` stays “never auto-sourced”.
+- [x] Confirm gzip-of-SQL vs keep tar+`.gz` name. **Locked:** gzip of a single SQL file.
+- [x] Drop `f_fs_watch_poll` (and `test_f_fs_watch_poll`); do not put it in `fs.opt-inc.sh`.
+- [x] Move compress/extract/merge; explicit `.` at tests, `db.inc.sh`, `dump_reduce.sh`, drupalwt `new/project.sh`.
+- [x] Case-table row for `asc/utils/fs.opt-inc.sh` stays “never auto-sourced” (file now **on disk**).

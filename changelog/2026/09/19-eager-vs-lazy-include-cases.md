@@ -60,7 +60,7 @@ Legend: **on disk** = file exists today. **planned** = filename the follow-up su
 | `hook_ms -s db -a dump` when `dump.mysql.hook.sh` wins | lazy **hook** | `scripts/asc/contrib/asc/mysql/db/db.opt-inc.sh` | planned | Hook dir basename `db` → `db.opt-inc.sh`, seeded **before** the hook body |
 | same | lazy **hook** | `scripts/asc/contrib/asc/mysql/db/dump.opt-inc.sh` | optional | `dump.mysql.hook.sh` → action = `dump` (stem **before first `.`**), **not** `dump.mysql.opt-inc.sh` |
 | `dump.pgsql.hook.sh` wins | lazy **hook** | `scripts/asc/contrib/asc/pgsql/db/db.opt-inc.sh` | planned | Same derivation as mysql |
-| any **auto** loader | include (manual) | `asc/utils/fs.opt-inc.sh` | ❌ never | `utils/` is not a caller dir and has no `*.hook.sh`. Bootstrap will not derive this path. Callers must `.` it. See fs sub-plan. |
+| any **auto** loader | include (manual) | `asc/utils/fs.opt-inc.sh` | ❌ never (**on disk**) | `utils/` is not a caller dir and has no `*.hook.sh`. Bootstrap will not derive this path. Callers must `.` it. See fs sub-plan. |
 | `make git-status` | caller opt-inc | `asc/extensions/db/db/db.opt-inc.sh` | ❌ no | Wrong caller. Caller opt-inc only looks next to `BASH_SOURCE[1]`. |
 | `make db-dump` **before** `hook_ms dump` | lazy hook | `scripts/asc/contrib/asc/mysql/db/db.opt-inc.sh` | ❌ not yet | Caller is `asc/extensions/db/db/dump.sh`, not contrib. Mysql helpers arrive when the **hook** runs (`hook_ms`), not at caller opt-inc. |
 | interactive `. asc/bootstrap.sh` | lazy caller | *(none)* | ❌ no | No `BASH_SOURCE[1]` |

@@ -15,6 +15,7 @@
 #
 
 . asc/bootstrap.sh
+. asc/utils/fs.opt-inc.sh
 
 ##
 # Creates temporary files for verification purposes in current test case.

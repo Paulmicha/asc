@@ -30,6 +30,7 @@ Live work is the lazy-include split. Meadows loop **skipped** — hunts apply in
 | [20-two-include-kinds.md](2026/09/20-two-include-kinds.md) | Two include kinds only; `utils/` opt-inc is explicit `.` |
 | [20-readme-proposals-rule.md](2026/09/20-readme-proposals-rule.md) | README deltas in changelog `*-readme-*`; human applies |
 | [20-readme-eager-lazy-rows.md](2026/09/20-readme-eager-lazy-rows.md) | Recap table + `utils/` never-auto sentence (applied) |
+| [19-fs-archive-lazy-include.md](2026/09/19-fs-archive-lazy-include.md) | Archive helpers in `fs.opt-inc.sh`; gzip-of-SQL; `f_fs_watch_poll` dropped |
 
 ### Live (do not implement as one PR)
 
@@ -37,7 +38,6 @@ Live work is the lazy-include split. Meadows loop **skipped** — hunts apply in
 |------|------|
 | [11-lazy-opt-inc-and-entry-point-extraction.md](2026/09/11-lazy-opt-inc-and-entry-point-extraction.md) | Parent split + caveats (1)–(14). Keep/move/drop drill |
 | [19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md) | Two loaders, case table. **Pick A locked** (caller-dir). Tests: `caller_opt_inc.test.sh` |
-| [19-fs-archive-lazy-include.md](2026/09/19-fs-archive-lazy-include.md) | First code slice: archive helpers off kernel `fs.inc.sh` |
 | [19-db-thin-inc-and-opt-inc.md](2026/09/19-db-thin-inc-and-opt-inc.md) | Creds eager; dump/exec cluster lazy at `db/db/db.opt-inc.sh` (pick A). Function move later |
 | [19-mysql-pgsql-hook-opt-inc.md](2026/09/19-mysql-pgsql-hook-opt-inc.md) | DRY only if grep shows sharing; otherwise skip |
 | [20-meadows-plan-review-feedback-loop.md](2026/09/20-meadows-plan-review-feedback-loop.md) | Meta-plan. Loop skipped; hunts apply in chat |
