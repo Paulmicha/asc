@@ -346,6 +346,14 @@ Typical ASC use cases aren't complex or "big" *by design*, but its extensibility
     1. an entry point's `$subject` (= script's parent dir name) and `$action` (= script's file name),
     1. or on a cached hook call.
 
+##### Exceptions
+
+`asc/utils/core_utils.inc.sh` acts like a hub file for other, hardcoded, "pivot" opportunist file and dir names and paths. The filesystem path itself may tell a story in a self-explainable way. That is the pursuit and overall idea of the "synonyms - tokens" gap filling in human - agent communication. Generally, there are no other rules other that what is set in stone in this exclusively human-written root README file of the project.
+
+That is an invitation to get creative. There's a lot of space to explore. This is fundamentally a fun garage project.
+
+##### Recap
+
 Here are a few examples to illustrate how this works :
 
 | File | Type | Bootstrapping context | Sourced | Why |
@@ -354,6 +362,11 @@ Here are a few examples to illustrate how this works :
 | `asc/extensions/compose/compose.inc.sh` | eager | (any) | ✅ yes | `asc/extensions/compose` is an *extension point* and `compose.inc.sh` matches its name |
 
 TODO [wip] complete the examples to match all cases.
+
+asc/utils/fs.inc.sh — eager, but not an active-dir name match.
+Kernel via core_utils.inc.sh.
+Your bullets currently imply eager = parent-dir filename match only.
+That is incomplete.
 
 ### Extension Point
 
