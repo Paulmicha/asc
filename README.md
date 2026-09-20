@@ -299,17 +299,27 @@ asc/instance/list_extensions.sh 'disabled'
 
 #### Overrides
 
-A **swap**, not a lookup slot. If the counterpart exists in `scripts/asc/override`, it is used instead of the original. The copy sits at whatever scale rung it replaces (Core or Extension).
+Overrides are specific file paths allowing to swap includes provided by core and contrib implementations. They are not a lookup slot.
 
-Matching replaces the leading `asc/` or `scripts/asc/contrib/` with `scripts/asc/override/`.
+If the "counterpart" of a given file exists in the folder `scripts/asc/override`, it will be used instead of the original file. It's a mechanism that applies to both "autoload" includes (`*.inc.sh` and `*.opt-inc.sh`) and hook implementations.
 
-Example : `asc/git/init.hook.sh` → `scripts/asc/override/git/init.hook.sh`.
+The matching is done by replacing the leading `asc/` or `scripts/asc/contrib/` in filepaths with `scripts/asc/override/`.
 
-Yaml `override:`, `env.yml` later files, and `compose.override*.yml` are **replace** / instance env / **variant** — not this rung.
+Examples :
 
-#### Specifics
+- if we want to *override* `asc/git/init.hook.sh` = **swap** it with our own copy of that file, we'll place it at that path : `scripts/asc/override/git/init.hook.sh` ;
+- `asc/extensions/docker-compose/docker-compose.inc.sh` → `scripts/asc/override/extensions/docker-compose/docker-compose.inc.sh` ;
+- etc.
 
-Custom *active dirs* in `./scripts/asc/extend`. Low or no reuse outside this project. Not contrib (still Extension). Not `data/*` (instance files).
+This overriding mechanism is not to be confused with :
+
+- Yaml `override:` : see *entities*
+- `env.yml` files : see *env vars*
+- `compose.override*.yml` : see (docker) *compose* extension
+
+#### Project-specific implementations
+
+For anything that has low or no reuse potential outside the current project, we can use custom *active dirs* placed in `./scripts/asc/extend`.
 
 ### Bootstrap (ASC-bootstrapped context)
 
@@ -363,7 +373,7 @@ Here are a few examples to illustrate how this works :
 |-----------------------|------|------|---------|-----|
 | (any) | eager | `asc/git/git.inc.sh` | ✅ yes | `asc/git` is an *active dir* and `git.inc.sh` matches its name |
 | (any) | eager | `asc/extensions/compose/compose.inc.sh` | ✅ yes | `asc/extensions/compose` is an *extension point* and `compose.inc.sh` matches its name |
-| (any heavy bootstrap) | eager | `asc/utils/fs.inc.sh` | ✅ yes | The kernel include `core_utils.inc.sh` always `.`s it. Not an active-dir name match. |
+| (any) | eager | `asc/utils/fs.inc.sh` | ✅ yes | The hardcoded kernel "hub" include file `core_utils.inc.sh` always includes it ; it is not an active-dir name match (not "autoloaded"). |
 | `make db-sync-to` | subject-lazy | `asc/extensions/remote_instance/db/db.opt-inc.sh` | ✅ yes | Caller dir `db/` → 2-level `$subject` `db`. |
 | `make git-write-hooks` | subject-lazy | `asc/extensions/remote_instance/db/db.opt-inc.sh` | ❌ no | Wrong caller. Caller opt-inc only looks next to `BASH_SOURCE[1]`. |
 
@@ -383,7 +393,7 @@ An **extension point** (noted "ext.point" in the *File structure* section, or `$
 
 An *active dir* is a folder where files following the naming conventions below allow things like :
 
-- auto (= eager = files using the `*.inc.sh` double extension), or lazy (= files using the `*.opt-inc.sh` double extension) loading of bash shell script includes in ASC-bootstrapped contexts,
+- auto (= eager = files using the `*.inc.sh` double extension), or lazy (= files using the `*.opt-inc.sh` double extension) loading (= sourcing) of bash shell script includes in ASC-bootstrapped contexts,
 - global env vars definitions,
 - hook implementations (with variants), including yaml files, python scripts, etc.
 
@@ -391,28 +401,36 @@ These folders are automatically discovered during instance init (and setup). The
 
 - which **extensions** are enabled (using `.gitignore`-like declarations, see `.asc_subjects_ignore` files),
 - which **env vars values** are set,
-- which **lookup** rung the contained implementations have (this determines conflicted "winners"),
+- which **lookup** rung (= "specificity level") the contained implementations have - this determines conflicted "winners",
 - and whether they relate to a `$subject` or an `$object` (by subject) given the **entry point** (= `$action`) used.
 
-**List of active dirs** (lookup order, Core → Extension → Specifics) :
+**List of active dirs** in lookup order (= most "generic" to most "specific"), i.e. roughly Core → Contrib → Project-specific :
 
-1. `./asc/$subject` (ex: `asc/host`) — Core
-1. `./asc/extensions/$extension/$subject` (ex: `asc/extensions/compose/service`) — Core, opt-in
-1. `./scripts/asc/contrib/asc/$extension/$subject` (ex: `scripts/asc/contrib/asc/tesseract/recognize`) — Extension
-1. `./scripts/asc/contrib/$vendor/$extension/$subject` — Extension
-1. `./scripts/asc/extend/$subject` — Specifics
+1. `./asc/$subject` (ex: `asc/host`) = core, low-level, "kernel"
+1. `./asc/extensions/$extension/$subject` (ex: `asc/extensions/compose/service`) = opt-in core "low-level" generic extensions, "abstract" entry points (= pivots)
+1. `./scripts/asc/contrib/asc/$extension/$subject` (ex: `scripts/asc/contrib/asc/tesseract/recognize`) = opt-in core "concrete", (vendor-, software-, tool-)specific extensions
+1. `./scripts/asc/contrib/$vendor/$extension/$subject` = reusable implementations, potentially third-party (contributed)
+1. `./scripts/asc/extend/$subject` — Project-specific implementations
 
 So :
 
-> an *active dir* is any `$subject` dir (Core, enabled Extension, or Specifics).
+> an *active dir* is any `$subject` dir (core, enabled extension, or project-specific).
 
 NB : an additional `$object` subdir may be used for regrouping actions (see _actions_).
 
-### Lookup and collisions
+### Lookup and collisions (score-based "specificity" system)
 
-The bottom of this **lookup** list is the intended `hook_ms` winner (the **most-specific match** — not Specifics). Make `$subject-$action` is not this list: the same name across namespaces is prefixed (`extend-…`), not stolen. `$object` rows are nesting, not a scale rung. Overrides (`scripts/asc/override`) are a swap, not a row here.
+The bottom of this **lookup** list is the intended `hook_ms` winner (the **most-specific match**).
+
+TODO explain the score-based specificity resolution mechanism here.
+
+&lt;proposal-2026-09-20&gt;
+
+Make `$subject-$action` is not this list: the same name across namespaces is prefixed (`extend-…`), not stolen. `$object` rows are nesting, not a scale rung. Overrides (`scripts/asc/override`) are a swap, not a row here.
 
 The `$subject-$action` pivot stays generic. Contrib is Extension; `scripts/asc/extend/` is Specifics. Both implement via `hook_ms`. Same `*.entity.yml` / `*.able.yml` contracts; they do not mint a parallel pivot per tool. Example: `make db-dump` vs `dump.mysql.hook.sh` / `dump.pgsql.hook.sh`.
+
+&lt;/proposal-2026-09-20&gt;
 
 1. `asc/$subject/*.hook.sh` / `asc/$subject/$action.sh`
 1. `asc/$subject/$object/$action.sh`
@@ -425,7 +443,7 @@ The `$subject-$action` pivot stays generic. Contrib is Extension; `scripts/asc/e
 1. `scripts/asc/extend/$subject/*.hook.sh` / `scripts/asc/extend/$subject/$action.sh`
 1. `scripts/asc/extend/$subject/$object/$action.sh`
 
-Rows 1–2 Core, 3–4 Core opt-in, 5–8 Extension, 9–10 Specifics.
+Rows 1–2 core, 3–4 core opt-in, 5–8 extension, 9–10 project-specific.
 
 ### Actions = (make) _Entry points_
 
@@ -665,7 +683,7 @@ toto=foobar-1.2.3
 make hook-debug s:stack a:service_add v:toto
 ```
 
-Yields (from fewer to more variant tokens) :
+Yields (from fewer to more variant tokens = from least to most "specific") :
 
 - `*/stack/service_add.hook.sh`
 - `*/stack/service_add.foobar.hook.sh`
@@ -1182,11 +1200,11 @@ required:
 
 In the following list, `$ext` means any one of these extension points (paths) :
 
-- the `./asc` dir : Core
-- any dir inside `./asc/extensions` : Core, opt-in (Extension folders)
-- any dir inside `./scripts/asc/contrib/asc` : Extension (ASC contrib)
-- any dir inside `./scripts/asc/contrib/$vendor` : Extension (vendor contrib)
-- and finally, `$ext` can also be the `./scripts/asc/extend` dir itself (Specifics)
+- the `./asc` dir : core, low-level, "kernel"
+- any dir inside `./asc/extensions` : opt-in core "low-level" generic extensions, "abstract" entry points (= pivots)
+- any dir inside `./scripts/asc/contrib/asc` : opt-in core "concrete", (vendor-, software-, tool-)specific extensions
+- any dir inside `./scripts/asc/contrib/$vendor` : reusable implementations, potentially third-party (contributed)
+- and finally, `$ext` can also be the `./scripts/asc/extend` dir itself (Project-specific implementations)
 
 The following naming conventions will get automatically discovered :
 
@@ -1232,7 +1250,7 @@ ASC tests are integrated in levels :
 
 ASC core provides its own coverage, see :
 
-- level 0 (*entry point*) = `asc/test/core.sh` : defines the `test-core` entry point, which triggers a hook so that other extensions may implement their own Core tests - i.e. `hook -s 'test' -a 'core' -v 'PROVISION_USING HOST_TYPE HOST_OS'`
+- level 0 (*entry point*) = `asc/test/core.sh` : defines the `test-core` entry point, which triggers a hook so that other extensions may implement their own low-level ASC tests - i.e. `hook -s 'test' -a 'core' -v 'PROVISION_USING HOST_TYPE HOST_OS'`
 - level 1 (*batch*) = `f_test_batch_exec 'asc/test/core'` in `asc/test/core.hook.sh` : ASC core itself implements its own hook to run default low-level tests
 - level 2 (*suite*) = e.g. `asc/test/core/bootstrap.test.sh` : a test suite is a file named like `$suite.test.sh` in the dir passed as argument to the `f_test_batch_exec()` function
 - level 3 (*case*) = e.g. `test_asc_has_essential_globals()` in `asc/test/core/bootstrap.test.sh` : a single test case is a function named like `test_$case()`
@@ -1563,7 +1581,7 @@ ASC core (`asc/`) may sit inside the app (same docroot), in a parent “dev stac
 2. Review [`.gitignore`](.gitignore) and adapt it.
 3. Enable or disable extensions: edit `.asc_extensions_ignore` (delete a line to **enable** that extension).
 4. Copy [`SPECIMEN.env.yml`](SPECIMEN.env.yml) → `env.yml` and edit. Settings that **do not vary** much between instance types belong here (stack version, apps, paths). Use gitignored `.env-local.yml` for machine-private instance env.
-5. Optionally implement Specifics under `scripts/asc/extend/` and Overrides under `scripts/asc/override/`.
+5. Optionally implement project-specific things under `scripts/asc/extend/` and overrides (= swap) under `scripts/asc/override/`.
 6. Run **instance setup**:
 
 ```sh
@@ -1700,11 +1718,11 @@ asc/instance/rebuild.sh
   │       │   │   │   └── ...
   │       │   │   └── ...
   │       │   └── ...
-  │       ├── extend/             ← [$subject/$action ext.point] Specifics
+  │       ├── extend/             ← [$subject/$action ext.point] project-specific asc implementations
   │       │   ├── instance        ← [optional] active dir allowing unprefixed entry points
   │       │   └── ...
   │       ├── local/              ← [git-ignored] manual debug scripts
-  │       ├── override/           ← Overrides: swap any sourced Core or Extension path
+  │       ├── override/           ← allows to swap "autoloaded" core + contrib includes and/or hooks implementations
   │       └── sandbox/            ← [optional, git-ignored] Contains code generators results to evaluate (see builder)
   │           ├── prototype/      ← [optional] Iterative generated code results
   │           └── review/         ← [optional] Generated code ready for evaluation
