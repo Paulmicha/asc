@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-17 |
-| **Status** | implemented |
+| **Status** | implemented (`96316d3`). Opt-in; default fences stay `dot -Tsvg`. |
 | **Scope** | `asc/doc/print_graphviz.py`, `asc/doc/improve_edge_labels.gvpr`, `asc/doc/asc/pdf.test.sh`, `asc/doc/pdf_export.sh`, `asc/doc/html_preview.sh` |
 | **Host dep** | Graphviz CLI (`dot`, `gvpr`, `neato`) from `sudo apt install graphviz`. Missing `gvpr`/`neato` falls back to `dot -Tsvg`. Missing `dot` still never aborts export. |
 

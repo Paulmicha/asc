@@ -6,7 +6,7 @@
 | **Status** | implemented (discovery + pivots + hook skip + caller opt-inc). Builder template YAML/includes in `[object]` removed to match README discovery recap. |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — discover a third nesting level for **entry points only**. Hooks stay `$subject`-scoped. Not entity YAML merge, not stamp v1.1 nested-file watch, not lazy-opt-inc extraction. |
 | **Related** | README § Current status / Active Dir / Actions / Specificity; `f_asc_extend()` / `f_asc_primitive_values()` in `asc/asc/core.inc.sh`; `f_make_list_entry_points()` in `asc/make/make.inc.sh`; `hook()` in `asc/asc/hook.inc.sh`; caller opt-inc in `asc/bootstrap.sh`; builder template `asc/extensions/builder/template/core/[subject]/[object]/`. Prior: [11-bootstrap-cache-layout-and-invalidation.md](./11-bootstrap-cache-layout-and-invalidation.md). |
-| **Lifecycle** | Review this file; implement the waves below. `autoload.inc.sh` is **out of scope** (`p_extra_level_name` is hook **filename** variants, not directories). |
+| **Lifecycle** | Shipped (discovery + pivots + hook skip + caller opt-inc). `autoload.inc.sh` remains **out of scope** (`p_extra_level_name` is hook **filename** variants, not directories). |
 
 `$` in this file is the ASC docs placeholder (`$subject` / `$object` / `$action`), not a shell variable.
 

@@ -3,9 +3,9 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-20 |
-| **Status** | proposed (meta-plan). **Human reviews this file first.** Agents are specified here and **must not launch** until a later, explicit approval. No code yet. No Cursor-rule edit yet. |
+| **Status** | proposed (meta-plan). **Human reviews this file first.** Agents **must not launch** until a later, explicit approval. Garage clause **landed** ([20-garage-lightweight-rule.md](./20-garage-lightweight-rule.md)). Mirror-path rule line still later. No code. |
 | **Scope** | Strengthen four existing *plans* (not the runtime) via a short cooperative feedback loop. The same loop is a **continual memory-upgrade process**: every durable ASC fact that Cursor would otherwise forget is proposed as the smallest patch to the mother always-applied rule and/or this repo’s changelog — never as a new loader. Lens: [asc-lightweight.mdc](../../../.cursor/rules/asc-lightweight.mdc). |
-| **Does not change (this step)** | The four source plans (until the apply step). Code, loaders, `README.md`, git. `.cursor/rules/*.mdc` until a later, explicit rule patch after this plan is approved. |
+| **Does not change (this step)** | The four source plans (until the apply step). Code, loaders, `README.md`, git. `.cursor/rules/*.mdc` except the garage clause already applied. |
 | **Parent** | [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) (split 2026-09-19). Adjacent docs SoT, not in the review set: [19-eager-vs-lazy-include-cases.md](./19-eager-vs-lazy-include-cases.md). |
 | **Orientation** | Donella Meadows: intervene in **goals, information flows, feedback, and delays** before adding parts. Highest leverage in this loop: the always-applied rule that governs future agents. Existing ASC names: *lazy only after a real caller*, *two loaders not three*, *explicit `.` from `asc/utils/`*, *core / ext / contrib / instance*, *project instance*, parent **dev stack**. Do not add a parallel Meadows vocabulary. |
 

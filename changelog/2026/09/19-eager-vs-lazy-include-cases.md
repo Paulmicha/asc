@@ -1,9 +1,9 @@
-# Eager vs lazy includes — complete case table (README)
+# Eager vs lazy includes — complete case table
 
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-19 |
-| **Status** | proposed (docs). Copy into README § *Always (= eager) VS conditionally (= lazy) sourced includes* after review. No code. |
+| **Status** | proposed (docs). **This file is SoT.** Root README already has two example rows + `TODO [wip]`; do **not** paste this matrix there (lightweight: 3–5 rows max, human continues). No code. **Open design:** nested `db/dump.sh` vs opt-inc-mirrors-eager — see [meadows pre-launch](./20-meadows-plan-review-feedback-loop.md). |
 | **Scope** | Document **every** auto-loader case. Examples from `asc/utils/fs.inc.sh`, `asc/extensions/db`, `scripts/asc/contrib/asc/mysql`, `pgsql`, `arcadedb`, plus the two **existing** db-related opt-incs. Do **not** use `asc/extensions/software` or `asc/host/provision.sh`. |
 | **Parent** | [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) |
 | **Follows** | [19-fs-archive-lazy-include.md](./19-fs-archive-lazy-include.md), [19-db-thin-inc-and-opt-inc.md](./19-db-thin-inc-and-opt-inc.md), [19-mysql-pgsql-hook-opt-inc.md](./19-mysql-pgsql-hook-opt-inc.md) create the rows marked *planned*. |
@@ -40,7 +40,7 @@ Putting dump helpers in `asc/extensions/db/db.opt-inc.sh` (beside the eager incl
 
 ---
 
-## Proposed README table
+## Case table
 
 Legend: **on disk** = file exists today. **planned** = filename the follow-up sub-plans will add. **absent** = illustrates a loader case; file must not be invented just for the table (ArcadeDB).
 
@@ -69,7 +69,7 @@ Legend: **on disk** = file exists today. **planned** = filename the follow-up su
 
 ---
 
-## Short “why two loaders” paragraph (for README)
+## Short “why two loaders” paragraph
 
 `make db-dump` sources `asc/extensions/db/db/dump.sh` → phase 90 can load `db/db.opt-inc.sh` (abstract dump/exec/compress). The mysql (or pgsql) implementation lives in `scripts/asc/contrib/asc/mysql/db/dump.mysql.hook.sh`. That path is **not** the bootstrap caller, so its colocated opt-inc is loaded only when `hook_ms -s db -a dump` seeds it. Same action, two directories, two loaders.
 
@@ -77,7 +77,7 @@ Legend: **on disk** = file exists today. **planned** = filename the follow-up su
 
 ---
 
-## What not to put in the README table
+## What not to put in a short README table
 
 - `asc/extensions/software/**` and `asc/host/provision.sh` — composition model is real, but the teaching surface should be dump/extract/creds.
 - A row that says `asc/utils/fs.opt-inc.sh` is auto-sourced — that would teach the wrong derivation.
@@ -87,6 +87,6 @@ Legend: **on disk** = file exists today. **planned** = filename the follow-up su
 
 ## Open tasks
 
-- [ ] Agree the table (especially: skip per-action `dump.opt-inc.sh` in favor of subject-wide `db.opt-inc.sh`; 3-level example = `instance/registry` not `host/provision`).
-- [ ] Paste into README; drop the `TODO [wip]` line.
+- [ ] Agree the table (especially: skip per-action `dump.opt-inc.sh` in favor of subject-wide `db.opt-inc.sh`; 3-level example = `instance/registry` not `host/provision`). Resolve **mirror vs phase 90** here before any db code (loader look / explicit `.` of the eager twin / narrowed “everywhere”) — not a third loader.
+- [ ] Optional, human: 3–5 README rows from this table; drop or keep `TODO [wip]`. Do not paste the whole matrix.
 - [ ] After fs/db/mysql sub-plans land, change *planned* rows to **on disk**.

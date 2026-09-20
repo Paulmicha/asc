@@ -96,4 +96,4 @@ If gzip-vs-tar is too behavior-changing for one PR, split: (1) move functions + 
 
 - [ ] Confirm gzip-of-SQL vs keep tar+`.gz` name.
 - [ ] Move functions; add explicit `.` at the callers above.
-- [ ] README table row for `asc/utils/fs.opt-inc.sh` stays “never auto-sourced”.
+- [ ] Case-table row for `asc/utils/fs.opt-inc.sh` stays “never auto-sourced”.

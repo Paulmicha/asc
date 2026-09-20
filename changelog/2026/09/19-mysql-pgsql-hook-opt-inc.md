@@ -4,7 +4,7 @@
 |-------|--------|
 | **Date** | 2026-09-19 |
 | **Status** | proposed (no code yet). After [19-db-thin-inc-and-opt-inc.md](./19-db-thin-inc-and-opt-inc.md) if you want abstract dump to be lazy first; can also land independently (DRY only). |
-| **Scope** | `scripts/asc/contrib/asc/mysql/db/*.mysql.hook.sh` and `…/pgsql/db/*.pgsql.hook.sh`. Give hook seeding a **real** contrib example for the README table. ArcadeDB is **out** (no dump/exec hooks). |
+| **Scope** | `scripts/asc/contrib/asc/mysql/db/*.mysql.hook.sh` and `…/pgsql/db/*.pgsql.hook.sh`. Give hook seeding a **real** contrib example in the case table. ArcadeDB is **out** (no dump/exec hooks). |
 | **Parent** | [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md); cases in [19-eager-vs-lazy-include-cases.md](./19-eager-vs-lazy-include-cases.md). |
 
 `$` in this file is the ASC docs placeholder, not a shell variable.
@@ -48,7 +48,7 @@ Extract only **shared** pieces used by more than one hook in the same dir:
 | “`$db_dump_file` must be set” guard | dump + exec |
 | default `mysqldump_last_arg` / `pg_dump` all-db vs named | dump |
 
-If grep shows **no** real sharing beyond comments, **skip this plan** and keep README rows as “if this file existed, hook seeding would load it” — do not create empty opt-incs.
+If grep shows **no** real sharing beyond comments, **skip this plan** and keep case-table rows as “if this file existed, hook seeding would load it” — do not create empty opt-incs.
 
 **Pick if sharing exists:** `scripts/asc/contrib/asc/mysql/db/db.opt-inc.sh` (subject-wide for that hook dir). Same for pgsql. No per-action `dump.opt-inc.sh` unless a helper is dump-only and large.
 
@@ -71,5 +71,5 @@ If grep shows **no** real sharing beyond comments, **skip this plan** and keep R
 ## Open tasks
 
 - [ ] Grep mysql/pgsql hooks for duplicated blocks; extract only if duplicated.
-- [ ] If extracted, README *planned* contrib rows become **on disk**.
+- [ ] If extracted, case-table *planned* contrib rows become **on disk**.
 - [ ] If not extracted, leave the table rows as mechanism examples (file optional).

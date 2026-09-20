@@ -3,10 +3,10 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-17 |
-| **Status** | implemented |
+| **Status** | implemented (`9faf10a`) |
 | **Scope** | ASC print pipeline: `asc/doc/pdf_export.sh`, `asc/doc/md2pdf_asc.py`, new `asc/doc/print_graphviz.py`, `asc/doc/print_code.py`, `asc/doc/print_paginate.py`, `asc/doc/print_katex.py` (`ignoredClasses` only), `asc/doc/pdf_styles.css`, `asc/doc/html_preview.sh`, `asc/doc/asc/pdf.test.sh`, plus a Graphviz fixture. Not conversion of consumer Markdown outside this repo. |
 | **Related** | [04-pdf-generation-improvements.md](./04-pdf-generation-improvements.md). Comparison snapshot 2026-09-17: [sigma.js](https://github.com/jacomyal/sigma.js) v4, [graphology](https://github.com/graphology/graphology), [d3](https://github.com/d3/d3), plus Cytoscape / vis-network / ELK / Dagre / Viz.js (see § Library comparison). |
-| **Lifecycle** | Review this file; implement the locked design below. Do not treat this as permission to rewrite Mermaid or change pagination order. |
+| **Lifecycle** | Shipped. Unchecked boxes below are historical plan text — do not re-run. Do not rewrite Mermaid or change pagination order. |
 | **Host dep** | Graphviz CLI (`dot`). **User** prerequisite (`sudo apt install graphviz`); **not** an agent step. Missing `dot` never aborts export (see Global constraints). Not installed on this machine at plan time (`command -v dot` empty). |
 
 ---

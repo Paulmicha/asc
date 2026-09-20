@@ -15,17 +15,17 @@
 
 ## Split (2026-09-19)
 
-The 2026-09-11 waves are still correct, but they mix **docs**, **utils**, **db**, **contrib drivers**, and **the rest of `ASC_INC`**. That is too much for one implementation pass. README also needs a complete eager/lazy case table *now*, and the only on-disk lazy models were `software` / `host/provision` — the wrong teaching examples.
+The 2026-09-11 waves are still correct, but they mix **docs**, **utils**, **db**, **contrib drivers**, and **the rest of `ASC_INC`**. That is too much for one implementation pass. The eager/lazy case table lives in changelog (not a README matrix). The only on-disk lazy models were `software` / `host/provision` — the wrong teaching examples.
 
 | Order | Sub-plan | What it produces | Parse win |
 |-------|----------|------------------|-----------|
-| 0 | [19-eager-vs-lazy-include-cases.md](./19-eager-vs-lazy-include-cases.md) | README table: every auto-loader case, using `fs` + `db` + mysql/pgsql + existing `remote_db` / `remote_instance` opt-incs | docs only |
+| 0 | [19-eager-vs-lazy-include-cases.md](./19-eager-vs-lazy-include-cases.md) | Changelog case table (SoT): loaders + paths, using `fs` + `db` + mysql/pgsql + existing `remote_db` / `remote_instance` opt-incs | docs only |
 | 1 | [19-fs-archive-lazy-include.md](./19-fs-archive-lazy-include.md) | Compress/extract/merge/watch leave kernel `fs.inc.sh`. **Not** auto-derived from `asc/utils/` | ~600 lines off every bootstrap |
 | 2 | [19-db-thin-inc-and-opt-inc.md](./19-db-thin-inc-and-opt-inc.md) | Thin eager `db.inc.sh` (creds/flags); dump/exec/restore cluster → `db/db.opt-inc.sh`; keep already-extracted entry points | ~1k lines off `ASC_INC` when db is enabled |
 | 3 | [19-mysql-pgsql-hook-opt-inc.md](./19-mysql-pgsql-hook-opt-inc.md) | Shared driver helpers next to `dump.mysql.hook.sh` / `dump.pgsql.hook.sh` so hook seeding has a real contrib example | small; teaching + DRY |
 | later | [19-lazy-opt-inc-remaining-core-waves.md](./19-lazy-opt-inc-remaining-core-waves.md) | Original Wave A (str/yml duplicate), B (globals), C (`test`/`git`/`make`/…), D (hook lookup) | the rest of ~9k |
 
-**Do not** start 1–3 until 0’s table is agreed (paths in the table are the filenames the code sub-plans will create).
+**Do not** start 1–3 until paths in 0’s table are agreed (that changelog file is SoT; pasting it into root README is **not** a code gate). Prefer the [meadows apply](./20-meadows-plan-review-feedback-loop.md) first if that loop is still open.
 
 **ArcadeDB:** no dump/exec hooks today (aliases + compose globals only). It stays a negative example: contrib can be hook-only; it does **not** get a fake `arcadedb.opt-inc.sh`.
 
