@@ -1,0 +1,5 @@
+test_f_test_batch_exec_helpers_absent_from_kernel_bootstrap
+
+Ran 11 tests.
+
+OK

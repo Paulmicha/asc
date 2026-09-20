@@ -154,6 +154,18 @@ test_asc_yml_inc_on_asc_inc_defines_parse() {
 }
 
 ##
+# Empty `test.inc.sh` was deleted (same as kernel `global.inc.sh`). Helpers live
+# in `asc/test/test.opt-inc.sh` with explicit `.`. `test` is not on ASC_INC.
+#
+test_asc_test_inc_not_on_asc_inc() {
+  assertFalse 'empty test.inc.sh must not exist' '[ -f asc/test/test.inc.sh ]'
+  local inc
+  inc="$(bash -c '. asc/bootstrap.sh; printf %s "$ASC_INC"')"
+  assertFalse 'ASC_INC must not list test.inc.sh' \
+    "printf '%s' \"$inc\" | grep -q 'asc/test/test.inc.sh'"
+}
+
+##
 # Cleans up any leftovers from previous tests.
 #
 # (Internal shunit2 function called after all tests have run.)

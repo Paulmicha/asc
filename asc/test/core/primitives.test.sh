@@ -13,7 +13,6 @@
 #
 
 . asc/bootstrap.sh
-. asc/test/test.inc.sh
 
 NFTASOAEP_ROOT='asc/extensions/nftasoaep'
 

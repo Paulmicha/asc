@@ -64,7 +64,7 @@ global ASC_SYNONYMS "[append]='nested-git/subgit'"
 
 # Per-case test registry written by f_make_generate_test_cases() during reinit.
 # @see f_make_generate_test_cases() in asc/make/make.inc.sh
-# @see f_test_case_cache_load() in asc/test/test.inc.sh
+# @see f_test_case_cache_load() in asc/test/test.opt-inc.sh
 global ASC_TEST_CASE_CACHE "[default]='data/asc/cache/test-cases.sh'"
 global ASC_TEST_CASE_ENVS "[default]='local preprod recette prod'"
 

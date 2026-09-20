@@ -2,10 +2,10 @@
 
 ##
 # Test-run / init-generate helpers — not derived by bootstrap.
+#
 # Callers must `.` this file. `asc/test/` entry points seed it (caller opt-inc /
 # colocated hook). Entity/builder/compose test hooks sit outside that dir.
 # @see changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md
-# @see asc/test/test.inc.sh
 #
 # Convention : functions names are all prefixed by "f".
 #

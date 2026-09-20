@@ -21,7 +21,6 @@
 
 . asc/bootstrap.sh
 . asc/asc/global.opt-inc.sh
-. asc/test/test.inc.sh
 
 ##
 # Creates temporary files for verification purposes in current test case.
