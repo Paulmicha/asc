@@ -1,9 +1,15 @@
 ---
-description: ASC stays light. Root README is human-written. Minimal sufficiency everywhere an ASC tree is used.
+description: Garage ASC — wild but minimal; every claim is an ASC test; improve this rule every step.
 alwaysApply: true
 ---
 
-# ASC: light enough to load, just enough to run
+# ASC: go wild, the minimal way
+
+This is a **garage** project. Explore. Break a frozen checklist when a smaller or truer thing appears. Go wild **the minimal way**: fewest files, fewest always-sourced lines, no completeness theater.
+
+**Trust:** every runtime claim is a **literal ASC test** (`make test-core`, `asc/test/**/*.test.sh`, or the `$subject-$action` under test). Unrun stays **unverified**. Do not invent a pass.
+
+**Every step, every level:** smallest durable upgrade to **this rule** and/or `changelog/`. Skip if already here or one-off. Never a new `.mdc`, loader, hook, or wrapper as the memory vehicle. Facts true only for one project instance stay in that instance (`scripts/asc/extend/`).
 
 Apply when this workspace is ASC, the tree has `asc/bootstrap.sh`, or the task touches such a tree. Otherwise skip.
 
