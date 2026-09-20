@@ -27,6 +27,8 @@ Live work is the lazy-include split. Meadows loop **skipped** — hunts apply in
 | [20-self-explainable-labels.md](2026/09/20-self-explainable-labels.md) | Labels / human↔token loop; `phase 90` → caller opt-inc |
 | [20-match-script-not-clone-includes.md](2026/09/20-match-script-not-clone-includes.md) | Sibling `. include` is not a caller |
 | [20-readme-is-sot.md](2026/09/20-readme-is-sot.md) | Root README is the only SoT; agents must flag mismatches |
+| [20-two-include-kinds.md](2026/09/20-two-include-kinds.md) | Two include kinds only; `utils/` opt-inc is explicit `.` |
+| [20-readme-proposals-rule.md](2026/09/20-readme-proposals-rule.md) | README deltas in changelog `*-readme-*`; human applies |
 
 ### Live (do not implement as one PR)
 
@@ -38,6 +40,7 @@ Live work is the lazy-include split. Meadows loop **skipped** — hunts apply in
 | [19-db-thin-inc-and-opt-inc.md](2026/09/19-db-thin-inc-and-opt-inc.md) | Creds eager; dump/exec cluster lazy at `db/db/db.opt-inc.sh` (pick A). Function move later |
 | [19-mysql-pgsql-hook-opt-inc.md](2026/09/19-mysql-pgsql-hook-opt-inc.md) | DRY only if grep shows sharing; otherwise skip |
 | [20-meadows-plan-review-feedback-loop.md](2026/09/20-meadows-plan-review-feedback-loop.md) | Meta-plan. Loop skipped; hunts apply in chat |
+| [20-readme-eager-lazy-rows.md](2026/09/20-readme-eager-lazy-rows.md) | **proposed README delta** — Recap table; you apply |
 
 ### Later / out of that loop
 
@@ -46,6 +49,7 @@ Live work is the lazy-include split. Meadows loop **skipped** — hunts apply in
 | [19-lazy-opt-inc-remaining-core-waves.md](2026/09/19-lazy-opt-inc-remaining-core-waves.md) | After fs+db. First leftover: yaml dual-source |
 | [20-host-scan-project-instances.md](2026/09/20-host-scan-project-instances.md) | Catalog `$PROJECT_DOCROOT` trees on this host |
 | [20-builder-kernel-subject.md](2026/09/20-builder-kernel-subject.md) | `asc/builder/` one kernel subject + `template.able` / `literal.able` sketches |
+| [20-gap-entity-not-core.md](2026/09/20-gap-entity-not-core.md) | Knowledge/task `gap` is a project instance (Projet Complexe), not core |
 | [10-begin-entity-system-with-remote-instances.md](2026/09/10-begin-entity-system-with-remote-instances.md) | Entity types → instances → cache. Stub path still wrong |
 
 ## 2026-08

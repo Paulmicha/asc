@@ -1,0 +1,36 @@
+---
+description: Propose root README edits in changelog; human reviews and applies. Do not add README.* siblings at repo root.
+alwaysApply: true
+---
+
+# README proposals (human applies)
+
+Root [`README.md`](../../README.md) is the only source of truth. The human writes it.
+
+To record a decision that README should change, the agent writes **one** changelog file. The human reviews it, then edits `README.md`. The agent does **not** patch `README.md` unless the human explicitly asks to apply that file.
+
+**Path:** `changelog/YYYY/MM/DD-readme-<slug>.md`
+
+Do not put `README.<timestamp>.<slug>.md` (or any `README.*` sibling) at repo root. That filename competes with the SoT. No `.diff` files (root or changelog): a diff is the patch, not the decision, and hunks against a long README go stale.
+
+```text
+❌ Unsolicited README.md patches
+❌ README.2026-09-20-eager-lazy.md next to README.md
+❌ README.*.diff or changelog/*.diff
+❌ Paste the working case table into README
+✅ changelog/2026/09/20-readme-eager-lazy-rows.md
+✅ Exact rows or one short paragraph; why; which heading
+```
+
+## File shape
+
+Status table: **proposed README delta** (or **applied** once the human has edited README).
+
+Then only:
+
+1. **Target** — heading in `README.md`
+2. **Why** — one sentence
+3. **Exact edit** — the markdown to add or replace (3–5 example rows, or one short clause). Not a 20-row dump. Not a hypothetical file.
+4. **Not this edit** — one line if needed
+
+After the human applies: mark that changelog file **applied**. Do not keep a second copy of the README text. One example per idea. `$` only for ASC placeholders.

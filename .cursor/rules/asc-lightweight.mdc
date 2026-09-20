@@ -9,7 +9,7 @@ This is a **garage** project. Explore. Break a frozen checklist when a smaller o
 
 **Trust:** every runtime claim is a **literal ASC test** (`make test-core`, `asc/test/**/*.test.sh`, or the `$subject-$action` under test). Unrun stays **unverified**. Do not invent a pass.
 
-**Every step, every level:** smallest durable upgrade to **this rule** and/or `changelog/`. Skip if already here or one-off. Never a new `.mdc`, loader, hook, or wrapper as the memory vehicle. Facts true only for one project instance stay in that instance (`scripts/asc/extend/`).
+**Every step, every level:** smallest durable upgrade to **this rule** and/or `changelog/`. Skip if already here or one-off. Never a new `.mdc`, loader, hook, or wrapper as the memory vehicle. Facts true only for one project instance stay in that instance (`scripts/asc/extend/`). Knowledge/task **gap** types are not core (README Non-goals). Do not add `gap.entity.yml` / `gap.able.yml` in this tree.
 
 Apply when this workspace is ASC, the tree has `asc/bootstrap.sh`, or the task touches such a tree. Otherwise skip.
 
@@ -28,6 +28,7 @@ Each accepted README edit must make the file **lighter or clearer**, not larger.
 ❌ Paste a 20-row loader table “so every case is covered”
 ❌ “Changelog is the SoT; README can wait”
 ✅ Point out the mismatch; wait for the human
+✅ Proposed README delta: `changelog/YYYY/MM/DD-readme-<slug>.md` (see `asc-readme-proposals.mdc`)
 ✅ Changelog / docs / plans for the long form
 ✅ If asked: 3–5 rows, then stop; human continues
 ```
@@ -36,11 +37,15 @@ Each accepted README edit must make the file **lighter or clearer**, not larger.
 
 Ship the smallest thing that still works. Prefer fewer files, fewer always-sourced lines, fewer wrappers.
 
+Two include kinds only: `*.inc.sh` (eager) and `*.opt-inc.sh` (lazy). No third suffix (`private-inc`, …). `asc/utils/` is not a caller or hook dir — `*.opt-inc.sh` there is never auto; callers `.` it.
+
 ```text
 ❌ New include “for completeness” with no caller
 ❌ Eager *.inc.sh for a function one action/hook needs
 ❌ Clone a sibling’s `. foo.inc.sh` when this file never calls it
 ❌ Document or create a file that does not exist yet
+❌ Third include suffix so utils “looks different”
+❌ Knowledge/task `gap` entity in core
 ✅ Match an existing script’s *shape that still runs*; drop unused sources
 ✅ Lazy or in-entry-point only after a real caller exists
 ```

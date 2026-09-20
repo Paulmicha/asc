@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-19 |
-| **Status** | proposed (no code yet). After README table agreement in [19-eager-vs-lazy-include-cases.md](./19-eager-vs-lazy-include-cases.md). |
+| **Status** | proposed (no code yet). Filename **locked**: `asc/utils/fs.opt-inc.sh` (not `private-inc`; two include kinds — [20-two-include-kinds.md](./20-two-include-kinds.md)). After human README example rows. |
 | **Scope** | `asc/utils/fs.inc.sh` (~1088 lines) is sourced on **every** heavy bootstrap via `asc/utils/core_utils.inc.sh`. Move compress/extract/merge/watch off that path. Align `f_db_dump` / `dump_reduce.sh` with those helpers. |
 | **Parent** | [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) Wave A (fs slice only). |
 | **Not this plan** | `str.inc.sh` tail, yaml dual-source, `db.inc.sh` thinning (see sibling sub-plans). |
@@ -21,7 +21,7 @@ Caller opt-inc and hook seeding derive `<dir>/<subject>.opt-inc.sh` from a **cal
 | `asc/utils/fs.inc.sh` | ✅ kernel |
 | `asc/utils/fs.opt-inc.sh` | ❌ never, unless something `.`s it |
 
-The 2026-09-11 line “move compress to `fs.opt-inc.sh` sourced by the few callers” is still the pick — **explicit `.`**, not a third loader.
+The 2026-09-11 line “move compress to `fs.opt-inc.sh` sourced by the few callers” is still the pick — **explicit `.`**, not a third loader and not a third suffix.
 
 ---
 

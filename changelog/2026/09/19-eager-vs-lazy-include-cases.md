@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-19 |
-| **Status** | **pick A locked** (2026-09-20). Nested `$extension/$subject/$action.sh` uses **caller-dir** opt-inc (`db/db/db.opt-inc.sh`). Caller opt-inc does **not** load `$extension/$extension.opt-inc.sh`. Coverage: `asc/test/core/caller_opt_inc.test.sh` (`make test-core`). Root README stays two example rows + `TODO [wip]`. Function move still later. |
+| **Status** | **pick A locked** (2026-09-20). Nested `$extension/$subject/$action.sh` uses **caller-dir** opt-inc (`db/db/db.opt-inc.sh`). Caller opt-inc does **not** load `$extension/$extension.opt-inc.sh`. Coverage: `asc/test/core/caller_opt_inc.test.sh` (`make test-core`). Two include kinds only (`*.inc.sh` / `*.opt-inc.sh`); `utils/fs.opt-inc.sh` stays that name ([20-two-include-kinds.md](./20-two-include-kinds.md)). Root README still two example rows + `TODO [wip]` (human writes 3–5). Function move still later. |
 | **Scope** | Document **every** auto-loader case. Examples from `asc/utils/fs.inc.sh`, `asc/extensions/db`, `scripts/asc/contrib/asc/mysql`, `pgsql`, `arcadedb`, plus the two **existing** db-related opt-incs. Do **not** use `asc/extensions/software` or `asc/host/provision.sh`. |
 | **Parent** | [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) |
 | **Follows** | [19-fs-archive-lazy-include.md](./19-fs-archive-lazy-include.md), [19-db-thin-inc-and-opt-inc.md](./19-db-thin-inc-and-opt-inc.md), [19-mysql-pgsql-hook-opt-inc.md](./19-mysql-pgsql-hook-opt-inc.md) create the rows marked *planned*. |
