@@ -1,5 +1,5 @@
 test_asc_test_inc_not_on_asc_inc
 
-Ran 11 tests.
+Ran 12 tests.
 
 OK

@@ -373,7 +373,8 @@ Here are a few examples to illustrate how this works :
 |-----------------------|------|------|---------|-----|
 | (any) | eager | `asc/git/git.inc.sh` | ✅ yes | `asc/git` is an *active dir* and `git.inc.sh` matches its name |
 | (any) | eager | `asc/extensions/compose/compose.inc.sh` | ✅ yes | `asc/extensions/compose` is an *extension point* and `compose.inc.sh` matches its name |
-| (any) | eager | `asc/core/utils/fs.inc.sh` | ✅ yes | The hardcoded kernel "hub" include file `utils.inc.sh` always includes it ; it is not an active-dir name match (not "autoloaded"). |
+| (any) | eager | `asc/core/utils/fs.manual-inc.sh` | ✅ yes | The hardcoded kernel "hub" include file `utils.manual-inc.sh` always includes it ; it is not "autoloaded". |
+| (any) | manual | `asc/core/utils/fs_compression.manual-inc.sh` | ❌ not unless a caller manually sources it | not a name match, not caller-dir |
 | `make db-sync-to` | subject-lazy | `asc/extensions/remote_instance/db/db.opt-inc.sh` | ✅ yes | Caller dir `db/` → 2-level `$subject` `db`. |
 | `make git-write-hooks` | subject-lazy | `asc/extensions/remote_instance/db/db.opt-inc.sh` | ❌ no | Wrong caller. Caller opt-inc only looks next to `BASH_SOURCE[1]`. |
 
@@ -1472,6 +1473,13 @@ data/asc/
 ```
 
 Bootstrap always sources the four kernel includes (`utils.inc.sh`, `core.inc.sh`, `hook.inc.sh`, `autoload.inc.sh`). `yml.inc.sh` is eager via `ASC_INC` (`asc/yml` is an *active dir*). Then, if `global.vars.sh` exists, it is sourced. Then `f_asc_primitives_cache_ensure`: stamp match → source `core/active.sh`; miss → `f_asc_extend`, rewrite `active.sh` + stamp, wipe `cache/hook/` only. `pre_bootstrap` / `alias` / `bootstrap` still run on both the cold and warm paths.
+
+&lt;proposal-2026-09-21&gt;
+
+Kernel four are `utils.manual-inc.sh`, `core.manual-inc.sh`, `hook.manual-inc.sh`, `autoload.manual-inc.sh`. Not on `ASC_INC`. `yml.inc.sh` stays eager via `ASC_INC`.
+
+&lt;/proposal-2026-09-21&gt;
+
 
 Stamp v1 watches instance identity (`HOST_TYPE`, `INSTANCE_TYPE`, `STACK_VERSION`, selected `.asc_extensions_ignore` path), ignore-file mtimes, and directory mtimes of `asc/`, `asc/extensions/`, `scripts/asc/`, contrib, and extend. A new `*.hook.sh` or `$subject/$action.sh` inside an **existing** folder still needs `make cc` (and `make reinit` when a new Make target is required). Nested-file discovery is v1.1.
 

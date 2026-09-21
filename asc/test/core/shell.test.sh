@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ##
-# ASC shell utility tests (asc/core/utils/shell.inc.sh).
+# ASC shell utility tests (asc/core/utils/shell.manual-inc.sh).
 #
 # @requires asc/vendor/shunit2
 #

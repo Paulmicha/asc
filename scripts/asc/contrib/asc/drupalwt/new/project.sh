@@ -47,7 +47,7 @@
 
 if ! type f_fs_merge_dirs &>/dev/null; then
   # shellcheck disable=SC1091
-  . asc/core/utils/fs.opt-inc.sh
+  . asc/core/utils/fs_sync.manual-inc.sh
 fi
 
 # Prerequisites checks.

@@ -3,8 +3,8 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-19 |
-| **Status** | **pick A locked** (2026-09-20). Nested `$extension/$subject/$action.sh` uses **caller-dir** opt-inc (`db/db/db.opt-inc.sh`). Caller opt-inc does **not** load `$extension/$extension.opt-inc.sh`. Coverage: `asc/test/core/caller_opt_inc.test.sh` (`make test-core`). Two include kinds only (`*.inc.sh` / `*.opt-inc.sh`); `fs.opt-inc.sh` stays that name ([20-two-include-kinds.md](./20-two-include-kinds.md)). Root README Recap applied (eager/lazy rows in root README). Function move still later. |
-| **Scope** | Document **every** auto-loader case. Examples from `asc/core/utils/fs.inc.sh`, `asc/extensions/db`, `scripts/asc/contrib/asc/mysql`, `pgsql`, `arcadedb`, plus the two **existing** db-related opt-incs. Do **not** use `asc/extensions/software` or `asc/host/provision.sh`. |
+| **Status** | **pick A locked** (2026-09-20). Nested `$extension/$subject/$action.sh` uses **caller-dir** opt-inc (`db/db/db.opt-inc.sh`). Caller opt-inc does **not** load `$extension/$extension.opt-inc.sh`. Coverage: `asc/test/core/caller_opt_inc.test.sh` (`make test-core`). Three filenames, two loaders (`*.inc.sh` / `*.opt-inc.sh` / `*.manual-inc.sh`); [21-manual-inc.md](./21-manual-inc.md). Root README Recap applied (eager/lazy rows in root README). Function move still later. |
+| **Scope** | Document **every** auto-loader case. Examples from `asc/core/utils/fs.manual-inc.sh`, `asc/extensions/db`, `scripts/asc/contrib/asc/mysql`, `pgsql`, `arcadedb`, plus the two **existing** db-related opt-incs. Do **not** use `asc/extensions/software` or `asc/host/provision.sh`. |
 | **Parent** | [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) |
 | **Follows** | [19-fs-archive-lazy-include.md](./19-fs-archive-lazy-include.md), [19-db-thin-inc-and-opt-inc.md](./19-db-thin-inc-and-opt-inc.md), [19-mysql-pgsql-hook-opt-inc.md](./19-mysql-pgsql-hook-opt-inc.md) create the rows marked *planned*. |
 
@@ -14,11 +14,11 @@
 
 ## Loaders (two, not three)
 
-There is **no** `ASC_OPT_INC` glob and **no** scan of `asc/core/utils/*.opt-inc.sh`.
+There is **no** `ASC_OPT_INC` glob and **no** scan of `*.manual-inc.sh`.
 
 | Loader | When | Derives |
 |--------|------|---------|
-| **Eager** | Heavy bootstrap (`ASC_BS_FLAG` was not 1): kernel, then every path in `ASC_INC` | `$subject/$subject.inc.sh` in an *active dir*; `$extension/$extension.inc.sh` in an *extension point* (core, `asc/extensions/…`, contrib). Kernel utils are sourced by `asc/core/utils.inc.sh` even though `utils/` is not an active dir. |
+| **Eager** | Heavy bootstrap (`ASC_BS_FLAG` was not 1): kernel, then every path in `ASC_INC` | `$subject/$subject.inc.sh` in an *active dir*; `$extension/$extension.inc.sh` in an *extension point* (core, `asc/extensions/…`, contrib). Kernel utils are sourced by `asc/core/utils.manual-inc.sh` even though `utils/` is not an active dir. |
 | **Caller opt-inc** | **Every** `. asc/bootstrap.sh`, including when already bootstrapped | From `BASH_SOURCE[1]`: `<dir>/<subject>.opt-inc.sh` then `<dir>/<action>.opt-inc.sh`. If `<parent>/<dir>` is a discovered `$subject/$object` pair, `<subject>` is the **parent** folder (3-level). |
 | **Lazy hook** | `hook()` / `hook_ms()` non-dry-run, for each existing `*.hook.sh` path (ms: the winning path only) | `<hook-dir>/<hook-dir-basename>.opt-inc.sh` and `<hook-dir>/<action>.opt-inc.sh` where `<action>` is the hook basename with `.hook.sh` stripped, then **everything before the first `.`**. |
 
@@ -46,7 +46,7 @@ Legend: **on disk** = file exists today. **planned** = filename the follow-up su
 
 | Bootstrapping context | Type | File | Sourced | Why |
 |-----------------------|------|------|---------|-----|
-| (any heavy bootstrap) | eager | `asc/core/utils/fs.inc.sh` | ✅ yes | Kernel: `utils.inc.sh` always `.`s it. Not an active-dir name match. |
+| (any heavy bootstrap) | eager | `asc/core/utils/fs.manual-inc.sh` | ✅ yes | Kernel: `utils.manual-inc.sh` always sources it. Not an active-dir name match. |
 | (any) | eager | `asc/git/git.inc.sh` | ✅ yes | `asc/git` is an *active dir* and `git.inc.sh` matches its name |
 | (any, **compose enabled**) | eager | `asc/extensions/compose/compose.inc.sh` | ✅ yes | Same rule as db: *extension point* + matching `$extension.inc.sh` |
 | (any, **db enabled**) | eager | `asc/extensions/db/db.inc.sh` | ✅ yes | `asc/extensions/db` is an *extension point* and `db.inc.sh` matches its name |
@@ -60,7 +60,8 @@ Legend: **on disk** = file exists today. **planned** = filename the follow-up su
 | `hook_ms -s db -a dump` when `dump.mysql.hook.sh` wins | lazy **hook** | `scripts/asc/contrib/asc/mysql/db/db.opt-inc.sh` | skipped (no file) | Derivation example. Mysql hooks are self-contained. |
 | same | lazy **hook** | `scripts/asc/contrib/asc/mysql/db/dump.opt-inc.sh` | optional | `dump.mysql.hook.sh` → action = `dump` (stem **before first `.`**), **not** `dump.mysql.opt-inc.sh` |
 | `dump.pgsql.hook.sh` wins | lazy **hook** | `scripts/asc/contrib/asc/pgsql/db/db.opt-inc.sh` | skipped (no file) | Same derivation as mysql |
-| any **auto** loader | include (manual) | `asc/core/utils/fs.opt-inc.sh` | ❌ never (**on disk**) | `utils/` is not a caller dir and has no `*.hook.sh`. Bootstrap will not derive this path. Callers must `.` it. See fs sub-plan. |
+| any **auto** loader | include (manual) | `asc/core/utils/fs_compression.manual-inc.sh` | ❌ never (**on disk**) | `utils/` is not a caller dir and has no `*.hook.sh`. Bootstrap will not derive this path. Callers must source it. |
+| any **auto** loader | include (manual) | `asc/core/utils/fs_sync.manual-inc.sh` | ❌ never (**on disk**) | Same. `f_fs_merge_dirs`. |
 | `make git-status` | caller opt-inc | `asc/extensions/db/db/db.opt-inc.sh` | ❌ no | Wrong caller. Caller opt-inc only looks next to `BASH_SOURCE[1]`. |
 | `make db-dump` **before** `hook_ms dump` | lazy hook | `scripts/asc/contrib/asc/mysql/db/db.opt-inc.sh` | ❌ not yet | Caller is `asc/extensions/db/db/dump.sh`, not contrib. Mysql helpers arrive when the **hook** runs (`hook_ms`), not at caller opt-inc. |
 | interactive `. asc/bootstrap.sh` | lazy caller | *(none)* | ❌ no | No `BASH_SOURCE[1]` |
@@ -80,7 +81,7 @@ Legend: **on disk** = file exists today. **planned** = filename the follow-up su
 ## What not to put in a short README table
 
 - `asc/extensions/software/**` and `asc/host/provision.sh` — composition model is real, but the teaching surface should be dump/extract/creds.
-- A row that says `asc/core/utils/fs.opt-inc.sh` is auto-sourced — that would teach the wrong derivation.
+- A row that says `asc/core/utils/fs_compression.manual-inc.sh` is auto-sourced — that would teach the wrong derivation.
 - Treating `asc/extensions/db/db.opt-inc.sh` (extension root) as the lazy file for `db/dump.sh`.
 
 ---

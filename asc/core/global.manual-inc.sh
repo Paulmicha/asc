@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
 ##
-# Init-only global aggregate helpers — not derived by bootstrap.
-# Callers must `.` this file. `asc/core/` does not auto-load this name.
-# @see changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md
+# Init-only global aggregate helpers.
+#
+# Callers must source this file.
+#
+# Convention : functions names are all prefixed by "f".
 #
 
 ##

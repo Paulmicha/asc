@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 
 ##
-# Filesystem-related utilities.
+# Filesystem compression and extraction helpers.
 #
-# This file contains functions dedicated to file and/or folder compression and
-# extraction.
+# Callers must source this file.
 #
 # Convention : functions names are all prefixed by "f".
 #

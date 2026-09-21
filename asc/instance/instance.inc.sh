@@ -197,7 +197,7 @@ f_instance_init() {
   # `global()` lives in opt-inc; source before env/global.vars.sh (not a subject).
   if [[ "$(type -t global)" != function ]]; then
     # shellcheck disable=SC1091
-    . asc/core/global.opt-inc.sh
+    . asc/core/global.manual-inc.sh
   fi
   . asc/env/global.vars.sh
 

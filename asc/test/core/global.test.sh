@@ -20,7 +20,7 @@
 #
 
 . asc/bootstrap.sh
-. asc/core/global.opt-inc.sh
+. asc/core/global.manual-inc.sh
 
 ##
 # Creates temporary files for verification purposes in current test case.
@@ -226,8 +226,8 @@ test_globals_debug_script_without_prior_aggregation() {
 }
 
 ##
-# Init-only global helpers must not load from kernel bootstrap. Callers `.`
-# `asc/core/global.opt-inc.sh`. There is no kernel `global.inc.sh`.
+# Init-only global helpers must not load from kernel bootstrap. Callers source
+# `asc/core/global.manual-inc.sh`. There is no kernel `global.inc.sh`.
 # @see changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md
 #
 test_f_global_aggregate_helpers_absent_from_kernel_bootstrap() {
@@ -242,7 +242,7 @@ printf " %s" "$(type -t global)"')"
     '    ' "$out"
 
   out="$(bash -c '. asc/bootstrap.sh
-. asc/core/global.opt-inc.sh
+. asc/core/global.manual-inc.sh
 printf "%s" "$(type -t f_global_aggregate)"
 printf " %s" "$(type -t f_global_lookup_paths)"
 printf " %s" "$(type -t f_global_list)"

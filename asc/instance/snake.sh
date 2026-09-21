@@ -13,7 +13,7 @@
 
 if ! type f_str_snake &>/dev/null; then
   # shellcheck disable=SC1091
-  . asc/core/utils/str.opt-inc.sh
+  . asc/core/utils/str_slug.manual-inc.sh
 fi
 
 f_str_snake "$@"

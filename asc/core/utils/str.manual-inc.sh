@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 ##
-# String-related utility functions sourced on every heavy bootstrap.
-# Sanitize / split / case / tokens / random / basic-auth.
-# Slug helpers: `. asc/core/utils/str.opt-inc.sh`
-# @see changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md
+# String-related utility functions.
+#
+# This file is sourced during core ASC bootstrap.
+# @see asc/core/utils.manual-inc.sh
 # @see asc/bootstrap.sh
 #
 # Convention : functions names are all prefixed by "f".

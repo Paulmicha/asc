@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
 ##
-# Slug / snake helpers — not derived by bootstrap.
-# Callers must `.` this file. `asc/core/utils/` is not a caller dir.
-# @see changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md
-# @see asc/core/utils/str.inc.sh
+# Slug / snake helpers.
+#
+# Callers must source this file.
+#
+# Convention : functions names are all prefixed by "f".
 #
 
 ##

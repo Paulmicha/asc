@@ -20,10 +20,10 @@ if [[ $ASC_BS_FLAG -ne 1 ]]; then
   shopt -s expand_aliases
 
   # Include ASC core utilities (always; do not concatenate these into active.sh).
-  . asc/core/utils.inc.sh
-  . asc/core/core.inc.sh
-  . asc/core/hook.inc.sh
-  . asc/core/autoload.inc.sh
+  . asc/core/utils.manual-inc.sh
+  . asc/core/core.manual-inc.sh
+  . asc/core/hook.manual-inc.sh
+  . asc/core/autoload.manual-inc.sh
 
   # If instance init was run at least once, automatically load locally generated
   # global env vars.

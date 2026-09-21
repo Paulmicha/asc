@@ -1,5 +1,5 @@
 batch: core
-updated: 2026-09-20T10:09:58-03:00
+updated: 2026-09-21T15:12:10-03:00
 exit: 0
 entity_discover:
   test_entity_cache_generate_all_purges_stale_sidecar_cache: PASS

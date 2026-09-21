@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 
 ##
-# Filesystem-related utilities.
+# Filesystem merge and sync helpers.
 #
-# This file contains functions dedicated to operations like copying,
-# synchronizing, merging, etc.
+# Callers must source this file.
 #
 # Convention : functions names are all prefixed by "f".
 #

@@ -15,7 +15,7 @@
 
 if ! type f_fs_extract_in_place &>/dev/null; then
   # shellcheck disable=SC1091
-  . asc/core/utils/fs.opt-inc.sh
+  . asc/core/utils/fs_compression.manual-inc.sh
 fi
 
 db_dump_file="$1"

@@ -134,20 +134,41 @@ test_asc_yml_inc_not_in_kernel_includes() {
 }
 
 ##
-# Kernel utils hub is `asc/core/utils.inc.sh` (not `asc/utils/core_utils.inc.sh`).
+# Kernel utils hub is `asc/core/utils.manual-inc.sh` (not `asc/utils/core_utils.inc.sh`).
 #
 test_asc_utils_inc_is_kernel_include() {
   local kernel
   kernel="$(sed -n '/Include ASC core utilities/,/ASC_BS_SKIP_GLOBALS/p' asc/bootstrap.sh)"
-  assertTrue 'kernel block sources asc/core/utils.inc.sh' \
-    "printf '%s' \"$kernel\" | grep -q 'asc/core/utils.inc.sh'"
+  assertTrue 'kernel block sources asc/core/utils.manual-inc.sh' \
+    "printf '%s' \"$kernel\" | grep -q 'asc/core/utils.manual-inc.sh'"
   assertFalse 'old core_utils.inc.sh path must not remain in kernel block' \
     "printf '%s' \"$kernel\" | grep -q 'core_utils'"
 }
 
 ##
+# Kernel `core.manual-inc.sh`: bootstrap sources it. Discovery must not list
+# it on `ASC_INC` (the eager name-match was leftover from `asc/asc` → `asc/core`).
+#
+test_asc_core_manual_inc_is_kernel_not_on_asc_inc() {
+  local kernel
+  local inc
+  kernel="$(sed -n '/Include ASC core utilities/,/ASC_BS_SKIP_GLOBALS/p' asc/bootstrap.sh)"
+  assertTrue 'kernel block sources asc/core/core.manual-inc.sh' \
+    "printf '%s' \"$kernel\" | grep -q 'asc/core/core.manual-inc.sh'"
+  assertTrue 'core.manual-inc.sh exists' \
+    '[ -f asc/core/core.manual-inc.sh ]'
+  assertFalse 'old core.inc.sh path must not remain' \
+    '[ -f asc/core/core.inc.sh ]'
+  inc="$(bash -c '. asc/bootstrap.sh; printf %s "$ASC_INC"')"
+  assertFalse 'ASC_INC must not list core.inc.sh' \
+    "printf '%s' \"$inc\" | grep -q 'asc/core/core.inc.sh'"
+  assertFalse 'ASC_INC must not list core.manual-inc.sh' \
+    "printf '%s' \"$inc\" | grep -q 'core.manual-inc.sh'"
+}
+
+##
 # Wave B emptied kernel `global.inc.sh`; the stub was deleted. Helpers live in
-# `asc/core/global.opt-inc.sh` with explicit `.`.
+# `asc/core/global.manual-inc.sh` (callers source it).
 #
 test_asc_global_inc_not_in_kernel_includes() {
   local kernel

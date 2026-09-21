@@ -6,9 +6,9 @@ Files: `YYYY/MM/DD-short-label.md`. Each file starts with a status table. `$` in
 
 **How to read:** trust the status row. Huge files that say **implemented** still contain historical plan checkboxes — do not re-run them.
 
-## Current frontier (2026-09-20)
+## Current frontier (2026-09-21)
 
-Live work is leftover core lazy waves after fs+db+yaml. Meadows loop **skipped**. Eager/lazy **working table** (not SoT — root README is): [2026/09/19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md). Entity discovery is a separate unstarted plan. Print/PDF is shipped.
+Live work is leftover core lazy waves after fs+db+yaml. Meadows loop **skipped**. Eager/lazy **working table** (not SoT — root README is): [2026/09/19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md). `*.manual-inc.sh` **implemented**. Entity discovery is a separate unstarted plan. Print/PDF is shipped.
 
 ## 2026-09
 
@@ -30,6 +30,7 @@ Live work is leftover core lazy waves after fs+db+yaml. Meadows loop **skipped**
 | [19-fs-archive-lazy-include.md](2026/09/19-fs-archive-lazy-include.md) | Archive helpers in `fs.opt-inc.sh`; gzip-of-SQL; `f_fs_watch_poll` dropped |
 | [19-db-thin-inc-and-opt-inc.md](2026/09/19-db-thin-inc-and-opt-inc.md) | Creds eager; dump/exec cluster at `db/db/db.opt-inc.sh` |
 | [19-mysql-pgsql-hook-opt-inc.md](2026/09/19-mysql-pgsql-hook-opt-inc.md) | Skipped — no shared mysql/pgsql hook helpers |
+| [21-manual-inc.md](2026/09/21-manual-inc.md) | Hardcoded includes → `*.manual-inc.sh`. Kernel four off `ASC_INC` |
 
 ### Live (do not implement as one PR)
 
@@ -39,7 +40,6 @@ Live work is leftover core lazy waves after fs+db+yaml. Meadows loop **skipped**
 | [19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md) | Two loaders, case table. **Pick A locked**. Tests: `caller_opt_inc.test.sh` |
 | [19-lazy-opt-inc-remaining-core-waves.md](2026/09/19-lazy-opt-inc-remaining-core-waves.md) | After fs+db+yaml. Next leftover: `str.inc.sh` tail |
 | [20-meadows-plan-review-feedback-loop.md](2026/09/20-meadows-plan-review-feedback-loop.md) | Meta-plan. Loop skipped; hunts apply in chat |
-| [21-manual-inc.md](2026/09/21-manual-inc.md) | **proposed.** Hardcoded includes → `*.manual-inc.sh`. Supersedes “two kinds only”. |
 
 ### Later / out of that loop
 
