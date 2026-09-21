@@ -687,13 +687,20 @@ f_hook_build_project_root_dir_lookup() {
 }
 
 ##
-# Rank one hook_ms candidate.
+# Rank one hook_ms candidate (calculates its specificity).
 #
-# Writes hook_ms_rung and hook_ms_sum in the calling scope.
-# Rung: 0 asc and asc/extensions, 1 scripts/asc/contrib/asc,
-# 2 other scripts/asc/contrib/$vendor, 3 scripts/asc/extend,
-# 4 project-root path (no slash).
-# Sum: dot-parts + slash-parts. Compared only inside one rung.
+# The specificity is calculated by counting slashes and dots in given path.
+# It is a sum of dot-parts + slash-parts, compared only inside one rung.
+#
+# Rung 0 : ./asc/$subject/ and ./asc/extensions/$extension/$subject/
+# Rung 1 : ./scripts/asc/contrib/asc/$extension/$subject/
+# Rung 2 : ./scripts/asc/contrib/$vendor/$extension/$subject/
+# Rung 3 : ./scripts/asc/extend/$subject/
+# Rung 4 : ./ (project-root path)
+#
+# Writes results to the following variables in the calling scope :
+# @var hook_ms_rung
+# @var hook_ms_sum
 #
 # @param 1 String : filepath relative to PROJECT_DOCROOT
 #

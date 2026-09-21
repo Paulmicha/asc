@@ -405,54 +405,24 @@ These folders are automatically discovered during instance init (and setup). The
 - which **lookup** rung (= "specificity level") the contained implementations have - this determines conflicted "winners",
 - and whether they relate to a `$subject` or an `$object` (by subject) given the **entry point** (= `$action`) used.
 
-**List of active dirs** in lookup order (= most "generic" to most "specific"), i.e. roughly Core → Contrib → Project-specific :
-
-1. `./asc/$subject` (ex: `asc/host`) = core, low-level, "kernel"
-1. `./asc/extensions/$extension/$subject` (ex: `asc/extensions/compose/service`) = opt-in core "low-level" generic extensions, "abstract" entry points (= pivots)
-1. `./scripts/asc/contrib/asc/$extension/$subject` (ex: `scripts/asc/contrib/asc/tesseract/recognize`) = opt-in core "concrete", (vendor-, software-, tool-)specific extensions
-1. `./scripts/asc/contrib/$vendor/$extension/$subject` = reusable implementations, potentially third-party (contributed)
-1. `./scripts/asc/extend/$subject` — Project-specific implementations
-
-So :
+So, in essence :
 
 > an *active dir* is any `$subject` dir (core, enabled extension, or project-specific).
 
 NB : an additional `$object` subdir may be used for regrouping actions (see _actions_).
 
-### Lookup and collisions (score-based "specificity" system)
+**List of active dirs** in lookup order (= most "generic" to most "specific"), i.e. roughly Core → Contrib → Project-specific :
 
-The bottom of this **lookup** list is the intended `hook_ms` winner (the **most-specific match**).
+| Rung (~ "specificity level") | Active dir | Example | Meant for |
+|------------------------------|------------|---------|-----------|
+| 0 | `./asc/$subject/` | `asc/host` | core, low-level, "kernel" |
+| 0 (bis) | `./asc/extensions/$extension/$subject/` | `asc/extensions/compose/service` | opt-in core "low-level" generic extensions, "abstract" entry points (= pivots) |
+| 1 | `./scripts/asc/contrib/asc/$extension/$subject/` | `scripts/asc/contrib/asc/tesseract/recognize` | opt-in core "concrete", (vendor-, software-, tool-)specific extensions |
+| 2 | `./scripts/asc/contrib/$vendor/$extension/$subject/` | (no example yet) | reusable implementations, potentially third-party (contributed) |
+| 3 | `./scripts/asc/extend/$subject/` | (this is the ASC "mother" repo, so no project-specific example here) | Project-specific implementations |
+| 4 | `./` (project root dir) | `env.yml` | Current project "root" dir is where really prominent things / high impact implementations live (i.e. files like .gitignore, .env, compose.yml, etc.) |
 
-TODO explain the score-based specificity resolution mechanism here.
-
-&lt;proposal-2026-09-20&gt;
-
-Make `$subject-$action` is not this list: the same name across namespaces is prefixed (`extend-…`), not stolen. `$object` rows are nesting, not a scale rung. Overrides (`scripts/asc/override`) are a swap, not a row here.
-
-That sentence is drawing a line between two different collision rules.
-
-The numbered list under it is hook lookup: later / more-specific files win the same hook. Contrib does not invent a second name; hook_ms picks the most-specific dump.*.hook.sh.
-
-Make targets are not that list. make host-registry-get is one short name. If core already owns it, a project copy at scripts/asc/extend/host/registry/get.sh does not take make host-registry-get. It gets a prefixed target: make extend-host-registry-get. “Stolen” would mean the extend script silently replacing core’s make host-….
-
-So: hooks overlay; make names stay unique by prefixing the namespace (extend-…, or $extension-…).
-
-The `$subject-$action` pivot stays generic. Contrib is Extension; `scripts/asc/extend/` is Specifics. Both implement via `hook_ms`. Same `*.entity.yml` / `*.able.yml` contracts; they do not mint a parallel pivot per tool. Example: `make db-dump` vs `dump.mysql.hook.sh` / `dump.pgsql.hook.sh`.
-
-&lt;/proposal-2026-09-20&gt;
-
-1. `asc/$subject/*.hook.sh` / `asc/$subject/$action.sh`
-1. `asc/$subject/$object/$action.sh`
-1. `asc/extensions/$extension/$subject/*.hook.sh` / `asc/extensions/$extension/$subject/$action.sh`
-1. `asc/extensions/$extension/$subject/$object/$action.sh`
-1. `scripts/asc/contrib/asc/$extension/$subject/*.hook.sh` / `scripts/asc/contrib/asc/$extension/$subject/$action.sh`
-1. `scripts/asc/contrib/asc/$extension/$subject/$object/$action.sh`
-1. `scripts/asc/contrib/$vendor/$extension/$subject/*.hook.sh` / `scripts/asc/contrib/$vendor/$extension/$subject/$action.sh`
-1. `scripts/asc/contrib/$vendor/$extension/$subject/$object/$action.sh`
-1. `scripts/asc/extend/$subject/*.hook.sh` / `scripts/asc/extend/$subject/$action.sh`
-1. `scripts/asc/extend/$subject/$object/$action.sh`
-
-Rows 1–2 core, 3–4 core opt-in, 5–8 extension, 9–10 project-specific.
+NB : the level 4 rung is not a real active dir, but it is included in the same scale because it can contain some hooks implementations (when the hook call uses the `-r` argument).
 
 ### Actions = (make) _Entry points_
 
@@ -699,6 +669,10 @@ Yields (from fewer to more variant tokens = from least to most "specific") :
 - `*/stack/service_add.foobar-1.hook.sh`
 - `*/stack/service_add.foobar-1.2.hook.sh`
 - `*/stack/service_add.foobar-1.2.3.hook.sh`
+
+#### Most specific hooks (`hook_ms()`) lookup and collisions
+
+TODO include `hook_ms()` explanation + score-based specificity calculations example.
 
 ### Wrappers
 
