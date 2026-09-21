@@ -186,10 +186,10 @@ Implications : change ASC core current files discovery mechanisms to support bot
 1. [x] ~~Stabilize hooks~~
 1. [x] ~~Stabilize DSL~~
 1. [x] ~~Stabilize Yml~~
-1. [ ] Refactor Bootstrap (wip : almost there)
+1. [x] ~~Refactor Bootstrap~~
 1. [ ] Stabilize workflow + git flow
-1. [ ] Refactor core + core extensions (todo : only subject/object/action level remains)
-1. [ ] Refactor tests
+1. [x] ~~Refactor core + core extensions~~
+1. [x] ~~Refactor tests~~
 1. [ ] Complete the Builder
 1. [ ] Complete the baseline implementations
 1. [ ] Implement agents (for now : Ollama and Cursor to test MVP, next : Codex + Claude code)
