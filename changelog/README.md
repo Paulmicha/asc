@@ -39,6 +39,7 @@ Live work is leftover core lazy waves after fs+db+yaml. Meadows loop **skipped**
 | [19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md) | Two loaders, case table. **Pick A locked**. Tests: `caller_opt_inc.test.sh` |
 | [19-lazy-opt-inc-remaining-core-waves.md](2026/09/19-lazy-opt-inc-remaining-core-waves.md) | After fs+db+yaml. Next leftover: `str.inc.sh` tail |
 | [20-meadows-plan-review-feedback-loop.md](2026/09/20-meadows-plan-review-feedback-loop.md) | Meta-plan. Loop skipped; hunts apply in chat |
+| [21-manual-inc.md](2026/09/21-manual-inc.md) | **proposed.** Hardcoded includes → `*.manual-inc.sh`. Supersedes “two kinds only”. |
 
 ### Later / out of that loop
 

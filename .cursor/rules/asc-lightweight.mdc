@@ -17,20 +17,36 @@ Apply when this workspace is ASC, the tree has `asc/bootstrap.sh`, or the task t
 
 `README.md` at this repo root is the **only** source of truth for what ASC is. The human writes it. Changelog, plans, tests, and this rule are working notes: they must not silently override it.
 
-Agents do not create, fill, or “complete” it unless **explicitly asked**.
+When README is wrong, incomplete, internally inconsistent, or in conflict with code / this rule: **say so in the chat, every time**. Do not paper over it. Do not treat `changelog/` as a competing SoT. Do not dump the long form into README to “make it true.”
 
-When README is wrong, incomplete, internally inconsistent, or in conflict with code / a changelog pick / this rule: **say so in the chat, every time**. Do not paper over it. Do not treat `changelog/` as a competing SoT. Do not dump the long form into README to “make it true.”
+Agents may edit `README.md` **only** inside dated proposal delimiters. Use **today’s** date. Do not replace, delete, or rewrite any human-written line. The proposal may only sit **next to** the line(s) to improve.
 
-Each accepted README edit must make the file **lighter or clearer**, not larger. One example per idea. No plan dumps, no hypothetical files, no exhaustive matrices.
+Write the tags **escaped** in README source (`&lt;` / `&gt;`). Raw `<proposal-…>` is HTML; GitHub will hide it. Each delimiter tag has a blank line immediately above and below it.
+
+```markdown
+human-written line
+
+&lt;proposal-2026-09-21&gt;
+
+proposed wording
+
+&lt;/proposal-2026-09-21&gt;
+
+```
+
+Each proposal must make the nearby human text **lighter or clearer**, not larger. One example per idea. No plan dumps, no hypothetical files, no exhaustive matrices.
 
 ```text
-❌ Unsolicited README.md patches
+❌ Replace or delete a human-written README line
+❌ Raw <proposal-YYYY-MM-DD> (unescaped; GitHub hides it)
+❌ Tag with no blank line immediately above or below it
+❌ Edit README outside &lt;proposal-YYYY-MM-DD&gt; … &lt;/proposal-YYYY-MM-DD&gt;
+❌ changelog/YYYY/MM/DD-readme-<slug>.md, README.* siblings, or .diff files
 ❌ Paste a 20-row loader table “so every case is covered”
 ❌ “Changelog is the SoT; README can wait”
-✅ Point out the mismatch; wait for the human
-✅ Proposed README delta: `changelog/YYYY/MM/DD-readme-<slug>.md` (see `asc-readme-proposals.mdc`)
-✅ Changelog / docs / plans for the long form
-✅ If asked: 3–5 rows, then stop; human continues
+✅ Point out the mismatch in chat
+✅ Insert an escaped, blank-line-wrapped &lt;proposal-YYYY-MM-DD&gt; block next to the human line
+✅ Changelog / docs / plans for the long form (not README)
 ```
 
 ## Any ASC tree (core, ext, contrib, instance)
