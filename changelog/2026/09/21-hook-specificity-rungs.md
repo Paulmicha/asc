@@ -3,13 +3,15 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-21 |
-| **Status** | planned |
+| **Status** | **done** |
 | **Scope** | `hook_ms` in `asc/core/hook.manual-inc.sh`. Tests in `asc/test/core/hook.test.sh`. The harness paragraph in `.cursor/rules/asc-lightweight.mdc`. |
 | **Not this change** | Make pivots (no entry-point score; agreed). Overrides. `hook()` sourcing every match. README wording (the human is rewriting that section). A new `.mdc`. Builder, workflow, and agent extensions. |
 
 `$` in this file is the ASC docs placeholder (`$subject`, `$action`, `$extension`, `$vendor`), not a shell variable.
 
 Do not commit unless asked.
+
+Implemented: `f_hook_ms_measure` and the `hook_ms` pick in `asc/core/hook.manual-inc.sh`. `test_hook_ms_rung_order` and `test_hook_ms_extend_beats_contrib` in `asc/test/core/hook.test.sh`. Harness paragraph in `.cursor/rules/asc-lightweight.mdc`.
 
 ---
 

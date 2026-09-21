@@ -687,27 +687,59 @@ f_hook_build_project_root_dir_lookup() {
 }
 
 ##
-# Same as hook() except it will only source the "most specific" match.
+# Rank one hook_ms candidate.
 #
-# This notion is totally arbitrary here - it will use the file having the
-# deepest path and the highest number of dots in its path. In case of equality,
-# the first match will be used.
+# Writes hook_ms_rung and hook_ms_sum in the calling scope.
+# Rung: 0 asc and asc/extensions, 1 scripts/asc/contrib/asc,
+# 2 other scripts/asc/contrib/$vendor, 3 scripts/asc/extend,
+# 4 project-root path (no slash).
+# Sum: dot-parts + slash-parts. Compared only inside one rung.
 #
-# This "score" - a simple addition of slash & dot count in the filepath - allows
-# to differenciate ASC's file-name-based implementations (hooks, globals,
-# etc.) because of the way its patterns work :
-#   - multiple extension (i.e. variants : pre_bootstrap.compose.hook.sh)
-#   - complements (e.g. scripts/asc/extend/test/asc.hook.sh)
-#   - overrides (e.g. scripts/asc/override/extensions/compose/instance/init.compose.hook.sh)
+# @param 1 String : filepath relative to PROJECT_DOCROOT
+#
+f_hook_ms_measure() {
+  local p_path="$1"
+  local dot_arr=()
+  local slash_arr=()
+
+  f_str_split1 'dot_arr' "$p_path" '.'
+  f_str_split1 'slash_arr' "$p_path" '/'
+
+  hook_ms_sum=$(( ${#dot_arr[@]} + ${#slash_arr[@]} ))
+  hook_ms_rung=0
+
+  if [[ ${#slash_arr[@]} -eq 1 ]]; then
+    hook_ms_rung=4
+    return
+  fi
+
+  case "$p_path" in
+    scripts/asc/extend/*)
+      hook_ms_rung=3
+      ;;
+    scripts/asc/contrib/asc/*)
+      hook_ms_rung=1
+      ;;
+    scripts/asc/contrib/*)
+      hook_ms_rung=2
+      ;;
+  esac
+}
+
+##
+# Same as hook() except it sources only the winning hook implementation.
+#
+# Rank is a rung, then dot-parts + slash-parts inside that rung.
+# Low to high: asc/ and asc/extensions/, scripts/asc/contrib/asc/,
+# other scripts/asc/contrib/$vendor/, scripts/asc/extend/,
+# a project-root path (no slash, from -r).
+# An equal rung and an equal sum keep the later candidate.
+#
+# scripts/asc/override/ is not a candidate. The chosen path is swapped
+# afterwards when an override file exists.
+# @see f_hook_ms_measure()
+# @see f_hook_resolve_source_path()
 # @see hook()
-#
-# NB : We must give some advantage to the project-specific 'scripts' path in
-# comparison to generic ASC extensions so that the custom implementations always
-# take precedence over extensions'.
-# -> Any implementation located in './scripts' gets +4 to its score.
-#
-# TODO [evol] Attempt to implement some control over which one gets sourced
-# in case of equality.
 #
 # [optional] (re)sets the following var in calling scope :
 # @var most_specific_match
@@ -739,10 +771,8 @@ hook_ms() {
   esac
 
   local f
-  local depth=0
-  local dot_arr
-  local slash_arr
-  local highest_depth=0
+  local best_rung=-1
+  local best_sum=-1
   local hook_dry_run_matches=''
 
   # Dry-run writes this in calling scope (not local). Callers init it:
@@ -754,35 +784,13 @@ hook_ms() {
   hook -t "$@"
 
   for f in $hook_dry_run_matches; do
-    f_str_split1 'dot_arr' "$f" '.'
-    f_str_split1 'slash_arr' "$f" '/'
+    f_hook_ms_measure "$f"
 
-    # Debug
-    # echo "f.${#dot_arr[@]}.${#slash_arr[@]} : $f"
-    # f_array_print dot_arr
-    # f_array_print slash_arr
-
-    depth=${#dot_arr[@]}
-    depth=$(( depth + ${#slash_arr[@]} ))
-
-    # Apply score bonus to custom project implementations so they take
-    # precedence over extensions'.
-    case "$f" in "scripts/"*)
-      depth=$(( depth + 4 ))
-    esac
-
-    # Files in project root dir, when requested (-r), must have higher priority
-    # than the default, generic extensions' (even the ones in scripts/*).
-    if [[ ${#slash_arr[@]} -eq 1 ]]; then
-      depth=$(( depth + 10 ))
-    fi
-
-    # Debug
-    # echo "  -> adjusted depth = $depth"
-
-    if [[ $depth -ge $highest_depth ]]; then
+    if [[ $hook_ms_rung -gt $best_rung ]] \
+      || { [[ $hook_ms_rung -eq $best_rung ]] && [[ $hook_ms_sum -ge $best_sum ]]; }; then
       most_specific_match="$f"
-      highest_depth=$depth
+      best_rung=$hook_ms_rung
+      best_sum=$hook_ms_sum
     fi
   done
 

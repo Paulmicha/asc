@@ -79,7 +79,11 @@ The human writes French, English, or Brazilian Portuguese. **English** is the **
 
 Natural language is redundant; human memory is **disparate** (nicknames, near-misses, three languages). Machine concepts need to stay more or less **deterministic** (tokens, loaders, make pivots, harnesses).
 
-A **harness** is generic ASC-level hook/pivot vs contrib-level specificity — not a test runner. One abstract `$subject-$action`; contrib is the `hook_ms` winner. They share the same `*.entity.yml` / `*.able.yml` contracts. Do not mint a parallel pivot or a second entity spec per tool. Shape: `agent-swarm-start` (generic) vs `cursor-swarm-start` / `codex-swarm-start` (contrib). Those swarm names are **not** files in this tree. Same law on disk: `make agent-start` → `hook_ms -s agent -a start`; `make db-dump` vs `dump.mysql.hook.sh` / `dump.pgsql.hook.sh`.
+A **harness** is one generic `$subject-$action` that makes a hook call (`hook_ms`). The tool extension supplies the hook implementation. Entry-point name clashes stay prefixed, so both commands remain callable. Do not score them. Same `*.entity.yml` / `*.able.yml`. Do not mint a second pivot or a second entity spec per tool. On disk: `make agent-start` → `hook_ms -s agent -a start`; `make db-dump` vs `dump.mysql.hook.sh` / `dump.pgsql.hook.sh`. `agent-swarm-start` vs `cursor-swarm-start` / `codex-swarm-start` are names, not files here.
+
+In prose, write **hook call** or **hook implementation**. Do not use "hook" alone for either.
+
+Put the hook implementation in the tool's extension: `scripts/asc/contrib/asc/$extension/` unless that tool is ordinary in almost every instance, in which case `asc/extensions/$extension/` (compose). Another vendor: `scripts/asc/contrib/$vendor/`. One project: `scripts/asc/extend/`. `hook_ms` ranks hook implementations low to high: `asc/` and `asc/extensions/`, then `scripts/asc/contrib/asc/`, then other `scripts/asc/contrib/$vendor/`, then `scripts/asc/extend/`, then a project-root path from `-r`. Inside one rung, dot-parts + slash-parts. An equal rank keeps the later file.
 
 **Synonyms** declare **equivalences**. They raise the hit rate of disparate recall onto a small, self-explainable set (primordial YAML; `synonym:` on entities/ables; `ASC_SYNONYMS` on make task names).
 
@@ -93,8 +97,11 @@ A **harness** is generic ASC-level hook/pivot vs contrib-level specificity — n
 ❌ Numbered phases, weight jargon, teaching the nickname
 ❌ FR/EN/PT synonym table in this rule
 ❌ Projet Complexe language policy in this tree
-❌ A per-tool pivot that does not implement the abstract ASC hook
+❌ A per-tool pivot that does not make the abstract hook call
 ❌ A second entity/able contract per contrib tool
+❌ A second make pivot per tool
+❌ Scoring entry points so one namespace drops the other's task
 ✅ English as pivot NL; existing ASC synonym; or one clearer label
-✅ One abstract `$subject-$action`; contrib is hook_ms specificity
+✅ One abstract `$subject-$action`; the contrib hook implementation is the hook_ms winner
+✅ Generic `$subject-$action` makes the hook call; the tool extension supplies the hook implementation
 ```

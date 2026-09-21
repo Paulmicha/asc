@@ -1,5 +1,1 @@
 test_f_hook_opt_inc_append_candidates
-
-Ran 12 tests.
-
-OK

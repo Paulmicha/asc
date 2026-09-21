@@ -1,0 +1,5 @@
+test_hook_ms_extend_beats_contrib
+
+Ran 14 tests.
+
+OK

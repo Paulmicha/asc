@@ -321,6 +321,141 @@ test_f_hook_opt_inc_append_candidates() {
 }
 
 ##
+# hook_ms ranks a path before it adds dot-parts and slash-parts.
+#
+test_hook_ms_rung_order() {
+  local -a paths=(
+    'asc/db/dump.hook.sh'
+    'asc/extensions/db/db/dump.hook.sh'
+    'scripts/asc/contrib/asc/mysql/db/dump.mysql.hook.sh'
+    'scripts/asc/contrib/acme/mysql/db/dump.hook.sh'
+    'scripts/asc/extend/db/dump.hook.sh'
+    'env.local.dev.yml'
+  )
+  local expect_rungs=(0 0 1 2 3 4)
+  local i
+
+  for i in "${!paths[@]}"; do
+    f_hook_ms_measure "${paths[$i]}"
+    assertEquals "rung ${paths[$i]}" "${expect_rungs[$i]}" "$hook_ms_rung"
+  done
+
+  # Inside rung 0 the sum is unchanged: more slashes still beat a shallower core file.
+  f_hook_ms_measure 'asc/db/dump.hook.sh'
+  local core_sum=$hook_ms_sum
+  f_hook_ms_measure 'asc/extensions/db/db/dump.hook.sh'
+  assertTrue 'extension sum beats core sum' "[[ $hook_ms_sum -gt $core_sum ]]"
+
+  # The old sum picked the deep ASC-shipped hook implementation (15) over extend (12 or 13).
+  # Rung 3 must beat rung 1 even when the extend filename has fewer dots.
+  local best=''
+  local best_rung=-1
+  local best_sum=-1
+  local f
+  for f in \
+    'scripts/asc/contrib/asc/mysql/db/dump.mysql.hook.sh' \
+    'scripts/asc/extend/db/dump.hook.sh'
+  do
+    f_hook_ms_measure "$f"
+    if [[ $hook_ms_rung -gt $best_rung ]] \
+      || { [[ $hook_ms_rung -eq $best_rung ]] && [[ $hook_ms_sum -ge $best_sum ]]; }; then
+      best="$f"
+      best_rung=$hook_ms_rung
+      best_sum=$hook_ms_sum
+    fi
+  done
+  assertEquals 'extend beats asc-shipped contrib' \
+    'scripts/asc/extend/db/dump.hook.sh' "$best"
+
+  best=''
+  best_rung=-1
+  best_sum=-1
+  for f in \
+    'scripts/asc/contrib/asc/mysql/db/dump.mysql.aaa.bbb.hook.sh' \
+    'scripts/asc/contrib/acme/mysql/db/dump.hook.sh'
+  do
+    f_hook_ms_measure "$f"
+    if [[ $hook_ms_rung -gt $best_rung ]] \
+      || { [[ $hook_ms_rung -eq $best_rung ]] && [[ $hook_ms_sum -ge $best_sum ]]; }; then
+      best="$f"
+      best_rung=$hook_ms_rung
+      best_sum=$hook_ms_sum
+    fi
+  done
+  assertEquals 'other vendor beats asc-shipped contrib' \
+    'scripts/asc/contrib/acme/mysql/db/dump.hook.sh' "$best"
+}
+
+##
+# Remove zzscore fixture files created by test_hook_ms_extend_beats_contrib.
+#
+_hook_test_zzscore_cleanup() {
+  rm -f \
+    scripts/asc/contrib/asc/zzscorea/zzscore/zzscore.aaa.bbb.hook.sh \
+    scripts/asc/contrib/zzvendor/zzscorev/zzscore/zzscore.hook.sh \
+    scripts/asc/extend/zzscore/zzscore.hook.sh \
+    data/asc/cache/hook/*zzscore*
+  rmdir \
+    scripts/asc/extend/zzscore \
+    scripts/asc/contrib/zzvendor/zzscorev/zzscore \
+    scripts/asc/contrib/zzvendor/zzscorev \
+    scripts/asc/contrib/zzvendor \
+    scripts/asc/contrib/asc/zzscorea/zzscore \
+    scripts/asc/contrib/asc/zzscorea \
+    2>/dev/null || true
+}
+
+##
+# hook_ms dry-run prefers scripts/asc/extend over both contrib rungs.
+#
+test_hook_ms_extend_beats_contrib() {
+  local saved_ext="$ASC_EXTENSIONS"
+  local saved_extend_subjects="${EXTEND_SUBJECTS-}"
+  local saved_extend_actions="${EXTEND_ACTIONS-}"
+  local saved_extend_objects="${EXTEND_OBJECTS-}"
+  local saved_inc="${ASC_INC-}"
+  local dir
+
+  _hook_test_zzscore_cleanup
+
+  for dir in \
+    scripts/asc/contrib/asc/zzscorea/zzscore \
+    scripts/asc/contrib/zzvendor/zzscorev/zzscore \
+    scripts/asc/extend/zzscore
+  do
+    mkdir -p "$dir"
+  done
+
+  # More dots on the ASC-shipped file, on purpose.
+  touch scripts/asc/contrib/asc/zzscorea/zzscore/zzscore.aaa.bbb.hook.sh
+  touch scripts/asc/contrib/zzvendor/zzscorev/zzscore/zzscore.hook.sh
+  touch scripts/asc/extend/zzscore/zzscore.hook.sh
+
+  f_asc_extend 'scripts/asc/contrib/asc/zzscorea'
+  f_asc_extend 'scripts/asc/contrib/zzvendor/zzscorev'
+  f_asc_extend 'scripts/asc/extend'
+
+  ASC_EXTENSIONS="$saved_ext asc/zzscorea zzvendor/zzscorev extend"
+  rm -f data/asc/cache/hook/*zzscore*
+
+  most_specific_match=''
+  hook_ms 'dry-run' -s 'zzscore' -a 'zzscore' -t
+
+  assertEquals 'dry-run winner is extend' \
+    'scripts/asc/extend/zzscore/zzscore.hook.sh' \
+    "$most_specific_match"
+
+  _hook_test_zzscore_cleanup
+  ASC_EXTENSIONS="$saved_ext"
+  EXTEND_SUBJECTS="$saved_extend_subjects"
+  EXTEND_ACTIONS="$saved_extend_actions"
+  EXTEND_OBJECTS="$saved_extend_objects"
+  ASC_INC="$saved_inc"
+  unset ZZSCOREA_SUBJECTS ZZSCOREA_ACTIONS ZZSCOREA_OBJECTS
+  unset ZZSCOREV_SUBJECTS ZZSCOREV_ACTIONS ZZSCOREV_OBJECTS
+}
+
+##
 # Cleans up any leftovers from previous tests.
 #
 oneTimeTearDown() {
@@ -330,6 +465,7 @@ oneTimeTearDown() {
     rm -f "asc/$s/nftaschhnc_dry_run.hook.sh"
   done
   rm -fr "asc/extensions/nftaschdehnc"
+  _hook_test_zzscore_cleanup
 }
 
 . asc/vendor/shunit2/shunit2
