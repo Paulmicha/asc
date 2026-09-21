@@ -65,4 +65,4 @@ for entry in "${purge_list_arr[@]}"; do
 done
 
 # Clear all ASC cache entries.
-. asc/asc/cache_clear.sh
+. asc/core/cache_clear.sh

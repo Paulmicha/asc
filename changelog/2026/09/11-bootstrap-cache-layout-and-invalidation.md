@@ -5,7 +5,7 @@
 | **Date** | 2026-09-11 |
 | **Status** | implemented (stamp + `core/active.sh` + `cache/hook/<key>.sh`; lazy opt-inc still follow-up) |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — bootstrap, lookup cache, `make cc` / `make reinit` / `make uninit`. Not entity YAML merge, not bash-yaml swap. |
-| **Related** | `asc/bootstrap.sh`; `asc/asc/cache_clear.sh`; `asc/asc/hook.inc.sh` (`hook()` cache); `asc/instance/write_globals.sh`; `asc/make/make.inc.sh` (`f_make_generate`); README § Data dirs / instance init; `changelog/2026/09/10-begin-entity-system-with-remote-instances.md` (`data/asc/cache/entities/`); **follow-up (do not mix in):** [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) |
+| **Related** | `asc/bootstrap.sh`; `asc/core/cache_clear.sh`; `asc/core/hook.inc.sh` (`hook()` cache); `asc/instance/write_globals.sh`; `asc/make/make.inc.sh` (`f_make_generate`); README § Data dirs / instance init; `changelog/2026/09/10-begin-entity-system-with-remote-instances.md` (`data/asc/cache/entities/`); **follow-up (do not mix in):** [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) |
 | **Constraint (decided)** | **`make cc` stays “wipe lookup only”.** `data/asc/global.vars.sh` and `data/asc/pivots.mk` stay where they are and are **not** deleted by `cc`. |
 | **Lifecycle** | Shipped (stamp + `core/active.sh` + `cache/hook/`). Do not treat this as permission for a cache-tree rewrite. Shrinking what bootstrap **parses** is the **follow-up split**, not this file. |
 
@@ -15,13 +15,13 @@
 
 Warm bootstrap already skips `f_asc_extend` when `data/asc/cache/asc.sh` exists, and skips hook **lookup** when `data/asc/cache/hook.*.sh` exists. It still always:
 
-1. Sources the six core includes (`core_utils`, `core`, `global`, `hook`, `autoload`, `yml`).
+1. Sources the six core includes (`utils` — then named `core_utils` — plus `core`, `global`, `hook`, `autoload`, `yml`).
 2. Sources `data/asc/global.vars.sh` if present.
 3. Sources primitives cache (`asc.sh`) or rebuilds via `f_asc_extend`.
 4. Runs `hook` `pre_bootstrap` / `alias` / `bootstrap` (lookup cached; **bodies still run**).
 5. Sources every path in `ASC_INC`.
 
-`make cc` (`asc/asc/cache_clear.sh`) is `rm -rf data/asc/cache`. It does **not** touch globals or `pivots.mk`. `make uninit` / setup purge those separately. Cache is **existence-only**: add an extension, action, or ignore line and nothing rebuilds until a human runs `cc`.
+`make cc` (`asc/core/cache_clear.sh`) is `rm -rf data/asc/cache`. It does **not** touch globals or `pivots.mk`. `make uninit` / setup purge those separately. Cache is **existence-only**: add an extension, action, or ignore line and nothing rebuilds until a human runs `cc`.
 
 That stale-cache hole is the real performance/correctness gap. Renaming files without a stamp is cosmetics.
 

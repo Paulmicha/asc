@@ -3,8 +3,8 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-19 |
-| **Status** | **implemented** (2026-09-20). `asc/utils/fs.opt-inc.sh` on disk. Gzip-of-SQL. `f_fs_watch_poll` dropped. Tests: `test_f_fs_archive_helpers_absent_from_kernel_bootstrap`, `test_f_fs_compress_gz_is_gzip_not_tar` (`asc/test/core/file_system.test.sh`). |
-| **Scope** | `asc/utils/fs.inc.sh` (~1088 lines) is sourced on **every** heavy bootstrap via `asc/utils/core_utils.inc.sh`. Move compress/extract/merge/watch off that path. Align `f_db_dump` / `dump_reduce.sh` with those helpers. |
+| **Status** | **implemented** (2026-09-20). `asc/core/utils/fs.opt-inc.sh` on disk. Gzip-of-SQL. `f_fs_watch_poll` dropped. Tests: `test_f_fs_archive_helpers_absent_from_kernel_bootstrap`, `test_f_fs_compress_gz_is_gzip_not_tar` (`asc/test/core/file_system.test.sh`). |
+| **Scope** | `asc/core/utils/fs.inc.sh` (~1088 lines) is sourced on **every** heavy bootstrap via `asc/core/utils.inc.sh`. Move compress/extract/merge/watch off that path. Align `f_db_dump` / `dump_reduce.sh` with those helpers. |
 | **Parent** | [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) Wave A (fs slice only). |
 | **Not this plan** | `str.inc.sh` tail, yaml dual-source, `db.inc.sh` thinning (see sibling sub-plans). |
 
@@ -14,12 +14,12 @@
 
 ## Why utils cannot use the auto loaders
 
-Caller opt-inc and hook seeding derive `<dir>/<subject>.opt-inc.sh` from a **caller script** or a `*.hook.sh`. `asc/utils/` is neither an active dir nor a hook dir.
+Caller opt-inc and hook seeding derive `<dir>/<subject>.opt-inc.sh` from a **caller script** or a `*.hook.sh`. `asc/core/utils/` is neither an active dir nor a hook dir.
 
 | Path | Auto-sourced? |
 |------|----------------|
-| `asc/utils/fs.inc.sh` | ✅ kernel |
-| `asc/utils/fs.opt-inc.sh` | ❌ never, unless something `.`s it |
+| `asc/core/utils/fs.inc.sh` | ✅ kernel |
+| `asc/core/utils/fs.opt-inc.sh` | ❌ never, unless something `.`s it |
 
 The 2026-09-11 line “move compress to `fs.opt-inc.sh` sourced by the few callers” is still the pick — **explicit `.`**, not a third loader and not a third suffix.
 
@@ -48,15 +48,15 @@ Approx. lines moved: `fs.inc.sh` merge (`:37-231` minus watch) + compress/extrac
 
 ## Target files
 
-- **Keep:** `asc/utils/fs.inc.sh` — list/path/contents/most-recent/change-line only.
-- **New:** `asc/utils/fs.opt-inc.sh` — merge, compress, extract (same function names). Header comment: *not derived by bootstrap; callers must `.` this file*. **Not** `f_fs_watch_poll`.
-- **Do not** add `asc/utils` to `ASC_INC` or invent `ASC_OPT_INC`.
+- **Keep:** `asc/core/utils/fs.inc.sh` — list/path/contents/most-recent/change-line only.
+- **New:** `asc/core/utils/fs.opt-inc.sh` — merge, compress, extract (same function names). Header comment: *not derived by bootstrap; callers must `.` this file*. **Not** `f_fs_watch_poll`.
+- **Do not** add `asc/core/utils` to `ASC_INC` or invent `ASC_OPT_INC`.
 
 ### Who `.`s the new file
 
 | Caller | How |
 |--------|-----|
-| `asc/test/core/file_system.test.sh` / `utilities.test.sh` | `. asc/utils/fs.opt-inc.sh` after bootstrap (or from a tiny test helper once) |
+| `asc/test/core/file_system.test.sh` / `utilities.test.sh` | `. asc/core/utils/fs.opt-inc.sh` after bootstrap (or from a tiny test helper once) |
 | `asc/extensions/db/db.inc.sh` `f_db_exec` (today) / `db/db.opt-inc.sh` (after db sub-plan) | `.` once at top of the dump/exec include, not inside the hot loop |
 | `asc/extensions/db/db/dump_reduce.sh` | `.` after bootstrap, next to the existing `f_fs_extract_in_place` call |
 | `scripts/asc/contrib/asc/drupalwt/new/project.sh` | `.` before `f_fs_merge_dirs` |
@@ -86,4 +86,4 @@ Idempotent source: wrap with `if ! type f_fs_extract_in_place &>/dev/null; then 
 - [x] Confirm gzip-of-SQL vs keep tar+`.gz` name. **Locked:** gzip of a single SQL file.
 - [x] Drop `f_fs_watch_poll` (and `test_f_fs_watch_poll`); do not put it in `fs.opt-inc.sh`.
 - [x] Move compress/extract/merge; explicit `.` at tests, `db.inc.sh`, `dump_reduce.sh`, drupalwt `new/project.sh`.
-- [x] Case-table row for `asc/utils/fs.opt-inc.sh` stays “never auto-sourced” (file now **on disk**).
+- [x] Case-table row for `asc/core/utils/fs.opt-inc.sh` stays “never auto-sourced” (file now **on disk**).

@@ -204,7 +204,7 @@ For this draft, `sidecar.able` only answers: **does this entity currently have a
 
 ### 4.2 Checks (fail closed)
 
-Implement as `asc/utils/test/*.sh` — **those files exist and are empty**. `wrap.able.yml` already names `test-file-exists`. Fill these first; do not add a new test framework.
+Implement as `asc/core/utils/test/*.sh` — **those files exist and are empty**. `wrap.able.yml` already names `test-file-exists`. Fill these first; do not add a new test framework.
 
 | Check | Script to fill | When |
 |-------|----------------|------|
@@ -524,7 +524,7 @@ Only items that unblock README + projet-complexe / backup. Not a rewrite of `doc
 
 ### Must fill (small, existing empty files)
 
-1. `asc/utils/test/file_exists.sh`, `dir_exists.sh`, `not_empty.sh` — referenced by DSL / wrap.able, currently 0 bytes.
+1. `asc/core/utils/test/file_exists.sh`, `dir_exists.sh`, `not_empty.sh` — referenced by DSL / wrap.able, currently 0 bytes.
 2. `test/dir_writable.sh` (new) for sync dest.
 3. `asc/dir/sidecar.able.yml` + `asc/dir/sync.able.yml` + `asc/data/store.able.yml` **bodies** (short, as in § 4–7). Leave sibling stubs empty.
 4. `asc/host/host.entity.yml` and `asc/instance/instance.entity.yml` **bodies** (field lists above). Keep `docroot` synonym on instance.

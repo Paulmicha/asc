@@ -14,29 +14,29 @@
 # (defaults to 'main').
 #
 # @example
-#   make asc-upgrade
+#   make core-upgrade
 #   # Or :
-#   asc/asc/upgrade.sh
+#   asc/core/upgrade.sh
 #
 #   # Upgrade from a specific branch or tag :
-#   ASC_BRANCH=main make asc-upgrade
+#   ASC_BRANCH=main make core-upgrade
 #
 #   # If the temporary directory already exists, use existing folder without
 #   # prompt :
-#   make asc-upgrade n
+#   make core-upgrade n
 #   # Or :
-#   asc/asc/upgrade.sh n
+#   asc/core/upgrade.sh n
 #
 #   # If the temporary directory already exists, force re-download the sources
 #   # from remote repo without prompt :
-#   make asc-upgrade y
+#   make core-upgrade y
 #   # Or :
-#   asc/asc/upgrade.sh y
+#   asc/core/upgrade.sh y
 #
 #   # To keep the temporary directory once completed, use arg 2 (value 'k') :
-#   make asc-upgrade n k
+#   make core-upgrade n k
 #   # Or :
-#   asc/asc/upgrade.sh n k
+#   asc/core/upgrade.sh n k
 #
 
 . asc/bootstrap.sh
@@ -150,7 +150,7 @@ echo
 
 echo "Running post-upgrade hook ..."
 
-hook -s 'asc' -a 'post_upgrade' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE PROVISION_USING'
+hook -s 'core' -a 'post_upgrade' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE PROVISION_USING'
 
 echo "Running post-upgrade hook : done."
 echo

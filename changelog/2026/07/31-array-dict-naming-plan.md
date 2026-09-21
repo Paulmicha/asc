@@ -5,14 +5,14 @@
 | **Date** | 2026-07-31 |
 | **Status** | implemented (2026-07-31) — code migration applied across ASC repo |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — **ordinary** shell script variables only: Bash indexed arrays, associative arrays, and nameref locals in `*.sh`, `*.inc.sh`, `*.opt-inc.sh` (excluding `asc/vendor/`). **Out of scope:** capitalized (`ALL_CAPS`) global names, especially `readonly` ones — leave untouched (see § Exclusions). |
-| **Related** | `changelog/2026/07/31-subshell-printf-v-candidates.md`; `changelog/2026/07/23-f-e-naming-convention.md`; `asc/utils/arr/arr.opt-inc.sh` |
+| **Related** | `changelog/2026/07/31-subshell-printf-v-candidates.md`; `changelog/2026/07/23-f-e-naming-convention.md`; `asc/core/utils/arr/arr.opt-inc.sh` |
 | **Lifecycle** | Review inventory; rename in focused PRs. Do **not** treat this file as permission for a repo-wide mechanical rewrite. |
 
 ---
 
 ## Context
 
-ASC shell code uses Bash arrays throughout make generation, globals, git, thread orchestration, remote DB, software provisioning, and test infrastructure. Naming is inconsistent today: some utilities already use `*_arr` / `*_dict` (especially `asc/utils/arr/arr.opt-inc.sh` output vars and `dumps_dict` in remote_db), while most call-site arrays use bare names (`make_entries`, `db_ids`, `GLOBALS`). Nameref locals (`declare -n` / `local -n`) are rare (six sites, four files) and mostly lack a `_nameref` suffix — except `a_out_arr_nameref` in `hook.inc.sh`.
+ASC shell code uses Bash arrays throughout make generation, globals, git, thread orchestration, remote DB, software provisioning, and test infrastructure. Naming is inconsistent today: some utilities already use `*_arr` / `*_dict` (especially `asc/core/utils/arr/arr.opt-inc.sh` output vars and `dumps_dict` in remote_db), while most call-site arrays use bare names (`make_entries`, `db_ids`, `GLOBALS`). Nameref locals (`declare -n` / `local -n`) are rare (six sites, four files) and mostly lack a `_nameref` suffix — except `a_out_arr_nameref` in `hook.inc.sh`.
 
 This plan inventories array variables so renames can be applied deliberately — file-by-file or subsystem-by-subsystem — without breaking wrap-script contracts or generated cache files.
 
@@ -84,13 +84,13 @@ Type inference: explicit `-a`/`-A` wins; `declare -n` / `local -n` → nameref (
 | `keys` | indexed | 24 | `keys_arr` | `asc/extensions/remote/remote.inc.sh`, `asc/extensions/remote_db/remote/remote.opt-inc.sh` |
 | `git_hooks_whitelist` | indexed | 23 | `git_hooks_whitelist_arr` | `asc/git/git.inc.sh` |
 | `cmds` | indexed | 14 | `cmds_arr` | `asc/extensions/remote_db/remote/db_download.sh`, `asc/extensions/remote_db/remote/db_dump.sh`… |
-| `declaration_arr` | associative | 14 | `declaration_dict` | `asc/asc/global.inc.sh` |
+| `declaration_arr` | associative | 14 | `declaration_dict` | `asc/core/global.inc.sh` |
 | `instance_ids` | indexed | 12 | `instance_ids_arr` | `asc/extensions/db/db.inc.sh`, `asc/extensions/remote/remote.inc.sh`… |
 | `cron_schedules` | indexed | 11 | `cron_schedules_arr` | `asc/extensions/crontab/crontab.inc.sh` |
 | `dwt_sites_ids` | indexed | 9 | `dwt_sites_ids_arr` | `scripts/asc/contrib/asc/drupalwt/app/ensure_dirs_exist.hook.sh`, `scripts/asc/contrib/asc/drupalwt/app/fs_perms_set.hook.sh`… |
 | `software_diff_ids` | indexed | 9 | `software_diff_ids_arr` | `asc/extensions/software/host/provision.opt-inc.sh` |
 | `software_diff_status` | indexed | 9 | `software_diff_status_arr` | `asc/extensions/software/host/provision.opt-inc.sh` |
-| `asc_globals_var_names` | indexed | 7 | `asc_globals_var_names_arr` | `asc/asc/global.inc.sh`, `asc/extensions/remote/remote.inc.sh`… |
+| `asc_globals_var_names` | indexed | 7 | `asc_globals_var_names_arr` | `asc/core/global.inc.sh`, `asc/extensions/remote/remote.inc.sh`… |
 | `default_files` | indexed | 7 | `default_files_arr` | `asc/instance/fs_perms_set.hook.sh` |
 
 ### Files with most array variables
@@ -102,11 +102,11 @@ Type inference: explicit `-a`/`-A` wins; `declare -n` / `local -n` → nameref (
 | `asc/git/git.inc.sh` | 12 |
 | `asc/test/test.inc.sh` | 11 |
 | `asc/thread/thread.inc.sh` | 11 |
-| `asc/asc/global.inc.sh` | 10 |
-| `asc/utils/arr/arr.opt-inc.sh` | 10 |
+| `asc/core/global.inc.sh` | 10 |
+| `asc/core/utils/arr/arr.opt-inc.sh` | 10 |
 | `scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh` | 8 |
-| `asc/asc/hook.inc.sh` | 7 |
-| `asc/asc/core.inc.sh` | 6 |
+| `asc/core/hook.inc.sh` | 7 |
+| `asc/core/core.inc.sh` | 6 |
 | `asc/extensions/remote/remote.inc.sh` | 6 |
 | `asc/extensions/crontab/crontab.inc.sh` | 5 |
 
@@ -134,7 +134,7 @@ Type inference: explicit `-a`/`-A` wins; `declare -n` / `local -n` → nameref (
 | `GLOBALS_UNIQUE_NAMES` | Capitalized global indexed companion of `GLOBALS` — leave as-is |
 | Capitalized (`ALL_CAPS`) global arrays / dicts / namerefs (incl. `readonly`) | **Class exclusion** — ordinary locals and lowercase script variables are in scope; SHOUTY globals are not |
 
-**Scope rule (2026-07-31):** Renaming applies to **ordinary shell script variables** — typical locals and non-readonly lowercase script variables that should gain `_arr` / `_dict` / `_nameref`. **Do not rename** capitalized global names (the `GLOBALS*` family and any other `ALL_CAPS` globals). Verified in repo: the only ALL_CAPS array globals besides `GLOBALS` are `GLOBALS_DEFERRED`, `GLOBALS_UNIQUE_KEYS`, and `GLOBALS_UNIQUE_NAMES` (none are `readonly -a`; all are runtime globals in `asc/asc/global.inc.sh`, reset from `asc/instance/instance.inc.sh` and tests). Local ALL_CAPS scratch vars (e.g. `ADDR` from `read -ra` in `dump.mysql.hook.sh`) remain **in scope** — they are not globals.
+**Scope rule (2026-07-31):** Renaming applies to **ordinary shell script variables** — typical locals and non-readonly lowercase script variables that should gain `_arr` / `_dict` / `_nameref`. **Do not rename** capitalized global names (the `GLOBALS*` family and any other `ALL_CAPS` globals). Verified in repo: the only ALL_CAPS array globals besides `GLOBALS` are `GLOBALS_DEFERRED`, `GLOBALS_UNIQUE_KEYS`, and `GLOBALS_UNIQUE_NAMES` (none are `readonly -a`; all are runtime globals in `asc/core/global.inc.sh`, reset from `asc/instance/instance.inc.sh` and tests). Local ALL_CAPS scratch vars (e.g. `ADDR` from `read -ra` in `dump.mysql.hook.sh`) remain **in scope** — they are not globals.
 
 ---
 
@@ -167,30 +167,30 @@ Type inference: explicit `-a`/`-A` wins; `declare -n` / `local -n` → nameref (
 
 | Variable | Type | File(s) | Notes |
 |----------|------|---------|-------|
-| `a_parts_arr` | indexed | `asc/asc/hook.inc.sh` | — |
+| `a_parts_arr` | indexed | `asc/core/hook.inc.sh` | — |
 | `commit_arr` | indexed | `asc/git/git.inc.sh` | — |
-| `contents_list_arr` | indexed | `asc/utils/fs/fs.opt-inc.sh` | — |
-| `deduo_arr` | indexed | `asc/asc/hook.inc.sh` | — |
-| `depending_var_split_arr` | indexed | `asc/asc/global.inc.sh` | — |
-| `GLOBALS` | associative | `asc/asc/global.inc.sh`, `asc/instance/instance.inc.sh`, `asc/test/core/global.test.sh` | Capitalized global — excluded; keep `GLOBALS` as-is (see § Exclusions) |
-| `GLOBALS_DEFERRED` | indexed | `asc/asc/global.inc.sh` | Capitalized global — excluded (see § Exclusions) |
-| `GLOBALS_UNIQUE_KEYS` | indexed | `asc/asc/global.inc.sh` | Capitalized global — excluded (see § Exclusions) |
-| `GLOBALS_UNIQUE_NAMES` | indexed | `asc/asc/global.inc.sh`, `asc/instance/instance.inc.sh`, `asc/test/core/global.test.sh` | Capitalized global — excluded (see § Exclusions) |
+| `contents_list_arr` | indexed | `asc/core/utils/fs/fs.opt-inc.sh` | — |
+| `deduo_arr` | indexed | `asc/core/hook.inc.sh` | — |
+| `depending_var_split_arr` | indexed | `asc/core/global.inc.sh` | — |
+| `GLOBALS` | associative | `asc/core/global.inc.sh`, `asc/instance/instance.inc.sh`, `asc/test/core/global.test.sh` | Capitalized global — excluded; keep `GLOBALS` as-is (see § Exclusions) |
+| `GLOBALS_DEFERRED` | indexed | `asc/core/global.inc.sh` | Capitalized global — excluded (see § Exclusions) |
+| `GLOBALS_UNIQUE_KEYS` | indexed | `asc/core/global.inc.sh` | Capitalized global — excluded (see § Exclusions) |
+| `GLOBALS_UNIQUE_NAMES` | indexed | `asc/core/global.inc.sh`, `asc/instance/instance.inc.sh`, `asc/test/core/global.test.sh` | Capitalized global — excluded (see § Exclusions) |
 | `dumps_dict` | associative | `asc/extensions/remote_db/remote/db_download.sh`, `asc/extensions/remote_db/remote/db_dump.sh`, `asc/extensions/remote_db/remote/db_list_dumps.sh` | Already compliant; remote_db scripts |
-| `ei_override_lookup_arr` | indexed | `asc/asc/core.inc.sh` | — |
-| `exclusions_arr` | indexed | `asc/asc/core.inc.sh` | — |
-| `file_list_arr` | indexed | `asc/extensions/db/db/list_dumps.sh`, `asc/utils/fs/fs.opt-inc.sh`, `scripts/asc/contrib/asc/mysql/db/exec.mysql.hook.sh` | — |
-| `globals_arr` | indexed | `asc/asc/global.inc.sh` | — |
-| `gn_arr` | indexed | `asc/asc/global.inc.sh` | — |
+| `ei_override_lookup_arr` | indexed | `asc/core/core.inc.sh` | — |
+| `exclusions_arr` | indexed | `asc/core/core.inc.sh` | — |
+| `file_list_arr` | indexed | `asc/extensions/db/db/list_dumps.sh`, `asc/core/utils/fs/fs.opt-inc.sh`, `scripts/asc/contrib/asc/mysql/db/exec.mysql.hook.sh` | — |
+| `globals_arr` | indexed | `asc/core/global.inc.sh` | — |
+| `gn_arr` | indexed | `asc/core/global.inc.sh` | — |
 | `k_split_arr` | indexed | `asc/git/git.inc.sh` | — |
-| `name_version_arr` | indexed | `asc/asc/autoload.inc.sh` | — |
+| `name_version_arr` | indexed | `asc/core/autoload.inc.sh` | — |
 | `purge_list_arr` | indexed | `asc/extensions/compose/instance/uninit.hook.sh`, `asc/instance/setup.sh`, `asc/instance/uninit.sh` | — |
-| `reversed_arr` | indexed | `asc/git/git.inc.sh`, `asc/utils/arr/arr.opt-inc.sh` | Output var documented in `f_array_*` @var blocks |
+| `reversed_arr` | indexed | `asc/git/git.inc.sh`, `asc/core/utils/arr/arr.opt-inc.sh` | Output var documented in `f_array_*` @var blocks |
 | `setup_dict` | associative | `asc/extensions/remote/remote.inc.sh` | — |
 | `sorted_arr` | indexed | `asc/git/git.inc.sh`, `asc/instance/list_actions.sh`, `asc/make/list_entry_points.sh` | Output var documented in `f_array_*` @var blocks |
-| `split_arr` | indexed | `asc/utils/str/str.opt-inc.sh` | — |
-| `tmp_arr` | indexed | `asc/utils/arr/arr.opt-inc.sh` | — |
-| `version_arr` | indexed | `asc/asc/autoload.inc.sh` | — |
+| `split_arr` | indexed | `asc/core/utils/str/str.opt-inc.sh` | — |
+| `tmp_arr` | indexed | `asc/core/utils/arr/arr.opt-inc.sh` | — |
+| `version_arr` | indexed | `asc/core/autoload.inc.sh` | — |
 
 ---
 
@@ -200,14 +200,14 @@ All `declare -n` / `local -n` sites under ASC (excluding vendor). **OK:** ✓ co
 
 | Variable | File | Function | Line | Target type | Points at (param / usage) | OK | Suggested rename | Notes |
 |----------|------|----------|------|-------------|---------------------------|----|------------------|-------|
-| `a_out_arr_nameref` | `asc/asc/hook.inc.sh` | `f_hook_opt_inc_append_candidates` | L816 | indexed array | `$2` — caller output array (e.g. `opt_incs`) | ✓ | — | Already `*_arr_nameref`; model for array-output namerefs |
-| `__p` | `asc/utils/arr/arr.opt-inc.sh` | `f_array_print` | L202 | indexed or associative | `$1` — caller array name; polymorphic via `${!__p[@]}` | ✗ | `__p_nameref` | Plain `_nameref` — target type varies |
+| `a_out_arr_nameref` | `asc/core/hook.inc.sh` | `f_hook_opt_inc_append_candidates` | L816 | indexed array | `$2` — caller output array (e.g. `opt_incs`) | ✓ | — | Already `*_arr_nameref`; model for array-output namerefs |
+| `__p` | `asc/core/utils/arr/arr.opt-inc.sh` | `f_array_print` | L202 | indexed or associative | `$1` — caller array name; polymorphic via `${!__p[@]}` | ✗ | `__p_nameref` | Plain `_nameref` — target type varies |
 | `__yaml_scalars` | `asc/yml/yml.inc.sh` | `f_yaml_write` | L263 | associative array | `$a_scalars_name` (e.g. `y_sc`) | ✗ | `__yaml_scalars_dict_nameref` | — |
 | `__yaml_keys` | `asc/yml/yml.inc.sh` | `f_yaml_write` | L264 | indexed array | `$a_keys_name` (e.g. `y_keys` / `__yaml_keys` caller var) | ✗ | `__yaml_keys_arr_nameref` | Was misclassified as indexed array var |
 | `__yaml_list` | `asc/yml/yml.inc.sh` | `f_yaml_write` | L281 | indexed array | `$list_arr_name` (varargs pair per YAML list section) | ✗ | `__yaml_list_arr_nameref` | Re-declared inside `while` loop per list key |
 | `_u_ta_ref` | `asc/thread/thread.inc.sh` | `f_thread_args_append` | L453 | indexed array | `$a_arr_name` (e.g. `thread_entry_args`, `thread_stage_args`) | ✗ | `_u_ta_ref_arr_nameref` | — |
 
-**Reclassified from § Manual review (2026-07-31):** `__p`, `__yaml_scalars`, `_u_ta_ref` → nameref rows above. `array` (`f_array_ksort` caller-scope `@var`) → associative, see `asc/utils/arr/arr.opt-inc.sh` inventory. `sites` (`drupalwt.inc.sh` L780) → removed (false positive: PHP fragment in `echo`, not a Bash array).
+**Reclassified from § Manual review (2026-07-31):** `__p`, `__yaml_scalars`, `_u_ta_ref` → nameref rows above. `array` (`f_array_ksort` caller-scope `@var`) → associative, see `asc/core/utils/arr/arr.opt-inc.sh` inventory. `sites` (`drupalwt.inc.sh` L780) → removed (false positive: PHP fragment in `echo`, not a Bash array).
 
 ---
 
@@ -215,14 +215,14 @@ All `declare -n` / `local -n` sites under ASC (excluding vendor). **OK:** ✓ co
 
 Grouped by path. **OK:** ✓ compliant, ✗ needs rename, ⚠ wrong suffix, — excluded (string param / not an array).
 
-### `asc/asc/autoload.inc.sh`
+### `asc/core/autoload.inc.sh`
 
 | Variable | Type | OK | Suggested | First line | Function | Sites | Notes |
 |----------|------|----|-----------|------------|----------|-------|-------|
 | `name_version_arr` | indexed | ✓ | — | L141 | `f_autoload_add_lookup_level` | 6 | — |
 | `version_arr` | indexed | ✓ | — | L153 | `f_autoload_add_lookup_level` | 2 | — |
 
-### `asc/asc/core.inc.sh`
+### `asc/core/core.inc.sh`
 
 | Variable | Type | OK | Suggested | First line | Function | Sites | Notes |
 |----------|------|----|-----------|------------|----------|-------|-------|
@@ -233,7 +233,7 @@ Grouped by path. **OK:** ✓ compliant, ✗ needs rename, ⚠ wrong suffix, — 
 | `exclusions_arr` | indexed | ✓ | — | L201 | `f_asc_extensions` | 1 | — |
 | `ignored_values` | indexed | ✗ | `ignored_values_arr` | L315 | `f_asc_primitive_values` | 2 | — |
 
-### `asc/asc/global.inc.sh`
+### `asc/core/global.inc.sh`
 
 | Variable | Type | OK | Suggested | First line | Function | Sites | Notes |
 |----------|------|----|-----------|------------|----------|-------|-------|
@@ -248,7 +248,7 @@ Grouped by path. **OK:** ✓ compliant, ✗ needs rename, ⚠ wrong suffix, — 
 | `globals_arr` | indexed | ✓ | — | L383 | `f_global_debug`, `f_global_foreach` | 2 | — |
 | `gn_arr` | indexed | ✓ | — | L79 | `f_global_write` | 2 | — |
 
-### `asc/asc/hook.inc.sh`
+### `asc/core/hook.inc.sh`
 
 | Variable | Type | OK | Suggested | First line | Function | Sites | Notes |
 |----------|------|----|-----------|------------|----------|-------|-------|
@@ -611,7 +611,7 @@ Grouped by path. **OK:** ✓ compliant, ✗ needs rename, ⚠ wrong suffix, — 
 | `real_scripts` | indexed | ✗ | `real_scripts_arr` | L50 | `(top-level)`, `f_make_check_args` | 27 | Wrap-script contract; sourced across make/log/loop/thread wraps |
 | `thread_tree` | indexed | ✗ | `thread_tree_arr` | L53 | `(top-level)`, `f_thread_proc_tree` | 7 | — |
 
-### `asc/utils/arr/arr.opt-inc.sh`
+### `asc/core/utils/arr/arr.opt-inc.sh`
 
 | Variable | Type | OK | Suggested | First line | Function | Sites | Notes |
 |----------|------|----|-----------|------------|----------|-------|-------|
@@ -626,14 +626,14 @@ Grouped by path. **OK:** ✓ compliant, ✗ needs rename, ⚠ wrong suffix, — 
 | `stack` | indexed | ✗ | `stack_arr` | L83 | `f_array_qsort` | 6 | — |
 | `tmp_arr` | indexed | ✓ | — | L175 | `f_array_reverse` | 1 | — |
 
-### `asc/utils/fs/fs.opt-inc.sh`
+### `asc/core/utils/fs/fs.opt-inc.sh`
 
 | Variable | Type | OK | Suggested | First line | Function | Sites | Notes |
 |----------|------|----|-----------|------------|----------|-------|-------|
 | `contents_list_arr` | indexed | ✓ | — | L877 | `f_fs_extract` | 2 | — |
 | `file_list_arr` | indexed | ✓ | — | L470 | `(top-level)`, `f_fs_file_list` | 4 | — |
 
-### `asc/utils/str/str.opt-inc.sh`
+### `asc/core/utils/str/str.opt-inc.sh`
 
 | Variable | Type | OK | Suggested | First line | Function | Sites | Notes |
 |----------|------|----|-----------|------------|----------|-------|-------|
@@ -755,9 +755,9 @@ Grouped by path. **OK:** ✓ compliant, ✗ needs rename, ⚠ wrong suffix, — 
 
 All clusters below were migrated in this session (2026-07-31).
 
-1. **`asc/utils/arr/arr.opt-inc.sh`** — ✓ canonical array helpers; doc examples updated (`my_array_arr`, `array_dict`, `__p_nameref`); `stack_arr` declaration fixed.
-2. **Nameref cluster** — ✓ `asc/yml/yml.inc.sh` (`__yaml_*_*_nameref`), `asc/thread/thread.inc.sh` (`_u_ta_ref_arr_nameref`); `asc/asc/hook.inc.sh` already had `a_out_arr_nameref`.
-3. **Wrong-suffix fix** — ✓ `declaration_arr` → `declaration_dict` in `asc/asc/global.inc.sh`.
+1. **`asc/core/utils/arr/arr.opt-inc.sh`** — ✓ canonical array helpers; doc examples updated (`my_array_arr`, `array_dict`, `__p_nameref`); `stack_arr` declaration fixed.
+2. **Nameref cluster** — ✓ `asc/yml/yml.inc.sh` (`__yaml_*_*_nameref`), `asc/thread/thread.inc.sh` (`_u_ta_ref_arr_nameref`); `asc/core/hook.inc.sh` already had `a_out_arr_nameref`.
+3. **Wrong-suffix fix** — ✓ `declaration_arr` → `declaration_dict` in `asc/core/global.inc.sh`.
 4. **Remote DB scripts** — ✓ `dumps_dict` unchanged (already compliant); `cmds_arr`, `db_ids_arr`, `keys_arr` migrated.
 5. **Self-contained modules** — ✓ `asc/git/git.inc.sh`, `asc/extensions/crontab/crontab.inc.sh`, `asc/log/`.
 6. **Make / test codegen** — ✓ `pivots_arr`, `real_scripts_arr`, `test_case_registry_*_arr`, `tc_*_arr` in generators; **regenerate** `data/asc/cache/test-cases.sh` and `data/asc/cache/pivots.sh` on next `make` reinit (cache absent in workspace at migration time).

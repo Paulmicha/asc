@@ -359,11 +359,11 @@ Typical ASC use cases aren't complex or "big" *by design*, but its extensibility
 
 ##### Exceptions
 
-`asc/utils/core_utils.inc.sh` acts like a hub file for other, hardcoded, "pivot" opportunist file and dir names and paths. The filesystem path itself may tell a story in a self-explainable way. That is the pursuit and overall idea of the "synonyms - tokens" gap filling in human - agent communication. Generally, there are no other rules other that what is set in stone in this exclusively human-written root README file of the project.
+`asc/core/utils.inc.sh` acts like a hub file for other, hardcoded, "pivot" opportunist file and dir names and paths. The filesystem path itself may tell a story in a self-explainable way. That is the pursuit and overall idea of the "synonyms - tokens" gap filling in human - agent communication. Generally, there are no other rules other that what is set in stone in this exclusively human-written root README file of the project.
 
 That is an invitation to get creative. There's a lot of space to explore. This is fundamentally a fun garage project.
 
-`asc/utils/` is not a caller dir and has no `*.hook.sh`, so a `*.opt-inc.sh` there is never auto-derived; callers must `.` it.
+`asc/core/utils/` is not a caller dir and has no `*.hook.sh`, so a `*.opt-inc.sh` there is never auto-derived; callers must `.` it.
 
 ##### Recap
 
@@ -373,7 +373,7 @@ Here are a few examples to illustrate how this works :
 |-----------------------|------|------|---------|-----|
 | (any) | eager | `asc/git/git.inc.sh` | ✅ yes | `asc/git` is an *active dir* and `git.inc.sh` matches its name |
 | (any) | eager | `asc/extensions/compose/compose.inc.sh` | ✅ yes | `asc/extensions/compose` is an *extension point* and `compose.inc.sh` matches its name |
-| (any) | eager | `asc/utils/fs.inc.sh` | ✅ yes | The hardcoded kernel "hub" include file `core_utils.inc.sh` always includes it ; it is not an active-dir name match (not "autoloaded"). |
+| (any) | eager | `asc/core/utils/fs.inc.sh` | ✅ yes | The hardcoded kernel "hub" include file `utils.inc.sh` always includes it ; it is not an active-dir name match (not "autoloaded"). |
 | `make db-sync-to` | subject-lazy | `asc/extensions/remote_instance/db/db.opt-inc.sh` | ✅ yes | Caller dir `db/` → 2-level `$subject` `db`. |
 | `make git-write-hooks` | subject-lazy | `asc/extensions/remote_instance/db/db.opt-inc.sh` | ❌ no | Wrong caller. Caller opt-inc only looks next to `BASH_SOURCE[1]`. |
 
@@ -472,7 +472,7 @@ Note that `$object` dirs do not support hook implementations. They are a conveni
 
 _Env vars_ are (Bash) shell variables containing values that are either :
 
-1. **readonly globals** declared using the `global` bash function that ASC provides, see `asc/asc/global.opt-inc.sh` (generated readonly *constants*) ;
+1. **readonly globals** declared using the `global` bash function that ASC provides, see `asc/core/global.opt-inc.sh` (generated readonly *constants*) ;
 1. or **calling-scope mutables** - as in any "normal" shell script.
 
 They aren't the same thing as variables only used inside the scope of a bash function. In these cases, they must be declared as `local` variables, and they must follow the naming conventions detailed below.
@@ -1307,7 +1307,7 @@ As in `make`. Ex :
 
 Arguments are specified using `()` and are separated by `,` :
 
-- `test-in(foobar,bar,baz)` -> `asc/utils/test/in.sh 'foobar' 'bar' 'baz'`
+- `test-in(foobar,bar,baz)` -> `asc/test/in.sh 'foobar' 'bar' 'baz'`
 
 Special characters are usually forbidden, but the DSL supports the following custom substitutions :
 
@@ -1435,7 +1435,7 @@ required:
 That DSL syntax example translates to :
 
 ```sh
-[[ asc/utils/test/in.sh 'foo-bar' "$(asc/instance/slug.sh 'foo-bar')" "$(asc/instance/snake.sh 'foo-bar')" ]] || exit 1
+[[ asc/test/in.sh 'foo-bar' "$(asc/instance/slug.sh 'foo-bar')" "$(asc/instance/snake.sh 'foo-bar')" ]] || exit 1
 # ... where 'foo-bar' would be the entity "toto" field value declared in its "*.entity.yml" specification file.
 ```
 
@@ -1455,7 +1455,7 @@ Files placed in `data/*` are usually writeable per project instance. They are me
 
 #### ASC cache : `data/asc/cache`
 
-Lookup artifacts only. `make cc` (`asc/asc/cache_clear.sh`) deletes `data/asc/cache/` and **must not** delete `data/asc/global.vars.sh`, `data/asc/pivots.mk`, or `.env`. Those are instance state: `make reinit` rewrites them; `make uninit` wipes them (and the cache).
+Lookup artifacts only. `make cc` (`asc/core/cache_clear.sh`) deletes `data/asc/cache/` and **must not** delete `data/asc/global.vars.sh`, `data/asc/pivots.mk`, or `.env`. Those are instance state: `make reinit` rewrites them; `make uninit` wipes them (and the cache).
 
 ```text
 data/asc/
@@ -1471,7 +1471,7 @@ data/asc/
     entities/                 ← entity load cache
 ```
 
-Bootstrap always sources the four kernel includes (`core_utils.inc.sh`, `core.inc.sh`, `hook.inc.sh`, `autoload.inc.sh`). `yml.inc.sh` is eager via `ASC_INC` (`asc/yml` is an *active dir*). Then, if `global.vars.sh` exists, it is sourced. Then `f_asc_primitives_cache_ensure`: stamp match → source `core/active.sh`; miss → `f_asc_extend`, rewrite `active.sh` + stamp, wipe `cache/hook/` only. `pre_bootstrap` / `alias` / `bootstrap` still run on both the cold and warm paths.
+Bootstrap always sources the four kernel includes (`utils.inc.sh`, `core.inc.sh`, `hook.inc.sh`, `autoload.inc.sh`). `yml.inc.sh` is eager via `ASC_INC` (`asc/yml` is an *active dir*). Then, if `global.vars.sh` exists, it is sourced. Then `f_asc_primitives_cache_ensure`: stamp match → source `core/active.sh`; miss → `f_asc_extend`, rewrite `active.sh` + stamp, wipe `cache/hook/` only. `pre_bootstrap` / `alias` / `bootstrap` still run on both the cold and warm paths.
 
 Stamp v1 watches instance identity (`HOST_TYPE`, `INSTANCE_TYPE`, `STACK_VERSION`, selected `.asc_extensions_ignore` path), ignore-file mtimes, and directory mtimes of `asc/`, `asc/extensions/`, `scripts/asc/`, contrib, and extend. A new `*.hook.sh` or `$subject/$action.sh` inside an **existing** folder still needs `make cc` (and `make reinit` when a new Make target is required). Nested-file discovery is v1.1.
 

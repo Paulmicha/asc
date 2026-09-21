@@ -13,11 +13,11 @@
 #
 
 . asc/bootstrap.sh
-. asc/utils/fs.opt-inc.sh
+. asc/core/utils/fs.opt-inc.sh
 
 ##
 # Archive helpers must not load from kernel `fs.inc.sh` (nested bootstrap).
-# Callers `.` `asc/utils/fs.opt-inc.sh`. `f_fs_watch_poll` is dropped.
+# Callers `.` `asc/core/utils/fs.opt-inc.sh`. `f_fs_watch_poll` is dropped.
 # @see changelog/2026/09/19-fs-archive-lazy-include.md
 #
 test_f_fs_archive_helpers_absent_from_kernel_bootstrap() {

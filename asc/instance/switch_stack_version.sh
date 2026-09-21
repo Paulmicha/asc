@@ -20,7 +20,7 @@
 STACK_VERSION="$1"
 
 # Update 2024-06 cache results.
-. asc/asc/cache_clear.sh
+. asc/core/cache_clear.sh
 
 # Can't have read-only variables here, so we need to extract just the
 # variables we need.

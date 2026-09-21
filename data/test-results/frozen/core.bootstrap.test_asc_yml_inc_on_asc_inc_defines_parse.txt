@@ -1,5 +1,1 @@
 test_asc_yml_inc_on_asc_inc_defines_parse
-
-Ran 9 tests.
-
-OK

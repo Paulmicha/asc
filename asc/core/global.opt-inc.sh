@@ -2,7 +2,7 @@
 
 ##
 # Init-only global aggregate helpers — not derived by bootstrap.
-# Callers must `.` this file. `asc/asc/` does not auto-load this name.
+# Callers must `.` this file. `asc/core/` does not auto-load this name.
 # @see changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md
 #
 

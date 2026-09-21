@@ -37,7 +37,7 @@ Each accepted README edit must make the file **lighter or clearer**, not larger.
 
 Ship the smallest thing that still works. Prefer fewer files, fewer always-sourced lines, fewer wrappers.
 
-Two include kinds only: `*.inc.sh` (eager) and `*.opt-inc.sh` (lazy). No third suffix (`private-inc`, …). `asc/utils/` is not a caller or hook dir — `*.opt-inc.sh` there is never auto; callers `.` it.
+Two include kinds only: `*.inc.sh` (eager) and `*.opt-inc.sh` (lazy). No third suffix (`private-inc`, …). Kernel subject dir is `asc/core/`. Kernel utils hub is `asc/core/utils.inc.sh` (hardcoded `.` in bootstrap). `asc/core/utils/` is not a caller or hook dir — `*.opt-inc.sh` there is never auto; callers `.` it.
 
 ```text
 ❌ New include “for completeness” with no caller

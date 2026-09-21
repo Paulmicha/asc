@@ -5,7 +5,7 @@
 | **Date** | 2026-07-24 |
 | **Status** | plan / review (not implemented; design lock for review) — **open conflict with root README** (see Amendment 2026-07-27) |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — how nested extension points are **declared** under any `$subject` (and under extension / contrib / extend trees); specificity weight for hooks in those nests |
-| **Related** | Idea `data/ideas/2026/07/18/extensions.md` (specificity note + extension-point scale); `data/ideas/2026/07/18/nested.md`; living `docs/asc/organization.md` § subjects; `docs/asc/wrappers.md` § nested; README extension-point lists; seed file `asc/asc/.asc_extensions` (`utils`); filename-DSL nest notes in `changelog/2026/07/24-filename-dsl.md` |
+| **Related** | Idea `data/ideas/2026/07/18/extensions.md` (specificity note + extension-point scale); `data/ideas/2026/07/18/nested.md`; living `docs/asc/organization.md` § subjects; `docs/asc/wrappers.md` § nested; README extension-point lists; seed file `asc/core/.asc_extensions` (`utils`); filename-DSL nest notes in `changelog/2026/07/24-filename-dsl.md` |
 | **Lifecycle** | Local review stub: `data/plans/review/2026-07-24-subject-asc-extensions.md` (dir mostly gitignored — **this changelog is the tracked SoT**, same pattern as `24-filename-dsl.md` / `24-yml-structure.md`). Move stub across `review` → `iterate` → `accepted` / `rejected` per `data/ideas/2026/07/23/idea-changelog-workflow.md`. |
 | **Living docs (on accept / implement)** | Update `docs/asc/organization.md`, `docs/asc/wrappers.md`, README extension-point bullets, `docs/asc/archive/extensions.md` if revived — replace “via `.asc_subjects_ignore`” nested-extension wording with `$subject/.asc_extensions`. |
 
@@ -17,7 +17,7 @@ ASC already has **nested extension points**: folders under an extension (or unde
 
 **Today’s declaration (overloaded):** those nests are listed in **`.asc_subjects_ignore`**. That file is also used to blacklist folders that must **not** become subjects and are **not** nested extensions (e.g. `asc/.asc_subjects_ignore` → `env`, `extensions`, `vendor`). Living docs call `.asc_subjects_ignore` the “nested-extension submodule list”, which conflates ignore-as-subject with promote-to-nested-extension.
 
-**Emerging seed:** `asc/asc/.asc_extensions` lists `utils` — a **positive** declaration of a nested extension dir under `$subject` = `asc`, without relying on subjects-ignore.
+**Emerging seed:** `asc/core/.asc_extensions` lists `utils` — a **positive** declaration of a nested extension dir under `$subject` = `core`, without relying on subjects-ignore.
 
 **Specificity (unchanged intent):** any nested extension’s hook implementations must have the **exact same specificity (weight)** as if they lived on the nearest non-nested extension point closer to project docroot. Example from the 2026-07-18 idea: implementing `u_hook_most_specific()` under `asc/extensions/entity/field` must weigh the same as under `asc/extensions/entity`.
 
@@ -84,7 +84,7 @@ Containing folders of `$subject`/`$action` scripts:
 | `asc/extensions/software/.asc_subjects_ignore` → `nested_software` | `…/software/.asc_extensions` → `nested_software` |
 | `asc/dir/.asc_subjects_ignore` → `nested_dir` | `asc/dir/.asc_extensions` → `nested_dir` |
 | `scripts/asc/contrib/asc/docker/.asc_subjects_ignore` → `nested_docker` | `…/docker/.asc_extensions` → `nested_docker` |
-| `asc/asc/.asc_extensions` → `utils` | **Already** the target form (seed). |
+| `asc/core/.asc_extensions` → `utils` | **Already** the target form (seed). |
 
 `asc/.asc_subjects_ignore` (`env`, `extensions`, `vendor`) stays **subjects-ignore only** — those are not nested extensions.
 

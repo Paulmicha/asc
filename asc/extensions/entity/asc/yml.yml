@@ -1,7 +1,7 @@
 # Any yml file implementing something from ASC core inherits this.
 # @see asc/extensions/entity/entity/entity.entity.yml
-# @see asc/asc/able.able.yml
-# @see asc/asc/contract.entity.yml
+# @see asc/core/able.able.yml
+# @see asc/core/contract.entity.yml
 synonym:
   required:
     - mandatory

@@ -2,9 +2,9 @@
 
 ##
 # Slug / snake helpers — not derived by bootstrap.
-# Callers must `.` this file. `asc/utils/` is not a caller dir.
+# Callers must `.` this file. `asc/core/utils/` is not a caller dir.
 # @see changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md
-# @see asc/utils/str.inc.sh
+# @see asc/core/utils/str.inc.sh
 #
 
 ##

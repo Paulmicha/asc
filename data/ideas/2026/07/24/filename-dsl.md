@@ -18,7 +18,7 @@
 - **Relations / fields (mapping complete):** `($field.able.subject)--($field.able.object)`; `($triple.able.subject)--($triple.able.predicate)--($triple.able.object)`; via `$action.able.yml` → `$subject.$action` (distinct from first-`-`).
 - **Shell genericity:** `ASC_SHELL` default `bash`; shell-specific alternates `*.$ASC_SHELL.inc.sh` / `*.$ASC_SHELL.opt-inc.sh` if present; complete WIP groundwork (`648a4d7`, `8f3faa8`, `f971316`).
 - **Single include-loader hook** (locked): one dedicated hook loads includes by `ASC_SHELL`. Include files are **not** hook implementations. Bash unqualified `*.inc.sh` / `*.opt-inc.sh` = default + fallback. Eager vs lazy timing unchanged.
-- **Primordial layout (settled):** eager `asc/asc/{core,global,hook,autoload}.inc.sh`; lazy `asc/asc/utils/{array,fs,shell,string}.opt-inc.sh` (`asc` → `core`).
+- **Primordial layout (settled):** eager `asc/core/{core,global,hook,autoload}.inc.sh`; lazy `asc/core/utils/{array,fs,shell,string}.opt-inc.sh` (`asc` → `core`).
 - **Tests (required):** create shunit2 cases under existing `make test-core` / `asc/test/asc/*.test.sh` harness (Phase 1 onward). Test steps may use nest/wrap DSL; synonyms `llv-get`/`llv-set` ↔ `log.level_get`/`log.level_set`.
 - **Cursor rules (Phase 0c — partially landed):** `.cursor/rules/doc-notation.mdc` + `naming.mdc` — agents must use `$` doc notation + locked field/triple forms; **`$subject` sole exception** (slug **or** hook DSL); broader DSL/prefix locks in `naming.mdc`.
 - **Living docs + next-steps (Phase 0d — required):** thorough update of ASC `docs/asc/**` + home `~/docs/next-steps.md` for `$` notation / relations / multi-shell notes as touched.
@@ -61,8 +61,8 @@ ASC_SHELL — single include-loader hook:
   # includes ≠ hook implementations; one hook loads them
 
 Primordial (settled) — include files:
-  asc/asc/{core,global,hook,autoload}.inc.sh      → eager
-  asc/asc/utils/{array,fs,shell,string}.opt-inc.sh → lazy
+  asc/core/{core,global,hook,autoload}.inc.sh      → eager
+  asc/core/utils/{array,fs,shell,string}.opt-inc.sh → lazy
 
 Cursor rules (landed): .cursor/rules/doc-notation.mdc + naming.mdc
 Living docs pass: Phase 0d (includes ~/docs/next-steps.md)

@@ -7,7 +7,7 @@
 | **Scope** | Strengthen four existing *plans* (not the runtime) via a short cooperative feedback loop. The same loop is a **continual memory-upgrade process**: every durable ASC fact that Cursor would otherwise forget is proposed as the smallest patch to the mother always-applied rule and/or this repo’s changelog — never as a new loader. Lens: [asc-lightweight.mdc](../../../.cursor/rules/asc-lightweight.mdc). |
 | **Does not change (this step)** | The four source plans (until the apply step). Code, loaders, `README.md`, git. `.cursor/rules/*.mdc` except the garage clause already applied. |
 | **Parent** | [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) (split 2026-09-19). Adjacent docs SoT, not in the review set: [19-eager-vs-lazy-include-cases.md](./19-eager-vs-lazy-include-cases.md). |
-| **Orientation** | Donella Meadows: intervene in **goals, information flows, feedback, and delays** before adding parts. Highest leverage in this loop: the always-applied rule that governs future agents. Existing ASC names: *lazy only after a real caller*, *two loaders not three*, *explicit `.` from `asc/utils/`*, *core / ext / contrib / instance*, *project instance*, parent **dev stack**. Do not add a parallel Meadows vocabulary. |
+| **Orientation** | Donella Meadows: intervene in **goals, information flows, feedback, and delays** before adding parts. Highest leverage in this loop: the always-applied rule that governs future agents. Existing ASC names: *lazy only after a real caller*, *two loaders not three*, *explicit `.` from `asc/core/utils/`*, *core / ext / contrib / instance*, *project instance*, parent **dev stack**. Do not add a parallel Meadows vocabulary. |
 
 `$` in this file is the ASC docs placeholder (`$subject` / `$object` / `$action` / `$extension`), not a shell variable.
 
@@ -19,7 +19,7 @@ Four 2026-09-19 sub-plans split the parent “lazy `*.opt-inc.sh` + entry-point 
 
 | Order (parent) | File | Job in one sentence |
 |----------------|------|---------------------|
-| 1 | [19-fs-archive-lazy-include.md](./19-fs-archive-lazy-include.md) | Move archive helpers off kernel `fs.inc.sh`; callers must `.` `asc/utils/fs.opt-inc.sh`. |
+| 1 | [19-fs-archive-lazy-include.md](./19-fs-archive-lazy-include.md) | Move archive helpers off kernel `fs.inc.sh`; callers must `.` `asc/core/utils/fs.opt-inc.sh`. |
 | 2 | [19-db-thin-inc-and-opt-inc.md](./19-db-thin-inc-and-opt-inc.md) | Keep creds/flags eager; dump/exec/restore cluster → `db/db/db.opt-inc.sh`. |
 | 3 | [19-mysql-pgsql-hook-opt-inc.md](./19-mysql-pgsql-hook-opt-inc.md) | Extract shared mysql/pgsql hook helpers **only if grep shows sharing**. |
 | later | [19-lazy-opt-inc-remaining-core-waves.md](./19-lazy-opt-inc-remaining-core-waves.md) | Everything else in the parent waves, one small PR at a time. |
@@ -116,7 +116,7 @@ Later agents should start from tensions **already on the page**, not from a comp
 
 4. **Thin wrappers left in place.** Db keeps `dump.sh` → `f_db_dump` because the functions call each other. Hunt: that pick is probably right (avoids a source web); do not “complete” by extracting every body into `*.sh`.
 
-5. **Cross-plan delay.** Db wants `. asc/utils/fs.opt-inc.sh` at the top of the dump/exec opt-inc. Fs allows splitting format unification (`tar czf` named `.gz` vs gzip of SQL) to a follow-up. Hunt: order and “do both in one PR” vs two, not a new helper file. **Path rule:** opt-inc mirrors eager (see pre-launch review) — do not treat `$extension/$extension.opt-inc.sh` as a spelling mistake.
+5. **Cross-plan delay.** Db wants `. asc/core/utils/fs.opt-inc.sh` at the top of the dump/exec opt-inc. Fs allows splitting format unification (`tar czf` named `.gz` vs gzip of SQL) to a follow-up. Hunt: order and “do both in one PR” vs two, not a new helper file. **Path rule:** opt-inc mirrors eager (see pre-launch review) — do not treat `$extension/$extension.opt-inc.sh` as a spelling mistake.
 
 6. **Wave list as a matrix.** Remaining-core restates parent waves A–D plus “ext rest.” Hunt: first concrete leftover (yaml dual-source) is enough to start; do not grow a per-subject table in that plan.
 

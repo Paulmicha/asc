@@ -6,7 +6,7 @@
 | **Status** | **split** — stamp prerequisite is **done** ([11-bootstrap-cache-layout-and-invalidation.md](./11-bootstrap-cache-layout-and-invalidation.md)). Do **not** implement this file as one PR. Use the 2026-09-19 sub-plans below. Caveats (1)–(14) and the keep/move/drop drill in this file remain the SoT. |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — what bootstrap **parses** every run (kernel, `ASC_INC`, `*.opt-inc.sh`), plus the same “keep vs move vs drop” drill used 2026-09-11 on `arr` / `str` / `fs` / `core` / `global` / `hook` / `autoload` / `yml`, continued across **remaining core subjects and extensions**. |
 | **Prerequisite** | Cache/stamp plan — **landed**. That work avoids `f_asc_extend` and stale hook **lookup**. It does **not** shrink what is sourced. The sub-plans do. |
-| **Related** | `asc/bootstrap.sh` (caller opt-inc, including `$subject/$object/$action` since [12-subject-object-action-entry-points.md](./12-subject-object-action-entry-points.md)); `f_hook_opt_inc_append_candidates()` / `f_hook_source_opt_incs_for_path()` in `asc/asc/hook.inc.sh`; README § Bootstrap / Active Dir. Prefer **db / fs / mysql / pgsql** examples over `software` / `host/provision.sh`. |
+| **Related** | `asc/bootstrap.sh` (caller opt-inc, including `$subject/$object/$action` since [12-subject-object-action-entry-points.md](./12-subject-object-action-entry-points.md)); `f_hook_opt_inc_append_candidates()` / `f_hook_source_opt_incs_for_path()` in `asc/core/hook.inc.sh`; README § Bootstrap / Active Dir. Prefer **db / fs / mysql / pgsql** examples over `software` / `host/provision.sh`. |
 | **Lifecycle** | Implement **one sub-plan at a time**. Kernel last. Do **not** mix parse-shrink into an unrelated PR. |
 
 `$` in this file is the ASC docs placeholder (`$subject` / `$action` / `$object`), not a shell variable.
@@ -20,7 +20,7 @@ The 2026-09-11 waves are still correct, but they mix **docs**, **utils**, **db**
 | Order | Sub-plan | What it produces | Parse win |
 |-------|----------|------------------|-----------|
 | 0 | [19-eager-vs-lazy-include-cases.md](./19-eager-vs-lazy-include-cases.md) | Changelog working table: loaders + paths, using `fs` + `db` + mysql/pgsql + existing `remote_db` / `remote_instance` opt-incs (root README is SoT) | docs only |
-| 1 | [19-fs-archive-lazy-include.md](./19-fs-archive-lazy-include.md) | Compress/extract/merge/watch leave kernel `fs.inc.sh`. **Not** auto-derived from `asc/utils/` | ~600 lines off every bootstrap |
+| 1 | [19-fs-archive-lazy-include.md](./19-fs-archive-lazy-include.md) | Compress/extract/merge/watch leave kernel `fs.inc.sh`. **Not** auto-derived from `asc/core/utils/` | ~600 lines off every bootstrap |
 | 2 | [19-db-thin-inc-and-opt-inc.md](./19-db-thin-inc-and-opt-inc.md) | Thin eager `db.inc.sh` (creds/flags); dump/exec/restore cluster → `db/db.opt-inc.sh`; keep already-extracted entry points | ~1k lines off `ASC_INC` when db is enabled |
 | 3 | [19-mysql-pgsql-hook-opt-inc.md](./19-mysql-pgsql-hook-opt-inc.md) | Shared driver helpers next to `dump.mysql.hook.sh` / `dump.pgsql.hook.sh` so hook seeding has a real contrib example | small; teaching + DRY |
 | later | [19-lazy-opt-inc-remaining-core-waves.md](./19-lazy-opt-inc-remaining-core-waves.md) | Original Wave A (str/yml duplicate), B (globals), C (`test`/`git`/`make`/…), D (hook lookup) | the rest of ~9k |
@@ -66,7 +66,7 @@ ASC marks include **kind** with a **double** (sometimes triple) suffix, not with
 
 **Why `opt-inc` and not `opt`:** the file is still an **include** (defines functions in the current shell). `opt` = optional / on-demand. README wording: eager = “auto” = `*.inc.sh`; lazy = `*.opt-inc.sh` “corresponding to the entry point used.”
 
-**Not a third loader.** There is no `ASC_OPT_INC` list. A `*.opt-inc.sh` that is neither next to the process that sourced bootstrap **nor** next to a matched `*.hook.sh` is never read. Putting helpers in `asc/utils/foo.opt-inc.sh` does nothing unless some caller/hook path derives that exact filename.
+**Not a third loader.** There is no `ASC_OPT_INC` list. A `*.opt-inc.sh` that is neither next to the process that sourced bootstrap **nor** next to a matched `*.hook.sh` is never read. Putting helpers in `asc/core/utils/foo.opt-inc.sh` does nothing unless some caller/hook path derives that exact filename.
 
 **Filename derivation is mechanical** (see the two loaders below). There is no glob of “all `*.opt-inc.sh` under the subject.”
 
@@ -238,14 +238,14 @@ Order is **impact / risk**, not file name. Lightest first.
 | `f_array_qsort` / reverse | `arr.inc.sh` (~143, already small) | opt-inc or keep | Confirm unused-at-bootstrap again; `list_actions.sh` still calls qsort when executed as `$0`. |
 | `yml.inc.sh` (~298) | kernel **and** `ASC_INC` | **one** home (`ASC_INC`, 2026-09-20) | `f_instance_yaml_config_parse`, thread, remote, cron, software all need it **before** they parse. Init path must `.` yaml explicitly if it leaves `ASC_INC`. Kernel line **removed**. |
 
-This is the filename-DSL “utils should be lazy” intent, without moving files to `asc/asc/utils/` in the same change unless that rename is requested.
+This is the filename-DSL “utils should be lazy” intent. The module dir later nested at `asc/core/utils/` — [21-utils-under-core.md](./21-utils-under-core.md).
 
 ### Wave B — init-only globals
 
 | Move | Caveat |
 |---|---|
 | `f_global_aggregate`, `f_global_lookup_paths`, `f_global_list`, `f_global_assign_value` | Only init/reinit/tests. Warm `make` only sources **generated** `data/asc/global.vars.sh`. |
-| `global()` | Only while **declaration** files (`asc/*/global.vars.sh`) are sourced. That is aggregate, not every bootstrap. If a `bootstrap` hook still calls `global`, it must keep a stub or source `global.opt-inc.sh` from `asc/asc/` (hook dir `asc/` → `asc.opt-inc.sh` / `bootstrap.opt-inc.sh`). **Verify with `hook -s asc -a bootstrap -t`. |
+| `global()` | Only while **declaration** files (`asc/*/global.vars.sh`) are sourced. That is aggregate, not every bootstrap. If a `bootstrap` hook still calls `global`, it must keep a stub or source `global.opt-inc.sh` from `asc/core/` (hook dir `asc/` → `asc.opt-inc.sh` / `bootstrap.opt-inc.sh`). **Verify with `hook -s asc -a bootstrap -t`. |
 
 `write_globals.sh` / `globals_debug.sh` already left `global.inc.sh` (this conversation). Do not put them back.
 

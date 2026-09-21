@@ -2,9 +2,9 @@
 
 ##
 # Archive / merge helpers — not derived by bootstrap.
-# Callers must `.` this file. `asc/utils/` is not a caller dir.
+# Callers must `.` this file. `asc/core/utils/` is not a caller dir.
 # @see changelog/2026/09/19-fs-archive-lazy-include.md
-# @see asc/utils/fs.inc.sh
+# @see asc/core/utils/fs.inc.sh
 #
 
 ##

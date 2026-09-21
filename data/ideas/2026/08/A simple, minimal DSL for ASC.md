@@ -38,7 +38,7 @@ As of 2026-08-23 the rewrite checklist marks **Stabilize DSL** as done (same pas
 
 **Arguments** use `()` and are separated by `,`:
 
-- `test-in(foobar,bar,baz)` → `asc/utils/test/in.sh 'foobar' 'bar' 'baz'`
+- `test-in(foobar,bar,baz)` → `asc/test/in.sh 'foobar' 'bar' 'baz'`
 
 Special characters are normally forbidden. Filename-safe substitutions:
 

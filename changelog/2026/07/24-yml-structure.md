@@ -30,7 +30,7 @@ The **filename DSL** plan locks how YAML shows up in **paths** (e.g. `$action.ab
 **This plan is the complementary SoT for structuring YAML contents.** Two concrete draft waves are already on the branch:
 
 1. **Git state** able pair under `$subject` `git`, plus sibling **`repo.entity.yml`** (Wave A — still the clearest *domain* example).
-2. **Primordial meta** under `asc/asc/` + `asc/extensions/entity/entity/` — inheritance root, synonyms, contract stub, wrap able shapes (Wave B — schema-of-schemas sketch; still fluid).
+2. **Primordial meta** under `asc/core/` + `asc/extensions/entity/entity/` — inheritance root, synonyms, contract stub, wrap able shapes (Wave B — schema-of-schemas sketch; still fluid).
 
 **Plan-only for schema / loaders.** Do not invent a second YAML dialect, rewrite empty `*.able.yml` trees, or wire runtime state machines / YAML validators until this plan is accepted and implementation is explicitly requested. Amending the draft files below during review is OK when the user asks.
 
@@ -104,7 +104,7 @@ repo:
     field: str.url
 ```
 
-Related field stub (outside `git/`, referenced by `url.field`): `asc/asc/utils/str/url.field.yml` → `url: { validate: limit[2048](str.length) }`.
+Related field stub (outside `git/`, referenced by `url.field`): `asc/core/utils/str/url.field.yml` → `url: { validate: limit[2048](str.length) }`.
 
 ### What problem this sketch solves
 
@@ -134,17 +134,17 @@ Wave B iterated hard in one afternoon: started as rich `contract.able.yml` + `ym
 
 | Path | Role (draft reading @ HEAD) |
 |------|------------------------------|
-| `asc/asc/asc.yml.yml` | Meta YAML registry: **`synonym:`** table (`op`, `skill`, `val`, `prop`, `sh`, `fs`, `str`, `int`, `arr`). Comment: any ASC-core YAML inherits this. |
+| `asc/core/asc.yml.yml` | Meta YAML registry: **`synonym:`** table (`op`, `skill`, `val`, `prop`, `sh`, `fs`, `str`, `int`, `arr`). Comment: any ASC-core YAML inherits this. |
 | `asc/extensions/entity/entity/entity.entity.yml` | **Primordial entity** root: `include: asc.yml`; under `entity:` — ability whitelist (`is`/`access`/`include`/`field`/…/`contract: '*'`) + `required` / `optional` field/prop defaults. |
-| `asc/asc/contract.entity.yml` | Contract entity stub: `rules: { todo: TODO }` (body emptied after migrate-out). |
-| `asc/asc/able.able.yml` | Primordial **able** definition: `include: [contract.entity]` — common inheritance for all `*.able.yml`. |
-| `asc/asc/wrap.able.yml` | Core wrap able: `wrap.required.prop.wrapper.validate: test-file-exists(a-1)`. |
+| `asc/core/contract.entity.yml` | Contract entity stub: `rules: { todo: TODO }` (body emptied after migrate-out). |
+| `asc/core/able.able.yml` | Primordial **able** definition: `include: [contract.entity]` — common inheritance for all `*.able.yml`. |
+| `asc/core/wrap.able.yml` | Core wrap able: `wrap.required.prop.wrapper.validate: test-file-exists(a-1)`. |
 | `asc/git/acp/wrap.able.yml` | Subject/nested wrap able: `wrap.add` with `synonym: a` + `default.value: .`. |
 
 ### Current draft bodies (HEAD)
 
 ```yaml
-# asc/asc/asc.yml.yml
+# asc/core/asc.yml.yml
 synonym:
   op:
     - operation
@@ -205,19 +205,19 @@ entity:
 ```
 
 ```yaml
-# asc/asc/contract.entity.yml
+# asc/core/contract.entity.yml
 rules:
   todo: TODO
 ```
 
 ```yaml
-# asc/asc/able.able.yml
+# asc/core/able.able.yml
 include:
   - contract.entity
 ```
 
 ```yaml
-# asc/asc/wrap.able.yml
+# asc/core/wrap.able.yml
 wrap:
   required:
     prop:
@@ -275,7 +275,7 @@ Amend freely in conversation. Locked only when explicitly marked later.
 |------|-----------------------------------|-----------------------------|
 | Action able | `$subject/$action.able.yml` | Capability / relation / **state** / **wrap** payloads for that `$action` |
 | Subject able | `$subject/$subject.able.yml` (draft: `git.able.yml`) | Subject-wide inventory / defaults (e.g. `entities:`) |
-| Primordial able | `asc/asc/able.able.yml` | Shared inheritance for all ables (`include: contract.entity`) |
+| Primordial able | `asc/core/able.able.yml` | Shared inheritance for all ables (`include: contract.entity`) |
 | Hook YAML | `$subject/….hook.yml` | Smart defaults + `slot` (field names TBD; path rules stay in filename-DSL) |
 | Entity | `*.entity.yml` (drafts: `repo.entity.yml`, `contract.entity.yml`, `entity.entity.yml`) | Named entity body — deps / fields / whitelist / required·optional |
 | Meta YAML | `*.yml.yml` (draft: `asc.yml.yml`) | Cross-cutting vocabulary (e.g. `synonym:`) for ASC YAML |

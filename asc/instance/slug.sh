@@ -13,7 +13,7 @@
 
 if ! type f_str_slug &>/dev/null; then
   # shellcheck disable=SC1091
-  . asc/utils/str.opt-inc.sh
+  . asc/core/utils/str.opt-inc.sh
 fi
 
 f_str_slug "$@"

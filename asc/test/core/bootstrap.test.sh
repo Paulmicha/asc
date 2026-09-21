@@ -110,7 +110,7 @@ test_asc_cache_clear_keeps_globals_and_rebuilds_core() {
   assertTrue 'global.vars.sh present before cc' '[ -f data/asc/global.vars.sh ]'
   assertTrue 'pivots.mk present before cc' '[ -f data/asc/pivots.mk ]'
 
-  . asc/asc/cache_clear.sh
+  . asc/core/cache_clear.sh
 
   assertTrue 'cc must keep global.vars.sh' '[ -f data/asc/global.vars.sh ]'
   assertTrue 'cc must keep pivots.mk' '[ -f data/asc/pivots.mk ]'
@@ -134,8 +134,20 @@ test_asc_yml_inc_not_in_kernel_includes() {
 }
 
 ##
+# Kernel utils hub is `asc/core/utils.inc.sh` (not `asc/utils/core_utils.inc.sh`).
+#
+test_asc_utils_inc_is_kernel_include() {
+  local kernel
+  kernel="$(sed -n '/Include ASC core utilities/,/ASC_BS_SKIP_GLOBALS/p' asc/bootstrap.sh)"
+  assertTrue 'kernel block sources asc/core/utils.inc.sh' \
+    "printf '%s' \"$kernel\" | grep -q 'asc/core/utils.inc.sh'"
+  assertFalse 'old core_utils.inc.sh path must not remain in kernel block' \
+    "printf '%s' \"$kernel\" | grep -q 'core_utils'"
+}
+
+##
 # Wave B emptied kernel `global.inc.sh`; the stub was deleted. Helpers live in
-# `asc/asc/global.opt-inc.sh` with explicit `.`.
+# `asc/core/global.opt-inc.sh` with explicit `.`.
 #
 test_asc_global_inc_not_in_kernel_includes() {
   local kernel

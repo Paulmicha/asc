@@ -5,7 +5,7 @@
 | **Date** | 2026-07-31 |
 | **Status** | inventory / plan (docs only — no code changes). Reviewed 2026-07-31: suffix renames already landed via array-dict plan; counts/caveats refreshed. |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — shell scripts only: `*.sh`, `*.inc.sh`, `*.opt-inc.sh` (excluding `asc/vendor/` and other third-party trees). **Out of scope:** capitalized (`ALL_CAPS`) / `readonly` globals (e.g. `GLOBALS*` family stays as-is). |
-| **Related** | `changelog/2026/07/31-array-dict-naming-plan.md` (**implemented** — nameref `_nameref` / `_arr_nameref` / `_dict_nameref` suffixes already applied); `changelog/2026/07/31-subshell-printf-v-candidates.md`; `asc/asc/hook.inc.sh` (`a_out_arr_nameref` model) |
+| **Related** | `changelog/2026/07/31-array-dict-naming-plan.md` (**implemented** — nameref `_nameref` / `_arr_nameref` / `_dict_nameref` suffixes already applied); `changelog/2026/07/31-subshell-printf-v-candidates.md`; `asc/core/hook.inc.sh` (`a_out_arr_nameref` model) |
 | **Lifecycle** | Review inventory; migrate in focused PRs. Do **not** treat this file as permission for a repo-wide mechanical rewrite. |
 
 ---
@@ -105,8 +105,8 @@ All `declare -n` / `local -n` sites (excluding vendor). Suffix renames from the 
 
 | Variable (current) | File | Function | Line | Target | Notes |
 |--------------------|------|----------|------|--------|-------|
-| `a_out_arr_nameref` | `asc/asc/hook.inc.sh` | `f_hook_opt_inc_append_candidates` | L816 | indexed array (`$2`) | ✓ Model for `*_arr_nameref` output |
-| `__p_nameref` | `asc/utils/arr/arr.opt-inc.sh` | `f_array_print` | L202 | polymorphic array (`$1`) | ✓ Plain `_nameref` (indexed or associative) |
+| `a_out_arr_nameref` | `asc/core/hook.inc.sh` | `f_hook_opt_inc_append_candidates` | L816 | indexed array (`$2`) | ✓ Model for `*_arr_nameref` output |
+| `__p_nameref` | `asc/core/utils/arr/arr.opt-inc.sh` | `f_array_print` | L202 | polymorphic array (`$1`) | ✓ Plain `_nameref` (indexed or associative) |
 | `__yaml_scalars_dict_nameref` | `asc/yml/yml.inc.sh` | `f_yaml_write` | L263 | associative (`$a_scalars_name`) | ✓ |
 | `__yaml_keys_arr_nameref` | `asc/yml/yml.inc.sh` | `f_yaml_write` | L264 | indexed (`$a_keys_name`) | ✓ |
 | `__yaml_list_arr_nameref` | `asc/yml/yml.inc.sh` | `f_yaml_write` | L281 | indexed (varargs list name) | ✓ Re-bound with `declare -n` per list section in loop |
@@ -124,7 +124,7 @@ All `declare -n` / `local -n` sites (excluding vendor). Suffix renames from the 
 
 These functions take a **variable name string** and use `eval` or `${!…[@]}` indirection. Nameref replaces the whole pattern.
 
-### `f_array_add_once` + `f_in_array` — `asc/utils/arr/arr.opt-inc.sh`
+### `f_array_add_once` + `f_in_array` — `asc/core/utils/arr/arr.opt-inc.sh`
 
 | | |
 |---|---|
@@ -134,7 +134,7 @@ These functions take a **variable name string** and use `eval` or `${!…[@]}` i
 | **Benefit** | Eliminates only `eval` array write in core utils; clarifies haystack is an array |
 | **Caveats** | API stays string param for caller array name (per array-dict exclusions); only callee locals become namerefs. **Intentional behavior fixes:** quoted `[@]` / `"$needle"` stop IFS-splitting that unquoted `${!haystack}` and `+=($needle)` allow today — treat as fix, not pure rename; cover in shunit2 |
 
-### `f_str_split1` — `asc/utils/str/str.opt-inc.sh`
+### `f_str_split1` — `asc/core/utils/str/str.opt-inc.sh`
 
 | | |
 |---|---|
@@ -144,7 +144,7 @@ These functions take a **variable name string** and use `eval` or `${!…[@]}` i
 | **Benefit** | Removes `eval` + documents output is always an indexed array → prefer `out_arr_nameref` or keep param name + bind |
 | **Caveats** | Still sanitize param with `f_str_sanitize_var_name` before bind |
 
-### `f_autoload_item_split_version` — `asc/asc/autoload.inc.sh`
+### `f_autoload_item_split_version` — `asc/core/autoload.inc.sh`
 
 | | |
 |---|---|
@@ -153,7 +153,7 @@ These functions take a **variable name string** and use `eval` or `${!…[@]}` i
 | **Call sites** | **3** (via `f_autoload_add_lookup_level`) |
 | **Benefit** | Same pattern as `f_str_split1`; pairs with `f_array_add_once` migration |
 
-### `f_autoload_print_lookup_paths` — `asc/asc/autoload.inc.sh`
+### `f_autoload_print_lookup_paths` — `asc/core/autoload.inc.sh`
 
 | | |
 |---|---|
@@ -162,7 +162,7 @@ These functions take a **variable name string** and use `eval` or `${!…[@]}` i
 | **Call sites** | Low (debug/diagnostic) |
 | **Benefit** | Removes obscure `${1}[@]` indirection idiom |
 
-### `f_hook` filter dedup write-back — `asc/asc/hook.inc.sh`
+### `f_hook` filter dedup write-back — `asc/core/hook.inc.sh`
 
 | | |
 |---|---|
@@ -239,14 +239,14 @@ Counts from `rg -c '\$\{![a-zA-Z_][a-zA-Z0-9_]*\}'` (refreshed 2026-07-31; appro
 | File | Live `${!…}` sites | Pattern | Priority |
 |------|-------------------|---------|----------|
 | `scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh` | ~22 | Site/global token loops, `dwt_site_data` fill | High (contrib template) |
-| `asc/asc/hook.inc.sh` | ~10 | Cache keys, primitive lookups, filters | High |
-| `asc/asc/global.inc.sh` | ~9 | `f_global_list`, `f_global_assign_value`, conditions | High |
-| `asc/asc/core.inc.sh` | ~7 | Extension subjects/actions dynamic vars | Medium |
+| `asc/core/hook.inc.sh` | ~10 | Cache keys, primitive lookups, filters | High |
+| `asc/core/global.inc.sh` | ~9 | `f_global_list`, `f_global_assign_value`, conditions | High |
+| `asc/core/core.inc.sh` | ~7 | Extension subjects/actions dynamic vars | Medium |
 | `asc/extensions/remote/remote.inc.sh` | ~6 | Definition + global token replace | High |
 | `scripts/asc/contrib/asc/moodle_d4php/moodle_d4php.inc.sh` | ~5 | Config token replace | Medium |
 | `scripts/asc/contrib/asc/apache/apache.inc.sh` | ~5 | Vhost token replace | Medium |
 | `asc/extensions/db/db.inc.sh` | 4 | Prefixed DB preset/export | Low–medium |
-| `asc/utils/str/str.opt-inc.sh` | ~3 | Inside `f_str_convert_tokens` | Covered in Cat C |
+| `asc/core/utils/str/str.opt-inc.sh` | ~3 | Inside `f_str_convert_tokens` | Covered in Cat C |
 | `asc/make/make.inc.sh` | 1 | `extension_actions="${!extension_var}"` | Medium (single site, high visibility) |
 | `asc/extensions/nested_instance/nested_instance/list.sh` | 2 | `doc_rel="${!doc_var:-…}"` computed names | Medium |
 | `asc/extensions/remote/remote/files_dir_sync_from.sh` | 2 | `REMOTE_INSTANCE_FILES_*` pair | Medium |
@@ -284,7 +284,7 @@ Extracting a small helper (e.g. `f_str_replace_file_tokens` with nameref read) i
 
 Grouped by path. Focus on **functions and loops**, not every `${!}` one-liner.
 
-### `asc/utils/arr/arr.opt-inc.sh`
+### `asc/core/utils/arr/arr.opt-inc.sh`
 
 | Item | Lines | Current | Suggested | Fit |
 |------|-------|---------|-----------|-----|
@@ -293,14 +293,14 @@ Grouped by path. Focus on **functions and loops**, not every `${!}` one-liner.
 | `f_array_print` | 201–205 | `declare -n __p_nameref` | — (suffix done) | ✓ Reference |
 | `f_array_qsort` / `f_array_reverse` / `f_array_ksort` | 81–143 | value args / implicit `array` | optional name-string API + internal nameref | B |
 
-### `asc/utils/str/str.opt-inc.sh`
+### `asc/core/utils/str/str.opt-inc.sh`
 
 | Item | Lines | Current | Suggested | Fit |
 |------|-------|---------|-----------|-----|
 | `f_str_split1` | 542–555 | `eval` array build | `local -n out_arr_nameref="$1"` | A |
 | `f_str_convert_tokens` | 69–143 | `${!…}` + `printf -v` + token `eval` | nameref on input var | C |
 
-### `asc/asc/autoload.inc.sh`
+### `asc/core/autoload.inc.sh`
 
 | Item | Lines | Current | Suggested | Fit |
 |------|-------|---------|-----------|-----|
@@ -308,7 +308,7 @@ Grouped by path. Focus on **functions and loops**, not every `${!}` one-liner.
 | `f_autoload_item_split_version` | 190–212 | `eval` array build | nameref | A |
 | `f_autoload_add_lookup_level` | 128–170 | calls split/add_once | benefits from A | — |
 
-### `asc/asc/hook.inc.sh`
+### `asc/core/hook.inc.sh`
 
 | Item | Lines | Current | Suggested | Fit |
 |------|-------|---------|-----------|-----|
@@ -333,7 +333,7 @@ Grouped by path. Focus on **functions and loops**, not every `${!}` one-liner.
 | `f_thread_yml_strip_quotes` | 192–203 | `${!_v}` + `printf -v` | optional | C |
 | `eval "$(f_yaml_parse …)"` | 141 | yaml codegen | E | — |
 
-### `asc/asc/global.inc.sh`
+### `asc/core/global.inc.sh`
 
 | Item | Lines | Current | Suggested | Fit |
 |------|-------|---------|-----------|-----|
@@ -361,12 +361,12 @@ Grouped by path. Focus on **functions and loops**, not every `${!}` one-liner.
 
 ## Recommended migration order
 
-1. **`asc/utils/arr/arr.opt-inc.sh`** — `f_array_add_once` + `f_in_array` (unblocks ~14 / ~11 call sites; removes core `eval` write; document quoted-iteration behavior fix in tests).
-2. **`asc/utils/str/str.opt-inc.sh`** — `f_str_split1` (~17 call sites; same eval pattern).
-3. **`asc/asc/autoload.inc.sh`** — `f_autoload_item_split_version` + `f_autoload_print_lookup_paths` (depends on 1–2).
+1. **`asc/core/utils/arr/arr.opt-inc.sh`** — `f_array_add_once` + `f_in_array` (unblocks ~14 / ~11 call sites; removes core `eval` write; document quoted-iteration behavior fix in tests).
+2. **`asc/core/utils/str/str.opt-inc.sh`** — `f_str_split1` (~17 call sites; same eval pattern).
+3. **`asc/core/autoload.inc.sh`** — `f_autoload_item_split_version` + `f_autoload_print_lookup_paths` (depends on 1–2).
 4. ~~**Nameref renames (no logic change)**~~ — **done** via array-dict plan (`__p_nameref`, `__yaml_*_*_nameref`, `_u_ta_ref_arr_nameref`).
-5. **`asc/asc/hook.inc.sh`** — filter dedup `eval` (L280) as scalar write-back; consider whole filter `declare "$f"` block vs single line; then `f_hook_variant_values_add` (Cat C).
-6. **`asc/asc/global.inc.sh`** — `f_global_list` loop; partial `f_global_assign_value` (keep or later replace `eval` `read`/`unset` — neither strictly requires `eval`).
+5. **`asc/core/hook.inc.sh`** — filter dedup `eval` (L280) as scalar write-back; consider whole filter `declare "$f"` block vs single line; then `f_hook_variant_values_add` (Cat C).
+6. **`asc/core/global.inc.sh`** — `f_global_list` loop; partial `f_global_assign_value` (keep or later replace `eval` `read`/`unset` — neither strictly requires `eval`).
 7. **`asc/extensions/remote/remote.inc.sh`** — token replace loops (template for contrib); only where body has multi-access.
 8. **Contrib** — drupalwt / apache / moodle token loops after core pattern settled.
 9. **Defer** — `f_array_qsort`/`reverse`/`ksort` API change; `f_yaml_parse`; all command `eval`.
@@ -443,5 +443,5 @@ rg -c '\$\{![a-zA-Z_][a-zA-Z0-9_]*\}' \
 |-----|--------------|
 | `changelog/2026/07/31-array-dict-naming-plan.md` | **Implemented** — `_nameref` / `_arr_nameref` / `_dict_nameref` suffix rules; same six sites now compliant |
 | `changelog/2026/07/31-subshell-printf-v-candidates.md` | Scalar output via `printf -v` — complementary, not competing |
-| `asc/asc/hook.inc.sh` L816 | Reference implementation `a_out_arr_nameref` |
+| `asc/core/hook.inc.sh` L816 | Reference implementation `a_out_arr_nameref` |
 | `asc/yml/yml.inc.sh` `f_yaml_write` | Reference for typed dict + array namerefs + safe loop rebind |

@@ -48,9 +48,7 @@ f_asc_extensions_get_makefiles '_asc_make_inc_ext'
 global ASC_MAKE_INC "[append]='${_asc_make_inc_ext}'"
 unset _asc_make_inc_ext
 
-global ASC_SYNONYMS "[append]='asc-cache-clear/cc'"
-global ASC_SYNONYMS "[append]='asc-cache-rebuild/cr'"
-global ASC_SYNONYMS "[append]='asc-cache-warm/cw'"
+global ASC_SYNONYMS "[append]='core-cache-clear/cc'"
 global ASC_SYNONYMS "[append]='logged-thread/lt'"
 global ASC_SYNONYMS "[append]='logged-batch/lb'"
 global ASC_SYNONYMS "[append]='logged-chain/lc'"

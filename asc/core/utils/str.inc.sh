@@ -3,7 +3,7 @@
 ##
 # String-related utility functions sourced on every heavy bootstrap.
 # Sanitize / split / case / tokens / random / basic-auth.
-# Slug helpers: `. asc/utils/str.opt-inc.sh`
+# Slug helpers: `. asc/core/utils/str.opt-inc.sh`
 # @see changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md
 # @see asc/bootstrap.sh
 #

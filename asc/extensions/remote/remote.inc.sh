@@ -352,7 +352,7 @@ f_remote_definition_tokens_replace() {
   # Same for any global var.
   if [[ "$(type -t f_global_list)" != function ]]; then
     # shellcheck disable=SC1091
-    . asc/asc/global.opt-inc.sh
+    . asc/core/global.opt-inc.sh
   fi
   f_global_list
 

@@ -19,7 +19,7 @@ cp "asc/extensions/remote_traefik/host/systemd_service_conf.tpl.service" "$syste
 # Replace read-only global vars (supports any global) placeholders.
 if [[ "$(type -t f_global_list)" != function ]]; then
   # shellcheck disable=SC1091
-  . asc/asc/global.opt-inc.sh
+  . asc/core/global.opt-inc.sh
 fi
 
 f_global_list

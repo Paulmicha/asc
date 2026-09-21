@@ -10,7 +10,7 @@
 # @example
 #   make cc
 #   # Or :
-#   asc/asc/cache_clear.sh
+#   asc/core/cache_clear.sh
 #
 
 if [[ -d data/asc/cache ]]; then

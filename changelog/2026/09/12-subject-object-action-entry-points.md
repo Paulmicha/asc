@@ -5,7 +5,7 @@
 | **Date** | 2026-09-12 |
 | **Status** | implemented (discovery + pivots + hook skip + caller opt-inc). Builder template YAML/includes in `[object]` removed to match README discovery recap. |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — discover a third nesting level for **entry points only**. Hooks stay `$subject`-scoped. Not entity YAML merge, not stamp v1.1 nested-file watch, not lazy-opt-inc extraction. |
-| **Related** | README § Current status / Active Dir / Actions / Specificity; `f_asc_extend()` / `f_asc_primitive_values()` in `asc/asc/core.inc.sh`; `f_make_list_entry_points()` in `asc/make/make.inc.sh`; `hook()` in `asc/asc/hook.inc.sh`; caller opt-inc in `asc/bootstrap.sh`; builder template `asc/extensions/builder/template/core/[subject]/[object]/`. Prior: [11-bootstrap-cache-layout-and-invalidation.md](./11-bootstrap-cache-layout-and-invalidation.md). |
+| **Related** | README § Current status / Active Dir / Actions / Specificity; `f_asc_extend()` / `f_asc_primitive_values()` in `asc/core/core.inc.sh`; `f_make_list_entry_points()` in `asc/make/make.inc.sh`; `hook()` in `asc/core/hook.inc.sh`; caller opt-inc in `asc/bootstrap.sh`; builder template `asc/extensions/builder/template/core/[subject]/[object]/`. Prior: [11-bootstrap-cache-layout-and-invalidation.md](./11-bootstrap-cache-layout-and-invalidation.md). |
 | **Lifecycle** | Shipped (discovery + pivots + hook skip + caller opt-inc). `autoload.inc.sh` remains **out of scope** (`p_extra_level_name` is hook **filename** variants, not directories). |
 
 `$` in this file is the ASC docs placeholder (`$subject` / `$object` / `$action`), not a shell variable.
@@ -84,7 +84,7 @@ Equal-depth twins in the same namespace (`baz_toto` vs `baz-toto`): first listin
 
 Caller opt-inc in `asc/bootstrap.sh` currently takes `basename(dirname(caller))` as the subject. For `asc/host/dependency/install.sh` that wrongly yields `dependency`.
 
-**Rejected fix:** “if the parent folder name is in `*_SUBJECTS`, treat it as `$subject`.” `asc` **is** a subject (`asc/asc/`). That rule would fire for every core 2-level script (`asc/host/provision.sh` → parent `asc`) and seed `asc/asc/asc.opt-inc.sh` instead of `asc/host/host.opt-inc.sh`. Same trap for `asc/test/core/*.test.sh` (parent `test` is a subject; `core/` is **not** an object — only `*.test.sh`).
+**Rejected fix:** “if the parent folder name is in `*_SUBJECTS`, treat it as `$subject`.” `core` **is** a subject (`asc/core/`). `asc` **is** still a subject (`asc/extensions/compose/asc/`, contrib). That rule would fire for every 2-level script under `./asc` (`asc/host/provision.sh` → parent `asc`) and seed the `asc` subject's opt-inc instead of `asc/host/host.opt-inc.sh`. Same trap for `asc/test/core/*.test.sh` (parent `test` is a subject; `core/` is **not** an object — only `*.test.sh`).
 
 **Picked fix:** classify the caller from discovered primitives:
 
@@ -118,10 +118,10 @@ Day-one names after this change:
 
 | File | Change |
 |------|--------|
-| `asc/asc/core.inc.sh` | `f_asc_extend`: after 2-level actions, `objects` then nested `actions`. Cache `*_OBJECTS`. Docblock. |
-| `asc/asc/core.inc.sh` | `f_asc_primitive_values`: `objects` case = `f_fs_dir_list` (same ignore/append/override as subjects). |
+| `asc/core/core.inc.sh` | `f_asc_extend`: after 2-level actions, `objects` then nested `actions`. Cache `*_OBJECTS`. Docblock. |
+| `asc/core/core.inc.sh` | `f_asc_primitive_values`: `objects` case = `f_fs_dir_list` (same ignore/append/override as subjects). |
 | `asc/make/make.inc.sh` | Same-namespace deeper-wins: find index `i` of `task` in `pivots_arr`, **overwrite** `real_scripts_arr[i]`. Do **not** `+=` and do **not** `f_array_add_once` on replace (that cannot drop the shallower path; `pivots_arr` / `real_scripts_arr` must stay same length and order). Core loop must collide-check (today it does not). Across namespaces: prefix as today. |
-| `asc/asc/hook.inc.sh` | `f_hook_build_lookup_by_subject`: `case "$p_path" in */*/*) continue ;; esac` before using `[1]` as `$action`. Required for unfiltered hook calls. |
+| `asc/core/hook.inc.sh` | `f_hook_build_lookup_by_subject`: `case "$p_path" in */*/*) continue ;; esac` before using `[1]` as `$action`. Required for unfiltered hook calls. |
 | `asc/bootstrap.sh` | Caller opt-inc: 3-level only when caller dir matches discovered `$subject/$object`; else today’s basename rule. |
 | `asc/instance/list_actions.sh` | No path-join change (`asc/${a}.sh` already works for three segments). Docs: prints primitive paths, including losers. |
 | `asc/test/core/primitives.test.sh` (or equivalent) | Dummy **extension** + explicit namespace (`f_asc_extend "$ext_path" 'NFT…'`), not a throwaway `asc/foobar/` (that becomes a real core subject and appends `asc_primitives_cache_str`). `rm -rf` in `oneTimeTearDown`. File in `asc/test/core/` is enough — `core.hook.sh` already runs `*.test.sh` there. |
@@ -129,7 +129,7 @@ Day-one names after this change:
 | `asc/extensions/builder/code/.asc_objects_ignore` | Ignore `var` and `function` (live `*.sh`, would become `code-var-is` / `code-function-is`). |
 | README | Mechanism-only: do not tick “only subject/object/action level remains” (that is the whole core/extension refactor). |
 
-`asc/asc/autoload.inc.sh`: **no change**.
+`asc/core/autoload.inc.sh`: **no change**.
 
 Stamp v1.1 stays a follow-up. `reinit.sh` already runs `cache_clear.sh` first, so **`make reinit` is enough** for new Make targets. Do not add a redundant `make cc` ritual.
 

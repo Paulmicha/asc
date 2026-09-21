@@ -5,7 +5,7 @@
 | **Date** | 2026-07-31 |
 | **Status** | partial implementation — waves 1–3 done |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — subshell usages that capture function/command output, as candidates for the output-variable / `printf -v` pattern |
-| **Related** | `asc/utils/str/str.opt-inc.sh` (`f_str_convert_tokens`, lines 143–144); `asc/utils/fs/fs.opt-inc.sh` (`f_fs_get_file_contents`, line 287); `changelog/2026/07/23-f-e-naming-convention.md` (`f_*` naming) |
+| **Related** | `asc/core/utils/str/str.opt-inc.sh` (`f_str_convert_tokens`, lines 143–144); `asc/core/utils/fs/fs.opt-inc.sh` (`f_fs_get_file_contents`, line 287); `changelog/2026/07/23-f-e-naming-convention.md` (`f_*` naming) |
 | **Lifecycle** | Waves 1–3 migrated 2026-07-31. Remaining waves stay focused; do **not** treat this file as permission for a repo-wide mechanical rewrite. |
 
 ---
@@ -14,9 +14,9 @@
 
 ASC already uses an output-variable convention in several utilities: the callee takes a **variable name** as a parameter and writes the result with `printf -v "$a_output_var_name" '%s' "$value"` instead of `echo` + caller `$(…)`.
 
-Reference implementation — `f_str_convert_tokens()` in `asc/utils/str/str.opt-inc.sh`:
+Reference implementation — `f_str_convert_tokens()` in `asc/core/utils/str/str.opt-inc.sh`:
 
-```142:144:asc/utils/str/str.opt-inc.sh
+```142:144:asc/core/utils/str/str.opt-inc.sh
   # Write result to var in calling scope.
   printf -v "$a_output_var_name" '%s' "$tokens_replaced"
 ```
@@ -77,17 +77,17 @@ These functions already write via `printf -v` (33 occurrences across 12 files). 
 
 | Function | File | Notes |
 |----------|------|-------|
-| `f_str_convert_tokens` | `asc/utils/str/str.opt-inc.sh:143` | Canonical reference |
-| `f_str_escape_single_quotes` | `asc/utils/str/str.opt-inc.sh:182` | |
-| `f_str_sanitize_var_name` | `asc/utils/str/str.opt-inc.sh:269` | |
-| `f_str_sanitize` | `asc/utils/str/str.opt-inc.sh:320` | |
-| `f_str_lowercase` / `f_str_uppercase` | `asc/utils/str/str.opt-inc.sh:405,432` | |
-| `f_fs_get_file_contents` | `asc/utils/fs/fs.opt-inc.sh:287` | Doc explicitly says "without subshell" |
-| `f_fs_change_line` (partial) | `asc/utils/fs/fs.opt-inc.sh:774` | |
+| `f_str_convert_tokens` | `asc/core/utils/str/str.opt-inc.sh:143` | Canonical reference |
+| `f_str_escape_single_quotes` | `asc/core/utils/str/str.opt-inc.sh:182` | |
+| `f_str_sanitize_var_name` | `asc/core/utils/str/str.opt-inc.sh:269` | |
+| `f_str_sanitize` | `asc/core/utils/str/str.opt-inc.sh:320` | |
+| `f_str_lowercase` / `f_str_uppercase` | `asc/core/utils/str/str.opt-inc.sh:405,432` | |
+| `f_fs_get_file_contents` | `asc/core/utils/fs/fs.opt-inc.sh:287` | Doc explicitly says "without subshell" |
+| `f_fs_change_line` (partial) | `asc/core/utils/fs/fs.opt-inc.sh:774` | |
 | `f_yaml_escape_double` | `asc/yml/yml.inc.sh:229` | |
-| `f_global_assign_value` | `asc/asc/global.inc.sh:490–541` | |
-| `f_asc_extension_namespace` | `asc/asc/core.inc.sh:434` | |
-| `f_hook_variant_values_add` | `asc/asc/hook.inc.sh:796` | |
+| `f_global_assign_value` | `asc/core/global.inc.sh:490–541` | |
+| `f_asc_extension_namespace` | `asc/core/core.inc.sh:434` | |
+| `f_hook_variant_values_add` | `asc/core/hook.inc.sh:796` | |
 | `f_make_unescape` / `f_make_task_name` | `asc/make/make.inc.sh:98,393` | |
 | `f_thread_output_mtime_ms` | `asc/thread/thread.inc.sh:359–363` | |
 | `f_thread_yml_strip_quotes` | `asc/thread/thread.inc.sh:201–202` | |
@@ -97,8 +97,8 @@ These functions already write via `printf -v` (33 occurrences across 12 files). 
 
 | File | Line | Issue |
 |------|------|-------|
-| `asc/utils/fs/fs.opt-inc.sh` | ~~629~~ | ~~`f_str_append_once`~~ — **fixed** (wave 2) |
-| `asc/utils/fs/fs.opt-inc.sh` | ~~649~~ | ~~`f_str_sed_escape`~~ — **fixed** (wave 2) |
+| `asc/core/utils/fs/fs.opt-inc.sh` | ~~629~~ | ~~`f_str_append_once`~~ — **fixed** (wave 2) |
+| `asc/core/utils/fs/fs.opt-inc.sh` | ~~649~~ | ~~`f_str_sed_escape`~~ — **fixed** (wave 2) |
 | `asc/make/make.inc.sh` | 435 | `case_target="$(f_test_case_make_target …)"` — nested `$()` inside echo-based helper (wave 8) |
 
 ---
@@ -136,7 +136,7 @@ These functions already write via `printf -v` (33 occurrences across 12 files). 
 
 | | |
 |---|---|
-| **Definition** | `asc/utils/fs/fs.opt-inc.sh:228–252` — `find … \| head` to stdout; may return multiple lines |
+| **Definition** | `asc/core/utils/fs/fs.opt-inc.sh:228–252` — `find … \| head` to stdout; may return multiple lines |
 | **Call sites** | `db.inc.sh:1126,1268,1280,1433,1442,1472`; `db.opt-inc.sh:76`; `db_upload.sh:111`; `remote.opt-inc.sh:204`; `fs.opt-inc.sh` examples in comments |
 | **Fit** | **Good** — single-file callers expect one path; multi-line callers use `while read` in docs |
 | **Caveats** | Preserve multi-line behaviour; document whether output var holds newline-separated list |
@@ -286,11 +286,11 @@ These are not caller `$()` sites but subshells **inside** utilities that echo re
 
 | File | Line | Function | Pattern | Fix |
 |------|------|----------|---------|-----|
-| `asc/utils/str/str.opt-inc.sh` | 639 | `f_str_trim` | `echo "$(echo -e "$1" \| sed …)"` | Parameter expansion / `printf -v` |
-| `asc/utils/str/str.opt-inc.sh` | 89 | `f_str_convert_tokens` | `val="$(date +"$match")"` | Acceptable? or inline date into var without subshell |
-| `asc/utils/str/str.opt-inc.sh` | 231 | `f_str_basic_auth_credentials` | `` a_pass=`< /dev/urandom …` `` | Backtick subshell for password gen |
+| `asc/core/utils/str/str.opt-inc.sh` | 639 | `f_str_trim` | `echo "$(echo -e "$1" \| sed …)"` | Parameter expansion / `printf -v` |
+| `asc/core/utils/str/str.opt-inc.sh` | 89 | `f_str_convert_tokens` | `val="$(date +"$match")"` | Acceptable? or inline date into var without subshell |
+| `asc/core/utils/str/str.opt-inc.sh` | 231 | `f_str_basic_auth_credentials` | `` a_pass=`< /dev/urandom …` `` | Backtick subshell for password gen |
 | `asc/git/git.inc.sh` | 741, 777 | `f_git_get_staged_files`, `f_git_get_unmerged_paths` | `echo "$(f_git_wrapper …)"` | Call wrapper with output var |
-| `asc/utils/fs/fs.opt-inc.sh` | 629, 649 | `f_fs_append_line_once`, `f_fs_change_line` | `$(f_str_append_once …)`, `$(f_str_sed_escape …)` | Migrate str helpers first |
+| `asc/core/utils/fs/fs.opt-inc.sh` | 629, 649 | `f_fs_append_line_once`, `f_fs_change_line` | `$(f_str_append_once …)`, `$(f_str_sed_escape …)` | Migrate str helpers first |
 
 ---
 

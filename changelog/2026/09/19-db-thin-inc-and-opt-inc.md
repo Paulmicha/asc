@@ -68,7 +68,7 @@ Alias hooks (`mysql/asc/alias.compose.hook.sh`, `arcadedb/asc/alias.compose.hook
 
 `f_db_exec`, `f_db_query`, `f_db_dump`, `f_db_clear`, `f_db_restore`, `f_db_restore_last`, `f_db_routine_backup`, `f_db_get_dump`, `f_db_ensure_creds`, `f_db_create`, `f_db_destroy`, `f_db_setup`, `f_db_restore_any`.
 
-At the top of that opt-inc, `. asc/utils/fs.opt-inc.sh` once dump/exec need extract/compress (fs sub-plan).
+At the top of that opt-inc, `. asc/core/utils/fs.opt-inc.sh` once dump/exec need extract/compress (fs sub-plan).
 
 ---
 

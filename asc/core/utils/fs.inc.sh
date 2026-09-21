@@ -3,7 +3,7 @@
 ##
 # Filesystem (fs) related utility functions sourced on every heavy bootstrap.
 # List / path / contents / most-recent / change-line only.
-# Archive helpers: `. asc/utils/fs.opt-inc.sh`
+# Archive helpers: `. asc/core/utils/fs.opt-inc.sh`
 # @see changelog/2026/09/19-fs-archive-lazy-include.md
 #
 # Convention : functions names are all prefixed by "f".

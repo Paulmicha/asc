@@ -22,7 +22,7 @@ Deprecate-first is **not** “every empty file.” It is a make `$subject-$actio
 | `asc/yml/parse.sh`, `merge.sh`, `extend.sh` | Zero-byte. Parse already lives in eager `yml.inc.sh`. | `make yml-parse` / `yml-merge` / `yml-extend` look like YAML tools. |
 | `asc/git/untrack.sh` | Zero-byte git action. | `make git-untrack` looks like it drops tracking. |
 | `asc/host/dependency/{install,list,status,uninstall,update}.sh` | Zero-byte host `$object` pivots. Apt/software are the real surface. | `make host-dependency-*` looks like a package manager. |
-| `asc/asc/remote_extensions_download.sh` | Zero-byte download. | `make asc-remote_extensions_download` looks like it fetches `$extension` trees. |
+| `asc/core/remote_extensions_download.sh` | Zero-byte download. | `make core-remote-extensions-download` looks like it fetches `$extension` trees. |
 
 Do not fill these “for completeness.” Do not delete them in this note.
 

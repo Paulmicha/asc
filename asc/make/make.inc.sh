@@ -58,7 +58,7 @@ f_make_check_args() {
 # Converts given string to a task name - e.g. for use as Make task.
 #
 # During conversion, some terms are abbreviated - e.g. :
-#   - asc-cache-clear -> cc
+#   - core-cache-clear -> cc
 #   - host-registry -> host-reg (via registry/reg)
 #   - logged-thread -> lt
 #   - logged-batch -> lb
