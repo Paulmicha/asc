@@ -1508,6 +1508,19 @@ TODO
 
 ASC provides a minimal, customizable and extensible workflow meant to be implementable by either humans or agents.
 
+The project docroot file `gates.yml` is a `hook_ms()` implementation (like `env.yml`) that contains pointers to current project instance changelog files.
+
+Whenever a human pushes a change to that file, the "next step tasks list" may need to launch new workers.
+
+This is a job for any of those extension points :
+
+- ASC core "agent" extension : abstract hook calls in entry points like `make agent-loop`
+- ASC contrib "child" extensions like `cursor`, `codex`, `claude` : the place for concrete hook implementations of entry points like `make llm-call`, or why not `make slm call`, with some default `make agent-loop` hook implementations via env var that can select e.g. "cursor" as default provider for llm calls (with pre- and post- "sandwich" hook calls variants), like `mysql` can be set as the default db driver via `DB_DRIVER`)
+- ASC contrib "child" extensions like `ollama` : the place for concrete hook implementations of entry points like `make slm-call`
+- ASC core "rules" extension : next step chains supporting DSL with constant readjustment updates for correct priority queuing based on gates.yml and the "next steps" storage system eventually chosen (either reg-set / reg-get or entities)
+
+TODO settle the "next step tasks list" storage.
+
 &lt;proposal-2026-09-22&gt;
 
 Every local ASC project instance takes upstream updates from the ASC mother project instance. One repo shared by several machines keeps a common branch as the buffer they pull and push. A machine branch is a child of that branch, and that machine pulls the buffer current before it pushes. A change shared by those machines moves up onto the buffer. A change shared by every instance moves up into the mother. Example: the linux home-directory instance, branch `debian-13`.
