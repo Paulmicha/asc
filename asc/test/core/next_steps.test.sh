@@ -182,6 +182,8 @@ test_gates_yml_docroot_rung() {
   assertEquals 'gates.yml parses and names the wave C changelog.' 0 "$?"
   grep -q 'gates__go' <<< "$parsed"
   assertEquals 'gates.yml exposes a go field.' 0 "$?"
+  grep -q 'gates__summary' <<< "$parsed"
+  assertEquals 'gates.yml exposes a summary field.' 0 "$?"
 }
 
 . asc/vendor/shunit2/shunit2

@@ -17,7 +17,7 @@ No other changelog covers this. [`22-doc-next-steps.md`](./22-doc-next-steps.md)
 
 `gates.yml` in the project docroot is the approval registry. Lookup matches `env.yml`: dry-run, suffix `yml`, `-r`, variants `STACK_VERSION` / `HOST_TYPE` / `INSTANCE_TYPE`. Rung 4 wins. The file is not sourced.
 
-Each row maps one changelog task from `NEXT_STEPS.agent.md`. `lane` is `sequential`, `parallel`, `discuss`, or `held`. `approved` is the human mark. `go` is whether that task may start. `discuss` and `held` stay `go: "no"`. A sequential row stays `go: "no"` until every lower `order` in that lane is already `go: "yes"`.
+Each row maps one changelog task from `NEXT_STEPS.agent.md`. `summary` is one sentence for that row. `lane` is `sequential`, `parallel`, `discuss`, or `held`. `approved` is the human mark. `go` is whether that task may start. `discuss` and `held` stay `go: "no"`. A sequential row stays `go: "no"` until every lower `order` in that lane is already `go: "yes"`.
 
 `make reg-get` / `make reg-set` are separate. They call `f_instance_registry_get` / `f_instance_registry_set`, which `hook_ms` to `registry_get` / `registry_set`. The enabled `file_registry` extension writes one string per key:
 
