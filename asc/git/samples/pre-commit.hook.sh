@@ -23,7 +23,7 @@
 hook -s 'app instance' -a 'set_fsop'
 
 # Re-add previously staged files in case their permissions have changed.
-staged="$(f_git_get_staged_files "$APP_DOCROOT")"
+f_git_get_staged_files "$APP_DOCROOT" '' 'staged'
 for f in $staged; do
   f_git_wrapper add "$f"
 done

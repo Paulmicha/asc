@@ -308,13 +308,17 @@ f_software_is_desired() {
 ##
 # Apt package status: missing | ok
 #
+# @param 1 String : package name.
+# @param 2 [optional] String : output var name (default: software_apt_status).
+#
 f_software_apt_status() {
   local p_pkg="$1"
+  local p_output_var_name="${2:-software_apt_status}"
 
   if dpkg-query -W -f='${Status}' "$p_pkg" 2>/dev/null | grep -q 'install ok installed'; then
-    echo 'ok'
+    printf -v "$p_output_var_name" '%s' 'ok'
   else
-    echo 'missing'
+    printf -v "$p_output_var_name" '%s' 'missing'
   fi
 }
 
@@ -323,8 +327,12 @@ f_software_apt_status() {
 #
 # Spec is name or name==version.
 #
+# @param 1 String : pipx spec.
+# @param 2 [optional] String : output var name (default: software_pipx_status).
+#
 f_software_pipx_status() {
   local p_spec="$1"
+  local p_output_var_name="${2:-software_pipx_status}"
   local name
   local want_ver
   local have
@@ -338,34 +346,40 @@ f_software_pipx_status() {
   fi
 
   if ! command -v pipx >/dev/null 2>&1; then
-    echo 'missing'
+    printf -v "$p_output_var_name" '%s' 'missing'
     return 0
   fi
 
   have="$(pipx list --short 2>/dev/null | awk -v n="$name" '$1 == n { print $2; exit }')"
 
   if [[ -z "$have" ]]; then
-    echo 'missing'
+    printf -v "$p_output_var_name" '%s' 'missing'
     return 0
   fi
 
   have_ver="${have# }"
 
   if [[ -n "$want_ver" && "$have_ver" != "$want_ver" ]]; then
-    echo 'outdated'
+    printf -v "$p_output_var_name" '%s' 'outdated'
     return 0
   fi
 
-  echo 'ok'
+  printf -v "$p_output_var_name" '%s' 'ok'
 }
 
 ##
 # Tarball app status via install_dir/.asc-software-version
 #
+# @param 1 String : install dir.
+# @param 2 String : expected version.
+# @param 3 String : binary name under install dir.
+# @param 4 [optional] String : output var name (default: software_tarball_status).
+#
 f_software_tarball_status() {
   local p_dir="$1"
   local p_version="$2"
   local p_binary="$3"
+  local p_output_var_name="${4:-software_tarball_status}"
   local marker
   local have
   local bin_path
@@ -374,7 +388,7 @@ f_software_tarball_status() {
   bin_path="${p_dir}/${p_binary}"
 
   if [[ ! -x "$bin_path" && ! -f "$bin_path" ]]; then
-    echo 'missing'
+    printf -v "$p_output_var_name" '%s' 'missing'
     return 0
   fi
 
@@ -382,28 +396,33 @@ f_software_tarball_status() {
     have="$(tr -d '[:space:]' < "$marker")"
 
     if [[ "$have" == "$p_version" ]]; then
-      echo 'ok'
+      printf -v "$p_output_var_name" '%s' 'ok'
       return 0
     fi
 
-    echo 'outdated'
+    printf -v "$p_output_var_name" '%s' 'outdated'
     return 0
   fi
 
   # Present without marker: treat as ok if binary exists (adopt on next apply).
-  echo 'ok'
+  printf -v "$p_output_var_name" '%s' 'ok'
 }
 
 ##
 # AppImage status: missing | outdated | ok
 #
+# @param 1 String : AppImage path.
+# @param 2 String : expected sha256 (empty skips check).
+# @param 3 [optional] String : output var name (default: software_appimage_status).
+#
 f_software_appimage_status() {
   local p_path="$1"
   local p_sha="$2"
+  local p_output_var_name="${3:-software_appimage_status}"
   local have
 
   if [[ ! -f "$p_path" ]]; then
-    echo 'missing'
+    printf -v "$p_output_var_name" '%s' 'missing'
     return 0
   fi
 
@@ -411,37 +430,45 @@ f_software_appimage_status() {
     have="$(sha256sum "$p_path" | awk '{ print $1 }')"
 
     if [[ "$have" != "$p_sha" ]]; then
-      echo 'outdated'
+      printf -v "$p_output_var_name" '%s' 'outdated'
       return 0
     fi
   fi
 
-  echo 'ok'
+  printf -v "$p_output_var_name" '%s' 'ok'
 }
 
 ##
 # Ensure-command status: missing | ok
 #
+# @param 1 String : command name.
+# @param 2 [optional] String : output var name (default: software_ensure_status).
+#
 f_software_ensure_status() {
   local p_cmd="$1"
+  local p_output_var_name="${2:-software_ensure_status}"
 
   if command -v "$p_cmd" >/dev/null 2>&1; then
-    echo 'ok'
+    printf -v "$p_output_var_name" '%s' 'ok'
   else
-    echo 'missing'
+    printf -v "$p_output_var_name" '%s' 'missing'
   fi
 }
 
 ##
 # systemd --user unit status: missing | ok
 #
+# @param 1 String : unit id (without .service).
+# @param 2 [optional] String : output var name (default: software_unit_status).
+#
 f_software_unit_status() {
   local p_id="$1"
+  local p_output_var_name="${2:-software_unit_status}"
 
   if [[ -f "${HOME}/.config/systemd/user/${p_id}.service" ]]; then
-    echo 'ok'
+    printf -v "$p_output_var_name" '%s' 'ok'
   else
-    echo 'missing'
+    printf -v "$p_output_var_name" '%s' 'missing'
   fi
 }
 
@@ -477,7 +504,7 @@ f_software_build_diff() {
   for pkg in "${sw_apt_arr[@]}"; do
     f_software_scalar "$pkg" 'pkg'
     [[ -z "$pkg" ]] && continue
-    st="$(f_software_apt_status "$pkg")"
+    f_software_apt_status "$pkg" 'st'
     software_diff_ids_arr+=("apt:$pkg")
     software_diff_status_arr+=("$st")
   done
@@ -486,7 +513,7 @@ f_software_build_diff() {
     f_software_scalar "$pkg" 'pkg'
     [[ -z "$pkg" ]] && continue
     name="${pkg%%==*}"
-    st="$(f_software_pipx_status "$pkg")"
+    f_software_pipx_status "$pkg" 'st'
     software_diff_ids_arr+=("pipx:$name")
     software_diff_status_arr+=("$st")
   done
@@ -497,7 +524,7 @@ f_software_build_diff() {
     f_software_expand_path "${sw_tarball__install_dir_arr[$i]}" 'dir'
     f_software_scalar "${sw_tarball__binary_arr[$i]}" 'bin'
     [[ -z "$name" ]] && continue
-    st="$(f_software_tarball_status "$dir" "$ver" "$bin")"
+    f_software_tarball_status "$dir" "$ver" "$bin" 'st'
     software_diff_ids_arr+=("tarball:$name")
     software_diff_status_arr+=("$st")
   done
@@ -507,7 +534,7 @@ f_software_build_diff() {
     f_software_expand_path "${sw_appimage__path_arr[$i]}" 'path'
     f_software_scalar "${sw_appimage__sha256_arr[$i]:-}" 'sha'
     [[ -z "$name" ]] && continue
-    st="$(f_software_appimage_status "$path" "$sha")"
+    f_software_appimage_status "$path" "$sha" 'st'
     software_diff_ids_arr+=("appimage:$name")
     software_diff_status_arr+=("$st")
   done
@@ -516,7 +543,7 @@ f_software_build_diff() {
     f_software_scalar "${sw_ensure__id_arr[$i]}" 'name'
     f_software_scalar "${sw_ensure__command_arr[$i]}" 'cmd'
     [[ -z "$name" ]] && continue
-    st="$(f_software_ensure_status "$cmd")"
+    f_software_ensure_status "$cmd" 'st'
     software_diff_ids_arr+=("ensure:$name")
     software_diff_status_arr+=("$st")
   done
@@ -524,7 +551,7 @@ f_software_build_diff() {
   for ((i = 0; i < ${#sw_units__id_arr[@]}; i++)); do
     f_software_scalar "${sw_units__id_arr[$i]}" 'name'
     [[ -z "$name" ]] && continue
-    st="$(f_software_unit_status "$name")"
+    f_software_unit_status "$name" 'st'
     software_diff_ids_arr+=("unit:$name")
     software_diff_status_arr+=("$st")
   done
@@ -604,7 +631,7 @@ f_software_pipx_install() {
   fi
 
   name="${p_spec%%==*}"
-  st="$(f_software_pipx_status "$p_spec")"
+  f_software_pipx_status "$p_spec" 'st'
 
   case "$st" in
     missing)

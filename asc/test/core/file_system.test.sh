@@ -134,8 +134,8 @@ test_f_fs_dir_file_list_and_most_recent() {
   assertTrue 'file_list should include b.sh' "[[ \"$file_list\" == *b.sh* ]]"
   assertEquals 'file_list_arr length for *.sh' '1' "${#file_list_arr[@]}"
 
-  local most_recent
-  most_recent="$(f_fs_get_most_recent '_asc_dir_test/list' '' 1 1)"
+  local most_recent=''
+  f_fs_get_most_recent '_asc_dir_test/list' '' 1 1 'most_recent'
   assertTrue 'most recent should be b.sh' "[[ \"$most_recent\" == *b.sh ]]"
 }
 

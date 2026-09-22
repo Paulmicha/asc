@@ -600,35 +600,37 @@ f_git_mfind_commits() {
 #
 # @param 1 [optional] String : the git "working dir". Defaults to $APP_DOCROOT.
 # @param 2 [optional] String : the git dir. Defaults to "$1/.git".
+# @param 3 [optional] String : output var name (default: git_staged_files).
 #
 # @example
 #   # List staged files in current path.
-#   staged="$(f_git_get_staged_files)"
-#   for f in $staged; do
+#   f_git_get_staged_files
+#   for f in $git_staged_files; do
 #     echo "staged file : $f"
 #   done
 #
 #   # List staged files in given path.
-#   staged="$(f_git_get_staged_files path/to/work/tree)"
+#   f_git_get_staged_files path/to/work/tree '' 'staged'
 #   for f in $staged; do
 #     echo "staged file : $f"
 #   done
 #
 f_git_get_staged_files() {
   local p_git_work_tree="$1"
-  local p_git_dir=''
+  local p_git_dir="$2"
+  local p_output_var_name="${3:-git_staged_files}"
+  local result
 
   if [[ -z "$p_git_work_tree" ]]; then
     p_git_work_tree="$APP_DOCROOT"
   fi
 
-  if [[ -n "$2" ]]; then
-    p_git_dir="$2"
-  else
+  if [[ -z "$p_git_dir" ]]; then
     p_git_dir="$p_git_work_tree/.git"
   fi
 
-  echo "$(f_git_wrapper diff --name-only --cached)"
+  result="$(f_git_wrapper diff --name-only --cached)"
+  printf -v "$p_output_var_name" '%s' "$result"
 }
 
 ##
@@ -636,35 +638,37 @@ f_git_get_staged_files() {
 #
 # @param 1 [optional] String : the git "working dir". Defaults to $APP_DOCROOT.
 # @param 2 [optional] String : the git dir. Defaults to "$1/.git".
+# @param 3 [optional] String : output var name (default: git_unmerged_paths).
 #
 # @example
 #   # List unmerged files in current path.
-#   unmerged_paths="$(f_git_get_unmerged_paths)"
-#   for f in $unmerged_paths; do
+#   f_git_get_unmerged_paths
+#   for f in $git_unmerged_paths; do
 #     echo "unmerged : $f"
 #   done
 #
 #   # List unmerged files in given path.
-#   unmerged_paths="$(f_git_get_unmerged_paths path/to/work/tree)"
+#   f_git_get_unmerged_paths path/to/work/tree '' 'unmerged_paths'
 #   for f in $unmerged_paths; do
 #     echo "unmerged : $f"
 #   done
 #
 f_git_get_unmerged_paths() {
   local p_git_work_tree="$1"
-  local p_git_dir=''
+  local p_git_dir="$2"
+  local p_output_var_name="${3:-git_unmerged_paths}"
+  local result
 
   if [[ -z "$p_git_work_tree" ]]; then
     p_git_work_tree="$APP_DOCROOT"
   fi
 
-  if [[ -n "$2" ]]; then
-    p_git_dir="$2"
-  else
+  if [[ -z "$p_git_dir" ]]; then
     p_git_dir="$p_git_work_tree/.git"
   fi
 
-  echo "$(f_git_wrapper diff --name-only --diff-filter=U)"
+  result="$(f_git_wrapper diff --name-only --diff-filter=U)"
+  printf -v "$p_output_var_name" '%s' "$result"
 }
 
 ##

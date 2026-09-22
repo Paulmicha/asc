@@ -182,7 +182,7 @@ f_make_generate_test_cases() {
     f_test_discover_batch_cases "$batch_script" || continue
 
     for case_stem in $test_case_stems; do
-      case_target="$(f_test_case_make_target "$batch_task" "$case_stem")"
+      f_test_case_make_target "$batch_task" "$case_stem" 'case_target'
 
       if f_in_array "$case_target" 'tc_targets_arr'; then
         continue

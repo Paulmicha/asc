@@ -148,8 +148,8 @@ test_doc_next_steps_docroot_rung() {
   assertEquals 'writer must not modify NEXT_STEPS.md.' "$before" "$after"
 
   human="$(f_doc_next_steps_test_section NEXT_STEPS.agent.md '## Sequential, after the row above')"
-  grep -q 'After remaining-core waves' <<< "$human"
-  assertEquals 'open after-chain row is still listed.' 0 "$?"
+  grep -q 'Optional: measure wrap vs action bootstrap cost' <<< "$human"
+  assertEquals 'optional after-chain row is still listed.' 0 "$?"
   grep -q 'orphan headings' NEXT_STEPS.agent.md
   assertEquals 'pdf historical text is not copied.' 1 "$?"
 
@@ -178,12 +178,14 @@ test_gates_yml_docroot_rung() {
   assertEquals 'gates.yml wins rung 4.' 'gates.yml' "$most_specific_match"
 
   f_yaml_parse 'gates.yml' 'gate_' 'parsed'
-  grep -q 'lazy-opt-inc-remaining-core-waves' <<< "$parsed"
-  assertEquals 'gates.yml parses and names the wave C changelog.' 0 "$?"
+  grep -q 'subshell-printf-v-candidates' <<< "$parsed"
+  assertEquals 'gates.yml parses and names the printf -v changelog.' 0 "$?"
   grep -q 'gates__go' <<< "$parsed"
   assertEquals 'gates.yml exposes a go field.' 0 "$?"
   grep -q 'gates__summary' <<< "$parsed"
   assertEquals 'gates.yml exposes a summary field.' 0 "$?"
+  grep -q 'Continue waves' <<< "$parsed"
+  assertEquals 'waves 5-8 row is folded out of gates.yml.' 1 "$?"
 }
 
 . asc/vendor/shunit2/shunit2

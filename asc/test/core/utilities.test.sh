@@ -301,6 +301,104 @@ test_f_str_basic_auth_credentials() {
 }
 
 ##
+# Output-var paths for waves 1–3 migrated scalars (no caller capture).
+# @see changelog/2026/07/31-subshell-printf-v-candidates.md
+#
+test_f_migrated_scalar_output_vars() {
+  local software_scalar='' cron_scalar='' test_results_root='' out=''
+
+  # shellcheck disable=SC1091
+  . asc/extensions/software/host/provision.opt-inc.sh
+  # shellcheck disable=SC1091
+  . asc/extensions/crontab/crontab.inc.sh
+  if [[ "$(type -t f_test_results_root)" != function ]]; then
+    # shellcheck disable=SC1091
+    . asc/test/test.opt-inc.sh
+  fi
+
+  f_software_scalar '"quoted"' 'out'
+  assertEquals 'f_software_scalar strips double quotes' 'quoted' "$out"
+  f_software_scalar "'quoted'"
+  assertEquals 'f_software_scalar default var' 'quoted' "$software_scalar"
+
+  f_cron_scalar '  spaced  ' 'out'
+  assertEquals 'f_cron_scalar trims' 'spaced' "$out"
+  f_cron_scalar '"cron"'
+  assertEquals 'f_cron_scalar default var' 'cron' "$cron_scalar"
+
+  ASC_TEST_RESULTS_ROOT='/tmp/asc-test-results-fixture' f_test_results_root 'out'
+  assertEquals 'f_test_results_root honors env' '/tmp/asc-test-results-fixture' "$out"
+  unset ASC_TEST_RESULTS_ROOT
+  f_test_results_root
+  assertEquals 'f_test_results_root default path' 'data/test-results' "$test_results_root"
+}
+
+##
+# Wave 4: software status enums write via printf -v.
+# @see changelog/2026/07/31-subshell-printf-v-candidates.md
+#
+test_f_software_status_output_vars() {
+  local st='' software_ensure_status='' dir
+
+  # shellcheck disable=SC1091
+  . asc/extensions/software/host/provision.opt-inc.sh
+
+  f_software_ensure_status 'bash' 'st'
+  assertEquals 'ensure bash is ok' 'ok' "$st"
+  f_software_ensure_status 'asc-no-such-cmd-$$'
+  assertEquals 'ensure missing default var' 'missing' "$software_ensure_status"
+
+  dir="$(mktemp -d)"
+  f_software_tarball_status "$dir" '1.0' 'bin' 'st'
+  assertEquals 'tarball missing without binary' 'missing' "$st"
+  printf 'x' > "${dir}/bin"
+  chmod +x "${dir}/bin"
+  f_software_tarball_status "$dir" '1.0' 'bin' 'st'
+  assertEquals 'tarball ok without marker' 'ok' "$st"
+  printf '1.0' > "${dir}/.asc-software-version"
+  f_software_tarball_status "$dir" '1.0' 'bin' 'st'
+  assertEquals 'tarball ok with matching marker' 'ok' "$st"
+  f_software_tarball_status "$dir" '2.0' 'bin' 'st'
+  assertEquals 'tarball outdated on version mismatch' 'outdated' "$st"
+  rm -rf "$dir"
+
+  f_software_appimage_status '/no/such/app.AppImage' '' 'st'
+  assertEquals 'appimage missing' 'missing' "$st"
+
+  f_software_unit_status 'asc-no-such-unit-$$' 'st'
+  assertEquals 'unit missing' 'missing' "$st"
+}
+
+##
+# Waves 7–8: git staged-files + test case helpers via printf -v.
+# @see changelog/2026/07/31-subshell-printf-v-candidates.md
+#
+test_f_git_and_test_helper_output_vars() {
+  local staged='unset' suffix='' target='' runner='' batch_dir=''
+
+  if [[ "$(type -t f_git_get_staged_files)" != function ]]; then
+    # shellcheck disable=SC1091
+    . asc/git/git.opt-inc.sh
+  fi
+  if [[ "$(type -t f_test_case_make_target)" != function ]]; then
+    # shellcheck disable=SC1091
+    . asc/test/test.opt-inc.sh
+  fi
+
+  f_git_get_staged_files "$PROJECT_DOCROOT" '' 'staged'
+  assertTrue 'f_git_get_staged_files sets output var' "[[ \"\$staged\" != 'unset' ]]"
+
+  f_test_case_stem_to_suffix 'search_results' 'suffix'
+  assertEquals 'stem to suffix' 'search-results' "$suffix"
+  f_test_case_make_target 'test-browser' 'impersonation' 'target'
+  assertEquals 'make target' 'test-browser-impersonation' "$target"
+  f_test_case_runner_path 'asc/test/core' 'runner'
+  assertEquals 'runner path' 'asc/test/core.case.sh' "$runner"
+  f_test_batch_dir_from_script 'asc/test/core.sh' 'batch_dir'
+  assertEquals 'batch dir from script' 'asc/test/core' "$batch_dir"
+}
+
+##
 # Cleans up any leftovers from previous tests.
 #
 # (Internal shunit2 function called after all tests have run.)

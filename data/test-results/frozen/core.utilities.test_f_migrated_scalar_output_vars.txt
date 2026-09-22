@@ -1,0 +1,1 @@
+test_f_migrated_scalar_output_vars

@@ -104,13 +104,13 @@ Non-goals (for now): implementing the loader change; recursive multi-level `.asc
 
 ## Open tasks
 
-- [ ] Accept or amend this plan (review → iterate).
+- [ ] Accept or amend this plan (review → iterate). README proposals added 2026-09-22 (file-structure nest line + Active Dir subjects-ignore note).
 - [ ] Confirm runtime rule: dirs listed in `.asc_extensions` are **automatically** excluded from `ASC_*_SUBJECTS` (no mandatory duplicate line in `.asc_subjects_ignore`).
 - [ ] Confirm whether `.asc_extensions` is read only at **subject** folders that are themselves extension roots / subject roots, or also at arbitrary depth (recursive nests of nests).
 - [ ] Implement discovery in `u_asc_extend` / `u_asc_extensions` (or dedicated helper) — plan-only until go-ahead.
 - [ ] Migrate existing `.asc_subjects_ignore` nest entries → `.asc_extensions`; leave true blacklists in subjects-ignore.
 - [ ] Tests: nest declared via `.asc_extensions` aggregates primitives; most-specific weight matches parent extension point (shunit2 under `asc/test/`).
-- [ ] Living-docs + README wording pass; thin Cursor rule pointer if agents keep writing nests into `.asc_subjects_ignore`.
+- [x] Living-docs + README wording pass (proposal delimiters only, 2026-09-22); thin Cursor rule pointer if agents keep writing nests into `.asc_subjects_ignore`.
 - [ ] Cross-link from filename-DSL open item “Nested subjects / `.asc_subjects_ignore`” → this changelog once accepted.
 
 ---

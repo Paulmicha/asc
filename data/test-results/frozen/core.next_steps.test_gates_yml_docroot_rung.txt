@@ -1,0 +1,5 @@
+test_gates_yml_docroot_rung
+
+Ran 4 tests.
+
+OK

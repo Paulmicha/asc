@@ -495,18 +495,20 @@ f_test_batch_dir_from_script() {
   base="${base%.sh}"
   result="${dir}/${base}"
 
-  declare -g "${out_var}=${result}"
-  echo "$result"
+  printf -v "$out_var" '%s' "$result"
 }
 
 ##
 # Convert a test case stem to the dashed suffix used in make targets.
 #
 # @param $1 case stem (e.g. search_results)
+# @param $2 [optional] output variable name (default: test_case_suffix)
 #
 f_test_case_stem_to_suffix() {
   local stem="$1"
-  echo "${stem//_/-}"
+  local out_var="${2:-test_case_suffix}"
+
+  printf -v "$out_var" '%s' "${stem//_/-}"
 }
 
 ##
@@ -514,44 +516,52 @@ f_test_case_stem_to_suffix() {
 #
 # @param $1 batch make task (e.g. test-browser)
 # @param $2 case stem (e.g. impersonation)
+# @param $3 [optional] output variable name (default: test_case_make_target)
 #
 f_test_case_make_target() {
   local batch_task="$1"
   local case_stem="$2"
+  local out_var="${3:-test_case_make_target}"
   local suffix
 
-  suffix="$(f_test_case_stem_to_suffix "$case_stem")"
-  echo "${batch_task}-${suffix}"
+  f_test_case_stem_to_suffix "$case_stem" 'suffix'
+  printf -v "$out_var" '%s' "${batch_task}-${suffix}"
 }
 
 ##
 # Path to optional custom case runner ({batch_dir}.case.sh).
 #
 # @param $1 batch directory
+# @param $2 [optional] output variable name (default: test_case_runner_path)
 #
 f_test_case_runner_path() {
   local batch_dir="$1"
-  echo "${batch_dir}.case.sh"
+  local out_var="${2:-test_case_runner_path}"
+
+  printf -v "$out_var" '%s' "${batch_dir}.case.sh"
 }
 
 ##
 # Read non-comment case stems from a .test-cases manifest.
 #
 # @param $1 manifest path
+# @param $2 [optional] output variable name (default: test_manifest_cases)
 #
 f_test_read_manifest_cases() {
   local manifest="$1"
+  local out_var="${2:-test_manifest_cases}"
   local stems=''
   local line
 
   while IFS= read -r line || [[ -n "$line" ]]; do
     line="${line%%#*}"
-    line="$(echo "$line" | xargs)"
+    line="${line#"${line%%[![:space:]]*}"}"
+    line="${line%"${line##*[![:space:]]}"}"
     [[ -z "$line" ]] && continue
     stems+="$line "
   done <"$manifest"
 
-  echo -n "$stems"
+  printf -v "$out_var" '%s' "$stems"
 }
 
 ##
@@ -571,7 +581,7 @@ f_test_discover_batch_cases() {
   local stem=''
   local found=0
 
-  batch_dir="$(f_test_batch_dir_from_script "$batch_script")"
+  f_test_batch_dir_from_script "$batch_script" 'batch_dir'
 
   if [[ ! -d "$batch_dir" ]]; then
     return 1
@@ -579,7 +589,7 @@ f_test_discover_batch_cases() {
 
   manifest="${batch_dir}/.test-cases"
   if [[ -f "$manifest" ]]; then
-    stems="$(f_test_read_manifest_cases "$manifest")"
+    f_test_read_manifest_cases "$manifest" 'stems'
     if [[ -n "$stems" ]]; then
       test_case_mode='manifest'
       test_case_batch_dir="$batch_dir"
@@ -791,7 +801,7 @@ f_test_run_case() {
     fi
   fi
 
-  runner="$(f_test_case_runner_path "$batch_dir")"
+  f_test_case_runner_path "$batch_dir" 'runner'
 
   if f_test_results_enabled; then
     f_test_results_batch_begin "$batch_dir" 1

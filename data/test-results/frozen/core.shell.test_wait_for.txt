@@ -1,5 +1,5 @@
 test_wait_for
 
-Ran 3 tests.
+Ran 4 tests.
 
 OK

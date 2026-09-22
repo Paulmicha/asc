@@ -79,7 +79,7 @@ f_remote_sync_db_to() {
       esac
     fi
   else
-    rst_dump_file="$(f_fs_get_most_recent $ASC_DB_DUMPS_DIR)"
+    f_fs_get_most_recent "$ASC_DB_DUMPS_DIR" '' '' '' 'rst_dump_file'
   fi
 
   if [[ ! -f "$rst_dump_file" ]]; then

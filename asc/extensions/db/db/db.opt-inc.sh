@@ -504,12 +504,13 @@ f_db_restore_last() {
     p_subdir='local'
   fi
 
+  f_db_restore_last_dump=''
+  f_fs_get_most_recent "$ASC_DB_DUMPS_DIR/$p_subdir/$p_db_id" '' '' '' 'f_db_restore_last_dump'
   f_db_restore \
-    "$(f_fs_get_most_recent $ASC_DB_DUMPS_DIR/$p_subdir/$p_db_id)" \
+    "$f_db_restore_last_dump" \
     "$p_db_id" \
     "$p_force_reload_flag"
 }
-
 ##
 # Routine local DB dump (backup).
 #
@@ -647,7 +648,7 @@ f_db_get_dump() {
 
   case "$p_option" in
     'last')
-      dump_to_return="$(f_fs_get_most_recent "$ASC_DB_DUMPS_DIR/$p_subdir/$p_db_id")"
+      f_fs_get_most_recent "$ASC_DB_DUMPS_DIR/$p_subdir/$p_db_id" '' '' '' 'dump_to_return'
       ;;
 
     # The 'new' option means create immediately a new routine dump and return
@@ -659,7 +660,7 @@ f_db_get_dump() {
 
     # Any other value is a "find" file name filter.
     *)
-      dump_to_return="$(f_fs_get_most_recent "$ASC_DB_DUMPS_DIR/$p_subdir/$p_db_id" "$p_option")"
+      f_fs_get_most_recent "$ASC_DB_DUMPS_DIR/$p_subdir/$p_db_id" "$p_option" '' '' 'dump_to_return'
       ;;
   esac
 
@@ -812,7 +813,7 @@ f_db_restore_any() {
 
   # The 'prod' remote (if it exists) dumps take priority.
   if [[ -d "$ASC_DB_DUMPS_DIR/prod/$DB_ID" ]]; then
-    initial_dump_file="$(f_fs_get_most_recent "$ASC_DB_DUMPS_DIR/prod/$DB_ID" '*.gz')"
+    f_fs_get_most_recent "$ASC_DB_DUMPS_DIR/prod/$DB_ID" '*.gz' '' '' 'initial_dump_file'
   fi
 
   if [[ ! -f "$initial_dump_file" ]]; then
@@ -821,7 +822,7 @@ f_db_restore_any() {
         continue
       fi
 
-      initial_dump_file="$(f_fs_get_most_recent "$ASC_DB_DUMPS_DIR/$lookup_subdir/$DB_ID" '*.gz')"
+      f_fs_get_most_recent "$ASC_DB_DUMPS_DIR/$lookup_subdir/$DB_ID" '*.gz' '' '' 'initial_dump_file'
 
       if [[ -f "$initial_dump_file" ]]; then
         break
@@ -851,7 +852,7 @@ f_db_restore_any() {
         continue
       fi
 
-      initial_dump_file="$(f_fs_get_most_recent "$ASC_DB_DUMPS_DIR/$instance_id/$DB_ID" '*.gz')"
+      f_fs_get_most_recent "$ASC_DB_DUMPS_DIR/$instance_id/$DB_ID" '*.gz' '' '' 'initial_dump_file'
 
       if [[ -f "$initial_dump_file" ]]; then
         break

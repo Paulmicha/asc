@@ -15,8 +15,14 @@
 #
 # See https://stackoverflow.com/questions/1629605/getting-user-inside-shell-script-when-running-with-sudo
 #
+# @param 1 [optional] String : output var name (default: print_current_user).
+#
 f_print_current_user() {
-  logname 2>/dev/null || echo "$SUDO_USER"
+  local p_output_var_name="${1:-print_current_user}"
+  local result
+
+  result="$(logname 2>/dev/null || echo "$SUDO_USER")"
+  printf -v "$p_output_var_name" '%s' "$result"
 }
 
 ##

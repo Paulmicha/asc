@@ -21,32 +21,36 @@
 #   Defaults to 1.
 # @param 4 [optional] Number : how many most recent files to get.
 #   Defaults to 1.
+# @param 5 [optional] String : output var name (default: fs_most_recent).
 #
 # @see https://stackoverflow.com/questions/4561895/how-to-recursively-find-the-latest-modified-file-in-a-directory
 #
 # @example
 #   # Gets the last modified file in current dir (PROJECT_DOCROOT) :
-#   most_recent_file="$(f_fs_get_most_recent)"
-#   echo "most_recent_file = $most_recent_file"
+#   f_fs_get_most_recent
+#   echo "most_recent_file = $fs_most_recent"
 #
 #   # Gets the last modified file in path 'asc' :
-#   most_recent="$(f_fs_get_most_recent 'asc')"
+#   f_fs_get_most_recent 'asc' '' '' '' 'most_recent'
 #   echo "most_recent = $most_recent"
 #
 #   # Gets the last modified '*.yml' file in path 'scripts' :
-#   most_recent="$(f_fs_get_most_recent 'scripts' '*.yml')"
+#   f_fs_get_most_recent 'scripts' '*.yml' '' '' 'most_recent'
 #   echo "most_recent = $most_recent"
 #
 #   # Gets the last 3 files modified in path 'asc' up to 5 dir deep :
+#   f_fs_get_most_recent 'asc' '' 5 3 'recent_files'
 #   while read -r file; do
 #     echo "$file"
-#   done <<< "$(f_fs_get_most_recent 'asc' '' 5 3)"
+#   done <<< "$recent_files"
 #
 f_fs_get_most_recent() {
   local p_path="$1"
   local p_filter_pattern="$2"
   local p_max_depth="$3"
   local p_n_files="$4"
+  local p_output_var_name="${5:-fs_most_recent}"
+  local result=''
 
   if [[ -z "$p_path" ]]; then
     p_path='.'
@@ -61,12 +65,14 @@ f_fs_get_most_recent() {
   fi
 
   if [[ -n "$p_filter_pattern" ]]; then
-    find "$p_path" -maxdepth "$p_max_depth" -type f -name "$p_filter_pattern" -exec ls -1t '{}' + \
-      | head -n$p_n_files
+    result="$(find "$p_path" -maxdepth "$p_max_depth" -type f -name "$p_filter_pattern" -exec ls -1t '{}' + \
+      | head -n"$p_n_files")"
   else
-    find "$p_path" -maxdepth "$p_max_depth" -type f -exec ls -1t '{}' + \
-      | head -n$p_n_files
+    result="$(find "$p_path" -maxdepth "$p_max_depth" -type f -exec ls -1t '{}' + \
+      | head -n"$p_n_files")"
   fi
+
+  printf -v "$p_output_var_name" '%s' "$result"
 }
 
 ##

@@ -178,4 +178,27 @@ Unrun stays unverified. After `git mv`:
 - [ ] `asc/builder/code/` as data; `.asc_objects_ignore` only if immediate valid `*.sh` appears.
 - [ ] Grep for `prototype-build` / `template-hydrate` / `builder-` callers before adding `ASC_SYNONYMS`. Skip if none.
 - [ ] Add `asc/builder/template.able.yml` and `asc/builder/literal.able.yml` from the sketches above (stubs). Do **not** put `*.able.yml` under the `template/` object dir. Do **not** invent `literal/`. Do **not** wire a YAML loader. Do **not** fill hydrate/build `TODO` in the same PR.
+- [x] Detail plan for `instance/generate.sh` (2026-09-22). No code.
 - [ ] `make reinit` then `make test-core`.
+
+---
+
+## `instance/generate.sh` (detail, no code)
+
+**Today:** `asc/extensions/builder/instance/generate.sh` is an **empty** discovered pivot (`make builder-instance-generate`). After the kernel move it is `asc/builder/instance/generate.sh` → same pivot name under heuristic A (`builder-instance-generate`).
+
+**Job (when a later session fills it):** emit one ASC project-instance scaffold under a caller-chosen dest (new `$PROJECT_DOCROOT` or a named sub-tree). It is the **instance** object’s generate action, not template hydrate and not prototype build.
+
+| Step | Call / shape | Notes |
+|------|----------------|-------|
+| 1. Parse args | dest path + optional stack/profile id | Fail closed if dest exists and is non-empty. No new global. |
+| 2. Choose payload | `asc/builder/template/core/` (after move) | Folder template. Do **not** invent a second scaffold tree. |
+| 3. Substitute | `builder-template-hydrate` / `literal.able` tools | Path + body tokens from the sketches above. Generate does **not** reimplement `{{ slot }}`. |
+| 4. Write | under dest | Include minimal `env.yml` / ignore stubs only if the template already carries them. |
+| 5. Optional follow-up | print `cd dest && make setup` | Do not run setup/init from generate unless a later approved task says so. |
+
+**Not this script:** kernel `git mv`, filling `template/hydrate.sh` TODOs, entity “builder code entity”, writing `*.able.yml` loaders, host-scan / instance discover.
+
+**Tests (when filled):** fixture dest under `mktemp`; generate writes expected `$subject/$action.sh` from a trimmed template subset; second run on non-empty dest fails; `make test-core` still green. Unrun stays unverified.
+
+**Order:** fill generate **after** the `git mv` and stub able files, and **after** hydrate can substitute at least filename tokens. Empty file stays until then.

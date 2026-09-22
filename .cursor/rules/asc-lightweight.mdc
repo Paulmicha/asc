@@ -49,6 +49,10 @@ Each proposal must make the nearby human text **lighter or clearer**, not larger
 ✅ Changelog / docs / plans for the long form (not README)
 ```
 
+## Human approval (`gates.yml`)
+
+A changelog that needs a human decision gets a row in root `gates.yml` with a glanceable `summary` (one or two short sentences). Agents do not implement until that row is approved per the file’s `go` rules. Once implemented, remove the row. Deprecations: write a dedicated `changelog/YYYY/MM/DD-….md` (pros/cons, recommendation), then a gates row — do not implement from the changelog alone. Match the existing registry shape; do not invent a second format.
+
 ## Any ASC tree (core, ext, contrib, instance)
 
 Ship the smallest thing that still works. Prefer fewer files, fewer always-sourced lines, fewer wrappers.

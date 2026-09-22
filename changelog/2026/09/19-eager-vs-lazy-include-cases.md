@@ -3,10 +3,10 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-19 |
-| **Status** | **pick A locked** (2026-09-20). Nested `$extension/$subject/$action.sh` uses **caller-dir** opt-inc (`db/db/db.opt-inc.sh`). Caller opt-inc does **not** load `$extension/$extension.opt-inc.sh`. Coverage: `asc/test/core/caller_opt_inc.test.sh` (`make test-core`). Three filenames, two loaders (`*.inc.sh` / `*.opt-inc.sh` / `*.manual-inc.sh`); [21-manual-inc.md](./21-manual-inc.md). Root README Recap applied (eager/lazy rows in root README). Function move still later. |
+| **Status** | **pick A locked** (2026-09-20). Nested `$extension/$subject/$action.sh` uses **caller-dir** opt-inc (`db/db/db.opt-inc.sh`). Caller opt-inc does **not** load `$extension/$extension.opt-inc.sh`. Coverage: `asc/test/core/caller_opt_inc.test.sh` (`make test-core`). Three filenames, two loaders (`*.inc.sh` / `*.opt-inc.sh` / `*.manual-inc.sh`); [21-manual-inc.md](./21-manual-inc.md). Root README Recap applied (eager/lazy rows in root README). Case-table *planned* rows → **on disk** / skipped (2026-09-22). Function move still later. |
 | **Scope** | Document **every** auto-loader case. Examples from `asc/core/utils/fs.manual-inc.sh`, `asc/extensions/db`, `scripts/asc/contrib/asc/mysql`, `pgsql`, `arcadedb`, plus the two **existing** db-related opt-incs. Do **not** use `asc/extensions/software` or `asc/host/provision.sh`. |
 | **Parent** | [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) |
-| **Follows** | [19-fs-archive-lazy-include.md](./19-fs-archive-lazy-include.md), [19-db-thin-inc-and-opt-inc.md](./19-db-thin-inc-and-opt-inc.md), [19-mysql-pgsql-hook-opt-inc.md](./19-mysql-pgsql-hook-opt-inc.md) create the rows marked *planned*. |
+| **Follows** | [19-fs-archive-lazy-include.md](./19-fs-archive-lazy-include.md), [19-db-thin-inc-and-opt-inc.md](./19-db-thin-inc-and-opt-inc.md), [19-mysql-pgsql-hook-opt-inc.md](./19-mysql-pgsql-hook-opt-inc.md) landed the rows that were *planned*; mysql/pgsql contrib opt-incs stay **skipped**. |
 
 `$` in this file is the ASC docs placeholder (`$subject` / `$object` / `$action` / `$extension`), not a shell variable.
 
@@ -42,7 +42,7 @@ Putting dump helpers in `asc/extensions/db/db.opt-inc.sh` (beside the eager incl
 
 ## Case table
 
-Legend: **on disk** = file exists today. **planned** = filename the follow-up sub-plans will add. **absent** = illustrates a loader case; file must not be invented just for the table (ArcadeDB).
+Legend: **on disk** = file exists today. **skipped** = mechanism example; no file (mysql/pgsql hooks stay self-contained). **absent** = illustrates a loader case; file must not be invented just for the table (ArcadeDB).
 
 | Bootstrapping context | Type | File | Sourced | Why |
 |-----------------------|------|------|---------|-----|
@@ -90,4 +90,4 @@ Legend: **on disk** = file exists today. **planned** = filename the follow-up su
 
 - [x] Agree the table (especially: skip per-action `dump.opt-inc.sh` in favor of subject-wide `db.opt-inc.sh`; 3-level example = `instance/registry` not `host/provision`). **Pick A:** caller-dir only; no extension-root auto-load. Tests: `asc/test/core/caller_opt_inc.test.sh`.
 - [x] README Recap: 3–5 rows (applied in root README). Do not paste this matrix.
-- [ ] After remaining-core waves, change leftover *planned* rows to **on disk**. Mysql/pgsql contrib opt-incs **skipped**.
+- [x] After remaining-core waves, change leftover *planned* rows to **on disk**. Mysql/pgsql contrib opt-incs **skipped**. Evidence: `asc/extensions/db/db/db.opt-inc.sh`, `asc/extensions/remote_db/remote/remote.opt-inc.sh`, `asc/extensions/remote_instance/db/db.opt-inc.sh`, `asc/core/utils/fs.opt-inc.sh` / `fs_compression.manual-inc.sh` / `fs_sync.manual-inc.sh`; no mysql/pgsql contrib `db.opt-inc.sh`.

@@ -3,10 +3,10 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-07-31 |
-| **Status** | partial implementation — waves 1–3 done |
+| **Status** | partial implementation — waves 1–8 done (2026-09-22). Remaining open: `eval` / `f_yaml_parse` design (separate, unapproved). Bootstrap `global.vars.sh` captures deferred (category G). |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — subshell usages that capture function/command output, as candidates for the output-variable / `printf -v` pattern |
 | **Related** | `asc/core/utils/str/str.opt-inc.sh` (`f_str_convert_tokens`, lines 143–144); `asc/core/utils/fs/fs.opt-inc.sh` (`f_fs_get_file_contents`, line 287); `changelog/2026/07/23-f-e-naming-convention.md` (`f_*` naming) |
-| **Lifecycle** | Waves 1–3 migrated 2026-07-31. Remaining waves stay focused; do **not** treat this file as permission for a repo-wide mechanical rewrite. |
+| **Lifecycle** | Waves 1–8 migrated by 2026-09-22. Remaining open work is the separate `eval` / `f_yaml_parse` design (unapproved) and deferred bootstrap `global … "$(f_*)"` literals (category G). Do **not** treat this file as permission for a repo-wide mechanical rewrite. |
 
 ---
 
@@ -327,11 +327,11 @@ Not `f_*` captures, but common in ASC — usually **not** `printf -v` candidates
 1. ~~**Leaf scalars with highest fan-out:** `f_software_scalar`, `f_cron_scalar`, `f_test_results_root`~~ **done**
 2. ~~**Str utilities with existing TODO:** `f_str_append_once`, `f_str_sed_escape`, `f_str_trim`, then fix `fs.opt-inc.sh` callers~~ **done**
 3. ~~**Path constants:** `f_cron_project_marker`, `f_software_managed_path`, `f_hook_resolve_source_path`~~ **done** (also `f_software_expand_path`)
-4. **Status enums:** `f_software_*_status`
-5. **Filesystem:** `f_fs_get_most_recent` → unblock `f_db_get_dump` chain
-6. **Host/shell:** `f_print_current_user`, `f_host_os`, `f_host_ip`, `f_str_slug`
-7. **Git wrappers:** collapse double subshell in `f_git_get_*`
-8. **Test helpers:** batch in `test.inc.sh` (remaining: case stem / make target / runner path / manifest)
+4. **Status enums:** `f_software_*_status` → **done** (2026-09-22). Optional last arg + defaults `software_apt_status` / `software_pipx_status` / … Callers in `provision.opt-inc.sh` use output vars (no `$(f_software_*_status …)`).
+5. **Filesystem:** `f_fs_get_most_recent` → **done** (2026-09-22). 5th arg output var (default `fs_most_recent`). Unblocks `f_db_get_dump` / restore / remote upload callers.
+6. **Host/shell:** `f_print_current_user`, `f_host_os`, `f_host_ip` → **done** (2026-09-22). `f_str_slug` was already output-var. Bootstrap `global HOST_OS "$(f_host_os)"` / traefik `TRAEFIK_SYSTEMD_USER` stay category G.
+7. **Git wrappers:** `f_git_get_staged_files` / `f_git_get_unmerged_paths` → **done** (2026-09-22). Collapse `echo "$(f_git_wrapper …)"`; 3rd arg output var.
+8. **Test helpers:** batch helpers in `test.opt-inc.sh` → **done** (2026-09-22). `f_test_case_*` / `f_test_batch_dir_from_script` / `f_test_read_manifest_cases`; `make/generate.sh` updated.
 9. **Defer:** `f_yaml_parse` / eval family, `f_remote_exec_wrapper`, bootstrap `global.vars.sh` literals
 
 ### Waves 1–3 implementation notes (2026-07-31)
@@ -340,17 +340,29 @@ Not `f_*` captures, but common in ASC — usually **not** `printf -v` candidates
 - Cron codegen: monitor exports precomputed then embedded as `${monitor_*}` (no live `$(f_cron_scalar …)` in generated `data/asc/cron/*.sh`).
 - Post-wave audit: migrated symbols have **zero** `$(f_*` capture sites; remaining high-count captures are mostly `f_fs_get_most_recent` (12) and `f_yaml_parse` (10).
 
+### Wave 4 implementation notes (2026-09-22)
+
+- `f_software_apt_status` / `pipx` / `tarball` / `appimage` / `ensure` / `unit` write via `printf -v`.
+- Tests: `test_f_software_status_output_vars` in `asc/test/core/utilities.test.sh`.
+
+### Waves 5–8 implementation notes (2026-09-22)
+
+- Wave 5: `f_fs_get_most_recent`; test `test_f_fs_dir_file_list_and_most_recent`.
+- Wave 6: `f_print_current_user` / `f_host_os` / `f_host_ip`; test `test_f_host_os_and_ip_output_vars`. Bootstrap globals deferred.
+- Wave 7: git staged/unmerged; wave 8: test case helpers — `test_f_git_and_test_helper_output_vars`.
+
 ---
 
 ## Open tasks
 
 - [x] Agree output-param naming convention extension-wide (optional last arg + fixed default name; match `f_str_lowercase`)
 - [x] Pilot: migrate `f_cron_scalar` + `f_software_scalar` (largest payoff)
-- [ ] Add shunit2 cases asserting output-var paths for migrated scalars
+- [x] Add shunit2 cases asserting output-var paths for migrated scalars
 - [ ] Design replacement for `eval "$(f_yaml_parse …)"` (separate from `printf -v` work)
 - [x] Update `f_str_append_once` / `f_str_sed_escape` docblocks — remove TODO once migrated
 - [x] Re-run ripgrep audit after waves 1–3: `rg '\$\(f_' --glob '*.sh' | rg -v vendor`
-- [ ] Continue waves 4–8 in focused passes
+- [x] Wave 4: status enums (`f_software_*_status`)
+- [x] Waves 5–8: `f_fs_get_most_recent`, host/shell, git get_*, test case helpers
 
 ---
 

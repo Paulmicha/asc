@@ -78,7 +78,11 @@ f_thread_yml_write() {
   mkdir -p data/threads
 
   y_sc_dict[entry]="${ASC_THREAD_ENTRY:-${thread_entry:-$p_entry}}"
-  y_sc_dict[owner]="${ASC_THREAD_OWNER:-${thread_owner:-$(f_print_current_user)}}"
+  local _thread_owner="${ASC_THREAD_OWNER:-${thread_owner:-}}"
+  if [[ -z "$_thread_owner" ]]; then
+    f_print_current_user '_thread_owner'
+  fi
+  y_sc_dict[owner]="$_thread_owner"
   y_sc_dict[uid]="${ASC_THREAD_UID:-${thread_uid:-$(id -u)}}"
   y_sc_dict[euid]="${ASC_THREAD_EUID:-${thread_euid:-${EUID:-$(id -u)}}}"
   y_sc_dict[run_as]="${ASC_THREAD_RUN_AS:-${thread_run_as:-$(id -un)}}"

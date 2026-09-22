@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-10 |
-| **Status** | plan (corrected: contracts vs types; discovery → cache → load). Tasks 1–7 done (`f_entity_load` cache path, discover, generate, `post_init.hook.sh`, type-aware spec getters, `f_remote_instance_load` wrap). Task 8 unstarted (README). Not in the 2026-09-19 lazy-include order. |
+| **Status** | plan (corrected: contracts vs types; discovery → cache → load). Tasks 1–7 done (`f_entity_load` cache path, discover, generate, `post_init.hook.sh`, type-aware spec getters, `f_remote_instance_load` wrap). Task 8 README proposal: 2026-09-22 host-fixture table (type / instance / cache for `foobar.home.arpa`); awaits human accept. Not in the 2026-09-19 lazy-include order. |
 | **Scope** | README `#### Instanciation`: implement the missing functions that (1) discover entity **types**, (2) discover concrete **instances**, (3) generate **cached** instances for `f_entity_load`. First consumer: replace the body of `f_remote_instance_load()`. |
 | **SoT** | Root `README.md` § Entities. Stub already started: `asc/extensions/entity/entity.inc.sh`. Fixture: `data/entities/host/foobar.home.arpa.yml`. |
 | **Not this file** | Treating `sidecar.able` as an entity type or filling `*.able.yml` as if they were `*.entity.yml`; full `include` / `override` / `alter` / `append` schema merger; Linking vs Nesting; DB storage; `dirs.yml`; enabling `remote` in this repo’s ignore file. |
@@ -726,29 +726,12 @@ EOF
 **Files:**
 - Modify: `README.md` Instantiation bullets only (do not rewrite Contracts)
 
-- [ ] **Step 1: Name the functions next to the four discovery bullets**
+- [x] **Step 1: Name the functions next to the four discovery bullets**
 
-After the existing numbered list, add that init calls `f_entity_types_discover`, `f_entity_instances_discover`, `f_entity_cache_generate_all`, and that `f_entity_load <type> <id>` sources `data/asc/cache/entities/<type>/<id>.sh`.
+Proposal already in root README (`&lt;proposal-2026-09-20&gt;` Instantiation table). 2026-09-22 addendum: accept that table and drop the three preceding TODOs (`f_remote_instance_load` is already `f_entity_load remote_instance <id>` in `asc/extensions/remote/remote.inc.sh`).
 
-Replace `TODO replace f_remote_instance_load` with: it is a wrapper: `f_entity_load remote_instance <id>`.
-
-Add the host fixture example (`HOST_HOSTNAME` from filename map). Leave Linking as TODO.
-
-Keep the wording **sidecar.able** as a contract that types include — never as a type name.
-
-- [ ] **Step 2: TOC only if headings changed** — `asc/doc/md_toc.sh README.md` if needed.
-
+- [x] **Step 2: TOC only if headings changed** — headings unchanged; no TOC rewrite.
 - [ ] **Step 3: Commit** (only if the user asked)
-
-```bash
-git add README.md
-git commit -m "$(cat <<'EOF'
-docs: name entity discover/cache/load functions in Instantiation
-
-EOF
-)"
-```
-
 ---
 
 ## Verification

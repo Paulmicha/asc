@@ -27,7 +27,7 @@ if [[ ! -f "$log_file_sidecar" ]]; then
 fi
 
 datestamp="$(date +"%Y-%m-%dT%H:%M:%S.%3N")"
-human_user="$(f_print_current_user)"
+f_print_current_user 'human_user'
 echo "$datestamp : $human_user (euid=$(id -u)) : $p_script $*" >> "$log_file_sidecar"
 
 # Write wrapped call outputs (2>&1) to the $log_file.

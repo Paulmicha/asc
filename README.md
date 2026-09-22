@@ -384,6 +384,12 @@ Here are a few examples to illustrate how this works :
 
 An **extension point** (noted "ext.point" in the *File structure* section, or `$extension`, or just `$ext`) designates folders containing *active dir(s)* (see below). It's possible to exclude some sub-folders from the detection mechanism (during *(re)init*) using `.asc_subjects_ignore` files, which are essentially `.gitignore` files for ASC discovery.
 
+&lt;proposal-2026-09-22&gt;
+
+`.asc_subjects_ignore` = names that must **not** become subjects. Do **not** add `$subject/.asc_extensions` (positive nest list never loaded; superseded by `$subject/$object/$action`). See [22-deprecate-subject-asc-extensions.md](changelog/2026/09/22-deprecate-subject-asc-extensions.md).
+
+&lt;/proposal-2026-09-22&gt;
+
 **List of extension points** (lookup order, Core → Extension → Specifics) :
 
 1. `./asc` — Core
@@ -1137,27 +1143,30 @@ Entities are discovered using the following lookup mechanism. It runs for all (e
 
 Once the local ASC project instance is initialized, any operation that interacts with one or more concrete entities can have their field values loaded in the shell scope of the entry point used using `f_entity_load()`.
 
-TODO replace the existing `f_remote_instance_load()` implementation with this system.
+##### Example of a concrete entity discovery → cache → load
 
-TODO detailed example using a "concrete" host entity *instance* : `data/entities/host/foobar.home.arpa.yml`
+(re)init lanches in that order :
 
-TODO evaluate the following edit proposal :
+- `f_entity_types_discover`
+- `f_entity_instances_discover`
+- `f_entity_cache_generate_all`
 
-&lt;proposal-2026-09-20&gt;
+TODO decide on synonyms or keep distinct the following concepts to be referenced in prose notations : `$skill.able.yml`, `$tool.able.yml`, etc. This will determine the pivots names and arguments structure to be implemented in ASC core "agent" extension. The ASC contrib implementations live in contrib extensions like cursor, codex, claude, ollama.
 
-During instance (re)init: `f_entity_types_discover`, then `f_entity_instances_discover`, then `f_entity_cache_generate_all`. Types that include the **sidecar.able** contract store each instance as YAML under `data/entities/<type>/`. **sidecar.able** is a contract, never a type name.
+&lt;proposal-2026-09-22&gt;
 
-| Call | Result |
-|------|--------|
-| `f_entity_types_discover` | Index `*.entity.yml` in active dirs |
-| `f_entity_instances_discover` | Index concrete instances of those types |
-| `f_entity_cache_generate_all` | Write `data/asc/cache/entities/<type>/<id>.sh` |
-| `f_entity_load <type> <id>` | Source that cache file |
-| `f_remote_instance_load <id>` | Wrapper: `f_entity_load remote_instance <id>` |
+**sidecar.able** is a contract, never a type name.
 
-Host fixture `data/entities/host/foobar.home.arpa.yml`: `HOST_HOSTNAME` from the filename map.
+Load: `f_entity_load host foobar.home.arpa`. `f_remote_instance_load` wraps `f_entity_load remote_instance <id>`. Same `include: host.entity` shape: `asc/extensions/remote/host/remote_host.entity.yml`.
 
-&lt;/proposal-2026-09-20&gt;
+
+| Kind | Path | On disk |
+|------|------|---------|
+| Type | `asc/host/host.entity.yml` | `include: sidecar.able`; `map.hostname: filename`; `required.field.hostname` |
+| Instance | `data/entities/host/foobar.home.arpa.yml` | `include: host.entity` |
+| Cache | `data/asc/cache/entities/host/foobar.home.arpa.sh` | `HOST_ID` / `HOST_HOSTNAME` = `foobar.home.arpa` |
+
+&lt;/proposal-2026-09-22&gt;
 
 #### Linking, adressing (relationships, references)
 
@@ -1680,7 +1689,7 @@ asc/instance/rebuild.sh
   │   ├── env/                ← core global.vars.sh + helpers
   │   ├── extensions/         ← bundled extensions (opt-in via ignore file)
   │   │   ├── $ext/           ← [$subject/$action ext.point] core asc extension
-  │   │   │   ├── .asc_subjects_ignore  ← [nested $ext] submodule(s) (recursive)
+  │   │   │   ├── .asc_subjects_ignore  ← [$subject/$action ext.point] blacklisted subfolder(s)
   │   │   │   └── ...
   │   │   ├── .asc_extensions_ignore  ← default blacklisted core asc extensions
   │   │   └── ...

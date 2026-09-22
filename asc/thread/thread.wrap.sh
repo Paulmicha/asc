@@ -87,7 +87,7 @@ if grep -q '@requires sudoing' "$p_script_real" 2>/dev/null; then
 fi
 
 p_args="$*"
-p_owner="$(f_print_current_user)"
+f_print_current_user 'p_owner'
 p_uid="$(id -u)"
 p_euid="${EUID:-$p_uid}"
 p_run_as="$(id -un)"

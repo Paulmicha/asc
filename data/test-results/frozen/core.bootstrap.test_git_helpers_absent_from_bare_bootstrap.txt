@@ -1,0 +1,5 @@
+test_git_helpers_absent_from_bare_bootstrap
+
+Ran 13 tests.
+
+OK

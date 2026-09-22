@@ -708,7 +708,7 @@ f_instance_domain() {
   local p_local_host_name="$1"
 
   if [[ -z "$p_local_host_name" ]]; then
-    p_local_host_name="$(f_host_ip)"
+    f_host_ip 'p_local_host_name'
   fi
 
   case "$p_local_host_name" in "192.168."*)

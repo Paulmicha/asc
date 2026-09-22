@@ -91,17 +91,24 @@ f_host_crontab_remove() {
 #
 # See https://github.com/hbons/Dazzle/blob/master/dazzle.sh
 #
+# @param 1 [optional] String : output var name (default: host_ip).
+#
 f_host_ip() {
+  local p_output_var_name="${1:-host_ip}"
+  local result
+
   # Fetch the external IP address :
   # 1. fetch all inet addresses (IPv4)
   # 2. select only global scope addresses
   # 3. extract the address
   # 4. limit the list to the first address to get only one IP in case the server has more than one
-  ip -f inet addr \
+  result="$(ip -f inet addr \
     | grep "inet .* scope global" \
     | grep -Po "inet ([\d+\.]+)" \
     | cut -c 6- \
-    | head -n1
+    | head -n1)"
+
+  printf -v "$p_output_var_name" '%s' "$result"
 }
 
 ##
@@ -111,9 +118,13 @@ f_host_ip() {
 #
 # See https://unix.stackexchange.com/a/6348
 #
+# @param 1 [optional] String : output var name (default: host_os).
+#
 f_host_os() {
+  local p_output_var_name="${1:-host_os}"
   local os=''
   local version=''
+  local result
 
   # freedesktop.org and systemd
   if [ -f /etc/os-release ]; then
@@ -154,7 +165,9 @@ f_host_os() {
   # Prevent '-gnu-linux' in OS name.
   os=${os/-gnu-linux/""}
 
-  echo "$os-$version" | tr '[:upper:]' '[:lower:]'
+  result="${os}-${version}"
+  result="${result,,}"
+  printf -v "$p_output_var_name" '%s' "$result"
 }
 
 ##
