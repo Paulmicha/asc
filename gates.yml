@@ -20,8 +20,8 @@
 # is yes, lane is sequential or parallel, and (for sequential) every lower
 # order in that lane already has go yes. discuss and held stay no.
 #
-# summary is one sentence. It is enough to approve the row without opening
-# the changelog.
+# summary is one or two short sentences. It is enough to approve the row
+# without opening the changelog.
 #
 # $ in comments here is the ASC placeholder ($subject / $action), not a shell variable.
 #
@@ -29,149 +29,42 @@
 source: NEXT_STEPS.agent.md
 
 gates:
-  - changelog: changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md
-    lane: sequential
-    order: 1
-    task: "Then Wave C: git as next ASC_INC subject."
-    summary: "Git helpers leave the eager bootstrap list and live in git.opt-inc.sh."
-    approved: "yes"
-    go: "yes"
-
-  - changelog: changelog/2026/09/19-eager-vs-lazy-include-cases.md
-    lane: sequential
-    order: 2
-    task: "After remaining-core waves, change leftover planned rows to on disk."
-    summary: "After the lazy waves, mark leftover planned include rows as on disk."
-    approved: "yes"
-    go: "yes"
-
   - changelog: changelog/2026/09/11-lazy-opt-inc-and-entry-point-extraction.md
     lane: sequential
-    order: 3
+    order: 1
     task: "Optional: measure wrap vs action bootstrap cost."
-    summary: "Measure wrap versus action bootstrap cost before thinning call_wrap."
+    summary: "Time how costly the wrap process (`call_wrap.make.sh`) is versus the action process bootstrap before thinning what wrap sources. Approving only authorizes that measurement; it does not change `call_wrap` yet."
     approved: "no"
     go: "no"
 
   - changelog: changelog/2026/07/31-subshell-printf-v-candidates.md
     lane: parallel
     order: 1
-    task: "Add shunit2 cases asserting output-var paths for migrated scalars."
-    summary: "Add tests for the output-var paths already migrated off subshells."
-    approved: "yes"
-    go: "yes"
-
-  - changelog: changelog/2026/07/31-subshell-printf-v-candidates.md
-    lane: parallel
-    order: 2
     task: "Design replacement for eval f_yaml_parse. Separate from printf -v."
-    summary: "Design a replacement for eval of f_yaml_parse, separate from printf -v."
-    approved: "no"
-    go: "no"
-
-  - changelog: changelog/2026/07/31-subshell-printf-v-candidates.md
-    lane: parallel
-    order: 3
-    task: "Continue waves 4-8 in focused passes."
-    summary: "Continue the printf -v migration in focused passes, not a repo-wide rewrite."
+    summary: "Design how callers stop using eval of f_yaml_parse (about ten sites) without treating it as another printf -v pass. Approving is design only; keep eval until a later implementation go-ahead."
     approved: "yes"
     go: "yes"
-
-  - changelog: changelog/2026/07/24-subject-asc-extensions.md
-    lane: discuss
-    order: 1
-    task: "Plan / review. Open conflict with the root README."
-    summary: "Review nest discovery. It still conflicts with the root README."
-    approved: "yes"
-    go: "yes"
-    feedback: "Write changes to the main README.md inside the proposal delimiters."
 
   - changelog: changelog/2026/07/24-yml-structure.md
     lane: discuss
     order: 1
     task: "Plan / review. Not an implementation go-ahead."
-    summary: "Review the YAML structure plan. It is not a go-ahead to implement loaders."
-    approved: "no"
-    go: "no"
+    summary: "Review the plan for YAML body conventions (`*.able.yml`, `*.entity.yml`, includes, wrap sketches). Approving accepts or amends that plan for discussion; it does not authorize implementing loaders or schema merge."
+    approved: "yes"
+    go: "yes"
 
   - changelog: changelog/2026/07/31-nameref-clarity-candidates.md
     lane: discuss
     order: 1
     task: "Inventory. Docs only."
-    summary: "Nameref rewrites stay an inventory until a pilot is approved."
+    summary: "Keep the nameref clarity inventory as docs only (suffix renames already landed). Approving a later pilot would allow focused `declare -n` migrations; this row is not that go-ahead and forbids a repo-wide rewrite."
     approved: "no"
     go: "no"
 
-  - changelog: changelog/2026/09/10-begin-entity-system-with-remote-instances.md
+  - changelog: changelog/2026/09/22-deprecate-subject-asc-extensions.md
     lane: discuss
     order: 1
-    task: "Task 8 README pass. Tasks 1-7 are done."
-    summary: "Entity discovery tasks 1-7 are done. What remains is the README pass."
+    task: "Deprecate `$subject/.asc_extensions` positive-list (docs/plan only)."
+    summary: "Drop the `$subject/.asc_extensions` positive-list declaration from docs/plan; do not add a nest loader. Approving accepts that deprecation; keep `.asc_subjects_ignore`; runtime already does not read `$subject/.asc_extensions`."
     approved: "yes"
     go: "yes"
-
-  - changelog: changelog/2026/09/20-builder-kernel-subject.md
-    lane: discuss
-    order: 1
-    task: "Later. No code."
-    summary: "Later proposal to make builder one kernel subject. No code yet."
-    approved: "yes"
-    go: "yes"
-    feedback: "asc/extensions/builder/instance/generate.sh should be planned in detail."
-
-  - changelog: changelog/2026/09/20-host-scan-project-instances.md
-    lane: discuss
-    order: 1
-    task: "Later. No code."
-    summary: "Later proposal to list ASC project instances on this host. No code yet."
-    approved: "yes"
-    go: "yes"
-    feedback: "asc/instance/discover.sh should be planned in detail. It must scan and store a local registry of host-level ASC project instances across the local machine and LAN hardware."
-
-  - changelog: changelog/2026/07/31-array-dict-naming-plan.md
-    lane: held
-    order: 1
-    task: "Historical checkboxes. Do not re-run."
-    summary: "Array and dict renames already landed. Open boxes are historical."
-    approved: "no"
-    go: "no"
-
-  - changelog: changelog/2026/09/04-pdf-generation-improvements.md
-    lane: held
-    order: 1
-    task: "Historical checkboxes. Do not re-run."
-    summary: "Markdown to PDF is shipped. Open boxes in that note are historical."
-    approved: "no"
-    go: "no"
-
-  - changelog: changelog/2026/09/11-bootstrap-cache-layout-and-invalidation.md
-    lane: held
-    order: 1
-    task: "Historical checkboxes. Do not re-run."
-    summary: "Bootstrap stamp and cache layout are shipped. Later boxes stay later."
-    approved: "no"
-    go: "no"
-
-  - changelog: changelog/2026/09/12-subject-object-action-entry-points.md
-    lane: held
-    order: 1
-    task: "Historical checkboxes. Do not re-run."
-    summary: "Subject, object, and action discovery is shipped."
-    approved: "no"
-    go: "no"
-
-  - changelog: changelog/2026/09/17-pdf-graphviz-support.md
-    lane: held
-    order: 1
-    task: "Historical checkboxes. Do not re-run."
-    summary: "Graphviz fences in the print pipeline are shipped."
-    approved: "no"
-    go: "no"
-
-  - changelog: changelog/2026/09/20-meadows-plan-review-feedback-loop.md
-    lane: held
-    order: 1
-    task: "Skipped. Do not re-run."
-    summary: "The meadows review loop is skipped. Do not re-run it."
-    approved: "no"
-    go: "no"
