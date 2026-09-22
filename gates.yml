@@ -1,0 +1,153 @@
+##
+# Human approval registry for NEXT_STEPS.agent.md.
+#
+# Project-docroot hook data. Same lookup as env.yml: dry-run, custom suffix
+# yml, -r. Rung 4 wins. The file is not sourced and is not loaded into globals.
+#
+#   hook_ms 'dry-run' -s 'doc' -a 'gates' -c 'yml' \
+#     -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE' -r
+#
+# Variant files, if present, replace this one (later / more specific wins),
+# same list as env.yml:
+#   gates.$INSTANCE_TYPE.yml
+#   gates.$STACK_VERSION.yml
+#   gates.$HOST_TYPE.$INSTANCE_TYPE.yml
+#   gates.$STACK_VERSION.$HOST_TYPE.yml
+#   gates.$STACK_VERSION.$INSTANCE_TYPE.yml
+#   gates.$STACK_VERSION.$HOST_TYPE.$INSTANCE_TYPE.yml
+#
+# A task may go ahead only when go is yes. Set go to yes only when approved
+# is yes, lane is sequential or parallel, and (for sequential) every lower
+# order in that lane already has go yes. discuss and held stay no.
+#
+# $ in comments here is the ASC placeholder ($subject / $action), not a shell variable.
+#
+
+source: NEXT_STEPS.agent.md
+
+gates:
+  - changelog: changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md
+    lane: sequential
+    order: 1
+    task: "Then Wave C: git as next ASC_INC subject."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/09/19-eager-vs-lazy-include-cases.md
+    lane: sequential
+    order: 2
+    task: "After remaining-core waves, change leftover planned rows to on disk."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/09/11-lazy-opt-inc-and-entry-point-extraction.md
+    lane: sequential
+    order: 3
+    task: "Optional: measure wrap vs action bootstrap cost."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/07/31-subshell-printf-v-candidates.md
+    lane: parallel
+    order: 1
+    task: "Add shunit2 cases asserting output-var paths for migrated scalars."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/07/31-subshell-printf-v-candidates.md
+    lane: parallel
+    order: 2
+    task: "Design replacement for eval f_yaml_parse. Separate from printf -v."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/07/31-subshell-printf-v-candidates.md
+    lane: parallel
+    order: 3
+    task: "Continue waves 4-8 in focused passes."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/07/24-subject-asc-extensions.md
+    lane: discuss
+    order: 1
+    task: "Plan / review. Open conflict with the root README."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/07/24-yml-structure.md
+    lane: discuss
+    order: 1
+    task: "Plan / review. Not an implementation go-ahead."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/07/31-nameref-clarity-candidates.md
+    lane: discuss
+    order: 1
+    task: "Inventory. Docs only."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/09/10-begin-entity-system-with-remote-instances.md
+    lane: discuss
+    order: 1
+    task: "Task 8 README pass. Tasks 1-7 are done."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/09/20-builder-kernel-subject.md
+    lane: discuss
+    order: 1
+    task: "Later. No code."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/09/20-host-scan-project-instances.md
+    lane: discuss
+    order: 1
+    task: "Later. No code."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/07/31-array-dict-naming-plan.md
+    lane: held
+    order: 1
+    task: "Historical checkboxes. Do not re-run."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/09/04-pdf-generation-improvements.md
+    lane: held
+    order: 1
+    task: "Historical checkboxes. Do not re-run."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/09/11-bootstrap-cache-layout-and-invalidation.md
+    lane: held
+    order: 1
+    task: "Historical checkboxes. Do not re-run."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/09/12-subject-object-action-entry-points.md
+    lane: held
+    order: 1
+    task: "Historical checkboxes. Do not re-run."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/09/17-pdf-graphviz-support.md
+    lane: held
+    order: 1
+    task: "Historical checkboxes. Do not re-run."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/09/20-meadows-plan-review-feedback-loop.md
+    lane: held
+    order: 1
+    task: "Skipped. Do not re-run."
+    approved: "no"
+    go: "no"

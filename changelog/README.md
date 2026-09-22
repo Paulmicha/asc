@@ -8,7 +8,7 @@ Files: `YYYY/MM/DD-short-label.md`. Each file starts with a status table. `$` in
 
 ## Current frontier (2026-09-21)
 
-Live work is leftover core lazy waves after fs+db+yaml. Meadows loop **skipped**. Eager/lazy **working table** (not SoT — root README is): [2026/09/19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md). `*.manual-inc.sh` **implemented**. Entity discovery is a separate unstarted plan. Print/PDF is shipped.
+Live work is leftover core lazy waves after fs+db+yaml. Meadows loop **skipped**. Eager/lazy **working table** (not SoT — root README is): [2026/09/19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md). `*.manual-inc.sh` **implemented**. Entity discovery is a separate unstarted plan. Print/PDF is shipped. Agent queue: [`NEXT_STEPS.agent.md`](../NEXT_STEPS.agent.md), refreshed by `asc/doc/next_steps.sh`. Discussion: [`NEXT_STEPS.md`](../NEXT_STEPS.md). Go-ahead: [`gates.yml`](../gates.yml).
 
 ## 2026-09
 
@@ -31,6 +31,7 @@ Live work is leftover core lazy waves after fs+db+yaml. Meadows loop **skipped**
 | [19-db-thin-inc-and-opt-inc.md](2026/09/19-db-thin-inc-and-opt-inc.md) | Creds eager; dump/exec cluster at `db/db/db.opt-inc.sh` |
 | [19-mysql-pgsql-hook-opt-inc.md](2026/09/19-mysql-pgsql-hook-opt-inc.md) | Skipped — no shared mysql/pgsql hook helpers |
 | [21-manual-inc.md](2026/09/21-manual-inc.md) | Hardcoded includes → `*.manual-inc.sh`. Kernel four off `ASC_INC` |
+| [22-doc-next-steps.md](2026/09/22-doc-next-steps.md) | `doc-next-steps` writes `NEXT_STEPS.agent.md`; `NEXT_STEPS.md` stays human |
 
 ### Live (do not implement as one PR)
 
@@ -38,7 +39,7 @@ Live work is leftover core lazy waves after fs+db+yaml. Meadows loop **skipped**
 |------|------|
 | [11-lazy-opt-inc-and-entry-point-extraction.md](2026/09/11-lazy-opt-inc-and-entry-point-extraction.md) | Parent split + caveats (1)–(14). Keep/move/drop drill |
 | [19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md) | Two loaders, case table. **Pick A locked**. Tests: `caller_opt_inc.test.sh` |
-| [19-lazy-opt-inc-remaining-core-waves.md](2026/09/19-lazy-opt-inc-remaining-core-waves.md) | After fs+db+yaml. Next leftover: `str.inc.sh` tail |
+| [19-lazy-opt-inc-remaining-core-waves.md](2026/09/19-lazy-opt-inc-remaining-core-waves.md) | After fs+db+yaml. Next leftover: Wave C `git` |
 | [20-meadows-plan-review-feedback-loop.md](2026/09/20-meadows-plan-review-feedback-loop.md) | Meta-plan. Loop skipped; hunts apply in chat |
 
 ### Later / out of that loop
@@ -46,6 +47,7 @@ Live work is leftover core lazy waves after fs+db+yaml. Meadows loop **skipped**
 | File | Role |
 |------|------|
 | [20-host-scan-project-instances.md](2026/09/20-host-scan-project-instances.md) | Catalog `$PROJECT_DOCROOT` trees on this host |
+| [22-gates-registry-alternative.md](2026/09/22-gates-registry-alternative.md) | Plan only. `gates.yml` is the registry. `reg-get` / `reg-set` YAML is not started |
 | [20-builder-kernel-subject.md](2026/09/20-builder-kernel-subject.md) | `asc/builder/` one kernel subject + `template.able` / `literal.able` sketches |
 | [20-gap-entity-not-core.md](2026/09/20-gap-entity-not-core.md) | Knowledge/task `gap` is a project instance (Projet Complexe), not core |
 | [10-begin-entity-system-with-remote-instances.md](2026/09/10-begin-entity-system-with-remote-instances.md) | Entity types → instances → cache. Stub path still wrong |
