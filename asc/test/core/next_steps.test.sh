@@ -178,14 +178,20 @@ test_gates_yml_docroot_rung() {
   assertEquals 'gates.yml wins rung 4.' 'gates.yml' "$most_specific_match"
 
   f_yaml_parse 'gates.yml' 'gate_' 'parsed'
-  grep -q 'subshell-printf-v-candidates' <<< "$parsed"
-  assertEquals 'gates.yml parses and names the printf -v changelog.' 0 "$?"
+  grep -q 'lazy-opt-inc-and-entry-point-extraction' <<< "$parsed"
+  assertEquals 'gates.yml parses and names the wrap-measure changelog.' 0 "$?"
+  grep -q 'nameref-clarity-candidates' <<< "$parsed"
+  assertEquals 'gates.yml still lists the nameref discuss row.' 0 "$?"
   grep -q 'gates__go' <<< "$parsed"
   assertEquals 'gates.yml exposes a go field.' 0 "$?"
   grep -q 'gates__summary' <<< "$parsed"
   assertEquals 'gates.yml exposes a summary field.' 0 "$?"
-  grep -q 'Continue waves' <<< "$parsed"
-  assertEquals 'waves 5-8 row is folded out of gates.yml.' 1 "$?"
+  grep -q 'subshell-printf-v-candidates' <<< "$parsed"
+  assertEquals 'printf -v / eval design row is folded out of gates.yml.' 1 "$?"
+  grep -q 'deprecate-subject-asc-extensions' <<< "$parsed"
+  assertEquals 'asc_extensions deprecation row is folded out of gates.yml.' 1 "$?"
+  grep -q 'yml-structure' <<< "$parsed"
+  assertEquals 'yml-structure discuss row is folded out of gates.yml.' 1 "$?"
 }
 
 . asc/vendor/shunit2/shunit2

@@ -34,11 +34,20 @@
 
 ## Still in `gates.yml`
 
-- Optional wrap-vs-bootstrap measure — `approved: no`.
-- `eval` / `f_yaml_parse` design — `approved: no`.
-- yml-structure + nameref discuss — `approved: no`.
+- Optional wrap-vs-bootstrap measure — `approved: no` / `go: no`.
+- Nameref clarity discuss — `approved: no` / `go: no`.
 
-No `go: "yes"` rows remain.
+No `go: "yes"` rows remain after the 2026-09-22 (second) prune.
+
+---
+
+## Follow-up prune (same day, after human push)
+
+Pulled clean `gates.yml`. Implemented three `go: "yes"` rows (docs/design only), then removed them:
+
+1. **Deprecate `$subject/.asc_extensions`** — July 24 plan → skipped/rejected; deprecation changelog → implemented; README proposal already retracted the positive list.
+2. **yml-structure** — plan status → accepted for discussion; no loaders.
+3. **`eval` / `f_yaml_parse` design** — Category C design written; keep `eval` until a later implementation row.
 
 ---
 

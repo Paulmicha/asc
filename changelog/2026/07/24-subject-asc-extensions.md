@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-07-24 |
-| **Status** | plan / review (not implemented; design lock for review) — **open conflict with root README** (see Amendment 2026-07-27) |
+| **Status** | **skipped / rejected** (2026-09-22) — positive-list nest declaration dropped; see [22-deprecate-subject-asc-extensions.md](../09/22-deprecate-subject-asc-extensions.md). Do **not** implement a `$subject/.asc_extensions` loader. Keep `.asc_subjects_ignore`. |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — how nested extension points are **declared** under any `$subject` (and under extension / contrib / extend trees); specificity weight for hooks in those nests |
 | **Related** | Idea `data/ideas/2026/07/18/extensions.md` (specificity note + extension-point scale); `data/ideas/2026/07/18/nested.md`; living `docs/asc/organization.md` § subjects; `docs/asc/wrappers.md` § nested; README extension-point lists; seed file `asc/core/.asc_extensions` (`utils`); filename-DSL nest notes in `changelog/2026/07/24-filename-dsl.md` |
 | **Lifecycle** | Local review stub: `data/plans/review/2026-07-24-subject-asc-extensions.md` (dir mostly gitignored — **this changelog is the tracked SoT**, same pattern as `24-filename-dsl.md` / `24-yml-structure.md`). Move stub across `review` → `iterate` → `accepted` / `rejected` per `data/ideas/2026/07/23/idea-changelog-workflow.md`. |
@@ -104,14 +104,11 @@ Non-goals (for now): implementing the loader change; recursive multi-level `.asc
 
 ## Open tasks
 
-- [ ] Accept or amend this plan (review → iterate). README proposals added 2026-09-22 (file-structure nest line + Active Dir subjects-ignore note).
-- [ ] Confirm runtime rule: dirs listed in `.asc_extensions` are **automatically** excluded from `ASC_*_SUBJECTS` (no mandatory duplicate line in `.asc_subjects_ignore`).
-- [ ] Confirm whether `.asc_extensions` is read only at **subject** folders that are themselves extension roots / subject roots, or also at arbitrary depth (recursive nests of nests).
-- [ ] Implement discovery in `u_asc_extend` / `u_asc_extensions` (or dedicated helper) — plan-only until go-ahead.
-- [ ] Migrate existing `.asc_subjects_ignore` nest entries → `.asc_extensions`; leave true blacklists in subjects-ignore.
-- [ ] Tests: nest declared via `.asc_extensions` aggregates primitives; most-specific weight matches parent extension point (shunit2 under `asc/test/`).
+- [x] Accept or amend this plan — **rejected** 2026-09-22 (choice **b**: object-depth + subjects-ignore only). See [22-deprecate-subject-asc-extensions.md](../09/22-deprecate-subject-asc-extensions.md).
+- [x] ~~Confirm runtime rule / nest depth / implement discovery / migrate / tests~~ — **cancelled** (plan rejected; no loader).
 - [x] Living-docs + README wording pass (proposal delimiters only, 2026-09-22); thin Cursor rule pointer if agents keep writing nests into `.asc_subjects_ignore`.
-- [ ] Cross-link from filename-DSL open item “Nested subjects / `.asc_subjects_ignore`” → this changelog once accepted.
+- [x] Cross-link: deprecation changelog is the decision SoT; this file stays historical.
+- [ ] Do not implement this plan (historical; superseded by the 2026-09-22 deprecation).
 
 ---
 
@@ -139,3 +136,9 @@ That line **conflicts** with this plan’s locked positive-list role for `$subje
 | **README raw TODO** | Once `$subject`/`$object`/`$action` discovery lands, submodule-style nest declarations may become unnecessary or wrong — possibly **drop** reliance on `.asc_extensions` for that job |
 
 **Do not implement migration either way** until that conflict is resolved in conversation (and this status line updated). Prefer a dedicated decision that either (a) keeps the positive-list lock, (b) rejects this plan in favor of object-depth discovery only, or (c) amends both (e.g. keep `.asc_extensions` for non-object nests only).
+
+---
+
+## Amendment (2026-09-22) — rejected
+
+Gates row for [22-deprecate-subject-asc-extensions.md](../09/22-deprecate-subject-asc-extensions.md) set `go: "yes"`. Decision: **(b)** — reject this positive-list plan. Runtime never read `$subject/.asc_extensions`. Keep `.asc_subjects_ignore`. Prefer `$subject/$object/$action` for three-level entry points. No nest loader.

@@ -34,22 +34,6 @@ gates:
     order: 1
     task: "Optional: measure wrap vs action bootstrap cost."
     summary: "Time how costly the wrap process (`call_wrap.make.sh`) is versus the action process bootstrap before thinning what wrap sources. Approving only authorizes that measurement; it does not change `call_wrap` yet."
-    approved: "no"
-    go: "no"
-
-  - changelog: changelog/2026/07/31-subshell-printf-v-candidates.md
-    lane: parallel
-    order: 1
-    task: "Design replacement for eval f_yaml_parse. Separate from printf -v."
-    summary: "Design how callers stop using eval of f_yaml_parse (about ten sites) without treating it as another printf -v pass. Approving is design only; keep eval until a later implementation go-ahead."
-    approved: "yes"
-    go: "yes"
-
-  - changelog: changelog/2026/07/24-yml-structure.md
-    lane: discuss
-    order: 1
-    task: "Plan / review. Not an implementation go-ahead."
-    summary: "Review the plan for YAML body conventions (`*.able.yml`, `*.entity.yml`, includes, wrap sketches). Approving accepts or amends that plan for discussion; it does not authorize implementing loaders or schema merge."
     approved: "yes"
     go: "yes"
 
@@ -58,13 +42,5 @@ gates:
     order: 1
     task: "Inventory. Docs only."
     summary: "Keep the nameref clarity inventory as docs only (suffix renames already landed). Approving a later pilot would allow focused `declare -n` migrations; this row is not that go-ahead and forbids a repo-wide rewrite."
-    approved: "no"
-    go: "no"
-
-  - changelog: changelog/2026/09/22-deprecate-subject-asc-extensions.md
-    lane: discuss
-    order: 1
-    task: "Deprecate `$subject/.asc_extensions` positive-list (docs/plan only)."
-    summary: "Drop the `$subject/.asc_extensions` positive-list declaration from docs/plan; do not add a nest loader. Approving accepts that deprecation; keep `.asc_subjects_ignore`; runtime already does not read `$subject/.asc_extensions`."
     approved: "yes"
     go: "yes"

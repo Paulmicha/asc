@@ -16,19 +16,21 @@ Wave C `git` is done (`asc/git/git.opt-inc.sh`, off `ASC_INC`). Eager case-table
 
 - [x] **Done** [19-lazy-opt-inc-remaining-core-waves.md](changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md) — `git` off `ASC_INC`.
 - [x] **Done** [19-eager-vs-lazy-include-cases.md](changelog/2026/09/19-eager-vs-lazy-include-cases.md) — leftover planned rows marked on disk / skipped.
+- [x] **Done** [22-deprecate-subject-asc-extensions.md](changelog/2026/09/22-deprecate-subject-asc-extensions.md) — positive-list deprecated; July 24 plan rejected; no loader.
 - [ ] **Leave unapproved** [11-lazy-opt-inc-and-entry-point-extraction.md](changelog/2026/09/11-lazy-opt-inc-and-entry-point-extraction.md) — optional wrap-vs-bootstrap measure. Not this hour.
 
 ## Parallel
 
 - [x] **Done** shunit2 output-var cases for migrated scalars ([31-subshell-printf-v-candidates.md](changelog/2026/07/31-subshell-printf-v-candidates.md)).
 - [x] **Done** waves 4–8 (`f_software_*_status`, `f_fs_get_most_recent`, host/shell, git get_*, test case helpers).
-- [ ] **Leave unapproved** design replacement for `eval "$(f_yaml_parse …)"`.
+- [x] **Done** design for `eval` / `f_yaml_parse` replacement (Category C in the same changelog). Keep `eval` until a later implementation gates row.
+- [ ] **Leave unapproved** Category G bootstrap `global … "$(f_*)"` literals.
 
 ## Awaiting approval before any code
 
-- [24-subject-asc-extensions.md](changelog/2026/07/24-subject-asc-extensions.md) — plan / review. README proposals written 2026-09-22; still needs accept/reject. Open conflict with the root README nest wording.
-- [24-yml-structure.md](changelog/2026/07/24-yml-structure.md) — plan / review. Not an implementation go-ahead.
-- [31-nameref-clarity-candidates.md](changelog/2026/07/31-nameref-clarity-candidates.md) — inventory. Docs only.
+- [x] **Accepted for discussion** [24-yml-structure.md](changelog/2026/07/24-yml-structure.md) — plan SoT; still not an implementation go-ahead for loaders/schema merge.
+- [x] **Rejected** [24-subject-asc-extensions.md](changelog/2026/07/24-subject-asc-extensions.md) — superseded by the 2026-09-22 deprecation.
+- [31-nameref-clarity-candidates.md](changelog/2026/07/31-nameref-clarity-candidates.md) — inventory. Docs only. Still unapproved.
 - [10-begin-entity-system-with-remote-instances.md](changelog/2026/09/10-begin-entity-system-with-remote-instances.md) — task 8 README proposal written; awaits human accept.
 - [20-builder-kernel-subject.md](changelog/2026/09/20-builder-kernel-subject.md) — later, no code. `instance/generate.sh` detailed 2026-09-22.
 - [20-host-scan-project-instances.md](changelog/2026/09/20-host-scan-project-instances.md) — later, no code. `asc/instance/discover.sh` detailed 2026-09-22.

@@ -3,10 +3,10 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-22 |
-| **Status** | proposal / **not implemented** (docs + plan decision only; no loader change) |
+| **Status** | **implemented** (docs/plan 2026-09-22) — July 24 positive-list rejected; no loader. Keep `.asc_subjects_ignore`. |
 | **Scope** | ASC mother `/home/paul/Documents/asc` — whether README / plan wording should keep advertising `$subject/.asc_extensions` as the nested-extension declaration |
 | **Related** | Plan [24-subject-asc-extensions.md](../07/24-subject-asc-extensions.md) (open conflict since 2026-07-27); object discovery [12-subject-object-action-entry-points.md](./12-subject-object-action-entry-points.md); builder skip [20-builder-kernel-subject.md](./20-builder-kernel-subject.md); gates note [22-gates-prune-approved-work.md](./22-gates-prune-approved-work.md) (“Not this change: implementing `$subject/.asc_extensions` discovery”) |
-| **Not this change** | Removing code (there is none). Migrating nest folders. Implementing nested mini-extension recursion. Editing `gates.yml` / `NEXT_STEPS*`. Committing. |
+| **Not this change** | Removing code (there is none). Migrating nest folders. Implementing nested mini-extension recursion. Committing. |
 
 `$` in this file is the ASC docs placeholder (`$subject` / `$object` / `$action` / `$extension`), not a shell variable. The path `$subject/.asc_extensions` is allowed as the declaration under discussion. Do not confuse it with `.asc_extensions_ignore` (top-level extension blacklist).
 
@@ -96,8 +96,8 @@ This is choice **(b)** from the July 27 amendment (reject the positive-list lock
 
 ## Open tasks
 
-- [ ] Human accept: mark July 24 plan rejected/superseded (status line there).
-- [ ] Keep README proposals aligned with this recommendation (updated 2026-09-22 in the same proposal tags).
-- [ ] Optional later: human rewrite of the file-structure annotation that still says `[nested $ext] submodule(s)` on `.asc_subjects_ignore`.
+- [x] Human accept: mark July 24 plan rejected/superseded (status line there).
+- [x] Keep README proposals aligned with this recommendation (updated 2026-09-22 in the same proposal tags).
+- [ ] Optional later: human rewrite of any remaining file-structure wording that still reads nests as submodules on `.asc_subjects_ignore` (tree lines already say blacklisted).
 - [ ] Optional later: reshape `nested_docker` (or similar) to `$subject/$object/$action` if those scripts should become pivots.
-- [ ] No new test unless a future behavior change lands.
+- [x] No new test (docs/plan only; runtime unchanged).

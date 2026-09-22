@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-07-24 |
-| **Status** | plan / review (draft for iterative amendment; **not** implementation go-ahead) |
+| **Status** | plan / **accepted for discussion** (2026-09-22 gates). Still **not** implementation go-ahead for loaders or schema merge. |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — conventions for **inside** YAML (`*.able.yml`, `*.entity.yml`, `*.yml.yml`, `*.hook.yml`, specimen / includes); anchors = **git `$state`** draft + emerging **primordial** inheritance / contract / wrap sketches |
 | **Related** | Filename DSL plan `changelog/2026/07/24-filename-dsl.md` (**separate**, complementary — owns filename stems / `$action.able.yml` *path* mapping, not YAML body schema); `docs/asc/entities.md` (`.able.yml` catalog); `docs/asc/organization.md` (globals / cache / state layers); entity blueprint under `asc/extensions/entity/`; draft commits below |
 | **Lifecycle** | Local review stub: `data/plans/review/2026-07-24-yml-structure.md` (dir mostly gitignored — **this changelog is the tracked SoT**, same pattern as `24-filename-dsl.md`). Move stub across `review` → `iterate` → `accepted` / `rejected` per `data/ideas/2026/07/23/idea-changelog-workflow.md`. |
@@ -379,7 +379,7 @@ able.able.yml        → include contract.entity  (all *.able inherit)
 
 ## Next iterative steps
 
-- [ ] Review / amend this plan in conversation (status stays `plan / review`).
+- [x] Review / amend this plan in conversation (gates `go: "yes"` 2026-09-22 — plan accepted as discussion SoT; status stays non-implementation).
 - [ ] Decide Wave A open Qs 1–4 first (inventory vs `*.entity.yml`, `new`∈`states`, spelling, folder/file enum asymmetry) — enough to refine the git draft.
 - [ ] Decide Wave B open Qs 9–11 next (`include` shape, inheritance spine, contract `rules` home) — enough to stop the meta churn.
 - [ ] Expand living doc `docs/asc/yml-structure.md` when decisions lock (add Wave B section; keep thin until then).

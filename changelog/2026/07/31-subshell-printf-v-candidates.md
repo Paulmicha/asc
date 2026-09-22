@@ -3,10 +3,10 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-07-31 |
-| **Status** | partial implementation — waves 1–8 done (2026-09-22). Remaining open: `eval` / `f_yaml_parse` design (separate, unapproved). Bootstrap `global.vars.sh` captures deferred (category G). |
+| **Status** | partial implementation — waves 1–8 done (2026-09-22). **`eval` / `f_yaml_parse` design written** (2026-09-22; implementation still needs a later gates row). Bootstrap `global.vars.sh` captures deferred (category G). |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — subshell usages that capture function/command output, as candidates for the output-variable / `printf -v` pattern |
 | **Related** | `asc/core/utils/str/str.opt-inc.sh` (`f_str_convert_tokens`, lines 143–144); `asc/core/utils/fs/fs.opt-inc.sh` (`f_fs_get_file_contents`, line 287); `changelog/2026/07/23-f-e-naming-convention.md` (`f_*` naming) |
-| **Lifecycle** | Waves 1–8 migrated by 2026-09-22. Remaining open work is the separate `eval` / `f_yaml_parse` design (unapproved) and deferred bootstrap `global … "$(f_*)"` literals (category G). Do **not** treat this file as permission for a repo-wide mechanical rewrite. |
+| **Lifecycle** | Waves 1–8 migrated by 2026-09-22. Category C **design** accepted 2026-09-22 (keep `eval` until a later implementation go-ahead). Bootstrap `global … "$(f_*)"` literals stay deferred (category G). Do **not** treat this file as permission for a repo-wide mechanical rewrite. |
 
 ---
 
@@ -215,21 +215,60 @@ These functions already write via `printf -v` (33 occurrences across 12 files). 
 
 ## Category C — YAML parse / multi-variable eval (poor `printf -v` fit)
 
-### `f_yaml_parse` — 10 capture sites
+### `f_yaml_parse` — callers (capture subshell already gone)
 
-| File | Line(s) | Pattern |
-|------|---------|---------|
-| `asc/thread/thread.inc.sh` | 141 | `eval "$(f_yaml_parse "$a_yml" 'thread_')"` |
-| `asc/thread/monitor.hook.sh` | 60 | `eval "$(f_yaml_parse …)"` |
-| `asc/instance/reinit.sh` | 71 | `eval "$(f_yaml_parse 'env.yml' 'yaml_')"` |
-| `asc/extensions/crontab/crontab.inc.sh` | 231, 347 | `eval "$(f_yaml_parse …)"` |
-| `asc/extensions/software/host/provision.opt-inc.sh` | 134 | `parsed="$(f_yaml_parse …)"` then eval? |
-| `asc/extensions/remote/remote.inc.sh` | 574 | `local parsed_yaml_remotes="$(f_yaml_parse …)"` |
-| `scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh` | 566 | assignment (contrib) |
+As of 2026-09-22, callers use the output-var form (`f_yaml_parse path prefix 'parsed'`) then `eval "$parsed"`. The old `eval "$(f_yaml_parse …)"` capture pattern is gone (see `test_f_yaml_parse_no_caller_capture_subshell`). Remaining problem is **`eval` of multi-var assignment text**, not another `printf -v` pass.
 
-**Definition:** `asc/yml/yml.inc.sh:85–95` — delegates to `parse_yaml`, emits shell `declare`/`assign` statements for `eval`.
+| File | Pattern |
+|------|---------|
+| `asc/thread/thread.inc.sh` | full-blob `eval "$parsed"` after `thread_` prefix |
+| `asc/thread/monitor.hook.sh` | full-blob `eval` (errors swallowed) |
+| `asc/instance/reinit.sh` | full-blob `eval` of `env.yml` → `yaml_*` |
+| `asc/extensions/crontab/crontab.inc.sh` | full-blob `eval` (base + cron job files) |
+| `asc/extensions/software/host/provision.opt-inc.sh` | full-blob `eval` of software manifests |
+| `asc/instance/instance.inc.sh` | transform lines → uppercase globals, then `eval` of built strings |
+| `asc/extensions/entity/entity.inc.sh` | **selective** line `eval` (only `einc_include*=`) |
+| `asc/extensions/remote/remote.inc.sh` | write assignment text to a file (later consume) |
+| `scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh` | full-blob + per-line `eval` (contrib) |
+| `asc/test/core/yml.test.sh` | exercises the current contract |
 
-**Fit:** **Not a `printf -v` candidate** — produces many variables, not one string. Alternatives: nameref / associative array API, or keep `eval` but stream into caller without subshell (process substitution + source).
+**Definition:** `asc/yml/yml.inc.sh` — delegates to vendor `parse_yaml`, emits shell assign / `+=` statements. Optional 3rd arg writes that text via `printf -v` (no caller capture subshell). Vendor pipeline still forks internally.
+
+**Fit:** **Not a `printf -v` candidate** — many variables, including arrays. This is a separate design track.
+
+### Design (2026-09-22) — replace `eval` without pretending it is `printf -v`
+
+**Constraints**
+
+- bash-yaml’s contract is “emit shell declarations”; ASC already depends on `+=` list shape and prefixed scalars.
+- Callers need **many** names in the current scope (or a filtered subset), not one string.
+- Trust model today: YAML paths are instance / extension files under ASC control, not arbitrary user paste.
+- Lightweight: no new loader, no second YAML dialect, no repo-wide rewrite from this design alone.
+
+**Options (do not implement yet)**
+
+| Option | Idea | Pros | Cons |
+|--------|------|------|------|
+| **A — document + thin helper** | Keep `eval "$parsed"`; optional `f_yaml_eval_assignments "$parsed"` that only documents “bash-yaml grammar only” | Zero behavior change; one name for reviews | Still `eval` |
+| **B — `source` a tempfile** | Write `$parsed` to a temp file, `source` it, remove | Same semantics; easier to inspect on failure | Temp I/O; cleanup; still runs the same text |
+| **C — selective line eval** | Entity pattern: walk lines, `eval` only matching keys | Smaller blast radius when only a few keys matter | Most callers need the full prefix set |
+| **D — nameref / assoc API** | New `f_yaml_load_map` fills `declare -n` assoc for simple maps | No `eval` for flat key→string cases | Does not cover `+=` lists or keyed parallel arrays without a second shape; large caller churn |
+| **E — process substitution** | `source <(printf '%s\n' "$parsed")` | No tempfile | Still executes assignment text; bash/`set -e` quirks; not safer than `eval` |
+
+**Recommendation**
+
+1. **Near term (this design’s accept):** keep **A**. Capture-subshell work is done; `eval "$parsed"` stays the multi-var load contract. Do not migrate Category C under the printf -v waves.
+2. **When a caller only needs a filter:** prefer **C** (copy entity’s include walk) before inventing D.
+3. **Only if a concrete consumer needs map-without-eval:** add **D** for flat maps as a *new* optional API beside `f_yaml_parse`, leave list-heavy callers on A. Do not delete `eval` paths in the same change.
+4. Reject **E** as a “safety” fix — same trust, more ceremony. **B** only if debugging assignment text on disk helps a real failure mode.
+
+**Out of scope for the next implementation go-ahead (when granted)**
+
+- Replacing vendor `parse_yaml`.
+- Bootstrap `global … "$(f_*)"` (category G).
+- `f_remote_exec_wrapper` exit-status story.
+
+**Implementation go-ahead later must name** whether it ships A-only (docs/helper), C for one call site, or a D pilot — not “rewrite every `eval "$parsed"`”.
 
 ---
 
@@ -332,7 +371,7 @@ Not `f_*` captures, but common in ASC — usually **not** `printf -v` candidates
 6. **Host/shell:** `f_print_current_user`, `f_host_os`, `f_host_ip` → **done** (2026-09-22). `f_str_slug` was already output-var. Bootstrap `global HOST_OS "$(f_host_os)"` / traefik `TRAEFIK_SYSTEMD_USER` stay category G.
 7. **Git wrappers:** `f_git_get_staged_files` / `f_git_get_unmerged_paths` → **done** (2026-09-22). Collapse `echo "$(f_git_wrapper …)"`; 3rd arg output var.
 8. **Test helpers:** batch helpers in `test.opt-inc.sh` → **done** (2026-09-22). `f_test_case_*` / `f_test_batch_dir_from_script` / `f_test_read_manifest_cases`; `make/generate.sh` updated.
-9. **Defer:** `f_yaml_parse` / eval family, `f_remote_exec_wrapper`, bootstrap `global.vars.sh` literals
+9. **Defer:** `f_yaml_parse` / eval **implementation** (design done 2026-09-22), `f_remote_exec_wrapper`, bootstrap `global.vars.sh` literals
 
 ### Waves 1–3 implementation notes (2026-07-31)
 
@@ -358,12 +397,13 @@ Not `f_*` captures, but common in ASC — usually **not** `printf -v` candidates
 - [x] Agree output-param naming convention extension-wide (optional last arg + fixed default name; match `f_str_lowercase`)
 - [x] Pilot: migrate `f_cron_scalar` + `f_software_scalar` (largest payoff)
 - [x] Add shunit2 cases asserting output-var paths for migrated scalars
-- [ ] Design replacement for `eval "$(f_yaml_parse …)"` (separate from `printf -v` work)
+- [x] Design replacement for `eval "$(f_yaml_parse …)"` (separate from `printf -v` work) — see Category C design 2026-09-22; keep `eval` until a later implementation gates row
 - [x] Update `f_str_append_once` / `f_str_sed_escape` docblocks — remove TODO once migrated
 - [x] Re-run ripgrep audit after waves 1–3: `rg '\$\(f_' --glob '*.sh' | rg -v vendor`
 - [x] Wave 4: status enums (`f_software_*_status`)
 - [x] Waves 5–8: `f_fs_get_most_recent`, host/shell, git get_*, test case helpers
-
+- [ ] Optional later: implement Category C option A helper and/or C/D pilot — **needs a new gates row** (this design approval is not that go-ahead)
+- [ ] Category G: bootstrap `global … "$(f_*)"` literals
 ---
 
 ## Audit command (repeatable)

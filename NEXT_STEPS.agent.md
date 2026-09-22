@@ -15,14 +15,7 @@ Lanes: **sequential** waits on the row above; **parallel** does not wait on the 
 
 Start at row 1. Leave the next row until this one is done.
 
-### 1. `changelog/2026/09/22-deprecate-subject-asc-extensions.md`
-
-Status: proposal / not implemented (docs + plan decision only; no loader change)
-
-- [ ] Human accept: mark July 24 plan rejected/superseded (status line there).
-- [ ] Keep README proposals aligned with this recommendation (updated 2026-09-22 in the same proposal tags).
-- [ ] No new test unless a future behavior change lands.
-
+_None this hour._
 
 ## Sequential, after the row above
 
@@ -35,31 +28,22 @@ Status: split — stamp prerequisite is done ([11-bootstrap-cache-layout-and-inv
 - [ ] Optional: measure wrap vs action bootstrap cost; only then consider a thinner `call_wrap` bootstrap.
 
 
-### 2. `changelog/2026/09/22-deprecate-subject-asc-extensions.md`
-
-Status: proposal / not implemented (docs + plan decision only; no loader change)
-
-- [ ] Optional later: human rewrite of the file-structure annotation that still says `[nested $ext] submodule(s)` on `.asc_subjects_ignore`.
-- [ ] Optional later: reshape `nested_docker` (or similar) to `$subject/$object/$action` if those scripts should become pivots.
-
-
 ## Parallel
 
 Independent of the sequential chain. Still wait for approval in NEXT_STEPS.md.
 
 ### 1. `changelog/2026/07/31-subshell-printf-v-candidates.md`
 
-Status: partial implementation — waves 1–8 done (2026-09-22). Remaining open: `eval` / `f_yaml_parse` design (separate, unapproved). Bootstrap `global.vars.sh`...
+Status: partial implementation — waves 1–8 done (2026-09-22). `eval` / `f_yaml_parse` design written (2026-09-22; implementation still needs a later gates row)....
 
-- [ ] Design replacement for `eval "$(f_yaml_parse …)"` (separate from `printf -v` work)
+- [ ] Category G: bootstrap `global … "$(f_*)"` literals
 
 
 ## Awaiting human approval
 
 Open changelog notes that are not an implementation go-ahead. Discussion belongs in `NEXT_STEPS.md`.
 
-- `changelog/2026/07/24-subject-asc-extensions.md` — plan / review (not implemented; design lock for review) — open conflict with root README (see Amendment 2026-07-27)
-- `changelog/2026/07/24-yml-structure.md` — plan / review (draft for iterative amendment; not implementation go-ahead)
+- `changelog/2026/07/24-yml-structure.md` — plan / accepted for discussion (2026-09-22 gates). Still not implementation go-ahead for loaders or schema merge.
 - `changelog/2026/07/31-nameref-clarity-candidates.md` — inventory / plan (docs only — no code changes). Reviewed 2026-07-31: suffix renames already landed via array-dict plan; counts/caveats refreshed.
 - `changelog/2026/09/10-begin-entity-system-with-remote-instances.md` — plan (corrected: contracts vs types; discovery → cache → load). Tasks 1–7 done (`f_entity_load` cache path, discover, generate, `post_init.hook.sh`, type-aware...
 - `changelog/2026/09/20-builder-kernel-subject.md` — proposed, later. No code. Not in the 2026-09-19 lazy-include order. Not in the [meadows review loop](./20-meadows-plan-review-feedback-loop.md). Prefer after...
@@ -69,11 +53,13 @@ Open changelog notes that are not an implementation go-ahead. Discussion belongs
 
 Status is implemented, done, shipped, or skipped. Open checkboxes in these files are historical.
 
+- `changelog/2026/07/24-subject-asc-extensions.md`
 - `changelog/2026/07/31-array-dict-naming-plan.md`
 - `changelog/2026/09/04-pdf-generation-improvements.md`
 - `changelog/2026/09/11-bootstrap-cache-layout-and-invalidation.md`
 - `changelog/2026/09/12-subject-object-action-entry-points.md`
 - `changelog/2026/09/17-pdf-graphviz-support.md`
 - `changelog/2026/09/20-meadows-plan-review-feedback-loop.md`
+- `changelog/2026/09/22-deprecate-subject-asc-extensions.md`
 - `changelog/2026/09/22-gates-prune-approved-work.md`
 
