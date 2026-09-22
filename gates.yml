@@ -30,8 +30,8 @@ gates:
     lane: sequential
     order: 1
     task: "Then Wave C: git as next ASC_INC subject."
-    approved: "no"
-    go: "no"
+    approved: "yes"
+    go: "yes"
 
   - changelog: changelog/2026/09/19-eager-vs-lazy-include-cases.md
     lane: sequential

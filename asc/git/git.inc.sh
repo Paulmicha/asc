@@ -12,6 +12,80 @@
 #
 
 ##
+# Wraps git calls to exec commands from another dir.
+#
+# Uses the following variables in calling scope if available :
+# @var p_git_work_tree # Defaults to current dir.
+# @var p_git_dir # Defaults to "$p_git_work_tree/.git" if $p_git_work_tree is set.
+# @var p_git_debug # When not empty, prints the git command without running it.
+#
+# The path to the git working dir (git work tree) defaults to current dir. It
+# falls back to normal git calls in this case. All arguments are directly
+# forwarded to the git program.
+#
+# @example
+#   p_git_work_tree=/path/to/git/work-tree
+#   giw status
+#
+function giw() {
+  # Args must be "pre-processed" in order to allow params with spaces or special
+  # characters like git log messages.
+  local arg
+  local args=()
+  local escaped_args=''
+
+  for arg in "$@"; do
+    case "$arg" in
+      *' '*|*'$'*|*'#'*|*'['*|*']'*|*'*|*'*|*'&'*|*'*'*|*'"'*|*"'"*|*'='*)
+        # In this case, because we're going to eval, we only need to escape the
+        # double quotes and the "$" sign.
+        arg="${arg//\"/\\\"}"
+        arg="${arg//\$/\\\$}"
+        escaped_args+="\"${arg}\" "
+        ;;
+      *)
+        escaped_args+="$arg "
+        ;;
+    esac
+  done
+
+  # Debug.
+  # echo "escaped_args :"
+  # echo "  $escaped_args"
+  # return
+
+  if [[ -n "$p_git_work_tree" ]]; then
+    local git_dir="$p_git_work_tree/.git"
+
+    if [[ -n "$p_git_dir" ]]; then
+      git_dir="$p_git_dir"
+    fi
+
+    if [[ -n "$p_git_debug" ]]; then
+      echo "giw() debug :"
+      echo "git --git-dir=$git_dir --work-tree=$p_git_work_tree $escaped_args"
+    else
+      eval "git --git-dir=$git_dir --work-tree=$p_git_work_tree $escaped_args"
+    fi
+  else
+    if [[ -n "$p_git_debug" ]]; then
+      echo "giw() debug :"
+      echo "git $escaped_args"
+    else
+      eval "git $escaped_args"
+    fi
+  fi
+
+  if [[ $? -ne 0 ]]; then
+    echo >&2
+    echo "Error in $BASH_SOURCE line $LINENO in $FUNCNAME() - non-zero status returned by :" >&2
+    echo "  git $escaped_args" >&2
+    echo >&2
+    return 1
+  fi
+}
+
+##
 # Basic Git log "processor".
 #
 # Forwards all arguments to f_git_find_commits() in order to allow filtering
@@ -591,80 +665,6 @@ f_git_get_unmerged_paths() {
   fi
 
   echo "$(f_git_wrapper diff --name-only --diff-filter=U)"
-}
-
-##
-# Wraps git calls to exec commands from another dir.
-#
-# Uses the following variables in calling scope if available :
-# @var p_git_work_tree # Defaults to current dir.
-# @var p_git_dir # Defaults to "$p_git_work_tree/.git" if $p_git_work_tree is set.
-# @var p_git_debug # When not empty, prints the git command without running it.
-#
-# The path to the git working dir (git work tree) defaults to current dir. It
-# falls back to normal git calls in this case. All arguments are directly
-# forwarded to the git program.
-#
-# @example
-#   p_git_work_tree=/path/to/git/work-tree
-#   giw status
-#
-function giw() {
-  # Args must be "pre-processed" in order to allow params with spaces or special
-  # characters like git log messages.
-  local arg
-  local args=()
-  local escaped_args=''
-
-  for arg in "$@"; do
-    case "$arg" in
-      *' '*|*'$'*|*'#'*|*'['*|*']'*|*'*|*'*|*'&'*|*'*'*|*'"'*|*"'"*|*'='*)
-        # In this case, because we're going to eval, we only need to escape the
-        # double quotes and the "$" sign.
-        arg="${arg//\"/\\\"}"
-        arg="${arg//\$/\\\$}"
-        escaped_args+="\"${arg}\" "
-        ;;
-      *)
-        escaped_args+="$arg "
-        ;;
-    esac
-  done
-
-  # Debug.
-  # echo "escaped_args :"
-  # echo "  $escaped_args"
-  # return
-
-  if [[ -n "$p_git_work_tree" ]]; then
-    local git_dir="$p_git_work_tree/.git"
-
-    if [[ -n "$p_git_dir" ]]; then
-      git_dir="$p_git_dir"
-    fi
-
-    if [[ -n "$p_git_debug" ]]; then
-      echo "giw() debug :"
-      echo "git --git-dir=$git_dir --work-tree=$p_git_work_tree $escaped_args"
-    else
-      eval "git --git-dir=$git_dir --work-tree=$p_git_work_tree $escaped_args"
-    fi
-  else
-    if [[ -n "$p_git_debug" ]]; then
-      echo "giw() debug :"
-      echo "git $escaped_args"
-    else
-      eval "git $escaped_args"
-    fi
-  fi
-
-  if [[ $? -ne 0 ]]; then
-    echo >&2
-    echo "Error in $BASH_SOURCE line $LINENO in $FUNCNAME() - non-zero status returned by :" >&2
-    echo "  git $escaped_args" >&2
-    echo >&2
-    return 1
-  fi
 }
 
 ##
