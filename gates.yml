@@ -37,8 +37,8 @@ gates:
     lane: sequential
     order: 2
     task: "After remaining-core waves, change leftover planned rows to on disk."
-    approved: "no"
-    go: "no"
+    approved: "yes"
+    go: "yes"
 
   - changelog: changelog/2026/09/11-lazy-opt-inc-and-entry-point-extraction.md
     lane: sequential

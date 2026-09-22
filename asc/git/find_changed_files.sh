@@ -6,7 +6,7 @@
 # When executed as a script, bootstraps ASC then prints `git_changed_files_arr`.
 # When sourced, only defines f_git_find_changed_files().
 #
-# @see f_git_find_commits() in asc/git/git.inc.sh
+# @see f_git_find_commits() in asc/git/git.opt-inc.sh
 #
 # @example
 #   # After bootstrap :
@@ -53,6 +53,11 @@
 f_git_find_changed_files() {
   local p_search="$1"
   local p_source_branch="$2"
+
+  if [[ "$(type -t f_git_find_commits)" != function ]]; then
+    # shellcheck disable=SC1091
+    . asc/git/git.opt-inc.sh
+  fi
 
   # By default, search in all branches.
   if [[ -z "$p_source_branch" ]]; then

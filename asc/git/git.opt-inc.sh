@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 ##
-# Git-related utility functions.
+# Git-related utility functions. Not on ASC_INC.
 #
-# This file is sourced during core ASC bootstrap.
-# find_changed_files: `. asc/git/find_changed_files.sh`
+# asc/git entry points load this via caller opt-inc. Hooks in asc/git/ load it
+# via hook seeding. Other callers `.` this file.
 # @see f_git_find_changed_files() in asc/git/find_changed_files.sh
-# @see asc/bootstrap.sh
+# @see asc/git/init.hook.sh
 #
 # Convention : functions names are all prefixed by "f".
 #

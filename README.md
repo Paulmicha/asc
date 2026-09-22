@@ -373,7 +373,7 @@ Here are a few examples to illustrate how this works :
 
 | Bootstrapping context | Type | File | Sourced | Why |
 |-----------------------|------|------|---------|-----|
-| (any) | eager | `asc/git/git.inc.sh` | ✅ yes | `asc/git` is an *active dir* and `git.inc.sh` matches its name |
+| (any) | eager | `asc/host/host.inc.sh` | ✅ yes | `asc/host` is an *active dir* and `host.inc.sh` matches its name |
 | (any) | eager | `asc/extensions/compose/compose.inc.sh` | ✅ yes | `asc/extensions/compose` is an *extension point* and `compose.inc.sh` matches its name |
 | (any) | eager | `asc/core/utils/fs.manual-inc.sh` | ✅ yes | The hardcoded kernel "hub" include file `utils.manual-inc.sh` always includes it ; it is not "autoloaded". |
 | (any) | manual | `asc/core/utils/fs_compression.manual-inc.sh` | ❌ not unless a caller manually sources it | not a name match, not caller-dir |

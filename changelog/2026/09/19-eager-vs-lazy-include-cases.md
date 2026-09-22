@@ -47,7 +47,7 @@ Legend: **on disk** = file exists today. **planned** = filename the follow-up su
 | Bootstrapping context | Type | File | Sourced | Why |
 |-----------------------|------|------|---------|-----|
 | (any heavy bootstrap) | eager | `asc/core/utils/fs.manual-inc.sh` | ✅ yes | Kernel: `utils.manual-inc.sh` always sources it. Not an active-dir name match. |
-| (any) | eager | `asc/git/git.inc.sh` | ✅ yes | `asc/git` is an *active dir* and `git.inc.sh` matches its name |
+| (any) | eager | `asc/host/host.inc.sh` | ✅ yes | `asc/host` is an *active dir* and `host.inc.sh` matches its name |
 | (any, **compose enabled**) | eager | `asc/extensions/compose/compose.inc.sh` | ✅ yes | Same rule as db: *extension point* + matching `$extension.inc.sh` |
 | (any, **db enabled**) | eager | `asc/extensions/db/db.inc.sh` | ✅ yes | `asc/extensions/db` is an *extension point* and `db.inc.sh` matches its name |
 | (any, mysql enabled) | eager | `scripts/asc/contrib/asc/mysql/mysql.inc.sh` | ❌ no file | Contrib **may** ship `$extension.inc.sh`. Mysql/pgsql/arcadedb currently do **not** — they are hook-only drivers. |

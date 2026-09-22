@@ -63,7 +63,7 @@
 #
 # 4. The 'ASC_INC' values are a simple list of files to be sourced in
 #   asc/bootstrap.sh scope directly. They are meant to contain bash functions
-#   organized by subject. E.g. given subject = git : "$p_path/git/git.inc.sh".
+#   organized by subject. E.g. given subject = host : "$p_path/host/host.inc.sh".
 #   For convenience, any file matching the scripts/asc/*.inc.sh pattern will
 #   also be added. This gives a place to put some custom project-specific
 #   functions that would not necessarily be pertinent in a subject dir.

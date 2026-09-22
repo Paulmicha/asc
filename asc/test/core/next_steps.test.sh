@@ -147,9 +147,9 @@ test_doc_next_steps_docroot_rung() {
   after="$(md5sum NEXT_STEPS.md)"
   assertEquals 'writer must not modify NEXT_STEPS.md.' "$before" "$after"
 
-  human="$(f_doc_next_steps_test_section NEXT_STEPS.agent.md '## Sequential')"
-  grep -q 'Wave C' <<< "$human"
-  assertEquals 'live wave C task is sequential.' 0 "$?"
+  human="$(f_doc_next_steps_test_section NEXT_STEPS.agent.md '## Sequential, after the row above')"
+  grep -q 'After remaining-core waves' <<< "$human"
+  assertEquals 'open after-chain row is still listed.' 0 "$?"
   grep -q 'orphan headings' NEXT_STEPS.agent.md
   assertEquals 'pdf historical text is not copied.' 1 "$?"
 

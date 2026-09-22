@@ -8,7 +8,14 @@
 # - a default selection of Git hooks (overwritten by ASC hooks).
 #
 # @see f_git_write_hooks() in asc/git/write_hooks.sh
+# @see f_git_wrapper() in asc/git/git.opt-inc.sh
 #
+
+if [[ "$(type -t f_git_wrapper)" != function ]]; then
+  # shellcheck disable=SC1091
+  . asc/git/git.opt-inc.sh
+fi
+
 
 # Automatically clones the app repo if it is separate from the "dev stack" repo.
 # Only attempts to clone if it's not already done (idempotent).

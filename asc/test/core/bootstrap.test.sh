@@ -199,6 +199,25 @@ test_asc_test_inc_not_on_asc_inc() {
 }
 
 ##
+# Wave C: git helpers are not eager. Bare bootstrap must not define them.
+# Direct callers source asc/git/git.opt-inc.sh.
+#
+test_git_helpers_absent_from_bare_bootstrap() {
+  local inc
+  local kind
+
+  assertFalse 'git.inc.sh must not remain' '[ -f asc/git/git.inc.sh ]'
+  assertTrue 'git.opt-inc.sh holds the helpers' '[ -f asc/git/git.opt-inc.sh ]'
+  inc="$(bash -c '. asc/bootstrap.sh; printf %s "$ASC_INC"')"
+  assertFalse 'ASC_INC must not list git.inc.sh' \
+    "printf '%s' \"$inc\" | grep -q 'asc/git/git.inc.sh'"
+  kind="$(bash -c '. asc/bootstrap.sh; type -t giw || true')"
+  assertNotEquals 'giw must be absent from a bare bootstrap' 'function' "$kind"
+  kind="$(bash -c '. asc/bootstrap.sh; . asc/git/git.opt-inc.sh; type -t f_git_wrapper || true')"
+  assertEquals 'explicit source defines f_git_wrapper' 'function' "$kind"
+}
+
+##
 # Cleans up any leftovers from previous tests.
 #
 # (Internal shunit2 function called after all tests have run.)
