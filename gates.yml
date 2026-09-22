@@ -44,3 +44,43 @@ gates:
     summary: "Keep the nameref clarity inventory as docs only (suffix renames already landed). Approving a later pilot would allow focused `declare -n` migrations; this row is not that go-ahead and forbids a repo-wide rewrite."
     approved: "yes"
     go: "yes"
+
+  - changelog: changelog/2026/09/22-make-ds.md
+    lane: discuss
+    order: 1
+    task: "Plan review for make ds. First code slice is print-only."
+    summary: "Accept make ds as the short pivot for a core DSL entry point, and limit the first code slice to printing one literal call. Setting go authorizes that print slice only; combinators, calling-scope tokens, and execution stay unwritten."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/09/22-agent-llm-entry-point.md
+    lane: discuss
+    order: 2
+    task: "Plan review for make agent-llm (hook call in agent, hook implementation in cursor)."
+    summary: "Accept make agent-llm as one abstract pivot: agent core extension makes the hook call; cursor contrib supplies the hook implementation when enabled. Setting go authorizes that layout only; no second pivot and no implementation until then."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/09/22-make-generate.md
+    lane: discuss
+    order: 3
+    task: "Plan review for make generate. First code slice is string print."
+    summary: "Fill the existing make generate script so it renders builder templates, starting with one {{ name }} string on stdout. Setting go authorizes that print slice only; file mode, directory mode, and asc-if stay unwritten."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/09/22-workflow.md
+    lane: discuss
+    order: 4
+    task: "Plan review for workflow-next. Print runnable gates rows only."
+    summary: "Add workflow-next to print gates rows that are sequential or parallel with go yes. The make ds changelog is the case study. Setting go authorizes that printer only; no model call and no host copy."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/09/22-gitflow.md
+    lane: discuss
+    order: 5
+    task: "Accept or reject the mother, buffer, and machine-branch contract."
+    summary: "Treat the README workflow proposal as a candidate git contract: machine branch pulls a shared buffer before push, and only a change every instance shares moves into the mother. Setting go accepts that contract for a later session; it does not add a script or change git-acp."
+    approved: "no"
+    go: "no"

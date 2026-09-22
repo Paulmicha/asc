@@ -48,6 +48,12 @@ Live work is leftover core lazy waves after fs+db+yaml. Meadows loop **skipped**
 |------|------|
 | [20-host-scan-project-instances.md](2026/09/20-host-scan-project-instances.md) | Catalog `$PROJECT_DOCROOT` trees on this host |
 | [22-gates-registry-alternative.md](2026/09/22-gates-registry-alternative.md) | Plan only. `gates.yml` is the registry. `reg-get` / `reg-set` YAML is not started |
+| [22-make-ds.md](2026/09/22-make-ds.md) | `make ds` contract. Plan only. Literal print is the child |
+| [22-make-ds-literal.md](2026/09/22-make-ds-literal.md) | First slice: print one literal DSL call. Plan only |
+| [22-make-generate.md](2026/09/22-make-generate.md) | `make generate` renders string, file, or dir templates. Plan only |
+| [22-make-generate-string.md](2026/09/22-make-generate-string.md) | First slice: print one `{{ name }}` substitution. Plan only |
+| [22-workflow.md](2026/09/22-workflow.md) | Workflow lap: changelog → gates → `workflow-next`. Plan only |
+| [22-gitflow.md](2026/09/22-gitflow.md) | Mother / buffer / machine branch. Plan only. No scripts |
 | [20-builder-kernel-subject.md](2026/09/20-builder-kernel-subject.md) | `asc/builder/` one kernel subject + `template.able` / `literal.able` sketches |
 | [20-gap-entity-not-core.md](2026/09/20-gap-entity-not-core.md) | Knowledge/task `gap` is a project instance (Projet Complexe), not core |
 | [10-begin-entity-system-with-remote-instances.md](2026/09/10-begin-entity-system-with-remote-instances.md) | Entity types → instances → cache. Stub path still wrong |
