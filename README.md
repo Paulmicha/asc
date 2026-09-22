@@ -1508,6 +1508,12 @@ TODO
 
 ASC provides a minimal, customizable and extensible workflow meant to be implementable by either humans or agents.
 
+&lt;proposal-2026-09-22&gt;
+
+Every local ASC project instance takes upstream updates from the ASC mother project instance. One repo shared by several machines keeps a common branch as the buffer they pull and push. A machine branch is a child of that branch, and that machine pulls the buffer current before it pushes. A change shared by those machines moves up onto the buffer. A change shared by every instance moves up into the mother. Example: the linux home-directory instance, branch `debian-13`.
+
+&lt;/proposal-2026-09-22&gt;
+
 ### (re)Search
 
 TODO
