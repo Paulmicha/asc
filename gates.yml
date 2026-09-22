@@ -84,3 +84,67 @@ gates:
     summary: "Treat the README workflow proposal as a candidate git contract: machine branch pulls a shared buffer before push, and only a change every instance shares moves into the mother. Setting go accepts that contract for a later session; it does not add a script or change git-acp."
     approved: "no"
     go: "no"
+
+  - changelog: changelog/2026/09/22-make-ds-literal.md
+    lane: discuss
+    order: 6
+    task: "Print one literal DSL call. Covered by the make ds row."
+    summary: "This slice prints one literal DSL call and does not run it. It starts only when the make ds row is go yes. Setting go here is not a second authorization."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/09/22-make-generate-string.md
+    lane: discuss
+    order: 7
+    task: "Print one template substitution. Covered by the make generate row."
+    summary: "This slice prints one {{ name }} substitution from make generate. It starts only when the make generate row is go yes. Setting go here is not a second authorization."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/09/20-builder-kernel-subject.md
+    lane: discuss
+    order: 8
+    task: "Later: move builder to one kernel subject. No hydrate."
+    summary: "Move asc/extensions/builder to asc/builder as one kernel subject and add stub able files. Setting go authorizes that move and the stubs only; it does not fill make generate or template hydrate."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/09/20-host-scan-project-instances.md
+    lane: discuss
+    order: 9
+    task: "Later: catalog sibling project instances. No sync."
+    summary: "Add make instance-discover to list ASC project docroots on this host and store the paths in the host registry. Setting go authorizes that catalog only; it does not start, copy, or sync the other instances."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/09/10-begin-entity-system-with-remote-instances.md
+    lane: discuss
+    order: 10
+    task: "Tasks 1–7 done. Task 8 is a README proposal."
+    summary: "Entity type discovery, instance discovery, and the load cache are in. The leftover checkboxes are commit steps. Task 8 is the host-fixture README proposal, still waiting on a human. This row does not authorize more entity runtime."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/07/24-yml-structure.md
+    lane: discuss
+    order: 11
+    task: "Wave A/B decisions. Not a loader go-ahead."
+    summary: "The YAML body plan is accepted for discussion. Open questions are Wave A (inventory, states, spelling) and Wave B (include shape, inheritance). Setting go records those decisions; it does not authorize loaders or schema merge."
+    approved: "yes"
+    go: "no"
+
+  - changelog: changelog/2026/07/31-subshell-printf-v-candidates.md
+    lane: parallel
+    order: 1
+    task: "Category G bootstrap globals. Category C helper is a later row."
+    summary: "Waves 1–8 and the eval / f_yaml_parse design are done. What remains is category G, the bootstrap global command-substitution literals. Setting go authorizes a design pass on those literals only; it does not implement a Category C helper and does not remove eval."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/09/22-gates-registry-alternative.md
+    lane: discuss
+    order: 12
+    task: "Hold. Registry alternative is not started."
+    summary: "gates.yml stays the approval registry. A later store would mirror the same rows through reg-get / reg-set. Setting go only allows that design to be revisited; it does not add a loader or replace this file."
+    approved: "no"
+    go: "no"
