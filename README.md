@@ -1748,15 +1748,24 @@ asc/instance/rebuild.sh
   │           └── review/         ← [optional] Generated code ready for evaluation
   ├── .asc_extensions_ignore      ← lists disabled core and contrib extensions
   ├── .gitignore
-  ├── Makefile
   ├── .env                    ← [git-ignored] generated current local instance ENV vars
   ├── .env-local.yml          ← [optional, git-ignored] secret ENV vars (hardcoded)
   ├── .env-local.foobar.yml   ← [optional, git-ignored] conditional (hook-based) secret ENV vars (hardcoded)
   ├── env.yml                 ← this project instance global env vars declaration
   ├── env.foobar.yml          ← [optional] conditional (hook-based) global env vars declaration
-  ├── SPECIMEN.env.yml        ← copy to env.yml
+  ├── gates.yml               ← [optional, agent-related] this project instance human changelog approvals
+  ├── gates.foobar.yml        ← [optional, agent-related] conditional (hook-based) human changelog approvals
+  ├── Makefile
+  ├── NEXT_STEPS.md
+  ├── NEXT_STEPS.foobar.md
+  ├── NEXT_STEPS.agent.md
+  ├── NEXT_STEPS.agent.foobar.md
+  ├── SPECIMEN.env.yml        ← copy to env.yml (and/or more specific variants)
+  ├── SPECIMEN.gates.yml      ← [optional] copy to gates.yml (or and/or more specific variants)
   └── ...
 ```
+
+TODO update missing one-liner explanations in project docroot-level files newly added above.
 
 The canonical path for writing files related to time-recurrent or long processes is :
 
