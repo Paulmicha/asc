@@ -69,6 +69,6 @@ A hit is `$dir/asc/bootstrap.sh` where `$dir` is the candidate `$PROJECT_DOCROOT
 ## Open tasks
 
 - [x] Detail plan for `asc/instance/discover.sh` (2026-09-22). No code. Amends earlier `host/scan.sh` name.
-- [ ] Confirm writable host-registry path (no new global unless asked).
+- [ ] Writable host-registry path is proposed in [22-xdg-state-store.md](./22-xdg-state-store.md) (`$HOME/.local/state/asc/registry`). Still open until that plan is accepted. No new global.
 - [ ] Add `asc/instance/discover.sh` + `make instance-discover`; upsert this instance on init optional v1.
 - [ ] After lazy-include: if `f_host_registry_*` left eager `host.inc.sh`, this script still works; if they moved, `.` the mirrored opt-inc (same path rule as the meadows file).

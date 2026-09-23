@@ -34,5 +34,6 @@ Wave C `git` is done (`asc/git/git.opt-inc.sh`, off `ASC_INC`). Eager case-table
 - [10-begin-entity-system-with-remote-instances.md](changelog/2026/09/10-begin-entity-system-with-remote-instances.md) — task 8 README proposal written; awaits human accept.
 - [20-builder-kernel-subject.md](changelog/2026/09/20-builder-kernel-subject.md) — later, no code. `instance/generate.sh` detailed 2026-09-22.
 - [20-host-scan-project-instances.md](changelog/2026/09/20-host-scan-project-instances.md) — later, no code. `asc/instance/discover.sh` detailed 2026-09-22.
+- [22-xdg-state-store.md](changelog/2026/09/22-xdg-state-store.md) — plan / review. Host registry path `$HOME/.local/state/asc/registry`. No memory code.
 
 [20-meadows-plan-review-feedback-loop.md](changelog/2026/09/20-meadows-plan-review-feedback-loop.md) is skipped. Do not re-run it.

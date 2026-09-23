@@ -148,3 +148,11 @@ gates:
     summary: "gates.yml stays the approval registry. A later store would mirror the same rows through reg-get / reg-set. Setting go only allows that design to be revisited; it does not add a loader or replace this file."
     approved: "no"
     go: "no"
+
+  - changelog: changelog/2026/09/22-xdg-state-store.md
+    lane: discuss
+    order: 13
+    task: "Name the XDG state directory as a store. No memory code."
+    summary: "Use $HOME/.local/state/asc/registry as the shared host file-registry path, and treat that directory as a store. Setting go accepts that path default only; it does not enable memory or fill its empty scripts."
+    approved: "no"
+    go: "no"
