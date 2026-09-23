@@ -1771,6 +1771,12 @@ asc/instance/rebuild.sh
   └── ...
 ```
 
+&lt;proposal-2026-09-22&gt;
+
+This checkout's next-steps files are `NEXT_STEPS.core.md` and `NEXT_STEPS.agent.core.md` (`INSTANCE_TYPE` `core`), same variant lookup as `env.yml`.
+
+&lt;/proposal-2026-09-22&gt;
+
 TODO update missing one-liner explanations in project docroot-level files newly added above.
 
 The canonical path for writing files related to time-recurrent or long processes is :

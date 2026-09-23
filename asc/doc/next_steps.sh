@@ -1,22 +1,24 @@
 #!/usr/bin/env bash
 
 ##
-# Refresh ./NEXT_STEPS.agent.md from changelog status rows.
+# Refresh the agent next-steps file from changelog status rows.
 #
-# The agent file and ./NEXT_STEPS.md are hook_ms data files on the project-docroot
-# rung (same model as env.yml: -c md -r). Dry-run selects one path. They are not
-# sourced.
+# Both files are hook_ms data on the project-docroot rung (same model as
+# env.yml: -c md -r, variants STACK_VERSION HOST_TYPE INSTANCE_TYPE).
+# Dry-run selects one path. They are not sourced.
 #
 #   next_steps_actor=agent
-#   hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' -v 'next_steps_actor' -r
-#   # → NEXT_STEPS.agent.md (more dot-parts, same rung, so it wins)
+#   hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' \
+#     -v 'next_steps_actor STACK_VERSION HOST_TYPE INSTANCE_TYPE' -r
+#   # INSTANCE_TYPE=core → NEXT_STEPS.agent.core.md
 #
-#   hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' -r
-#   # → NEXT_STEPS.md
+#   hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' \
+#     -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE' -r
+#   # INSTANCE_TYPE=core → NEXT_STEPS.core.md
 #
-# This entry point rewrites only the agent file. Discussion stays in
-# NEXT_STEPS.md. Go-ahead for a listed task is the gates file (env.yml lookup,
-# -c yml -r). This script writes neither of those.
+# This entry point rewrites only the agent file. Discussion stays in the human
+# file. Go-ahead for a listed task is the gates file (env.yml lookup, -c yml
+# -r). This script writes neither of those.
 #
 # @example
 #   make doc-next-steps
@@ -167,7 +169,10 @@ f_doc_next_steps_emit_tasks() {
 }
 
 ##
-# Rewrite the agent list. Never writes NEXT_STEPS.md.
+# Rewrite the agent list. Never writes the human next-steps file.
+#
+# Default path is NEXT_STEPS.agent.md, or NEXT_STEPS.agent.$INSTANCE_TYPE.md
+# when INSTANCE_TYPE is set (this checkout: NEXT_STEPS.agent.core.md).
 #
 # Calling-scope overrides (optional):
 # @var next_steps_changelog_dir
@@ -175,7 +180,11 @@ f_doc_next_steps_emit_tasks() {
 #
 f_doc_next_steps_write() {
   local changelog_dir="${next_steps_changelog_dir:-changelog}"
-  local agent_path="${next_steps_agent_path:-NEXT_STEPS.agent.md}"
+  local default_agent='NEXT_STEPS.agent.md'
+  if [[ -n "${INSTANCE_TYPE:-}" ]]; then
+    default_agent="NEXT_STEPS.agent.${INSTANCE_TYPE}.md"
+  fi
+  local agent_path="${next_steps_agent_path:-$default_agent}"
   local rel
   local path
   local status
@@ -195,13 +204,16 @@ f_doc_next_steps_write() {
   local next_steps_buf=''
   local any=0
 
-  if [[ "$(basename "$agent_path")" == 'NEXT_STEPS.md' ]]; then
+  case "$(basename "$agent_path")" in
+    *'.agent.'*) ;;
+    *)
     echo >&2
-    echo "Error in f_doc_next_steps_write() - $BASH_SOURCE line $LINENO: refusing to write the human approval file." >&2
+    echo "Error in f_doc_next_steps_write() - $BASH_SOURCE line $LINENO: refusing to write the human next-steps file." >&2
     echo "Aborting (1)." >&2
     echo >&2
     return 1
-  fi
+    ;;
+  esac
 
   if [[ ! -d "$changelog_dir" ]]; then
     echo >&2
@@ -264,20 +276,20 @@ Generated ${generated} by \`asc/doc/next_steps.sh\`. Project-docroot hook data, 
 
 \`\`\`sh
 next_steps_actor=agent
-hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' -v 'next_steps_actor' -r
+hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' -v 'next_steps_actor STACK_VERSION HOST_TYPE INSTANCE_TYPE' -r
 \`\`\`
 
-Discussion is \`NEXT_STEPS.md\`. Go-ahead is the gates file \`hook_ms\` returns (\`hook_ms 'dry-run' -s 'doc' -a 'gates' -c 'yml' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE' -r\`). A row here may start only when that file sets its \`go\` to yes. This entry point writes neither file.
+Discussion is the human next-steps file (\`hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE' -r\`). Go-ahead is the gates file \`hook_ms\` returns (\`hook_ms 'dry-run' -s 'doc' -a 'gates' -c 'yml' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE' -r\`). A row here may start only when that file sets its \`go\` to yes. This entry point writes neither file.
 
 Lanes: **sequential** waits on the row above; **parallel** does not wait on the sequential chain or on other parallel rows.
 "
 
   f_doc_next_steps_emit_tasks 'Sequential' 'sequential' 'Start at row 1. Leave the next row until this one is done.'
   f_doc_next_steps_emit_tasks 'Sequential, after the row above' 'after' 'Same chain, later. An "After" or "Optional" line waits.'
-  f_doc_next_steps_emit_tasks 'Parallel' 'parallel' 'Independent of the sequential chain. Still wait for approval in NEXT_STEPS.md.'
+  f_doc_next_steps_emit_tasks 'Parallel' 'parallel' 'Independent of the sequential chain. Still wait for approval in the human next-steps file.'
 
   next_steps_buf+=$'\n'"## Awaiting human approval"$'\n\n'
-  next_steps_buf+="Open changelog notes that are not an implementation go-ahead. Discussion belongs in \`NEXT_STEPS.md\`."$'\n'
+  next_steps_buf+="Open changelog notes that are not an implementation go-ahead. Discussion belongs in the human next-steps file."$'\n'
   any=0
   for rel in "${next_steps_order[@]}"; do
     if [[ "${next_steps_lane[$rel]}" != 'discuss' ]]; then
@@ -310,7 +322,7 @@ Lanes: **sequential** waits on the row above; **parallel** does not wait on the 
   printf '%s\n' "$next_steps_buf" > "$tmp"
   mv "$tmp" "$agent_path"
 
-  if [[ "$agent_path" == 'NEXT_STEPS.agent.md' || "$agent_path" == './NEXT_STEPS.agent.md' ]]; then
+  if [[ "$agent_path" == "$default_agent" || "$agent_path" == "./$default_agent" ]]; then
     f_doc_next_steps_confirm_rung || return $?
   fi
 }
@@ -320,10 +332,17 @@ Lanes: **sequential** waits on the row above; **parallel** does not wait on the 
 #
 f_doc_next_steps_confirm_rung() {
   local next_steps_actor='agent'
+  local human_name='NEXT_STEPS.md'
+  local agent_name='NEXT_STEPS.agent.md'
 
-  if [[ ! -f 'NEXT_STEPS.agent.md' || ! -f 'NEXT_STEPS.md' ]]; then
+  if [[ -n "${INSTANCE_TYPE:-}" ]]; then
+    human_name="NEXT_STEPS.${INSTANCE_TYPE}.md"
+    agent_name="NEXT_STEPS.agent.${INSTANCE_TYPE}.md"
+  fi
+
+  if [[ ! -f "$agent_name" || ! -f "$human_name" ]]; then
     echo >&2
-    echo "Error in f_doc_next_steps_confirm_rung() - $BASH_SOURCE line $LINENO: both docroot files must exist." >&2
+    echo "Error in f_doc_next_steps_confirm_rung() - $BASH_SOURCE line $LINENO: both docroot files must exist ($agent_name, $human_name)." >&2
     echo "Aborting (1)." >&2
     echo >&2
     return 1
@@ -332,10 +351,10 @@ f_doc_next_steps_confirm_rung() {
   rm -f data/asc/cache/hook/*a-NEXT_STEPS*
   hook_dry_run_matches=''
   most_specific_match=''
-  hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' -v 'next_steps_actor' -r
-  if [[ "$most_specific_match" != 'NEXT_STEPS.agent.md' ]]; then
+  hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' -v 'next_steps_actor STACK_VERSION HOST_TYPE INSTANCE_TYPE' -r
+  if [[ "$most_specific_match" != "$agent_name" ]]; then
     echo >&2
-    echo "Error in f_doc_next_steps_confirm_rung() - $BASH_SOURCE line $LINENO: agent variant winner is '$most_specific_match'." >&2
+    echo "Error in f_doc_next_steps_confirm_rung() - $BASH_SOURCE line $LINENO: agent variant winner is '$most_specific_match', expected '$agent_name'." >&2
     echo "Aborting (1)." >&2
     echo >&2
     return 1
@@ -344,10 +363,10 @@ f_doc_next_steps_confirm_rung() {
   rm -f data/asc/cache/hook/*a-NEXT_STEPS*
   hook_dry_run_matches=''
   most_specific_match=''
-  hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' -r
-  if [[ "$most_specific_match" != 'NEXT_STEPS.md' ]]; then
+  hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE' -r
+  if [[ "$most_specific_match" != "$human_name" ]]; then
     echo >&2
-    echo "Error in f_doc_next_steps_confirm_rung() - $BASH_SOURCE line $LINENO: human winner is '$most_specific_match'." >&2
+    echo "Error in f_doc_next_steps_confirm_rung() - $BASH_SOURCE line $LINENO: human winner is '$most_specific_match', expected '$human_name'." >&2
     echo "Aborting (1)." >&2
     echo >&2
     return 1

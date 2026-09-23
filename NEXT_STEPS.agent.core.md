@@ -4,10 +4,10 @@ Generated 2026-09-22 by `asc/doc/next_steps.sh`. Project-docroot hook data, rung
 
 ```sh
 next_steps_actor=agent
-hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' -v 'next_steps_actor' -r
+hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' -v 'next_steps_actor STACK_VERSION HOST_TYPE INSTANCE_TYPE' -r
 ```
 
-Discussion is `NEXT_STEPS.md`. Go-ahead is the gates file `hook_ms` returns (`hook_ms 'dry-run' -s 'doc' -a 'gates' -c 'yml' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE' -r`). A row here may start only when that file sets its `go` to yes. This entry point writes neither file.
+Discussion is the human next-steps file (`hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE' -r`). Go-ahead is the gates file `hook_ms` returns (`hook_ms 'dry-run' -s 'doc' -a 'gates' -c 'yml' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE' -r`). A row here may start only when that file sets its `go` to yes. This entry point writes neither file.
 
 Lanes: **sequential** waits on the row above; **parallel** does not wait on the sequential chain or on other parallel rows.
 
@@ -30,7 +30,7 @@ Status: split — stamp prerequisite is done ([11-bootstrap-cache-layout-and-inv
 
 ## Parallel
 
-Independent of the sequential chain. Still wait for approval in NEXT_STEPS.md.
+Independent of the sequential chain. Still wait for approval in the human next-steps file.
 
 ### 1. `changelog/2026/07/31-subshell-printf-v-candidates.md`
 
@@ -41,7 +41,7 @@ Status: partial implementation — waves 1–8 done (2026-09-22). `eval` / `f_ya
 
 ## Awaiting human approval
 
-Open changelog notes that are not an implementation go-ahead. Discussion belongs in `NEXT_STEPS.md`.
+Open changelog notes that are not an implementation go-ahead. Discussion belongs in the human next-steps file.
 
 - `changelog/2026/07/24-yml-structure.md` — plan / accepted for discussion (2026-09-22 gates). Still not implementation go-ahead for loaders or schema merge.
 - `changelog/2026/07/31-nameref-clarity-candidates.md` — inventory / plan (docs only — no code changes). Reviewed 2026-07-31: suffix renames already landed via array-dict plan; counts/caveats refreshed.

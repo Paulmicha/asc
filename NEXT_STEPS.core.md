@@ -1,9 +1,9 @@
 # NEXT_STEPS
 
-Discussion for the queue in [`NEXT_STEPS.agent.md`](NEXT_STEPS.agent.md). This file is the other project-docroot hook path (rung 4, same model as `env.yml`). Dry-run returns it; it is not sourced.
+Discussion for the queue in [`NEXT_STEPS.agent.core.md`](NEXT_STEPS.agent.core.md). This file is the other project-docroot hook path (rung 4, same model as `env.yml`). Dry-run returns it; it is not sourced.
 
 ```sh
-hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' -r
+hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE' -r
 ```
 
 `asc/doc/next_steps.sh` rewrites the agent file only. Edits here stay until a human changes them.

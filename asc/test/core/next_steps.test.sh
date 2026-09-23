@@ -140,31 +140,35 @@ test_doc_next_steps_docroot_rung() {
   local after
   local human
 
-  assertTrue 'human approval file is present.' "[ -f NEXT_STEPS.md ]"
-  before="$(md5sum NEXT_STEPS.md)"
+  if [[ -z "${INSTANCE_TYPE:-}" ]]; then
+    INSTANCE_TYPE=core
+  fi
+  assertEquals 'next-steps lookup instance type is core.' 'core' "$INSTANCE_TYPE"
+  assertTrue 'human file is present.' "[ -f NEXT_STEPS.core.md ]"
+  before="$(md5sum NEXT_STEPS.core.md)"
   f_doc_next_steps_write
   assertEquals 'docroot write failed.' 0 "$?"
-  after="$(md5sum NEXT_STEPS.md)"
-  assertEquals 'writer must not modify NEXT_STEPS.md.' "$before" "$after"
+  after="$(md5sum NEXT_STEPS.core.md)"
+  assertEquals 'writer must not modify NEXT_STEPS.core.md.' "$before" "$after"
 
-  human="$(f_doc_next_steps_test_section NEXT_STEPS.agent.md '## Sequential, after the row above')"
+  human="$(f_doc_next_steps_test_section NEXT_STEPS.agent.core.md '## Sequential, after the row above')"
   grep -q 'Optional: measure wrap vs action bootstrap cost' <<< "$human"
   assertEquals 'optional after-chain row is still listed.' 0 "$?"
-  grep -q 'orphan headings' NEXT_STEPS.agent.md
+  grep -q 'orphan headings' NEXT_STEPS.agent.core.md
   assertEquals 'pdf historical text is not copied.' 1 "$?"
 
   next_steps_actor='agent'
   rm -f data/asc/cache/hook/*a-NEXT_STEPS*
   hook_dry_run_matches=''
   most_specific_match=''
-  hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' -v 'next_steps_actor' -r
-  assertEquals 'agent variant wins rung 4.' 'NEXT_STEPS.agent.md' "$most_specific_match"
+  hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' -v 'next_steps_actor STACK_VERSION HOST_TYPE INSTANCE_TYPE' -r
+  assertEquals 'agent core variant wins rung 4.' 'NEXT_STEPS.agent.core.md' "$most_specific_match"
 
   rm -f data/asc/cache/hook/*a-NEXT_STEPS*
   hook_dry_run_matches=''
   most_specific_match=''
-  hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' -r
-  assertEquals 'human file wins without the agent variant.' 'NEXT_STEPS.md' "$most_specific_match"
+  hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE' -r
+  assertEquals 'human core file wins without the agent variant.' 'NEXT_STEPS.core.md' "$most_specific_match"
 }
 
 test_gates_yml_docroot_rung() {
