@@ -148,3 +148,11 @@ gates:
     summary: "Use $HOME/.local/state/asc/registry as the shared host file-registry path, and treat that directory as a store. Setting go accepts that path default only; it does not enable memory or fill its empty scripts."
     approved: "no"
     go: "no"
+
+  - changelog: changelog/2026/09/23-host-asc-core-sync.md
+    lane: discuss
+    order: 14
+    task: "Plan review. Report core drift; apply mirrors forward."
+    summary: "Compare each instance asc/ and scripts/asc/contrib/asc/ to the local mother and print the drift. The word apply mirrors those two directories from the mother onto the instance. Setting go authorizes that report and that forward mirror; instance files stay out of the mother."
+    approved: "no"
+    go: "no"
