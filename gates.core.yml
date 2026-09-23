@@ -18,7 +18,7 @@
 # $ in comments here is the ASC placeholder ($subject / $action), not a shell variable.
 #
 
-source: NEXT_STEPS.agent.md
+source: NEXT_STEPS.agent.core.md
 
 gates:
   - changelog: changelog/2026/09/11-lazy-opt-inc-and-entry-point-extraction.md
