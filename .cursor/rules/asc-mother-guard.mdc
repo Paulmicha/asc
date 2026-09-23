@@ -1,0 +1,18 @@
+---
+description: NDA-bound client facts stay in the client instance. A mother diff must not identify a client or a person.
+alwaysApply: true
+---
+
+# Mother-project guard
+
+An NDA-bound client instance may keep that client's name, ticket ids, hostnames, domains, and docroots. Those strings stay in that repository. This rule does not store the NDA and does not list those tokens. The instance's own `.cursor/rules/` holds its search list.
+
+Before creating, editing, deleting, staging, or committing a tracked file in the public mother (`Documents/asc`, `Paulmicha/asc`, any branch or tag, and any issue, pull request, or release text for it):
+
+1. Name which repository owns the path. The mother and the client instance are different repos.
+2. A mother path, a patch destined for the mother, or a copy of an instance file into the mother must not contain a client name, a ticket id, a hostname, a domain, a docroot, an email address, or a sentence a stranger could use to tell who the client or a person is.
+3. Run that instance's search on the bytes about to be written and on `git diff` and `git diff --cached`. Skip `asc/vendor/**`. A hit on a mother path stops the edit. A hit that exists only in the client repo stays there.
+4. Read the mother diff once as a stranger. A clean search does not excuse a diff that still identifies a client or a person.
+5. Do not copy an instance plan, agreement, or denylist into the mother.
+
+A generic fix may be committed on the mother only after this guard has been applied to that diff and to its message.
