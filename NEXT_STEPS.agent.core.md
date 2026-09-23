@@ -7,7 +7,7 @@ next_steps_actor=agent
 hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' -v 'next_steps_actor' -r
 ```
 
-Discussion is `NEXT_STEPS.md`. Go-ahead is `gates.yml` (`hook_ms 'dry-run' -s 'doc' -a 'gates' -c 'yml' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE' -r`). A row here may start only when that file sets its `go` to yes. This entry point writes neither file.
+Discussion is `NEXT_STEPS.md`. Go-ahead is the gates file `hook_ms` returns (`hook_ms 'dry-run' -s 'doc' -a 'gates' -c 'yml' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE' -r`). A row here may start only when that file sets its `go` to yes. This entry point writes neither file.
 
 Lanes: **sequential** waits on the row above; **parallel** does not wait on the sequential chain or on other parallel rows.
 

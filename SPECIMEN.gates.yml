@@ -1,0 +1,32 @@
+##
+# Copy model for the project-docroot gates file. Anonymized. Not loaded.
+#
+# Copy to gates.yml, or to a variant such as gates.$INSTANCE_TYPE.yml.
+# Same lookup as env.yml. Dry-run returns one path. The file is not sourced.
+#
+#   hook_ms 'dry-run' -s 'doc' -a 'gates' -c 'yml' \
+#     -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE' -r
+#
+# A later, more specific file replaces an earlier one. gates.core.yml wins
+# over gates.yml when INSTANCE_TYPE is core.
+#
+# A task may go ahead only when go is yes. Set go to yes only when approved
+# is yes, lane is sequential or parallel, and (for sequential) every lower
+# order in that lane already has go yes. discuss and held stay no.
+#
+# summary is one or two short sentences.
+#
+# $ in comments here is the ASC placeholder ($subject / $action) or the
+# instance-type variant in a filename, not a shell variable.
+#
+
+source: NEXT_STEPS.agent.md
+
+gates:
+  - changelog: changelog/YYYY/MM/DD-example.md
+    lane: discuss
+    order: 1
+    task: "Example row. Replace with a real changelog path."
+    summary: "One or two sentences a human can approve without opening the changelog."
+    approved: "no"
+    go: "no"

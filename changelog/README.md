@@ -8,7 +8,7 @@ Files: `YYYY/MM/DD-short-label.md`. Each file starts with a status table. `$` in
 
 ## Current frontier (2026-09-21)
 
-Live work is leftover core lazy waves after fs+db+yaml. Meadows loop **skipped**. Eager/lazy **working table** (not SoT — root README is): [2026/09/19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md). `*.manual-inc.sh` **implemented**. Entity discovery is a separate unstarted plan. Print/PDF is shipped. Agent queue: [`NEXT_STEPS.agent.md`](../NEXT_STEPS.agent.md), refreshed by `asc/doc/next_steps.sh`. Discussion: [`NEXT_STEPS.md`](../NEXT_STEPS.md). Go-ahead: [`gates.yml`](../gates.yml).
+Live work is leftover core lazy waves after fs+db+yaml. Meadows loop **skipped**. Eager/lazy **working table** (not SoT — root README is): [2026/09/19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md). `*.manual-inc.sh` **implemented**. Entity discovery is a separate unstarted plan. Print/PDF is shipped. Agent queue: [`NEXT_STEPS.agent.md`](../NEXT_STEPS.agent.md), refreshed by `asc/doc/next_steps.sh`. Discussion: [`NEXT_STEPS.md`](../NEXT_STEPS.md). Go-ahead: [`gates.core.yml`](../gates.core.yml) when `INSTANCE_TYPE` is `core`. Copy model: [`SPECIMEN.gates.yml`](../SPECIMEN.gates.yml).
 
 ## 2026-09
 
@@ -32,6 +32,7 @@ Live work is leftover core lazy waves after fs+db+yaml. Meadows loop **skipped**
 | [19-mysql-pgsql-hook-opt-inc.md](2026/09/19-mysql-pgsql-hook-opt-inc.md) | Skipped — no shared mysql/pgsql hook helpers |
 | [21-manual-inc.md](2026/09/21-manual-inc.md) | Hardcoded includes → `*.manual-inc.sh`. Kernel four off `ASC_INC` |
 | [22-doc-next-steps.md](2026/09/22-doc-next-steps.md) | `doc-next-steps` writes `NEXT_STEPS.agent.md`; `NEXT_STEPS.md` stays human |
+| [22-gates-like-env.md](2026/09/22-gates-like-env.md) | Gates lookup matches `env.yml`. This checkout: `INSTANCE_TYPE=core` → `gates.core.yml` |
 
 ### Live (do not implement as one PR)
 

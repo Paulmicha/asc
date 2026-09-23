@@ -8,7 +8,7 @@ hook_ms 'dry-run' -s 'doc' -a 'NEXT_STEPS' -c 'md' -r
 
 `asc/doc/next_steps.sh` rewrites the agent file only. Edits here stay until a human changes them.
 
-Go-ahead for a task in the agent file is the matching row in [`gates.yml`](gates.yml) (`approved` and `go`). This file is the discussion. An agent starts a task only when that row's `go` is yes.
+Go-ahead for a task in the agent file is the matching row in [`gates.core.yml`](gates.core.yml) (`approved` and `go`). This file is the discussion. An agent starts a task only when that row's `go` is yes.
 
 ## Sequential
 

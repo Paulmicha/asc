@@ -51,7 +51,7 @@ Each proposal must make the nearby human text **lighter or clearer**, not larger
 
 ## Human approval (`gates.yml`)
 
-A changelog that needs a human decision gets a row in root `gates.yml` with a glanceable `summary` (one or two short sentences). Agents do not implement until that row is approved per the file’s `go` rules. Once implemented, remove the row. Deprecations: write a dedicated `changelog/YYYY/MM/DD-….md` (pros/cons, recommendation), then a gates row — do not implement from the changelog alone. Match the existing registry shape; do not invent a second format.
+A changelog that needs a human decision gets a row in the docroot gates file (`hook_ms` subject `doc`, action `gates`, suffix `yml`, project-root rung, same lookup as `env.yml`; this mother checkout: `gates.core.yml`) with a glanceable `summary` (one or two short sentences). Agents do not implement until that row is approved per the file’s `go` rules. Once implemented, remove the row. Deprecations: write a dedicated `changelog/YYYY/MM/DD-….md` (pros/cons, recommendation), then a gates row — do not implement from the changelog alone. Match the existing registry shape; do not invent a second format.
 
 ## Any ASC tree (core, ext, contrib, instance)
 

@@ -1519,6 +1519,12 @@ ASC provides a minimal, customizable and extensible workflow meant to be impleme
 
 The project docroot file `gates.yml` is a `hook_ms()` implementation (like `env.yml`) that contains pointers to current project instance changelog files.
 
+&lt;proposal-2026-09-22&gt;
+
+`hook_ms` returns the live gates file. `SPECIMEN.gates.yml` is the anonymized copy model. This checkout uses `gates.core.yml` when `INSTANCE_TYPE` is `core`.
+
+&lt;/proposal-2026-09-22&gt;
+
 Whenever a human pushes a change to that file, the "next step tasks list" may need to launch new workers.
 
 This is a job for any of those extension points :

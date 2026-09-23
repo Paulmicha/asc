@@ -1,20 +1,12 @@
 ##
-# Human approval registry for NEXT_STEPS.agent.md.
+# Human approval registry for this checkout when INSTANCE_TYPE is core.
 #
 # Project-docroot hook data. Same lookup as env.yml: dry-run, custom suffix
 # yml, -r. Rung 4 wins. The file is not sourced and is not loaded into globals.
+# Copy model: SPECIMEN.gates.yml (anonymized). This file is the core variant.
 #
 #   hook_ms 'dry-run' -s 'doc' -a 'gates' -c 'yml' \
 #     -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE' -r
-#
-# Variant files, if present, replace this one (later / more specific wins),
-# same list as env.yml:
-#   gates.$INSTANCE_TYPE.yml
-#   gates.$STACK_VERSION.yml
-#   gates.$HOST_TYPE.$INSTANCE_TYPE.yml
-#   gates.$STACK_VERSION.$HOST_TYPE.yml
-#   gates.$STACK_VERSION.$INSTANCE_TYPE.yml
-#   gates.$STACK_VERSION.$HOST_TYPE.$INSTANCE_TYPE.yml
 #
 # A task may go ahead only when go is yes. Set go to yes only when approved
 # is yes, lane is sequential or parallel, and (for sequential) every lower

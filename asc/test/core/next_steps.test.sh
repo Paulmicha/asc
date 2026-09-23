@@ -170,28 +170,37 @@ test_doc_next_steps_docroot_rung() {
 test_gates_yml_docroot_rung() {
   local parsed=''
 
-  assertTrue 'gates.yml is present.' "[ -f gates.yml ]"
+  assertTrue 'gates.core.yml is the core-instance registry.' "[ -f gates.core.yml ]"
+  assertTrue 'SPECIMEN.gates.yml is the copy model.' "[ -s SPECIMEN.gates.yml ]"
+  grep -q 'lazy-opt-inc-and-entry-point-extraction' SPECIMEN.gates.yml
+  assertEquals 'specimen stays anonymized.' 1 "$?"
+
+  if [[ -z "${INSTANCE_TYPE:-}" ]]; then
+    INSTANCE_TYPE=core
+  fi
+  assertEquals 'gates lookup instance type is core.' 'core' "$INSTANCE_TYPE"
+
   rm -f data/asc/cache/hook/*a-gates*
   hook_dry_run_matches=''
   most_specific_match=''
   hook_ms 'dry-run' -s 'doc' -a 'gates' -c 'yml' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE' -r
-  assertEquals 'gates.yml wins rung 4.' 'gates.yml' "$most_specific_match"
+  assertEquals 'gates.core.yml wins rung 4.' 'gates.core.yml' "$most_specific_match"
 
-  f_yaml_parse 'gates.yml' 'gate_' 'parsed'
+  f_yaml_parse 'gates.core.yml' 'gate_' 'parsed'
   grep -q 'lazy-opt-inc-and-entry-point-extraction' <<< "$parsed"
-  assertEquals 'gates.yml parses and names the wrap-measure changelog.' 0 "$?"
+  assertEquals 'gates.core.yml parses and names the wrap-measure changelog.' 0 "$?"
   grep -q 'nameref-clarity-candidates' <<< "$parsed"
-  assertEquals 'gates.yml still lists the nameref discuss row.' 0 "$?"
+  assertEquals 'gates.core.yml still lists the nameref discuss row.' 0 "$?"
   grep -q 'gates__go' <<< "$parsed"
-  assertEquals 'gates.yml exposes a go field.' 0 "$?"
+  assertEquals 'gates.core.yml exposes a go field.' 0 "$?"
   grep -q 'gates__summary' <<< "$parsed"
-  assertEquals 'gates.yml exposes a summary field.' 0 "$?"
+  assertEquals 'gates.core.yml exposes a summary field.' 0 "$?"
   grep -q 'subshell-printf-v-candidates' <<< "$parsed"
-  assertEquals 'printf -v / eval design row is folded out of gates.yml.' 1 "$?"
+  assertEquals 'printf -v / eval design row stays listed.' 0 "$?"
   grep -q 'deprecate-subject-asc-extensions' <<< "$parsed"
-  assertEquals 'asc_extensions deprecation row is folded out of gates.yml.' 1 "$?"
+  assertEquals 'asc_extensions deprecation row is folded out of gates.core.yml.' 1 "$?"
   grep -q 'yml-structure' <<< "$parsed"
-  assertEquals 'yml-structure discuss row is folded out of gates.yml.' 1 "$?"
+  assertEquals 'yml-structure discuss row stays listed.' 0 "$?"
 }
 
 . asc/vendor/shunit2/shunit2
