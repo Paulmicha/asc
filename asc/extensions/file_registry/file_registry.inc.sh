@@ -47,7 +47,7 @@ f_file_registry_get_path() {
   if [[ -n "$p_namespace" ]]; then
     local namespace
     f_str_sanitize_var_name "$p_namespace" 'namespace'
-    reg_file_path="${FILE_REGISTRY_HOST_LEVEL_PATH:=/opt/asc-registry}/$namespace"
+    reg_file_path="${FILE_REGISTRY_HOST_LEVEL_PATH:=$HOME/.local/state/asc/registry}/$namespace"
   fi
 
   if [[ ! -d "$reg_file_path" ]]; then

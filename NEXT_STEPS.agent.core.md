@@ -55,7 +55,7 @@ Open changelog notes that are not an implementation go-ahead. Discussion belongs
 - `changelog/2026/09/22-make-generate.md` — plan / review (not an implementation go-ahead)
 - `changelog/2026/09/22-make-generate-string.md` — plan / review (not an implementation go-ahead)
 - `changelog/2026/09/22-workflow.md` — plan / review (not an implementation go-ahead)
-- `changelog/2026/09/22-xdg-state-store.md` — plan / review (not an implementation go-ahead)
+- `changelog/2026/09/22-xdg-state-store.md` — path accepted 2026-09-24. Default is `$HOME/.local/state/asc/registry`. Memory stays off.
 
 ## Do not re-run
 

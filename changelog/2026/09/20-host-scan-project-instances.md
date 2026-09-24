@@ -32,7 +32,7 @@ A hit is `$dir/asc/bootstrap.sh` where `$dir` is the candidate `$PROJECT_DOCROOT
 
 **Caller:** `asc/instance/discover.sh` → `make instance-discover` (amended 2026-09-22; earlier draft said `asc/host/scan.sh`). Work stays in that script (write_globals shape). Do **not** add `instance.opt-inc.sh` / `host.opt-inc.sh` unless a second caller appears. Do **not** use `host/vitals.sh`. Do **not** invent `asc/host/scan.sh` in parallel.
 
-**Storage:** existing **host** registry (`f_host_registry_*` → `file_registry` host hooks), not instance registry. Catalog is host-scoped even though the pivot lives under `instance/` (this tree’s discover/list family). Default path today is `FILE_REGISTRY_HOST_LEVEL_PATH` (`/opt/asc-registry` if unset) — may need sudo; prefer a writable host path already used on this machine, or document that `make instance-discover` must see that global. One key (or a small key family) for the instance list, not a new loader.
+**Storage:** existing **host** registry (`f_host_registry_*` → `file_registry` host hooks), not instance registry. Catalog is host-scoped even though the pivot lives under `instance/` (this tree’s discover/list family). Default path is `FILE_REGISTRY_HOST_LEVEL_PATH` (`$HOME/.local/state/asc/registry` since 2026-09-24). One key (or a small key family) for the instance list, not a new loader.
 
 `make setup` / `init` may upsert **this** `$PROJECT_DOCROOT` so a tree that never ran discover is still findable only on a later `instance-discover`.
 
@@ -69,6 +69,6 @@ A hit is `$dir/asc/bootstrap.sh` where `$dir` is the candidate `$PROJECT_DOCROOT
 ## Open tasks
 
 - [x] Detail plan for `asc/instance/discover.sh` (2026-09-22). No code. Amends earlier `host/scan.sh` name.
-- [ ] Writable host-registry path is proposed in [22-xdg-state-store.md](./22-xdg-state-store.md) (`$HOME/.local/state/asc/registry`). Still open until that plan is accepted. No new global.
+- [x] Writable host-registry path accepted in [22-xdg-state-store.md](./22-xdg-state-store.md): `$HOME/.local/state/asc/registry` (2026-09-24). No new global. Discover itself is still unwritten.
 - [ ] Add `asc/instance/discover.sh` + `make instance-discover`; upsert this instance on init optional v1.
 - [ ] After lazy-include: if `f_host_registry_*` left eager `host.inc.sh`, this script still works; if they moved, `.` the mirrored opt-inc (same path rule as the meadows file).

@@ -22,7 +22,7 @@ Each row maps one changelog task from `NEXT_STEPS.agent.md`. `summary` is one se
 `make reg-get` / `make reg-set` are separate. They call `f_instance_registry_get` / `f_instance_registry_set`, which `hook_ms` to `registry_get` / `registry_set`. The enabled `file_registry` extension writes one string per key:
 
 - instance: `data/asc/registry/.<slug>.reg` (`f_file_registry_get_path`)
-- host: `$FILE_REGISTRY_HOST_LEVEL_PATH/<namespace>/.<slug>.reg` (default `/opt/asc-registry`)
+- host: `$FILE_REGISTRY_HOST_LEVEL_PATH/<namespace>/.<slug>.reg` (default `$HOME/.local/state/asc/registry` since 2026-09-24; previously `/opt/asc-registry`)
 
 `data/asc/*` is gitignored. An empty `reg-set` value is stored as `1`. The hook body is `echo "$reg_val" > "$reg_file_path"`. There is no YAML parse on read.
 

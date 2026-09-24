@@ -146,8 +146,8 @@ gates:
     order: 13
     task: "Name the XDG state directory as a store. No memory code."
     summary: "Use $HOME/.local/state/asc/registry as the shared host file-registry path, and treat that directory as a store. Setting go accepts that path default only; it does not enable memory or fill its empty scripts."
-    approved: "no"
-    go: "no"
+    approved: "yes"
+    go: "yes"
 
   - changelog: changelog/2026/09/23-host-asc-core-sync.md
     lane: discuss

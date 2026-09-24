@@ -3,13 +3,13 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-22 |
-| **Status** | plan / review (**not** an implementation go-ahead) |
+| **Status** | path **accepted** 2026-09-24. Default is `$HOME/.local/state/asc/registry`. Memory stays disabled. |
 | **Scope** | Name the XDG state directory as one `store`, and use `$HOME/.local/state/asc/registry` as the shared host file-registry root. |
 | **Not this plan** | Enabling `memory`. Filling `store-locate` or any other memory entry point. A new global. Growing `host-reg-set`. `instance-discover` (that stays [20-host-scan-project-instances.md](./20-host-scan-project-instances.md)). A sidecar under `data/entities/`. A README rewrite. |
 
 `$` in this file is the ASC docs placeholder (`$subject` / `$action`), except `$HOME`, which is the shell home directory.
 
-No other changelog covers this. [20-host-scan-project-instances.md](./20-host-scan-project-instances.md) still has the open question of a writable host-registry path. This file is that answer, still unaccepted.
+No other changelog covers this. [20-host-scan-project-instances.md](./20-host-scan-project-instances.md) uses this path. The path was accepted on 2026-09-24.
 
 ---
 
@@ -51,7 +51,7 @@ The path is a default on that host store, expanded to an absolute path when an i
 
 When `memory` is enabled, entity discovery walks two levels under the extension, so those two `*.entity.yml` files would register as the types `store` and `storage`.
 
-`file_registry` is enabled. Its default and the `:=` fallback in `f_file_registry_get_path` are still `/opt/asc-registry`. That directory is absent here. Home’s generated `data/asc/global.vars.sh` has the `/opt` value baked in until the next init.
+`file_registry` is enabled. The default and the `:=` fallback in `f_file_registry_get_path` are `$HOME/.local/state/asc/registry` (accepted 2026-09-24). `/opt/asc-registry` is no longer the fallback.
 
 README already says a field’s `storage` key references a specific store, and that `asc/extensions/memory/store/store.able.yml` holds the criteria for choosing a storage. The criteria file is 0 bytes.
 
@@ -70,16 +70,16 @@ A later README proposal can sit next to those lines. This plan does not add one.
 
 ---
 
-## Later code, only after `go`
+## Done with the path
 
-1. Change the `FILE_REGISTRY_HOST_LEVEL_PATH` default and the `:=` fallback in `f_file_registry_get_path` to `$HOME/.local/state/asc/registry`.
-2. Reinit each instance that still has `/opt/asc-registry` baked in.
+1. `FILE_REGISTRY_HOST_LEVEL_PATH` default and the `:=` fallback in `f_file_registry_get_path` are `$HOME/.local/state/asc/registry`.
+2. This host’s home instance and the mother checkout no longer bake `/opt/asc-registry`.
 
-Leave the memory YAML and scripts empty. Leave `memory` disabled. Leave [20-host-scan-project-instances.md](./20-host-scan-project-instances.md) as its own plan: it may upsert into this path once both notes are accepted.
+Leave the memory YAML and scripts empty. Leave `memory` disabled. [20-host-scan-project-instances.md](./20-host-scan-project-instances.md) may upsert into this path. Discover is still unwritten.
 
 ---
 
 ## Open tasks
 
-- [ ] Accept `store` / `storage` and the host-registry path `$HOME/.local/state/asc/registry`.
-- [ ] After accept: change the `file_registry` default and fallback, then reinit instances that still point at `/opt/asc-registry`.
+- [x] Host-registry path `$HOME/.local/state/asc/registry` accepted 2026-09-24. `store` / `storage` YAML stays empty. Memory stays disabled.
+- [x] `file_registry` default and `:=` fallback changed. Baked `FILE_REGISTRY_HOST_LEVEL_PATH` on this host’s home instance and mother checkout points at that directory.
