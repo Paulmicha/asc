@@ -4,7 +4,14 @@
 # Synchronizes every ASC project instances core files on this host.
 #
 # The idea is to have the mother repo changes applied to other ASC projects,
-# and the contrary : check wether diffs are actual improvements.
+# and the contrary : check wether another other ASC project instance on the same
+# host has local diffs in ASC core files that are actual improvements to be
+# backported upstream (in the mother repo local work tree).
+#
+# This is a bidirectional synchronization that can either be called manually or
+# wrapped as a git hook script (like post-checkout and/or post-merge).
+#
+# @see asc/git/write_hooks.sh
 #
 # @param 1 [optional] String : path to a single ASC project instance (docroot).
 #   Defaults to '', meaning : all discovered ASC project instances get synced.
