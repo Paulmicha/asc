@@ -1,0 +1,28 @@
+# Product-neutral agent skill. A development task recorded once.
+# Product directories and file formats stay in contrib extensions.
+#
+# Instances: data/entities/skill/<id>.yml (sidecar).
+# Render: asc/extensions/agent/skill/render.sh <id>
+#   hook -s skill -a render
+synonyms:
+  - procedure
+  - playbook
+
+include:
+  - sidecar.able
+  - render.able
+
+required:
+  field:
+    description:
+      is: string
+      size: 1 - 4000
+    task:
+      is: string
+      size: 1 - 8000
+
+optional:
+  field:
+    body:
+      is: string
+      size: 0 - 16000

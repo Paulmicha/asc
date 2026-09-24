@@ -3,11 +3,11 @@
 ##
 # (over)Writes Shell hooks to use ASC hooks.
 #
-# When executed as a script, bootstraps ASC then writes.
-# When sourced, only defines f_shell_write_hooks().
+# TODO [wip] must write once the one line where generated aliases are sourced :
 #
-# @see f_instance_init() in asc/instance/instance.inc.sh
-# @see https://shell-scm.com/docs/shellhooks
+# @see data/asc/aliases.sh
+# @see data/asc/aliases.bash.sh
+# @see data/asc/aliases.dash.sh
 #
 # @example
 #   make host-shell-write-hooks '.bashrc'
@@ -18,3 +18,5 @@
 #
 
 p_shell_plug="$1"
+
+# TODO

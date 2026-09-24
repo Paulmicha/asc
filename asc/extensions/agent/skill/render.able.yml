@@ -1,0 +1,7 @@
+# Contract for hook -s skill -a render.
+#
+# The core loader exports SKILL_ID, SKILL_DESCRIPTION, SKILL_TASK,
+# and SKILL_BODY when that field is set.
+# A contrib hook writes one product projection from those variables.
+# It does not read another product's paths.
+# SKILL_RENDER_ROOT overrides the work tree when set.
