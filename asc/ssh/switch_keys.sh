@@ -20,4 +20,4 @@
 
 . asc/bootstrap.sh
 
-ssh_switch_keys "$@"
+f_ssh_switch_keys "$@"
