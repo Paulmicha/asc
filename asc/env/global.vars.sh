@@ -108,3 +108,19 @@ global ASC_APPS "[default]='site' [help]='ASC apps allow for example to provide 
 # SITE_MYSQL_SERVICE_PRESET='db'
 # SITE_MYSQL_DB_ID='site' # -> default to {{ APP }} + to be automatically
 # added to ASC_DB_IDS
+
+
+# Update 2026-09-24 :
+
+# We want the ability to declare "host-level" bash aliases from the linux home
+# dir project instance. Only works on the host boundary + login shell only :
+# - 'ds' is a global ASC shortcut for the DSL,
+# - ASC core "git" extension get shortcuts out of the box,
+# - TODO [wip] Generic ASC-related shortcuts ?
+# @see @see asc/host/shell/write_hooks.sh
+
+global ASC_HOST_SHELL_ALIASES "[default]='ds gmp gacp' [help]='Space-separated opt-in list of host-level global shell aliases (mapped to given ASC entry points).'"
+
+# global ASC_ALIASES "[append]='reinit'"
+# global ASC_ALIASES "[append]='rebuild'"
+# global ASC_ALIASES "[append]='agent'"

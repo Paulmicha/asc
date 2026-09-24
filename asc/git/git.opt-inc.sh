@@ -672,8 +672,37 @@ f_git_get_unmerged_paths() {
 }
 
 ##
+# Test if given git branch exists locally.
+#
+# @param 1 String : the branch name.
+#
+# @example
+#   if f_git_branch_exists 'preprod' ; then
+#     echo "branch 'preprod' exists."
+#   fi
+#
+function f_git_branch_exists() {
+  local p_branch="$1"
+
+  if [[ -z "$p_branch" ]]; then
+    echo >&2
+    echo "Error in $BASH_SOURCE line $LINENO in $FUNCNAME() : missing param 1 (the git branch name)." >&2
+    echo "Usage example :" >&2
+    echo "  $FUNCNAME 'preprod'" >&2
+    echo >&2
+    return 1
+  fi
+
+  giw rev-parse --verify "$p_branch" > /dev/null 2>&1
+
+  if [[ $? -ne 0 ]]; then
+    return 2
+  fi
+}
+
+##
+# TODO @deprecated remove if confirmed no longer in use anywhere.
 # Legacy ASC wrapper.
-# TODO @deprecated
 #
 # @example
 #   f_git_wrapper status
