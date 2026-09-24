@@ -23,7 +23,7 @@ README § “ASC domain-specific language : *DSL* syntax” is the language. The
 |-------|--------|
 | Script | `asc/core/dsl.sh` (the path says DSL) |
 | Primitive | `core/dsl` → task `core-dsl` |
-| Synonym | `core-dsl/ds` in `asc/env/global.vars.sh`, next to `core-cache-clear/cc` |
+| Synonym | `core-dsl/ds` in `asc/core/global.vars.sh`, next to `core-cache-clear/cc` |
 | Pivot | `make ds` |
 | Direct call | `asc/core/dsl.sh '<dsl>'` |
 

@@ -53,7 +53,7 @@ f_global_list() {
     GLOBALS_DEFERRED=()
     GLOBALS['.defer-max']=0
     GLOBALS_DRY_RUN=1
-    . asc/env/global.vars.sh
+    . asc/core/global.vars.sh
     f_global_aggregate
   fi
 

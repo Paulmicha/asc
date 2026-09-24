@@ -7,7 +7,7 @@
 #
 # @example
 #   # Manually hardcoded shortcut :
-#   # @see ASC_SYNONYMS in asc/env/global.vars.sh
+#   # @see ASC_SYNONYMS in asc/core/global.vars.sh
 #   make lp e:blueprint-generate e:transcribe-all
 #   # Equivalent to :
 #   make logged-pipe e:blueprint-generate e:transcribe-all

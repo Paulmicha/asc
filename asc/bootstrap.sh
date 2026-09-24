@@ -30,8 +30,8 @@ if [[ $ASC_BS_FLAG -ne 1 ]]; then
   # This can be opted-out by setting the flag ASC_BS_SKIP_GLOBALS to 1.
   # @see asc/instance/init.sh
   if [[ $ASC_BS_SKIP_GLOBALS -ne 1 ]]; then
-    if [[ -f data/asc/global.vars.sh ]]; then
-      . data/asc/global.vars.sh
+    if [[ -f data/asc/globals.sh ]]; then
+      . data/asc/globals.sh
     fi
   fi
 

@@ -9,7 +9,7 @@
 # When executed as a script, bootstraps ASC and prints the list.
 # When sourced, only defines f_asc_extensions_get_makefiles() (expects bootstrap).
 #
-# @see asc/env/global.vars.sh (ASC_MAKE_INC)
+# @see asc/core/global.vars.sh (ASC_MAKE_INC)
 # @see f_make_generate()
 #
 # @example

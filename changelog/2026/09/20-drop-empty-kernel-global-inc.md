@@ -11,6 +11,6 @@
 
 ---
 
-Wave B kept the file so the **five** kernel-include list would not change in the same slice. A comment-only `.` on every bootstrap is not a include. Callers already `. asc/core/global.opt-inc.sh`. Warm `make` still sources `data/asc/global.vars.sh`.
+Wave B kept the file so the **five** kernel-include list would not change in the same slice. A comment-only `.` on every bootstrap is not a include. Callers already `. asc/core/global.opt-inc.sh`. Warm `make` still sources `data/asc/globals.sh`.
 
 Kernel block in `asc/bootstrap.sh` is now: `utils.inc.sh`, `core.inc.sh`, `hook.inc.sh`, `autoload.inc.sh`. Tests: `test_f_global_aggregate_helpers_absent_from_kernel_bootstrap`, `test_asc_global_inc_not_in_kernel_includes`.

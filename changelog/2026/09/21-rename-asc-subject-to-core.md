@@ -4,7 +4,7 @@
 |-------|--------|
 | **Date** | 2026-09-21 |
 | **Status** | **done** |
-| **Scope** | `git mv asc/asc asc/core`. Make pivots follow the folder: `make core-upgrade`, `make core-remote-extensions-download`. `make cc` stays (`core-cache-clear/cc` in `asc/env/global.vars.sh`). |
+| **Scope** | `git mv asc/asc asc/core`. Make pivots follow the folder: `make core-upgrade`, `make core-remote-extensions-download`. `make cc` stays (`core-cache-clear/cc` in `asc/core/global.vars.sh`). |
 | **Not this change** | Renaming `hook -s 'asc'` bootstrap / alias / pre_bootstrap (those files live in `asc/extensions/*/asc/` and contrib). Nesting `arr` / `fs` / `shell` / `str` under `asc/core/utils/` — [21-utils-under-core.md](./21-utils-under-core.md). |
 
 `$` in this file is the ASC docs placeholder, not a shell variable.

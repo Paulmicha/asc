@@ -244,7 +244,7 @@ This is the filename-DSL “utils should be lazy” intent. The module dir later
 
 | Move | Caveat |
 |---|---|
-| `f_global_aggregate`, `f_global_lookup_paths`, `f_global_list`, `f_global_assign_value` | Only init/reinit/tests. Warm `make` only sources **generated** `data/asc/global.vars.sh`. |
+| `f_global_aggregate`, `f_global_lookup_paths`, `f_global_list`, `f_global_assign_value` | Only init/reinit/tests. Warm `make` only sources **generated** `data/asc/globals.sh`. |
 | `global()` | Only while **declaration** files (`asc/*/global.vars.sh`) are sourced. That is aggregate, not every bootstrap. If a `bootstrap` hook still calls `global`, it must keep a stub or source `global.opt-inc.sh` from `asc/core/` (hook dir `asc/` → `asc.opt-inc.sh` / `bootstrap.opt-inc.sh`). **Verify with `hook -s asc -a bootstrap -t`. |
 
 `write_globals.sh` / `globals_debug.sh` already left `global.inc.sh` (this conversation). Do not put them back.
@@ -282,8 +282,8 @@ For each `*.inc.sh` / `*.opt-inc.sh`:
    - **Shared primitive** — keep as a function; prefer nameref / `printf -v`; no extra subshell. Example: `hook()`, `f_yaml_parse`, `f_array_add_once`.
    - **Internal-only helper** — keep next to its only caller; do not export a second API.
    - **One-shot / workflow** — **move to a dedicated entry point** (sourcable + executable). Pattern already used this conversation:
-     - `f_global_write` → `asc/instance/write_globals.sh`
-     - `f_global_debug` → `asc/instance/globals_debug.sh`
+     - `f_global_write` → `asc/core/global_write.sh`
+     - `f_global_debug` → `asc/core/global_debug.sh`
      - `f_asc_get_actions` → `asc/instance/list_actions.sh`
      - `f_asc_extensions_get_makefiles` → `asc/instance/list_makefiles.sh`
    - **Unused** — comment out or delete (same as `f_str_trim`, `f_global_foreach`, `f_array_ksort` / `print`). Keep `f_yaml_get_keys` (entity YAML later) even if currently unused.

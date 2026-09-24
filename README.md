@@ -152,7 +152,7 @@ ASC borrows some designs present in Git and in the [Drupal™](https://drupal.or
 
 | Concept | Summary |
 |---------|---------|
-| **Globals** | Instance env vars from `env.yml` / `global.vars.sh`, written to `.env` + `data/asc/global.vars.sh` |
+| **Globals** | Instance env vars from `env.yml` / `global.vars.sh`, written to `.env` + `data/asc/globals.sh` |
 | **Bootstrap** | `. asc/bootstrap.sh` ; eager `*.inc.sh` vs lazy `*.opt-inc.sh` |
 | **Instance init** | Aggregates globals, optional git hooks, generates make shortcuts |
 | **Actions** | Folders = subjects, files = actions → `data/asc/pivots.mk` |
@@ -340,7 +340,7 @@ There are 3 kinds of bootstrapped contexts :
 
 The "warming" process (= instance *setup* or *init* or *reinit*) (re)generates the following files :
 
-- `data/asc/global.vars.sh` : discovered readonly global env vars,
+- `data/asc/globals.sh` : discovered readonly global env vars,
 - `data/asc/cache/core/active.sh` (and `data/asc/cache/core/stamp`) : discovered enabled extensions and active dirs,
 - `data/asc/pivots.mk` (and `data/asc/cache/pivots.sh`) : discovered entry points (= actions) mapped as `make` entries,
 - and a bunch of hardcoded pre-warmed `data/asc/cache/hook/*.sh` cache files.
@@ -460,7 +460,7 @@ They aren't the same thing as variables only used inside the scope of a bash fun
 On init, *globals* are written to:
 
 - `.env` — Makefile and other tools (like Docker compose)
-- `data/asc/global.vars.sh` — sourced every bootstrap
+- `data/asc/globals.sh` — sourced every bootstrap
 
 Mutables (`DB_*`, `REMOTE_INSTANCE_*`, …) are **not** written by `u_global_write`; hooks/loaders set them mid-run.
 
@@ -553,7 +553,7 @@ To show where the declarations can be placed in order to get picked up for aggre
 ```sh
 make globals-lp
 # Or :
-asc/env/global_lookup_paths.make.sh
+asc/core/global_lookup_paths.make.sh
 ```
 
 Note that if the above helper is run **after** *instance init*, more variants will appear for `env.yml` files, as the lookup paths themselves may depend on things like enabled extensions and env vars values.
@@ -1442,7 +1442,7 @@ Files placed in `data/*` are usually writeable per project instance. They are me
 
 #### ASC cache : `data/asc/cache`
 
-Lookup artifacts only. `make cc` (`asc/core/cache_clear.sh`) deletes `data/asc/cache/` and **must not** delete `data/asc/global.vars.sh`, `data/asc/pivots.mk`, or `.env`. Those are instance state: `make reinit` rewrites them; `make uninit` wipes them (and the cache).
+Lookup artifacts only. `make cc` (`asc/core/cache_clear.sh`) deletes `data/asc/cache/` and **must not** delete `data/asc/globals.sh`, `data/asc/pivots.mk`, or `.env`. Those are instance state: `make reinit` rewrites them; `make uninit` wipes them (and the cache).
 
 ```text
 data/asc/
@@ -1631,7 +1631,7 @@ asc/instance/setup.sh
 
 Setup runs, in order:
 
-1. **instance init** — write globals (`.env`, `data/asc/global.vars.sh`), generate `data/asc/pivots.mk`, optional git hooks, caches
+1. **instance init** — write globals (`.env`, `data/asc/globals.sh`), generate `data/asc/pivots.mk`, optional git hooks, caches
 2. **instance start** — start services if hooks implement them
 3. **stage2 / post setup hooks** — e.g. create DBs, import dumps, vendor install (extension-defined)
 
@@ -1723,10 +1723,6 @@ asc/instance/rebuild.sh
   │   ├── .asc_subjects_ignore  ← [$subject/$action ext.point] blacklisted subfolder(s)
   │   └── bootstrap.sh        ← included in all entry points, loads bash functions and globals
   ├── data/                   ← runtime / generated (mostly gitignored)
-  │   ├── cronjobs/           ← [optional, git-ignored] default place for cron jobs outputs
-  │   │   └── $subject/       ← $action per $subject filesystem structure
-  │   │       └── $action/
-  │   │           └── ...
   │   ├── asc/                ← [git-ignored] Generated files for this instance
   │   │   ├── cache/          ← current local instance generated hooks and *.opt-inc.sh auto-include cache
   │   │   │   └── $subject/   ← $action per $subject filesystem structure
@@ -1734,14 +1730,18 @@ asc/instance/rebuild.sh
   │   │   │           └── ...
   │   │   ├── registry/       ← [optional] contains keyed "file-based store" values
   │   │   ├── pivots.mk       ← current local instance generated make entry points
-  │   │   └── global.vars.sh  ← current local instance generated (readonly) ENV vars
+  │   │   └── globals.sh      ← current local instance generated (readonly) ENV vars
+  │   ├── cronjobs/           ← [optional, git-ignored] default place for cron jobs outputs
+  │   │   └── $subject/       ← $action per $subject filesystem structure
+  │   │       └── $action/
+  │   │           └── ...
   │   ├── logs/               ← [optional, git-ignored] default place for logs (see also log-rotate)
   │   ├── loops/              ← [optional, git-ignored] default place for loops (see also log-rotate)
   │   ├── media/              ← [optional, git-ignored] default place for media
   │   ├── private/            ← [optional, git-ignored] default place for private files
+  │   ├── process/            ← [optional, git-ignored] default place for storing process info
   │   ├── test-results/       ← [optional] frozen (versionned) test results
   │   ├── threads/            ← [optional, git-ignored] default place for storing threads info
-  │   ├── process/            ← [optional, git-ignored] default place for storing process info
   │   ├── tmp/                ← [optional, git-ignored] default place for temporary files
   │   └── ...
   ├── docs/
@@ -1811,7 +1811,7 @@ Ex : `changelog/2026/07/17-implement-new-ollama-subject.md`
 Generated (do not hand-edit):
 
 - `.env`
-- `data/asc/global.vars.sh`
+- `data/asc/globals.sh`
 - `data/asc/pivots.mk`
 - `data/asc/cache/*`
 

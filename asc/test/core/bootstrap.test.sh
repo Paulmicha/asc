@@ -107,12 +107,12 @@ test_asc_primitives_cache_ignore_touch_rebuilds_and_wipes_hooks() {
 # make cc / cache_clear wipes lookup only; next ensure recreates core cache.
 #
 test_asc_cache_clear_keeps_globals_and_rebuilds_core() {
-  assertTrue 'global.vars.sh present before cc' '[ -f data/asc/global.vars.sh ]'
+  assertTrue 'global.vars.sh present before cc' '[ -f data/asc/globals.sh ]'
   assertTrue 'pivots.mk present before cc' '[ -f data/asc/pivots.mk ]'
 
   . asc/core/cache_clear.sh
 
-  assertTrue 'cc must keep global.vars.sh' '[ -f data/asc/global.vars.sh ]'
+  assertTrue 'cc must keep global.vars.sh' '[ -f data/asc/globals.sh ]'
   assertTrue 'cc must keep pivots.mk' '[ -f data/asc/pivots.mk ]'
   assertFalse 'cc must remove data/asc/cache' '[ -e data/asc/cache ]'
 

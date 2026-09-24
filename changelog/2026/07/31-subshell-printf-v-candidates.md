@@ -337,7 +337,7 @@ These are not caller `$()` sites but subshells **inside** utilities that echo re
 
 | File | Line | Pattern | Notes |
 |------|------|---------|-------|
-| `asc/env/global.vars.sh` | 37, 44 | `global HOST_OS "$(f_host_os)"` | Evaluated when globals aggregate — subshell at init |
+| `asc/core/global.vars.sh` | 37, 44 | `global HOST_OS "$(f_host_os)"` | Evaluated when globals aggregate — subshell at init |
 | `scripts/asc/contrib/asc/*/global.vars.sh` | various | `$(f_str_basic_auth_credentials …)`, `$(f_str_random …)` | Same bootstrap pattern |
 | `asc/extensions/crontab/crontab.inc.sh` | 415–417 | `'$(f_cron_scalar …)'` in heredoc | Becomes live subshell in generated `data/asc/cron/*.sh` |
 | `asc/extensions/crontab/crontab.inc.sh` | 538 | `` `$(f_cron_project_marker)` `` in crontab line string | String built for host crontab |

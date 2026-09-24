@@ -5,8 +5,8 @@
 | **Date** | 2026-09-11 |
 | **Status** | implemented (stamp + `core/active.sh` + `cache/hook/<key>.sh`; lazy opt-inc still follow-up) |
 | **Scope** | ASC repo `/home/paul/Documents/asc` — bootstrap, lookup cache, `make cc` / `make reinit` / `make uninit`. Not entity YAML merge, not bash-yaml swap. |
-| **Related** | `asc/bootstrap.sh`; `asc/core/cache_clear.sh`; `asc/core/hook.inc.sh` (`hook()` cache); `asc/instance/write_globals.sh`; `asc/make/make.inc.sh` (`f_make_generate`); README § Data dirs / instance init; `changelog/2026/09/10-begin-entity-system-with-remote-instances.md` (`data/asc/cache/entities/`); **follow-up (do not mix in):** [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) |
-| **Constraint (decided)** | **`make cc` stays “wipe lookup only”.** `data/asc/global.vars.sh` and `data/asc/pivots.mk` stay where they are and are **not** deleted by `cc`. |
+| **Related** | `asc/bootstrap.sh`; `asc/core/cache_clear.sh`; `asc/core/hook.inc.sh` (`hook()` cache); `asc/core/global_write.sh`; `asc/make/make.inc.sh` (`f_make_generate`); README § Data dirs / instance init; `changelog/2026/09/10-begin-entity-system-with-remote-instances.md` (`data/asc/cache/entities/`); **follow-up (do not mix in):** [11-lazy-opt-inc-and-entry-point-extraction.md](./11-lazy-opt-inc-and-entry-point-extraction.md) |
+| **Constraint (decided)** | **`make cc` stays “wipe lookup only”.** `data/asc/globals.sh` and `data/asc/pivots.mk` stay where they are and are **not** deleted by `cc`. |
 | **Lifecycle** | Shipped (stamp + `core/active.sh` + `cache/hook/`). Do not treat this as permission for a cache-tree rewrite. Shrinking what bootstrap **parses** is the **follow-up split**, not this file. |
 
 ---
@@ -16,7 +16,7 @@
 Warm bootstrap already skips `f_asc_extend` when `data/asc/cache/asc.sh` exists, and skips hook **lookup** when `data/asc/cache/hook.*.sh` exists. It still always:
 
 1. Sources the six core includes (`utils` — then named `core_utils` — plus `core`, `global`, `hook`, `autoload`, `yml`).
-2. Sources `data/asc/global.vars.sh` if present.
+2. Sources `data/asc/globals.sh` if present.
 3. Sources primitives cache (`asc.sh`) or rebuilds via `f_asc_extend`.
 4. Runs `hook` `pre_bootstrap` / `alias` / `bootstrap` (lookup cached; **bodies still run**).
 5. Sources every path in `ASC_INC`.
@@ -33,7 +33,7 @@ Hook cache files today look like `hook._s_asc_a_bootstrap_v_v1_asc.sh` — flatt
 
 **Decision:** `cc` deletes disposable **discovery / lookup** artifacts under `data/asc/cache/`. It must **not** delete:
 
-- `data/asc/global.vars.sh` (instance env, sourced every bootstrap)
+- `data/asc/globals.sh` (instance env, sourced every bootstrap)
 - `data/asc/pivots.mk` (Make include, `-include` from root `Makefile`)
 - `.env`
 
@@ -88,7 +88,7 @@ Cold path must remain enough to run `make init` (core utils, `f_asc_extend`, hoo
 
 #### Bare-path hooks (`pre_bootstrap` / `alias` / `bootstrap`)
 
-When `data/asc/global.vars.sh` is missing (`make uninit` then `make init`), those three calls still run today with empty `STACK_VERSION` / `PROVISION_USING`.
+When `data/asc/globals.sh` is missing (`make uninit` then `make init`), those three calls still run today with empty `STACK_VERSION` / `PROVISION_USING`.
 
 | Option | Pros | Cons |
 |---|---|---|
@@ -108,7 +108,7 @@ When `data/asc/global.vars.sh` is missing (`make uninit` then `make init`), thos
 | **B — Keep `data/asc/cache/asc.sh`** | Zero rename cost. | Opaque; `cache/` root stays a junk drawer. |
 | **C — Also move `pivots.mk` → `cache/core/pivots.mk` and globals → `cache/core/global.vars.sh`** | One “generated” tree. | **Conflicts with cc = lookup only** unless clear is rewritten with exceptions. Makefile `-include` path change. **Rejected.** |
 
-**Pick A** only. Makefile keep `-include data/asc/pivots.mk`. Bootstrap keep `. data/asc/global.vars.sh`.
+**Pick A** only. Makefile keep `-include data/asc/pivots.mk`. Bootstrap keep `. data/asc/globals.sh`.
 
 ### 3. Best performance win: discovery stamp (picked to implement first)
 
@@ -118,7 +118,7 @@ When `data/asc/global.vars.sh` is missing (`make uninit` then `make init`), thos
 
 **Stamp file:** `data/asc/cache/core/stamp` (one line or a few: checksum or `mtime` tuple).
 
-**Inputs (discovery only, not file bodies).** Compute **after** sourcing `data/asc/global.vars.sh` when that file exists (`HOST_TYPE` / `INSTANCE_TYPE` / `STACK_VERSION` select the ignore file):
+**Inputs (discovery only, not file bodies).** Compute **after** sourcing `data/asc/globals.sh` when that file exists (`HOST_TYPE` / `INSTANCE_TYPE` / `STACK_VERSION` select the ignore file):
 
 - **Instance identity:** `HOST_TYPE`, `INSTANCE_TYPE`, `STACK_VERSION`, and the **selected** `.asc_extensions_ignore` path (`f_asc_extensions_ignore_load` last-wins among unprefixed + `.$HOST_TYPE` / `.$INSTANCE_TYPE` / `.$STACK_VERSION` combinations). Reinit that only changes instance type must miss even when ignore-file mtimes are unchanged.
 - **Ignore file mtimes:** that selected path; `.asc_extensions_ignore` if present; `asc/.asc_subjects_ignore`
@@ -172,7 +172,7 @@ Unchanged policy, restated so layout changes do not silently expand `cc`:
 | `cache/core/active.sh`, `cache/core/stamp` | wipe | rewrite | wipe (via cache dir) |
 | `cache/hook/` | wipe | refill on next hook miss / warmup | wipe |
 | `cache/pivots.sh`, `cache/test-cases.sh`, `cache/entities/` | wipe | rewrite at init | wipe |
-| `data/asc/global.vars.sh` | **keep** | rewrite | wipe |
+| `data/asc/globals.sh` | **keep** | rewrite | wipe |
 | `data/asc/pivots.mk` | **keep** | rewrite | wipe |
 | `.env` | **keep** | rewrite | wipe |
 

@@ -70,7 +70,7 @@ f_make_check_args() {
 #   - registry -> reg
 #
 # Stored in global ASC_SYNONYMS entries. E.g. :
-# @see asc/env/global.vars.sh
+# @see asc/core/global.vars.sh
 #
 # @param 1 String : input to convert.
 # @param 2 [optional] String : the variable name in calling scope which will be
@@ -295,7 +295,7 @@ f_make_list_hardcoded() {
   pivots_arr+=('hook-debug')
   real_scripts_arr+=('asc/instance/hook.make.sh -d -t')
   pivots_arr+=('globals-lp')
-  real_scripts_arr+=('asc/env/global_lookup_paths.make.sh')
+  real_scripts_arr+=('asc/core/global_lookup_paths.make.sh')
   pivots_arr+=('debug')
   real_scripts_arr+=('asc/make/echo.make.sh')
 }

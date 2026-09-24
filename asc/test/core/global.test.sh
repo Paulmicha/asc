@@ -195,15 +195,15 @@ test_f_global_list() {
 
 ##
 # Direct script run must dry-run aggregate GLOBALS metadata (bootstrap alone
-# only loads data/asc/global.vars.sh values, not the associative array).
+# only loads data/asc/globals.sh values, not the associative array).
 #
-# @see asc/instance/globals_debug.sh
+# @see asc/core/global_debug.sh
 #
 test_globals_debug_script_without_prior_aggregation() {
   local output
   local status
 
-  output="$(asc/instance/globals_debug.sh 2>&1)"
+  output="$(asc/core/global_debug.sh 2>&1)"
   status=$?
 
   assertEquals 'globals_debug.sh should exit 0' 0 "$status"

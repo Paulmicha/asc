@@ -12,7 +12,7 @@
 # @example
 #   make globals-lp
 #   # Or :
-#   asc/env/global_lookup_paths.make.sh
+#   asc/core/global_lookup_paths.make.sh
 #
 
 . asc/bootstrap.sh
@@ -21,7 +21,7 @@ echo
 echo "List of globals' aggregation paths that would be loaded, in this order, during instance (re)init :"
 echo
 
-echo "asc/env/global.vars.sh"
+echo "asc/core/global.vars.sh"
 echo "  exists"
 
 # 1. Files named without variant (i.e. 'global.vars.sh')

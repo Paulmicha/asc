@@ -11,7 +11,13 @@
 # @see global()
 #
 # @example
-#   asc/instance/globals_debug.sh
+#   make core-global-debug
+#   # Or :
+#   asc/core/global_debug.sh
+#
+#   # After bootstrap + aggregate :
+#   . asc/core/global_debug.sh
+#   f_global_debug
 #
 
 ##
@@ -23,7 +29,7 @@ f_global_debug() {
   local key
   local val
 
-  # Bootstrap only loads data/asc/global.vars.sh values. The GLOBALS metadata
+  # Bootstrap only loads data/asc/globals.sh values. The GLOBALS metadata
   # array is filled during instance init / f_global_aggregate(). Direct script
   # runs need a dry-run aggregate so ${GLOBALS['.sorting']} is valid.
   # @see f_global_list()
@@ -39,7 +45,7 @@ f_global_debug() {
       # shellcheck disable=SC1091
       . asc/core/global.manual-inc.sh
     fi
-    . asc/env/global.vars.sh
+    . asc/core/global.vars.sh
     f_global_aggregate
   fi
 

@@ -57,7 +57,7 @@ hook-debug:
 	@ asc/make/call_wrap.make.sh asc/instance/hook.make.sh $@ -d -t $(filter-out $@,$(MAKECMDGOALS))
 
 globals-lp:
-	@ asc/make/call_wrap.make.sh asc/env/global_lookup_paths.make.sh $(MAKECMDGOALS)
+	@ asc/make/call_wrap.make.sh asc/core/global_lookup_paths.make.sh $(MAKECMDGOALS)
 
 debug:
 	@ echo "debug MAKECMDGOALS (escaped) = $(MAKECMDGOALS)";

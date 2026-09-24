@@ -17,11 +17,11 @@
 # implementations, convenience "make" shortcuts for all subjects & actions, etc.
 #
 # @see f_global_aggregate()
-# @see f_global_write() in asc/instance/write_globals.sh
+# @see f_global_write() in asc/core/global_write.sh
 # @see f_make_generate() in asc/make/generate.sh
 #
 # Default values :
-# @see asc/env/global.vars.sh
+# @see asc/core/global.vars.sh
 #
 # Gotcha : when calling this function in an already initialized instance, given
 # its design, every 'append' type globals values would pile-up, creating
@@ -199,7 +199,7 @@ f_instance_init() {
     # shellcheck disable=SC1091
     . asc/core/global.manual-inc.sh
   fi
-  . asc/env/global.vars.sh
+  . asc/core/global.vars.sh
 
   # Any global vars defined in YAML takes precedence. Use the dynamic lookup now
   # that we have values for HOST_TYPE and INSTANCE_TYPE (for variants).
@@ -239,14 +239,14 @@ f_instance_init() {
   # If we want to test instance init (when "dry run" flag is set), nothing is
   # written and hooks are replaced by a prefixed variant.
   if [[ $p_ascii_dry_run -eq 1 ]]; then
-    . asc/instance/globals_debug.sh
+    . asc/core/global_debug.sh
     f_global_debug
     hook -a 'init' -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE' -p 'dry_run'
     hook -s "$subjects instance" -a 'ensure_dirs_exist' -p 'dry_run'
     return
   fi
 
-  . asc/instance/write_globals.sh
+  . asc/core/global_write.sh
   f_global_write
 
   if [[ "$(type -t f_make_generate)" != function ]]; then

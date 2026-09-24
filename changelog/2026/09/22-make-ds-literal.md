@@ -42,7 +42,7 @@ Quotes in the printed command are single quotes. A value that is only letters, d
 | File | Change |
 |------|--------|
 | `asc/core/dsl.sh` | The entry point. Parser stays in this file. |
-| `asc/env/global.vars.sh` | One synonym: `core-dsl/ds` (or `core-dsl/dsl` if the gate flipped the pivot). |
+| `asc/core/global.vars.sh` | One synonym: `core-dsl/ds` (or `core-dsl/dsl` if the gate flipped the pivot). |
 | `asc/test/core/dsl.test.sh` | The table above, plus one unknown-name failure and one rejected nested call. |
 
 After the synonym lands, `make reinit` rewrites `data/asc/pivots.mk` so `make ds` exists. The test calls the script, so it does not depend on that rewrite.

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ##
-# Writes aggregated globals to data/asc/global.vars.sh and .env.
+# Writes aggregated globals to data/asc/globals.sh and .env.
 #
 # When executed as a script, bootstraps ASC then writes (expects globals already
 # aggregated — prefer calling from instance init after f_global_aggregate).
@@ -10,8 +10,12 @@
 # @see f_instance_init() in asc/instance/instance.inc.sh
 #
 # @example
+#   make core-global-write
+#   # Or :
+#   asc/core/global_write.sh
+#
 #   # After bootstrap + aggregate :
-#   . asc/instance/write_globals.sh
+#   . asc/core/global_write.sh
 #   f_global_write
 #
 
@@ -42,7 +46,7 @@ f_global_write() {
     return 1
   fi
 
-  echo "Writing global (env) vars to data/asc/global.vars.sh ..."
+  echo "Writing global (env) vars to data/asc/globals.sh ..."
 
   # Precompute DB-related names that must stay writable (not readonly).
   if [[ -n "$ASC_DB_IDS" ]]; then
@@ -67,7 +71,7 @@ f_global_write() {
 # entirely overwritten every time it is executed.
 #
 # @see f_instance_init() in asc/instance/instance.inc.sh
-# @see f_global_write() in asc/instance/write_globals.sh
+# @see f_global_write() in asc/core/global_write.sh
 #
 
 '
@@ -139,10 +143,10 @@ f_global_write() {
     fi
   done
 
-  printf '%s' "$vars_sh_buf" > data/asc/global.vars.sh
+  printf '%s' "$vars_sh_buf" > data/asc/globals.sh
   printf '%s' "$env_buf" > .env
 
-  echo "Writing global (env) vars to data/asc/global.vars.sh : done."
+  echo "Writing global (env) vars to data/asc/globals.sh : done."
   echo
 }
 

@@ -25,7 +25,7 @@ purge_list_arr=()
 
 # Manual cleanup of ASC global env vars.
 purge_list_arr+=('.env')
-purge_list_arr+=('data/asc/global.vars.sh')
+purge_list_arr+=('data/asc/globals.sh')
 
 # ASC make shortcuts too.
 purge_list_arr+=('data/asc/pivots.mk')

@@ -6,7 +6,7 @@
 # This file (and every others named like it in ASC extensions and in the ASC
 # customization dir) is used during "instance init" to generate a single script :
 #
-# data/asc/global.vars.sh
+# data/asc/globals.sh
 #
 # That script file will contain declarations for every global variables found in
 # this project instance as readonly. It is git-ignored and loaded on every
