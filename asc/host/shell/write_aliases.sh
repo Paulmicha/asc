@@ -77,7 +77,7 @@ printf '%s' "$aliases_sh_buf" > "data/asc/aliases.${p_shell_type}.sh"
 # TODO [wip] must write once the line where generated aliases are sourced inside
 # either .bashrc or .profile.
 
-needle="[ -f data/asc/aliases.${p_shell_type}.sh ] && \. data/asc/aliases.${p_shell_type}.sh"
+needle="[ -f $PROJECT_DOCROOT/data/asc/aliases.${p_shell_type}.sh ] && \. $PROJECT_DOCROOT/data/asc/aliases.${p_shell_type}.sh"
 file_path="$p_shell_plug"
 haystack=''
 new_str=''
