@@ -22,7 +22,7 @@ README § Workflow contains a `proposal-2026-09-22` block. It is not a human-wri
 - A machine branch is a child of that buffer. That machine pulls the buffer before it pushes.
 - A change those machines share moves up onto the buffer.
 - A change every instance shares moves up into the mother.
-- The linux home-directory instance is the example, on a branch named `debian-13`.
+- The linux home-directory repo is the example. Its buffer branch is `debian-13`. A machine checkout of that same repo uses `debian-13` plus a machine suffix. Both checkouts may sit on one host. Git commits move through the buffer. A work-tree mirror between those two directories is a separate pass, not this plan.
 
 No script in this plan creates those branches. Accepting the row means a later session may write the smallest pull-buffer-then-push helper. Rejecting the row leaves the proposal untouched.
 

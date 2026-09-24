@@ -112,6 +112,7 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [Temporary files : `data/tmp`](#temporary-files-datatmp)
     - [Default file-based agent skills storage : `data/skills`](#default-file-based-agent-skills-storage-dataskills)
 - [Workflow](#workflow)
+  - [Host copies and storage](#host-copies-and-storage)
   - [(re)Search](#research)
   - [Ideas](#ideas)
   - [Change(log)s](#changelogs)
@@ -250,7 +251,7 @@ Runtime discovery (`ASC_SUBJECTS` / `ASC_ACTIONS`, `data/asc/cache/core/active.s
     - `asc/extensions/crontab` : default crontab-related implementations
     - `asc/extensions/db` : generic abstract placeholders (hooks) for database-related operations
     - `asc/extensions/entity` : things like remote instances, databases, etc. all share some amount of expectations in terms of operations, prerequisites, etc. That's what the "entity" extension attempts to provide : a standard way to specify such things (in Yaml) in all projects using ASC.
-    - `asc/extensions/file_registry` : minimalist local file-based key/value store (supports host-level and instance-level scopes)
+    - `asc/extensions/file_registry` : minimalist local file-based key/value store (supports host-level and instance-level scopes). Host scope defaults to `$HOME/.local/state/asc/registry`.
     - `asc/extensions/interaction` : generic abstract placeholders (hooks) for interaction-related operations (like triggering input devices actions - e.g. mouse, keyboard, touch events, etc.)
     - `asc/extensions/memory` : generic abstract placeholders (hooks) for memory-related operations (like : find out if and where something is stored, using which storage, etc.)
     - `asc/extensions/remote` : default implementations related to remote communication (ssh, etc)
@@ -1541,6 +1542,18 @@ TODO settle the "next step tasks list" storage.
 Every local ASC project instance takes upstream updates from the ASC mother project instance. One repo shared by several machines keeps a common branch as the buffer they pull and push. A machine branch is a child of that branch, and that machine pulls the buffer current before it pushes. A change shared by those machines moves up onto the buffer. A change shared by every instance moves up into the mother. Example: the linux home-directory instance, branch `debian-13`.
 
 &lt;/proposal-2026-09-22&gt;
+
+&lt;proposal-2026-09-24&gt;
+
+### Host copies and storage
+
+One host may hold two checkouts of the same repository. The buffer branch is the parent (`debian-<major>` in the home-directory example). A machine branch appends a suffix. Git commits move up through that buffer, then into the ASC mother when every instance should share them. A second pass mirrors named directories between the two work trees, both directions. That pass is not `make core-upgrade`, and it is not written yet.
+
+`asc/host/asc_core_sync.sh` is the entry point aimed at ASC core files (`asc/` and `scripts/asc/contrib/asc/`) between the mother work tree and each instance `asc/instance/discover.sh` lists. The script is still a stub. `changelog/2026/09/23-host-asc-core-sync.md` specifies a report and a forward mirror only, and its gates row is not a go. The bidirectional contract needs its own row. Discover is specified in `changelog/2026/09/20-host-scan-project-instances.md` and is not on disk. The catalog it will write uses the host registry path above.
+
+Storage is several mechanisms at once. A sidecar contract stores volatile instances as YAML under `data/entities/<type>/`. A store names a backend (directory, registry, or a database). The registry stays one string per key. Entity types, instances, and the planned rules extension share one YAML shape for DSL combinations. Secrets stay in `.env-local.yml` or git-crypt. `changelog/2026/09/10-begin-entity-system-with-remote-instances.md` is the entity vocabulary. `changelog/2026/09/22-xdg-state-store.md` records the accepted host registry path. Memory stays disabled.
+
+&lt;/proposal-2026-09-24&gt;
 
 ### (re)Search
 
