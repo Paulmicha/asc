@@ -13,9 +13,11 @@
 # @example
 #   make host-shell-write-aliases '~/.bashrc'
 #   make host-shell-write-aliases '~/.profile'
+#   make host-shell-write-aliases '~/.bash_aliases'
 #   # Or :
 #   asc/host/shell/write_aliases.sh '~/.bashrc'
 #   asc/host/shell/write_aliases.sh '~/.profile'
+#   asc/host/shell/write_aliases.sh '~/.bash_aliases'
 #
 
 . asc/bootstrap.sh
@@ -30,7 +32,7 @@ p_shell_type="$2"
 
 if [[ -z "$p_shell_plug" ]]; then
   # TODO feedback
-  p_shell_plug='~/.bashrc'
+  p_shell_plug='~/.bash_aliases'
   # else
   # TODO input sanitizing
 fi
