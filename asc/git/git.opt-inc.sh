@@ -86,6 +86,145 @@ function giw() {
 }
 
 ##
+# List staged files only.
+#
+# @param 1 [optional] String : the git working dir (path to work tree).
+#   Defaults to current dir (empty string).
+# @param 2 [optional] String : the git dir.
+#   Defaults to "$1/.git".
+#
+# @example
+#   # List staged files in current path.
+#   staged="$(f_git_staged_list)"
+#   for f in $staged; do
+#     echo "staged file : $f"
+#   done
+#
+#   # List staged files in given path.
+#   staged="$(f_git_staged_list path/to/work/tree)"
+#   for f in $staged; do
+#     echo "staged file : $f"
+#   done
+#
+function f_git_staged_list() {
+  local p_git_work_tree="$1"
+  local p_git_dir="$2"
+
+  giw diff --name-only --cached
+}
+
+##
+# Renames current git branch both locally an remotely.
+#
+# @link https://stackoverflow.com/a/30590238/2592338
+#
+# @param 1 String : the new branch name.
+# @param 2 [optional] String : the git remote.
+#   Defaults to 'origin'.
+# @param 3 [optional] String : the old branch name.
+#   Defaults to current branch.
+#
+# @example
+#   f_git_branch_rename 'new-branch-name'
+#   f_git_branch_rename 'new-branch-name' 'origin' 'old-branch-name'
+#
+#   # Optionally, if we're not in the actual git dir :
+#   # @see giw()
+#   p_git_work_tree=/path/to/git/work-tree
+#   f_git_branch_rename 'new-branch-name'
+#
+function f_git_branch_rename() {
+  local p_new_branch="$1"
+  local p_remote="$2"
+  local p_old_branch="$3"
+
+  if [[ -z "$p_new_branch" ]]; then
+    echo >&2
+    echo "Error in $BASH_SOURCE line $LINENO in $FUNCNAME() : missing param 1 (the new git branch name)." >&2
+    echo "Usage example :" >&2
+    echo "  $FUNCNAME 'new-branch-name'" >&2
+    echo >&2
+    return 1
+  fi
+
+  if [[ -z "$p_remote" ]]; then
+    p_remote='origin'
+  fi
+
+  if [[ -z "$p_old_branch" ]]; then
+    p_old_branch="$(giw branch --show-current)"
+  fi
+
+  if [[ -z "$p_old_branch" ]]; then
+    echo >&2
+    echo "Error in $BASH_SOURCE line $LINENO in $FUNCNAME() : missing param 3 (the old git branch name)." >&2
+    echo >&2
+    return 2
+  fi
+
+  # Rename the local branch to the new name
+  giw branch -m "$p_old_branch" "$p_new_branch"
+
+  if [[ $? -ne 0 ]]; then
+    return
+  fi
+
+  # Delete the old branch on remote
+  giw push "$p_remote" --delete "$p_old_branch"
+
+  if [[ $? -ne 0 ]]; then
+    return
+  fi
+
+  # Prevent git from using the old name when pushing in the next step.
+  # Otherwise, git will use the old upstream name instead of $p_new_branch.
+  giw branch --unset-upstream "$p_new_branch"
+
+  if [[ $? -ne 0 ]]; then
+    return
+  fi
+
+  # Push the new branch to remote
+  giw push -u "$p_remote" "$p_new_branch"
+
+  if [[ $? -ne 0 ]]; then
+    return
+  fi
+
+  # Reset the upstream branch for the p_new_branch local branch
+  giw push "$p_remote" -u "$p_new_branch"
+}
+
+##
+# Test if given git branch exists locally.
+#
+# @param 1 String : the branch name.
+#
+# @example
+#   if f_git_branch_exists 'preprod' ; then
+#     echo "branch 'preprod' exists."
+#   fi
+#
+function f_git_branch_exists() {
+  local p_branch="$1"
+
+  if [[ -z "$p_branch" ]]; then
+    echo >&2
+    echo "Error in $BASH_SOURCE line $LINENO in $FUNCNAME() : missing param 1 (the git branch name)." >&2
+    echo "Usage example :" >&2
+    echo "  $FUNCNAME 'preprod'" >&2
+    echo >&2
+    return 1
+  fi
+
+  giw rev-parse --verify "$p_branch" > /dev/null 2>&1
+
+  if [[ $? -ne 0 ]]; then
+    return 2
+  fi
+}
+
+##
 # Basic Git log "processor".
 #
 # Forwards all arguments to f_git_find_commits() in order to allow filtering
@@ -672,36 +811,7 @@ f_git_get_unmerged_paths() {
 }
 
 ##
-# Test if given git branch exists locally.
-#
-# @param 1 String : the branch name.
-#
-# @example
-#   if f_git_branch_exists 'preprod' ; then
-#     echo "branch 'preprod' exists."
-#   fi
-#
-function f_git_branch_exists() {
-  local p_branch="$1"
-
-  if [[ -z "$p_branch" ]]; then
-    echo >&2
-    echo "Error in $BASH_SOURCE line $LINENO in $FUNCNAME() : missing param 1 (the git branch name)." >&2
-    echo "Usage example :" >&2
-    echo "  $FUNCNAME 'preprod'" >&2
-    echo >&2
-    return 1
-  fi
-
-  giw rev-parse --verify "$p_branch" > /dev/null 2>&1
-
-  if [[ $? -ne 0 ]]; then
-    return 2
-  fi
-}
-
-##
-# TODO @deprecated remove if confirmed no longer in use anywhere.
+# TODO @deprecated : switch to giw() anywhere.
 # Legacy ASC wrapper.
 #
 # @example

@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 # This file is a hardcoded alias of :
-. asc/git/acp.sh
+. asc/git/acp.sh "$@"

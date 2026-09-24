@@ -119,7 +119,7 @@ global ASC_APPS "[default]='site' [help]='ASC apps allow for example to provide 
 # - TODO [wip] Generic ASC-related shortcuts ?
 # @see @see asc/host/shell/write_hooks.sh
 
-global ASC_HOST_SHELL_ALIASES "[default]='ds gmp gacp' [help]='Space-separated opt-in list of host-level global shell aliases (mapped to given ASC entry points).'"
+global ASC_HOST_SHELL_ALIASES "[default]='ds gu gmp gacp' [help]='Space-separated opt-in list of host-level global shell aliases (mapped to given ASC entry points).'"
 
 # global ASC_ALIASES "[append]='reinit'"
 # global ASC_ALIASES "[append]='rebuild'"
