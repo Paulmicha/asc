@@ -179,7 +179,7 @@ f_entity_cache_purge() {
 
   f_fs_file_list "$cache_dir"
 
-  for file in $file_list; do
+  for file in "${file_list_arr[@]}"; do
     rm "${cache_dir}/${file}"
 
     if [[ $? -ne 0 ]]; then
@@ -214,7 +214,7 @@ f_entity_types_collect_dir() {
 
   f_fs_file_list "$p_dir" '*.entity.yml' "$p_depth"
 
-  for file in $file_list; do
+  for file in "${file_list_arr[@]}"; do
     stem="${file##*/}"
     stem="${stem%.entity.yml}"
     [[ -n "$stem" ]] || continue
@@ -286,7 +286,7 @@ f_entity_type_file_collect() {
 
   f_fs_file_list "$p_dir" '*.entity.yml' "$p_depth"
 
-  for file in $file_list; do
+  for file in "${file_list_arr[@]}"; do
     stem="${file##*/}"
     stem="${stem%.entity.yml}"
     [[ "$stem" == "$p_type" ]] || continue
@@ -441,7 +441,7 @@ f_entity_instances_discover() {
     fi
     [[ -d "data/entities/${type}" ]] || continue
     f_fs_file_list "data/entities/${type}" '*.yml'
-    for file in $file_list; do
+    for file in "${file_list_arr[@]}"; do
       id="${file%.yml}"
       [[ -n "$id" ]] || continue
       entity_instance_types_arr+=("$type")

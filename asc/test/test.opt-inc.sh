@@ -601,7 +601,7 @@ f_test_discover_batch_cases() {
   for p_env in $ASC_TEST_CASE_ENVS; do
     if [[ -d "${batch_dir}/${p_env}" ]]; then
       f_fs_file_list "${batch_dir}/${p_env}" '*.test.sh'
-      for stem in $file_list; do
+      for stem in "${file_list_arr[@]}"; do
         stem="${stem%.test.sh}"
         [[ "$stem" == 'orchestrated' ]] && continue
         if ! f_str_contains_word "$stem" "$stems"; then
@@ -620,7 +620,7 @@ f_test_discover_batch_cases() {
   fi
 
   f_fs_file_list "$batch_dir" '*.test.sh'
-  for stem in $file_list; do
+  for stem in "${file_list_arr[@]}"; do
     stem="${stem%.test.sh}"
     [[ "$stem" == 'orchestrated' ]] && continue
     stems+="$stem "
@@ -920,7 +920,7 @@ f_test_batch_exec() {
 
   f_fs_file_list "$p_dir" '*.test.sh'
 
-  for test_script in $file_list; do
+  for test_script in "${file_list_arr[@]}"; do
     f_test_file_exec "$p_dir/$test_script" || batch_exit=$?
 
     if [[ "$batch_exit" -ne 0 ]]; then

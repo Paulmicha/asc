@@ -124,19 +124,60 @@ test_f_fs_dir_file_list_and_most_recent() {
   sleep 0.05
   touch '_asc_dir_test/list/b.sh'
 
-  dir_list=''
+  mkdir -p '_asc_dir_test/list/sub dir'
   f_fs_dir_list '_asc_dir_test/list'
-  assertTrue 'dir_list should include sub' "[[ \"$dir_list\" == *sub* ]]"
+  local dir_hit=0
+  local d
+  for d in "${dir_list_arr[@]}"; do
+    if [[ "$d" == 'sub dir' ]]; then
+      dir_hit=1
+    fi
+  done
+  assertEquals 'dir_list_arr keeps a space' '1' "$dir_hit"
 
-  file_list=''
-  file_list_arr=()
   f_fs_file_list '_asc_dir_test/list' '*.sh'
-  assertTrue 'file_list should include b.sh' "[[ \"$file_list\" == *b.sh* ]]"
   assertEquals 'file_list_arr length for *.sh' '1' "${#file_list_arr[@]}"
+  assertEquals 'file_list_arr is b.sh' 'b.sh' "${file_list_arr[0]}"
 
   local most_recent=''
   f_fs_get_most_recent '_asc_dir_test/list' '' 1 1 'most_recent'
   assertTrue 'most recent should be b.sh' "[[ \"$most_recent\" == *b.sh ]]"
+}
+
+##
+# f_fs_file_list_append must accumulate paths, including names with spaces.
+#
+test_f_fs_file_list_append() {
+  mkdir -p '_asc_dir_test/append/sub dir'
+  touch '_asc_dir_test/append/a.pdf' \
+    '_asc_dir_test/append/my file.md' \
+    '_asc_dir_test/append/skip.txt' \
+    '_asc_dir_test/append/sub dir/nested.pdf'
+
+  file_list='sentinel'
+  file_list_arr=('keep')
+  f_fs_file_list_append '_asc_dir_test/missing' '*.pdf'
+  assertEquals 'missing dir leaves prior entries' '1' "${#file_list_arr[@]}"
+  assertEquals 'missing dir leaves the prior path' 'keep' "${file_list_arr[0]}"
+
+  file_list_arr=()
+  f_fs_file_list_append '_asc_dir_test/append' '*.pdf'
+  f_fs_file_list_append '_asc_dir_test/append' '*.md'
+  assertEquals 'two patterns append' '2' "${#file_list_arr[@]}"
+  assertEquals 'pdf stays one element' 'a.pdf' "${file_list_arr[0]}"
+  assertEquals 'md name keeps its space' 'my file.md' "${file_list_arr[1]}"
+  assertEquals 'file_list is left alone' 'sentinel' "$file_list"
+
+  file_list_arr=()
+  f_fs_file_list_append '_asc_dir_test/append' '*.pdf' 2
+  local hit=0
+  local f
+  for f in "${file_list_arr[@]}"; do
+    if [[ "$f" == 'sub dir/nested.pdf' ]]; then
+      hit=1
+    fi
+  done
+  assertEquals 'deeper path keeps its space' '1' "$hit"
 }
 
 ##

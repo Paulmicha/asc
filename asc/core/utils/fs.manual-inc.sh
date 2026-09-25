@@ -108,210 +108,150 @@ f_fs_get_file_contents() {
 }
 
 ##
-# Lists folders (shorter naming choice : we use 'dir' for directories).
+# Appends relative file or directory names to an array in the calling scope.
 #
-# NB : for performance reasons (to avoid using a subshell), this function
-# writes its result to a variable subject to collision in calling scope.
+# Depth 1 globs in-process. A greater depth uses find and mapfile. Each
+# element is one path, so names may contain spaces. Does not clear the array.
 #
-# @var dir_list
+# @param 1 String 'f' or 'd'.
+# @param 2 String array name in the calling scope.
+# @param 3 [optional] String base path (defaults to '.').
+# @param 4 [optional] String name filter pattern (defaults to no filter).
+# @param 5 [optional] Integer max depth (defaults to 1).
 #
-# @param 1 [optional] String base path (defaults to '.').
-# @param 2 [optional] String dir name filter pattern (defaults to none / not filtering).
-# @param 3 [optional] Integer max depth (defaults to 1).
-#
-# @example
-#   # List all dirs in current folder.
-#   f_fs_dir_list
-#   echo "$dir_list"
-#
-#   # List all dirs whose name starts with '_' in current folder.
-#   f_fs_dir_list . '_*'
-#   echo "$dir_list"
-#
-#   # List all dirs in the "/path/to/dir" folder up to 3 levels deep.
-#   f_fs_dir_list /path/to/dir '' 3
-#   echo "$dir_list"
-#
-#   # Looping example :
-#   for dir in $dir_list; do
-#     echo "$dir"
-#   done
-#
-f_fs_dir_list() {
-  local p_path="$1"
-  local p_filter_pattern="$2"
-  local p_maxdepth=$3
-
-  dir_list=''
+f_fs_list_append() {
+  local p_kind="$1"
+  local p_array_name="$2"
+  local p_path="$3"
+  local p_filter_pattern="$4"
+  local p_maxdepth="$5"
+  local -n _fs_out="$p_array_name"
+  local find_type='f'
+  local prefix glob
+  local dotglob=0
+  local nullglob=0
+  local i
 
   if [[ -z "$p_path" ]]; then
     p_path='.'
   fi
 
   if [[ ! -d "$p_path" ]]; then
-    return
+    return 0
   fi
 
   if [[ -z "$p_maxdepth" ]]; then
     p_maxdepth=1
   fi
 
-  local i
+  if [[ "$p_kind" == 'd' ]]; then
+    find_type='d'
+  fi
 
-  # If we need to look for dirs in deeper levels, use 'find' (subshell).
-  # TODO remove depth argument and make a separate function ? #YAGNI
-  if [[ $p_maxdepth -gt 1 ]]; then
-    if [[ -z "$p_filter_pattern" ]]; then
-      dir_list="$(find "$p_path" -maxdepth "$p_maxdepth" -type d -printf '%P\n')"
+  if [[ "$p_maxdepth" -gt 1 ]]; then
+    if [[ -n "$p_filter_pattern" ]]; then
+      mapfile -d '' -O "${#_fs_out[@]}" _fs_out < <(find "$p_path" -mindepth 1 -maxdepth "$p_maxdepth" -type "$find_type" -name "$p_filter_pattern" -printf '%P\0')
     else
-      dir_list="$(find "$p_path" -maxdepth "$p_maxdepth" -type d -name "$p_filter_pattern" -printf '%P\n')"
+      mapfile -d '' -O "${#_fs_out[@]}" _fs_out < <(find "$p_path" -mindepth 1 -maxdepth "$p_maxdepth" -type "$find_type" -printf '%P\0')
     fi
+    return 0
+  fi
 
-  # Otherwise, just use the less expensive bash loop.
-  else
-    if [[ "$p_path" != '.' ]]; then
-      pushd "$p_path" >/dev/null
-    fi
+  shopt -q dotglob && dotglob=1
+  shopt -q nullglob && nullglob=1
+  shopt -s dotglob nullglob
 
-    # The default globbing in bash does not include dirnames starting with a .
-    shopt -s dotglob
+  prefix="${p_path%/}"
+  glob='*'
 
-    if [[ -z "$p_filter_pattern" ]]; then
-      for i in * ; do
-        if [ -d "$i" ]; then
-          dir_list+="${i}
-"
-        fi
-      done
+  if [[ -n "$p_filter_pattern" ]]; then
+    glob="$p_filter_pattern"
+  fi
+
+  for i in "$prefix"/$glob; do
+    if [[ "$find_type" == 'f' ]]; then
+      [[ -f "$i" ]] || continue
     else
-      for i in * ; do
-        if [ -d "$i" ]; then
-          case "$i" in
-            $p_filter_pattern)
-              dir_list+="${i}
-"
-            ;;
-          esac
-        fi
-      done
+      [[ -d "$i" ]] || continue
     fi
 
-    if [[ "$p_path" != '.' ]]; then
-      popd >/dev/null
-    fi
+    _fs_out+=("${i#"$prefix"/}")
+  done
 
+  if [[ "$dotglob" -eq 0 ]]; then
     shopt -u dotglob
+  fi
+
+  if [[ "$nullglob" -eq 0 ]]; then
+    shopt -u nullglob
   fi
 }
 
 ##
-# Gets a list of files in given folder.
+# Lists directories under a path. Replaces dir_list_arr.
 #
-# NB : for performance reasons (to avoid using a subshell), this function
-# writes its result to variables subject to collision in calling scope.
-#
-# @var file_list
-# @var file_list_arr
+# @var dir_list_arr
 #
 # @param 1 [optional] String base path (defaults to '.').
-# @param 2 [optional] String file name filter pattern (defaults to '*' / not filtering).
+# @param 2 [optional] String dir name filter pattern (defaults to no filter).
 # @param 3 [optional] Integer max depth (defaults to 1).
 #
 # @example
-#   # List all files in current folder.
-#   f_fs_file_list
-#   echo "$file_list"
-#
-#   # List '*.sh' files in current folder.
-#   f_fs_file_list . '*.sh'
-#   echo "$file_list"
-#
-#   # List all files in the "/path/to/dir" folder up to 3 levels deep.
-#   f_fs_file_list /path/to/dir '' 3
-#   echo "$file_list"
-#
-#   # Looping example :
-#   f_fs_file_list 'data/asc/cache/entities/remote_instance'
-#   while read -r file; do
-#     echo "$file"
-#   done <<< "$file_list"
-#
-#   # TODO [evol] deprecate the string variable to avoid issues with file names
-#   # containing space(s) and the last empty line :
-#   file_list_arr=()
-#   f_fs_file_list "$dir"
-#   for file in "${file_list_arr[@]}"; do
-#     echo "file = $file"
+#   f_fs_dir_list . '_*'
+#   for dir in "${dir_list_arr[@]}"; do
+#     echo "$dir"
 #   done
 #
+f_fs_dir_list() {
+  dir_list_arr=()
+  f_fs_list_append d dir_list_arr "$@"
+}
+
+##
+# Lists files under a path. Replaces file_list_arr.
+#
+# @var file_list_arr
+#
+# @param 1 [optional] String base path (defaults to '.').
+# @param 2 [optional] String file name filter pattern (defaults to no filter).
+# @param 3 [optional] Integer max depth (defaults to 1).
+#
+# @example
+#   f_fs_file_list . '*.sh'
+#   for file in "${file_list_arr[@]}"; do
+#     echo "$file"
+#   done
+#
+#   # A second pattern replaces the array. To keep both, use
+#   # f_fs_file_list_append.
+#
 f_fs_file_list() {
-  local p_path="$1"
-  local p_filter_pattern="$2"
-  local p_maxdepth=$3
-
-  file_list=''
   file_list_arr=()
+  f_fs_file_list_append "$@"
+}
 
-  if [[ -z "$p_path" ]]; then
-    p_path='.'
-  fi
-
-  if [[ ! -d "$p_path" ]]; then
-    return
-  fi
-
-  if [[ -z "$p_maxdepth" ]]; then
-    p_maxdepth=1
-  fi
-
-  local i
-
-  # If we need to look for files in deeper levels, use 'find' (subshell).
-  # TODO remove depth argument and make a separate function ? #YAGNI
-  if [[ $p_maxdepth -gt 1 ]]; then
-    if [[ -z "$p_filter_pattern" ]]; then
-      file_list="$(find "$p_path" -maxdepth "$p_maxdepth" -type f -printf '%P\n')"
-    else
-      file_list="$(find "$p_path" -maxdepth "$p_maxdepth" -type f -name "$p_filter_pattern" -printf '%P\n')"
-    fi
-
-  # Otherwise, just use the less expensive bash globbing.
-  else
-    if [[ "$p_path" != '.' ]]; then
-      pushd "$p_path" >/dev/null
-    fi
-
-    # The default globbing in bash does not include filenames starting with a .
-    shopt -s dotglob
-
-    if [[ -z "$p_filter_pattern" ]]; then
-      for i in * ; do
-        if [[ -f "$i" ]]; then
-          file_list_arr+=("$i")
-          file_list+="${i}
-"
-        fi
-      done
-    else
-      for i in * ; do
-        if [[ -f "$i" ]]; then
-          case "$i" in
-            $p_filter_pattern)
-              file_list_arr+=("$i")
-              file_list+="${i}
-"
-            ;;
-          esac
-        fi
-      done
-    fi
-
-    if [[ "$p_path" != '.' ]]; then
-      popd >/dev/null
-    fi
-
-    shopt -u dotglob
-  fi
+##
+# Appends matching file paths to file_list_arr in the calling scope.
+#
+# Does not clear file_list_arr. Clear it before the first call. Arguments
+# match f_fs_file_list.
+#
+# @var file_list_arr
+#
+# @param 1 [optional] String base path (defaults to '.').
+# @param 2 [optional] String file name filter pattern (defaults to no filter).
+# @param 3 [optional] Integer max depth (defaults to 1).
+#
+# @example
+#   file_list_arr=()
+#   f_fs_file_list_append "$p_path" '*.pdf'
+#   f_fs_file_list_append "$p_path" '*.md'
+#   for file in "${file_list_arr[@]}"; do
+#     echo "$file"
+#   done
+#
+f_fs_file_list_append() {
+  f_fs_list_append f file_list_arr "$@"
 }
 
 ##

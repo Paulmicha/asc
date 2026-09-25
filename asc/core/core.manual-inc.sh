@@ -395,7 +395,7 @@ f_asc_primitives_cache_ensure() {
 f_asc_extensions_discover() {
   local extension
   local contrib_root='scripts/asc/contrib'
-  local contrib_vendors
+  local -a contrib_vendors=()
   local vendor
   local custom_extend_path='scripts/asc/extend'
 
@@ -403,7 +403,7 @@ f_asc_extensions_discover() {
 
   f_fs_dir_list "asc/extensions"
 
-  for extension in $dir_list; do
+  for extension in "${dir_list_arr[@]}"; do
     if [[ "${extension:0:1}" == '.' ]]; then
       continue
     fi
@@ -413,16 +413,16 @@ f_asc_extensions_discover() {
 
   if [[ -d "$contrib_root" ]]; then
     f_fs_dir_list "$contrib_root"
-    contrib_vendors="$dir_list"
+    contrib_vendors=("${dir_list_arr[@]}")
 
-    for vendor in $contrib_vendors; do
+    for vendor in "${contrib_vendors[@]}"; do
       if [[ "${vendor:0:1}" == '.' ]]; then
         continue
       fi
 
       f_fs_dir_list "$contrib_root/$vendor"
 
-      for extension in $dir_list; do
+      for extension in "${dir_list_arr[@]}"; do
         if [[ "${extension:0:1}" == '.' ]]; then
           continue
         fi
@@ -615,16 +615,16 @@ f_asc_primitive_values() {
 
   # Provide dynamic default values.
   if [[ $proceed -eq 1 ]]; then
-    local dyn_values
+    local -a dyn_arr=()
 
     case "$p_primitive" in
       subjects|objects)
         f_fs_dir_list "$p_path"
-        dyn_values=$dir_list
+        dyn_arr=("${dir_list_arr[@]}")
       ;;
       actions)
         f_fs_file_list "$p_path"
-        dyn_values=$file_list
+        dyn_arr=("${file_list_arr[@]}")
       ;;
     esac
 
@@ -632,7 +632,7 @@ f_asc_primitive_values() {
     local v
     local v_dots_arr
 
-    for v in $dyn_values; do
+    for v in "${dyn_arr[@]}"; do
 
       # Always ignore values starting with a dot.
       if [[ "${v:0:1}" == '.' ]]; then

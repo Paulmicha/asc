@@ -39,7 +39,7 @@ f_fs_dir_list "$ASC_DB_DUMPS_DIR"
 
 echo "Listing dumps in :"
 
-for subdir in $dir_list; do
+for subdir in "${dir_list_arr[@]}"; do
   if [[ -n "$p_subdir" ]]; then
     case "$subdir" in
       "$p_subdir")
@@ -71,7 +71,6 @@ for subdir in $dir_list; do
       echo "    $db_id ($relative_path) :"
     fi
 
-    file_list_arr=()
     f_fs_file_list "$dir"
 
     for file in "${file_list_arr[@]}"; do

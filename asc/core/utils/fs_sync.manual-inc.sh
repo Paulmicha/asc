@@ -81,14 +81,14 @@ f_fs_merge_dirs() {
 
     # When not overwriting existing files_arr, we need to proceed file by file.
     *)
-      local file_list=''
+      local -a file_list_arr=()
       local f=''
       local leaf=''
       local base_path=''
 
       f_fs_file_list "$p_src" '' '99'
 
-      for f in $file_list; do
+      for f in "${file_list_arr[@]}"; do
         # Skip corresponding file in target dir if it already exists.
         if [[ -f "$p_target/$f" ]]; then
           continue

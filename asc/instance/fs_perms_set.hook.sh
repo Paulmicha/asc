@@ -105,10 +105,9 @@ for scope in './asc' './scripts/asc'; do
   fi
 
   # Test files (*.test.sh).
-  file_list=''
   f_fs_file_list "$scope" '*.test.sh' 32
 
-  for f in $file_list; do
+  for f in "${file_list_arr[@]}"; do
     chmod "$FS_E_FILES" "$scope/$f"
     check_chmod=$?
 
@@ -123,33 +122,29 @@ for scope in './asc' './scripts/asc'; do
 
   # ASC make shortcut scripts (*.make.sh), wrappers (*.wrap.sh), and helpers.
   # escape.sh / list_entry_points.sh live only under ./asc.
-  # NB: f_fs_file_list always writes to file_list — save each pattern before the
-  # next call so make.sh entries are not clobbered by the wrap.sh lookup.
-  make_list=''
-  wrap_list=''
-  exec_list=''
-
-  f_fs_file_list "$scope" '*.make.sh' 32
-  make_list="$file_list"
-
-  f_fs_file_list "$scope" '*.wrap.sh' 32
-  wrap_list="$file_list"
-
-  exec_list="$make_list $wrap_list"
+  file_list_arr=()
+  f_fs_file_list_append "$scope" '*.make.sh' 32
+  f_fs_file_list_append "$scope" '*.wrap.sh' 32
+  exec_files=("${file_list_arr[@]}")
 
   if [[ "$scope" == './asc' ]]; then
-    exec_list+=' escape.sh bootstrap.sh make/list_entry_points.sh test/core.sh'
+    exec_files+=(
+      escape.sh
+      bootstrap.sh
+      make/list_entry_points.sh
+      test/core.sh
+    )
     # Nested instance entry points (compat wrappers are depth-1; implementations
     # live one level deeper and are also invoked directly by tests).
     for nf in batch chain loop pipe sequence thread; do
-      exec_list+=" instance/logged/${nf}.sh"
+      exec_files+=("instance/logged/${nf}.sh")
     done
     for nf in del get set; do
-      exec_list+=" instance/registry/${nf}.sh"
+      exec_files+=("instance/registry/${nf}.sh")
     done
   fi
 
-  for f in $exec_list; do
+  for f in "${exec_files[@]}"; do
     if [[ ! -f "$scope/$f" ]]; then
       continue
     fi

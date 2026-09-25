@@ -908,7 +908,7 @@ f_remote_instance_load() {
   if [[ -z "$p_id" ]]; then
     local file=''
     f_fs_file_list "$cache_dir" '*.sh'
-    for file in $file_list; do
+    for file in "${file_list_arr[@]}"; do
       case "$file" in types.sh|instances.sh|_parsed.sh) continue ;; esac
       p_id="${file%.sh}"
       break
@@ -957,7 +957,7 @@ f_remote_get_instances() {
 
     f_fs_file_list 'data/asc/cache/entities/remote_instance'
 
-    for file in $file_list; do
+    for file in "${file_list_arr[@]}"; do
       case "$file" in _parsed.sh) continue ;; esac
       remote_id="${file%.sh}"
       instance_ids_arr+=("$remote_id")
