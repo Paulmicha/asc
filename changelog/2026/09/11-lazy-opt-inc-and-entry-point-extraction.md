@@ -310,7 +310,9 @@ fi
 
 Callers that already bootstrapped: `. path/to/script.sh` then `f_foo`. Make: `make $subject-$action` → that script as `$0`.
 
-**Anti-pattern still on disk:** `asc/git/write_hooks.sh` only does `. asc/bootstrap.sh` then `f_git_write_hooks "$@"`, while the function **body** lives in eager `git.inc.sh`. Next extraction should move the body into `write_hooks.sh` exactly like `write_globals.sh`. Same smell wherever an action is a thin wrapper around a function that is only used from that action (and maybe init).
+**Anti-pattern, as of 2026-09-11:** `asc/git/write_hooks.sh` only did `. asc/bootstrap.sh` then `f_git_write_hooks "$@"`, while the function body lived in eager `git.inc.sh`.
+
+**Disk after mother `c272ae8` (2026-09-24):** `git.inc.sh` is gone. `f_git_write_hooks` is defined in `asc/git/write_hooks.sh`. Globals generation moved from `asc/instance/write_globals.sh` to `asc/core/global_write.sh`. The same smell still applies wherever an action is a thin wrapper around a function that is only used from that action.
 
 ### When *not* to extract
 
