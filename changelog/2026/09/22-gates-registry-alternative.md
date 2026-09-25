@@ -1,5 +1,7 @@
 # Registry alternative for `gates.yml`
 
+> **2026-09-25 concertation.** Order of work is [25-concert-order.md](./25-concert-order.md). Host scope stays wrong for gates. Registries are not rewritten as sidecars by that note.
+
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-22 |

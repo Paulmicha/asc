@@ -1,5 +1,7 @@
 # `make agent-llm` — abstract hook call, cursor hook implementation
 
+> **2026-09-25 concertation.** Order of work is [25-concert-order.md](./25-concert-order.md). This pivot stays off the path to the host catalog.
+
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-22 |

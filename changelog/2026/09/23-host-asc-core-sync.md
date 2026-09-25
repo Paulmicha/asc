@@ -5,7 +5,7 @@
 | **Date** | 2026-09-23 |
 | **Status** | **plan / review** (not an implementation go-ahead) |
 | **Scope** | Finish `asc/host/asc_core_sync.sh` (commit `4cf77f9`). Pivot `host-asc-core-sync`. |
-| **Not this plan** | Writing instance files into the mother. Commits and pushes. Replacing `make core-upgrade`. Implementing `asc/instance/discover.sh`. Copying `.cursor/rules`, `scripts/asc/extend/`, env, or gates. A README edit. |
+| **Not this plan** | Writing instance files into the mother. Commits and pushes. Replacing `make core-upgrade`. Filling `asc/host/instance/discover.sh` (stub only; the 2026-09-22 path `asc/instance/discover.sh` is withdrawn). Copying `.cursor/rules`, `scripts/asc/extend/`, env, or gates. A README edit. |
 
 `$` in this file is the ASC docs placeholder (`$subject` / `$action`), except `$HOME`, `$ASC_MOTHER_DOCROOT`, and other shell names written inside code blocks.
 
@@ -21,7 +21,7 @@ Mother `main` was already up to date with `origin/main` when this note was writt
 
 **Goal:** `host-asc-core-sync` prints how each instance’s managed directories differ from the local mother, and the word `apply` replaces those directories on the instance with the mother’s copies.
 
-**Architecture:** One entry point, `asc/host/asc_core_sync.sh`. No new include. The invoking process bootstraps only its own docroot. Other trees are filesystem paths. The mother is `$ASC_MOTHER_DOCROOT` or else `$HOME/Documents/asc`. With no instance path, the script runs `$ASC_MOTHER_DOCROOT/asc/instance/discover.sh` and reads one docroot per line. That discover script is still absent; a missing executable is a hard error, not an inlined `find`.
+**Architecture:** One entry point, `asc/host/asc_core_sync.sh`. No new include. The invoking process bootstraps only its own docroot. Other trees are filesystem paths. The mother is `$ASC_MOTHER_DOCROOT` or else `$HOME/Documents/asc`. With no instance path, the script runs `$ASC_MOTHER_DOCROOT/asc/host/instance/discover.sh` and reads one docroot per line. The file is a stub (bootstrap and `# TODO`). A stub that prints nothing is not the catalog. A missing executable is a hard error, not an inlined `find`.
 
 **Tech Stack:** Bash 4+, GNU `diff`, `realpath`, `cp -a`, shunit2 via `asc/test/core/host_asc_core_sync.test.sh`.
 
@@ -98,7 +98,7 @@ No `host.opt-inc.sh`. Logic stays in the entry point (one caller).
 1. **Backport is a review, not a writer.** The stub’s step 1 would copy an instance file into the public mother and step 2 would then copy that file to every other instance. Client names, ticket ids, hostnames, domains, and docroots live in instance trees. The mother-guard search for those strings lives in the instance rule, not in this repo. This script never becomes that writer.
 2. **“Improvement” is not a property of `diff`.** The report is the check the header asked for. Two instances can each differ from the mother on the same path; the report does not diff them against each other, and `apply` would replace both with the mother bytes.
 3. **`apply` uses the mother work tree,** including uncommitted files under the two directories. `make core-upgrade` (`asc/core/upgrade.sh`) is a different tool: it clones `https://github.com/Paulmicha/asc.git` at `ASC_BRANCH` (default `main`) into the **current** docroot only, prompts, and runs `hook -s core -a post_upgrade`. This script does not call it, does not prompt, and does not run `post_upgrade` (that would bootstrap the other tree).
-4. **No-arg host-wide sync waits on discover.** [20-host-scan-project-instances.md](./20-host-scan-project-instances.md) is `go: yes` for a catalog only. Its row says the catalog does not copy or sync. `asc/instance/discover.sh` is not in the tree. This script calls that path and exits 1 until it exists and is executable. It does not grow a second `find`.
+4. **No-arg host-wide sync waits on discover.** [20-host-scan-project-instances.md](./20-host-scan-project-instances.md) is `go: yes` for a catalog only. Its row says the catalog does not copy or sync. `asc/host/instance/discover.sh` is a stub. This script calls that path and exits 1 until the body prints docroots. It does not grow a second `find`.
 5. **README workflow proposal is a git contract,** still unaccepted ([22-gitflow.md](./22-gitflow.md), `go: no`). “A change every instance shares moves up into the mother” there means commits, not this mirror. This script does not commit or push. README also still has the non-goal of a self-organizing platform; this pivot lists paths and, only with `apply`, copies two directories.
 6. **`asc/vendor` is inside `asc/` and is mirrored** with the rest of that directory, same as `core-upgrade`. The mother-guard search skips `asc/vendor/**` when scanning a mother diff; that skip is not a copy filter.
 7. **Rules stay compare-only.** `make device-cursor-rules-sync` prints instance rules next to the mother and does not copy. This plan does not fold that copy in.
@@ -299,7 +299,7 @@ Write `asc/host/asc_core_sync.sh` (keep it executable):
 #
 # @param 1 [optional] String : one instance docroot. A relative path is
 #   resolved from the current working directory. When omitted, paths are
-#   read from the mother's asc/instance/discover.sh (Task 3).
+#   read from the mother's asc/host/instance/discover.sh (Task 3).
 #
 # Mother docroot: $ASC_MOTHER_DOCROOT, or $HOME/Documents/asc when unset.
 #
@@ -438,7 +438,7 @@ f_host_asc_core_sync() {
   done
 
   if [[ -z "$p_only" ]]; then
-    f_host_asc_core_sync_fail "instance path is required until asc/instance/discover.sh exists."
+    f_host_asc_core_sync_fail "instance path is required until asc/host/instance/discover.sh exists."
   fi
   case "$p_only" in
     *' '*)
@@ -630,7 +630,7 @@ The main function’s target section becomes:
 
 ```bash
   if [[ -z "$p_only" ]]; then
-    f_host_asc_core_sync_fail "instance path is required until asc/instance/discover.sh exists."
+    f_host_asc_core_sync_fail "instance path is required until asc/host/instance/discover.sh exists."
   fi
   case "$p_only" in
     *' '*)
@@ -705,7 +705,7 @@ EOF
 
 **Interfaces:**
 - Consumes: Task 2 `apply` and the report labels
-- Produces: with no path, execute `"$mother_real/asc/instance/discover.sh"` with no arguments. Non-zero status from that script is exit 1. Blank lines ignored. A printed path that resolves to the mother is skipped. Any other printed path uses `f_host_asc_core_sync_reject_target` and then the same report or `apply` as an explicit path. A missing or non-executable discover script is exit 1 and stderr contains `asc/instance/discover.sh`.
+- Produces: with no path, execute `"$mother_real/asc/host/instance/discover.sh"` with no arguments. Non-zero status from that script is exit 1. Blank lines ignored. A printed path that resolves to the mother is skipped. Any other printed path uses `f_host_asc_core_sync_reject_target` and then the same report or `apply` as an explicit path. A missing or non-executable discover script is exit 1 and stderr contains `asc/host/instance/discover.sh`.
 
 - [ ] **Step 1: Add the failing tests**
 
@@ -722,7 +722,7 @@ test_missing_discover_exits_1() {
   f_host_asc_core_sync_test_run "$mother"
 
   assertEquals 'missing discover exits 1.' 1 "$host_asc_core_sync_test_status"
-  grep -q 'asc/instance/discover.sh' "$host_asc_core_sync_test_err"
+  grep -q 'asc/host/instance/discover.sh' "$host_asc_core_sync_test_err"
   assertEquals 'stderr names discover.sh.' 0 "$?"
   rm -rf "$dir"
 }
@@ -739,11 +739,11 @@ test_discover_skips_mother_and_reports_two() {
   f_host_asc_core_sync_test_docroot "$b"
   printf '%s\n' 'only-a' > "$a/asc/only-a.txt"
   mkdir -p "$mother/asc/instance"
-  cat > "$mother/asc/instance/discover.sh" <<EOF
+  cat > "$mother/asc/host/instance/discover.sh" <<EOF
 #!/usr/bin/env bash
 printf '%s\n' '$mother' '$a' '' '$b'
 EOF
-  chmod 0755 "$mother/asc/instance/discover.sh"
+  chmod 0755 "$mother/asc/host/instance/discover.sh"
 
   f_host_asc_core_sync_test_run "$mother"
 
@@ -768,11 +768,11 @@ test_apply_stops_before_the_second_instance_on_copy_failure() {
   printf '%s\n' 'from-mother' > "$mother/asc/changed.txt"
   chmod 0555 "$a"
   mkdir -p "$mother/asc/instance"
-  cat > "$mother/asc/instance/discover.sh" <<EOF
+  cat > "$mother/asc/host/instance/discover.sh" <<EOF
 #!/usr/bin/env bash
 printf '%s\n' '$a' '$b'
 EOF
-  chmod 0755 "$mother/asc/instance/discover.sh"
+  chmod 0755 "$mother/asc/host/instance/discover.sh"
 
   f_host_asc_core_sync_test_run "$mother" apply
 
@@ -827,7 +827,7 @@ f_host_asc_core_sync_targets() {
     return 0
   fi
 
-  discover="$p_mother_real/asc/instance/discover.sh"
+  discover="$p_mother_real/asc/host/instance/discover.sh"
   if [[ ! -x "$discover" ]]; then
     f_host_asc_core_sync_fail "no instance path given and ${discover} is not executable."
   fi
@@ -913,4 +913,4 @@ EOF
 
 - [ ] Approve the gates row when this report-and-forward-mirror contract is the one to build.
 - [ ] Keep instance-to-mother copies out of this script until a later row names a single-file, guard-checked writer.
-- [ ] After `asc/instance/discover.sh` exists, re-run `asc/test/core/host_asc_core_sync.test.sh` against the fixture discover, then `make host-asc-core-sync` on a real host only as a report.
+- [ ] After `asc/host/instance/discover.sh` exists, re-run `asc/test/core/host_asc_core_sync.test.sh` against the fixture discover, then `make host-asc-core-sync` on a real host only as a report.

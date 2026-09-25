@@ -1,5 +1,7 @@
 # Workflow extension — close the loop
 
+> **2026-09-25 concertation.** Order of work is [25-concert-order.md](./25-concert-order.md). Gates are a later agent surface. This printer is not the current design queue. The catalog pivot is `host-instance-discover`.
+
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-22 |
@@ -64,7 +66,7 @@ They are later children. `workflow-next` does not call them.
 | Dot | What it is today | Later child |
 |-----|------------------|-------------|
 | Changelogs + `gates.yml` | This lap’s inputs. `doc-next-steps` already lists them. | `workflow-next` only prints. |
-| Host instances | [20-host-scan-project-instances.md](./20-host-scan-project-instances.md) catalogs sibling `$PROJECT_DOCROOT` trees and refuses to sync them. | After `instance-discover` exists, a read-only child may print each path. It does not copy `asc/` and does not run `make generate`. |
+| Host instances | [20-host-scan-project-instances.md](./20-host-scan-project-instances.md) catalogs sibling `$PROJECT_DOCROOT` trees and refuses to sync them. Pivot `host-instance-discover`. | After that stub is filled, a read-only child may print each path. It does not copy `asc/` and does not run `make generate`. |
 | `make llm-call` | README Workflow names this pivot, with a provider env in the `DB_DRIVER` style, and `make agent-loop` / `make slm-call`. | Dispatch child. Not this slice. |
 | `make agent-llm` | [22-agent-llm-entry-point.md](./22-agent-llm-entry-point.md) names a different pivot: hook call in `agent/llm.sh`, hook implementation in cursor, no provider env, no second pivot. Also `go: "no"`. | Same dispatch child. One of these two names, not both. |
 | `make cursor-task` | Not a pivot in this tree. Cursor contrib is `scripts/asc/contrib/asc/cursor/agent/wrap.sh` only, and `asc/cursor` is ignored. | The contrib file is a hook implementation of an abstract task pivot, not a second make target. |
@@ -82,7 +84,7 @@ One abstract model pivot, one abstract task pivot.
 
 ### Host child (unwritten)
 
-`instance-discover` is the catalog. Workflow does not grow a second find. A later printer may join “runnable gates row” with “sibling docroots” as text. Copying the mother tree onto those docroots, and running `make generate` there, is not this extension’s first write.
+`host-instance-discover` is the catalog. Workflow does not grow a second find. A later printer may join “runnable gates row” with “sibling docroots” as text. Copying the mother tree onto those docroots, and running `make generate` there, is not this extension’s first write.
 
 ---
 

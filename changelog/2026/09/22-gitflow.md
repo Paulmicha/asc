@@ -1,5 +1,7 @@
 # Gitflow — mother, buffer, machine branch
 
+> **2026-09-25 concertation.** Order of work is [25-concert-order.md](./25-concert-order.md). This file keeps its contract. The name Gitflow is the wrong folklore; the candidate is merge upward. It is not the queue.
+
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-22 |
@@ -40,7 +42,7 @@ Three different “syncs” stay three:
 |-----------|--------|
 | Buffer / machine branch | Git commits between machines that share a repo |
 | `make core-upgrade` | Mother file tree into this instance’s `asc/` |
-| `instance-discover` | Nothing. It lists paths. |
+| `host-instance-discover` | Nothing. It lists paths. |
 
 `workflow-next` does not call any of them.
 

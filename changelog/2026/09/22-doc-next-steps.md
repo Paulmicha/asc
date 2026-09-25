@@ -1,5 +1,7 @@
 # `doc` next-steps list
 
+> **2026-09-25 concertation.** This file is done. [25-concert-order.md](./25-concert-order.md) does not reopen it.
+
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-22 |

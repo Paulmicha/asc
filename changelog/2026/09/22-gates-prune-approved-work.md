@@ -1,5 +1,7 @@
 # Gates prune + approved work (2026-09-22)
 
+> **2026-09-25 concertation.** This prune is done. Later discuss rows with `go: yes` are called out in [25-concert-order.md](./25-concert-order.md). Do not treat this file as the current gates picture.
+
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-22 |

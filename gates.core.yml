@@ -105,7 +105,7 @@ gates:
     lane: discuss
     order: 9
     task: "Later: catalog sibling project instances. No sync."
-    summary: "Add make instance-discover to list ASC project docroots on this host and store the paths in the host registry. Setting go authorizes that catalog only; it does not start, copy, or sync the other instances."
+    summary: "Fill asc/host/instance/discover.sh (make host-instance-discover) to list ASC project docroots on this host and store the paths in the host registry. Setting go authorizes that catalog only; it does not start, copy, or sync the other instances. asc/instance/discover.sh would be published as make discover and is not this row."
     approved: "yes"
     go: "yes"
 
