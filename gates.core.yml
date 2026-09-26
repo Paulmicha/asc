@@ -161,6 +161,6 @@ gates:
     lane: discuss
     order: 15
     task: "Plan review. Retire the clone-on-init env switch."
-    summary: "Instance init calls hook for action clone on the app subject list and ships no hook implementation. The APP_GIT_INIT_CLONE switch and the clone in asc/git/init.hook.sh go away. Setting go authorizes that call and that deletion only; other APP_ globals stay."
+    summary: "Instance init calls hook_ms once per app subject for action clone and ships no hook implementation. A failing clone exits 1. The APP_GIT_INIT_CLONE switch and the clone in asc/git/init.hook.sh go away. Setting go authorizes that call and that deletion only; other APP_ globals stay."
     approved: "no"
     go: "no"

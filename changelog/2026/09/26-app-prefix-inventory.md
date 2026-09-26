@@ -13,7 +13,11 @@ Do not commit unless asked. Do not implement from this note alone.
 
 ## Decision
 
-Instance init makes one hook call, action `clone`, on the same subject list it already uses for `ensure_dirs_exist`. Core ships no hook implementation. An ASC project instance clones only by adding `clone.hook.sh` under an active dir whose name is one of those subjects.
+Instance init calls `hook_ms` once per subject in the app portion of the subject list, action `clone`. That portion is `ASC_APPS` when set, otherwise `app`. `ensure_dirs_exist` uses the same names plus `instance`. This call does not.
+
+Core ships no hook implementation. An instance clones by adding `clone.hook.sh` under an active dir whose name is that subject. One file wins per subject: the most specific match, so a variant file wins over the plain file, and an instance active dir wins over a generic one.
+
+On clone failure the hook implementation runs `exit 1`. `hook_ms` sources the file and ignores its status, so `return` does not stop init, and `hook_ms … || return` still sees success. `exit 1` leaves the process before the hook cache write, before later subjects, and before instance start. Setup then stops on init's non-zero status.
 
 `APP_GIT_INIT_CLONE` goes away. The clone block in `asc/git/init.hook.sh` goes with it. `ASC_GIT_HOOKS_WIRED` writing stays in that file.
 
@@ -23,25 +27,35 @@ Today `f_instance_init` in `asc/instance/instance.inc.sh` calls `hook -a 'init'`
 
 The opt-in is a global the mother still executes. The replacement opt-in is a file the instance adds when that instance wants a clone.
 
+## Cold init, before the clone
+
+`asc/instance/init.sh` sets `ASC_BS_SKIP_GLOBALS=1` and sources `asc/bootstrap.sh` before `f_instance_init`. On a cold tree (or a stamp miss) that bootstrap already runs `f_asc_extend`, writes `data/asc/cache/core/active.sh` and the stamp, and wipes `data/asc/cache/hook/`. `extend` is discovered when `scripts/asc/extend` exists, and it is never ignore-listed. Subject names are the directories on disk at that moment.
+
+`f_instance_init` then assigns `ASC_APPS`, `INSTANCE_TYPE`, `HOST_TYPE`, `STACK_VERSION`, and `PROVISION_USING` from arguments and `env.yml`, aggregates globals into the current shell, writes `globals.sh` and `.env`, and generates `pivots.mk`. The order below is after that, and after `hook -p 'pre' -a 'init'`.
+
+By then a `hook_ms` call can resolve a subject directory that existed before this process started, and the hook implementation can read the shell globals just aggregated. It does not need `globals.sh` to have been sourced (this process skipped that), the post-init hook-cache warmup, make's generated pivots, or running services. The first lookup is live: the hook cache for this call is empty on cold init.
+
+A clone file added later inside a subject directory that already existed does not change the discovery stamp (stamp v1). A warm hook cache can keep hiding it until `make cc` or a stamp miss. The first cold init does not have that cache.
+
 ## Hook call
 
-In `f_instance_init`, after `f_global_write` and `f_make_generate`, before `hook -a 'init'`:
+In `f_instance_init`, after `hook -p 'pre' -a 'init'`, before `hook -a 'init'`:
 
 ```sh
-hook -s "$subjects" \
-  -a 'clone' \
-  -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'
+for subject in $subjects; do
+  hook_ms -s "$subject" \
+    -a 'clone' \
+    -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'
+done
 ```
 
-`$subjects` is the list already computed just above: `ASC_APPS` when that is non-empty, otherwise `app`. The dry-run branch (`p_ascii_dry_run`) gets the same call with `-p 'dry_run'`, next to the existing dry-run `init` call.
+The dry-run branch (`p_ascii_dry_run`) does not call `hook_ms`. It calls `hook -s "$subjects" -a 'clone' -p 'dry_run'`, which looks up `dry_run_clone.hook.sh` and does not source `clone.hook.sh`.
 
-This is `hook`, the same shape as `ensure_dirs_exist`. Each listed subject can supply a hook implementation. `hook_ms` would keep one file and drop the others.
+A namespace that does not list the subject is skipped (`f_asc_namespace_has_subject`). A stock tree has no `app` active dir and no `clone.hook.sh`, so each call sources nothing.
 
-`hook` skips a namespace that does not already list that subject (`f_asc_namespace_has_subject`). A stock tree has no `app` active dir and no `clone.hook.sh`, so the call sources nothing and init does not clone.
+An instance that wants the clone adds an active dir named for that subject before init, for example `scripts/asc/extend/app/clone.hook.sh` when the subject is `app`, or `scripts/asc/extend/site/clone.hook.sh` when `ASC_APPS` is `site`. The mother does not add this file, a sample, or a make pivot.
 
-An instance that wants the clone adds an active dir named for that subject, for example `scripts/asc/extend/app/clone.hook.sh` when the subject is `app`, or `scripts/asc/extend/site/clone.hook.sh` when `ASC_APPS` is `site`. Discovery on the next bootstrap is what puts that subject on the namespace list. The mother does not add this file, a sample, or a make pivot.
-
-The hook implementation owns the remote, the destination path, and the branch. It returns without cloning when the destination already has `.git`. Core does not read `APP_GIT_INIT_CLONE`, `APP_GIT_ORIGIN`, or `APP_DOCROOT` to decide. The forced `origin/master` checkout is not reimplemented in core.
+The hook implementation owns the remote, the destination path, and the branch. When the destination already has `.git`, it returns without cloning. On failure it runs `exit 1`. Core does not read `APP_GIT_INIT_CLONE`, `APP_GIT_ORIGIN`, or `APP_DOCROOT` to decide. The forced `origin/master` checkout is not reimplemented in core.
 
 ## What stays in the git init hook implementation
 
@@ -63,16 +77,18 @@ Recommendation: make the hook call and delete the clone block. Do not leave a co
 
 ## When `go` is yes
 
-1. In `f_instance_init` (`asc/instance/instance.inc.sh`, the block around the existing subject list and the `hook -a 'init'` call), add the `clone` hook call on both the dry-run path and the normal path, before `hook -a 'init'`.
+1. In `f_instance_init` (`asc/instance/instance.inc.sh`), after `hook -p 'pre' -a 'init'` and before `hook -a 'init'`, loop the app subject list and call `hook_ms` once per subject as above. On the dry-run path, call `hook` with `-p 'dry_run'` and do not call `hook_ms`.
 2. Delete the `case "$APP_GIT_INIT_CLONE"` block from `asc/git/init.hook.sh` (the clone and the non-empty-directory `git init` / `fetch` / `checkout -t origin/master -f`). Keep the `ASC_GIT_HOOKS_WIRED` writer. Rewrite the header so it describes hook writing only.
 3. Rewrite the two comments in `scripts/asc/contrib/asc/drupalwt/new/project.sh` that still say instance init clones when `APP_GIT_INIT_CLONE` is `yes`. Leave that script's directory handling as it is.
-4. Add `asc/test/core/clone_hook.test.sh`. `make test-core` already runs `asc/test/core/*.test.sh`. The test asserts all of the following:
-   - `asc/git/init.hook.sh` contains neither `APP_GIT_INIT_CLONE` nor `git clone`
-   - no `clone.hook.sh` exists under `asc/` or `asc/extensions/`
-   - `asc/instance/instance.inc.sh` contains `-a 'clone'` and that call sits above `hook -a 'init'`
+4. Add `asc/test/core/clone_hook.test.sh`. `make test-core` already runs `asc/test/core/*.test.sh`. Run the behavior in a subshell, with fixtures (temporary active dirs and `clone.hook.sh` files, hook cache cleared). Assert:
+   - with no `clone.hook.sh`, the call sources nothing
+   - two app subjects each run their own `hook_ms` winner
+   - the dry-run path does not source an ordinary `clone.hook.sh`
+   - a fixture that runs `exit 1` ends the subshell before the init hook call
+   - a second call leaves an existing `.git` directory in place
 5. Run `make test-core`. The new test passes. Unrun stays unverified.
 
-No new global, no new include, no README edit. README does not name this switch.
+No new global, no new include. The cold-order note is the README proposal beside the warming list. Implementation leaves the human lines as they are.
 
 ## Appendix: APP_ inventory
 

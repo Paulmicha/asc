@@ -400,26 +400,29 @@ This is the detailed overview of the transitions between the following states th
 
 This describes what happens during the (instance) **init** = `make init` action is triggered, which also get called during (instance) **setup** = `make setup`.
 
-The "warming" process (re)generates the following files in that order :
+The "warming" process runs the following operations in that order :
 
-1. `data/asc/globals.sh` : discovered readonly global env vars,
-1. `data/asc/cache/core/active.sh` (and `data/asc/cache/core/stamp`) : discovered enabled extensions and active dirs,
-1. `data/asc/pivots.mk` (and `data/asc/cache/pivots.sh`) : discovered entry points (= actions) mapped as `make` entries,
-1. and a bunch of hardcoded pre-warmed `data/asc/cache/hook/*.sh` cache files.
-
-TODO in the context of changelog/2026/09/26-app-prefix-inventory.md review and dig deeper to explain how hooks can work even in a cold project instance.
+1. generate `data/asc/cache/core/active.sh` and `data/asc/cache/core/stamp` : discovered **enabled** *extensions* and *active dirs* (before `globals.sh` exists),
+1. generate `data/asc/globals.sh` : discovered readonly global env vars (declared in files like `env.yml` and `global.vars.sh`),
+1. generate `data/asc/pivots.mk` and `data/asc/cache/pivots.sh` : discovered entry points (= actions) mapped as `make` entries,
+1. call `hook -p 'pre' -a 'init'` (*any* subject can implement that hook)
+1. call `hook -a 'init' -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'` (*any* subject can implement that hook)
+1. call `hook -s "$subjects instance" -a 'ensure_dirs_exist'` : this is specifically designed to allow extensions create any dirs that are gitignored but required for applications in the local project instance stack to function
+1. call `f_instance_set_permissions` reinitializes all project instance files permissions
+1. `hook -p 'post' -a 'init'` : includes the generation of a bunch of hardcoded pre-warmed `data/asc/cache/hook/*.sh` cache files.
 
 #### Stale → Warm : drift re-alignment
 
 Short answer : run `make reinit`.
 
-Specific / incremental operations :
+Specific individual steps may be separately run manually :
 
-- TODO `make rere`
 - TODO only reinit env vars
 - TODO only rebuild hook cache
 - TODO only rebuild entity types discovery
 - TODO only rebuild discovered entity instances (1 or some or all types, such as e.g. hosts and/or remote hosts)
+
+Some convenience entry points exist for usual tasks that usually run together, like `make rere` = `make reinit` then `make restart`.
 
 #### (any state) → Cold
 
