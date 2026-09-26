@@ -109,25 +109,22 @@ global ASC_APPS "[default]='site' [help]='ASC apps allow for example to provide 
 # SITE_MYSQL_DB_ID='site' # -> default to {{ APP }} + to be automatically
 # added to ASC_DB_IDS
 
-
-# Update 2026-09-26 :
-
 # Host-level alias map: $HOME/<plug>_asc.
 # Default plug .bash_aliases → $HOME/.bash_aliases_asc.
-# Not an instance data dir. $HOME does not have to be an ASC project.
+# Not an instance data dir. $HOME does not have to be an ASC project instance.
 # That plug (.bash_aliases, .bashrc, or .profile) sources its own map once.
 # - 'ds' is a global ASC shortcut for the DSL,
 # - 'ssk' is used to switch between groups of loaded SSH keys,
 # - ASC core "git" extension get shortcuts out of the box,
-# - TODO [wip] Generic ASC-related shortcuts ?
 # @see asc/host/shell/write_aliases.sh
-
 global ASC_HOST_SHELL_ALIASES "[default]='ds gu gmp gacp ssk' [help]='Space-separated opt-in list of host-level global shell aliases (mapped to given ASC entry points).'"
 
 # Empty: instance init writes no git hooks. Append hook names to write only those.
 # @see asc/git/init.hook.sh
 global ASC_GIT_HOOKS_WIRED "[default]='' [help]='Space-separated git hooks instance init may write. Empty writes none.'"
 
-# global ASC_ALIASES "[append]='reinit'"
-# global ASC_ALIASES "[append]='rebuild'"
-# global ASC_ALIASES "[append]='agent'"
+# TODO see if we want that always wired in by default.
+# Currently ASC core uses it to automatically rebuild the table of contents in
+# the main README.md
+# @see asc/git/pre-commit.hook.sh
+global ASC_GIT_HOOKS_WIRED "[append]='pre-commit'"

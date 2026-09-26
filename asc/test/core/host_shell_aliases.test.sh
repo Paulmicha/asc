@@ -66,6 +66,20 @@ test_writer_does_not_create_a_missing_plug() {
   assertTrue 'plug is not created' "[[ ! -e '$home/.bash_aliases' ]]"
 }
 
+test_writer_bashrc_map_follows_the_plug() {
+  local home needle
+  home="$HOST_SHELL_ALIASES_TMP/bashrc"
+  mkdir -p "$home"
+  : >"$home/.bashrc"
+  needle='[ -f ~/.bashrc_asc ] && . ~/.bashrc_asc'
+
+  HOME="$home" asc/host/shell/write_aliases.sh .bashrc
+  assertEquals 'bashrc plug writer exits 0' 0 $?
+  assertTrue 'map is .bashrc_asc' "[[ -f '$home/.bashrc_asc' ]]"
+  assertTrue 'default map is not written for this plug' "[[ ! -e '$home/.bash_aliases_asc' ]]"
+  assertEquals 'plug sources its own map once' 1 "$(grep -F -c -e "$needle" "$home/.bashrc")"
+}
+
 test_writer_rejects_a_plug_outside_the_allowlist() {
   local home
   home="$HOST_SHELL_ALIASES_TMP/badplug"
@@ -76,21 +90,34 @@ test_writer_rejects_a_plug_outside_the_allowlist() {
   assertTrue 'no map was written for a rejected plug' "[[ ! -e '$home/../outside_asc' ]]"
 }
 
+# Not asc/instance/gacp.sh. A wrong PWD must not run this repo's gacp.
+_host_shell_rel='asc/instance/host_shell_alias_fixture.sh'
+
+_host_shell_walk() {
+  local start="$1"
+  local home="$2"
+  local out="$3"
+  shift 3
+  (
+    cd "$start" || exit 9
+    export HOME="$home" OUT="$out"
+    # shellcheck disable=SC1090
+    . "$HOST_SHELL_ALIASES_TMP/writer/.bash_aliases_asc"
+    closest_asc_docroot_exec "$_host_shell_rel" "$@"
+  )
+}
+
 test_closest_script_prefers_the_nearer_tree() {
   local home out stay rc
   home="$HOST_SHELL_ALIASES_TMP/walk"
   out="$HOST_SHELL_ALIASES_TMP/out"
   stay="$PWD"
   mkdir -p "$home/proj/sub"
-  _host_shell_script "$home/asc/instance/gacp.sh" home
-  _host_shell_script "$home/proj/asc/instance/gacp.sh" proj
+  _host_shell_script "$home/$_host_shell_rel" home
+  _host_shell_script "$home/proj/$_host_shell_rel" proj
   : >"$out"
 
-  (
-    cd "$home/proj/sub" || exit 9
-    HOME="$home" OUT="$out" . "$HOST_SHELL_ALIASES_TMP/writer/.bash_aliases_asc"
-    closest_asc_docroot_exec asc/instance/gacp.sh one two
-  )
+  _host_shell_walk "$home/proj/sub" "$home" "$out" one two
   rc=$?
   assertEquals 'walker exits 0' 0 "$rc"
   assertEquals 'nearer script runs' "proj"$'\n'"$home/proj"$'\n'"one two" "$(cat "$out")"
@@ -102,15 +129,11 @@ test_closest_script_uses_the_logical_symlink_path() {
   home="$HOST_SHELL_ALIASES_TMP/walk"
   out="$HOST_SHELL_ALIASES_TMP/out"
   mkdir -p "$home/real/sub"
-  _host_shell_script "$home/real/asc/instance/gacp.sh" real
-  ln -s real/sub "$home/link"
+  _host_shell_script "$home/real/$_host_shell_rel" real
+  ln -sfn real/sub "$home/link"
   : >"$out"
 
-  (
-    cd "$home/link" || exit 9
-    HOME="$home" OUT="$out" . "$HOST_SHELL_ALIASES_TMP/writer/.bash_aliases_asc"
-    closest_asc_docroot_exec asc/instance/gacp.sh
-  )
+  _host_shell_walk "$home/link" "$home" "$out"
   rc=$?
   assertEquals 'logical walk exits 0' 0 "$rc"
   assertEquals 'symlink path uses its logical parent, not the physical project' \
@@ -118,42 +141,36 @@ test_closest_script_uses_the_logical_symlink_path() {
 }
 
 test_closest_script_checks_home_last_when_outside_it() {
-  local home out elsewhere
+  local home out elsewhere rc
   home="$HOST_SHELL_ALIASES_TMP/walk"
   out="$HOST_SHELL_ALIASES_TMP/out"
   elsewhere="$HOST_SHELL_ALIASES_TMP/elsewhere"
   mkdir -p "$elsewhere"
   : >"$out"
 
-  (
-    cd "$elsewhere" || exit 9
-    HOME="$home" OUT="$out" . "$HOST_SHELL_ALIASES_TMP/writer/.bash_aliases_asc"
-    closest_asc_docroot_exec asc/instance/gacp.sh
-  )
-  assertEquals 'outside home still finds the home script' 0 $?
-  assertEquals 'home script runs last' "home"$'\n'"$home"$'\n' "$(cat "$out")"
+  _host_shell_walk "$elsewhere" "$home" "$out"
+  rc=$?
+  assertEquals 'outside home still finds the home script' 0 "$rc"
+  assertEquals 'home script runs last' "home"$'\n'"$home" "$(cat "$out")"
 }
 
 test_closest_script_does_not_climb_above_home() {
-  local root home out
+  local root home out rc
   root="$HOST_SHELL_ALIASES_TMP/above"
   home="$root/home"
   out="$HOST_SHELL_ALIASES_TMP/out"
   mkdir -p "$home/proj/sub"
-  _host_shell_script "$root/asc/instance/gacp.sh" above
+  _host_shell_script "$root/$_host_shell_rel" above
   : >"$out"
 
-  (
-    cd "$home/proj/sub" || exit 9
-    HOME="$home" OUT="$out" . "$HOST_SHELL_ALIASES_TMP/writer/.bash_aliases_asc"
-    closest_asc_docroot_exec asc/instance/gacp.sh
-  )
-  assertFalse 'a script above HOME is not run' "[[ $? -eq 0 ]]"
+  _host_shell_walk "$home/proj/sub" "$home" "$out"
+  rc=$?
+  assertFalse 'a script above HOME is not run' "[[ $rc -eq 0 ]]"
   assertEquals 'nothing above HOME ran' '' "$(cat "$out")"
 }
 
 test_closest_script_skips_an_unreadable_directory() {
-  local home out
+  local home out rc
   home="$HOST_SHELL_ALIASES_TMP/walk"
   out="$HOST_SHELL_ALIASES_TMP/out"
   mkdir -p "$home/proj/blocked"
@@ -161,14 +178,17 @@ test_closest_script_skips_an_unreadable_directory() {
   : >"$out"
 
   (
-    HOME="$home" OUT="$out" PWD="$home/proj/blocked" \
-      . "$HOST_SHELL_ALIASES_TMP/writer/.bash_aliases_asc"
-    closest_asc_docroot_exec asc/instance/gacp.sh
+    cd "$home/proj" || exit 9
+    export HOME="$home" OUT="$out"
+    PWD="$home/proj/blocked"
+    # shellcheck disable=SC1090
+    . "$HOST_SHELL_ALIASES_TMP/writer/.bash_aliases_asc"
+    closest_asc_docroot_exec "$_host_shell_rel"
   )
-  local rc=$?
+  rc=$?
   chmod 755 "$home/proj/blocked"
   assertEquals 'unreadable directory is skipped' 0 "$rc"
-  assertEquals 'parent project script runs' "proj"$'\n'"$home/proj"$'\n' "$(cat "$out")"
+  assertEquals 'parent project script runs' "proj"$'\n'"$home/proj" "$(cat "$out")"
 }
 
 . asc/vendor/shunit2/shunit2

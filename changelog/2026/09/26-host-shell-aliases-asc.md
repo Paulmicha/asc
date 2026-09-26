@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-26 |
-| **Status** | plan. The map is `$HOME/<plug>_asc`. The closest-script run is still open. |
+| **Status** | implemented. `asc/test/core/host_shell_aliases.test.sh` covers the walk and the plug. |
 | **Scope** | `make host-shell-write-aliases` (`asc/host/shell/write_aliases.sh`), `ASC_HOST_SHELL_ALIASES` |
 
 `$` here is a shell variable (`$HOME`, `$1`).
@@ -93,9 +93,9 @@ alias gacp='closest_asc_docroot_exec asc/instance/gacp.sh'
 
 One alias line per whitelisted name.
 
-## Writer today
+## Writer
 
-`asc/host/shell/write_aliases.sh` writes the map to `$HOME/<plug>_asc` and the source line into `$HOME/<plug>`. `data/asc/aliases.<shell>.sh` is gone. The shell-type argument is gone. The alias lines are still `alias <name>=<script>`. The closest-script run is not written yet. A name that is not `asc/instance/<name>.sh` is skipped with a message. An empty result does not truncate the map. A missing plug is not created. The plug write is untested.
+`asc/host/shell/write_aliases.sh` writes `$HOME/<plug>_asc`. The map defines `closest_asc_docroot_exec`, then one `alias` per `asc/instance/<name>.sh` name. A name that is not that script is skipped with a message. An empty result does not truncate the map. A missing plug is not created. An existing plug receives the source line once.
 
 The alias-record half of [`25-wired-init-lists.md`](25-wired-init-lists.md) is withdrawn. This note is the one that counts. The plugs receive the source line only. Alias lines stay in that plug's map.
 
@@ -105,6 +105,6 @@ The alias-record half of [`25-wired-init-lists.md`](25-wired-init-lists.md) is w
 - [x] The plug is `.bash_aliases` (default), `.bashrc`, or `.profile`, under `$HOME`, and it receives one source line.
 - [x] Skip a name that is not `asc/instance/<name>.sh`, say so, and do not truncate the map when nothing qualifies.
 - [x] Do not create a missing plug.
-- [ ] In `closest_asc_docroot_exec`, run the stored relative script in the closest directory that contains it, in a subshell. Exit non-zero when none qualifies. Do not call `make`.
-- [ ] Confirm the plug line is written once. Untested.
+- [x] `closest_asc_docroot_exec` runs the stored relative script in the closest directory that contains it, in a subshell. It exits non-zero when none qualifies. It does not call `make`.
+- [x] The plug line is written once. `asc/test/core/host_shell_aliases.test.sh`.
 - [x] `ASC_HOST_ALIASES_WIRED` alias records are withdrawn. Init does not write alias lines.
