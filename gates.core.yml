@@ -161,6 +161,6 @@ gates:
     lane: discuss
     order: 15
     task: "Plan review. Clone per app subject. Context tokens in the git hook list."
-    summary: "Instance init calls hook_ms once per app subject for action clone. ASC_GIT_HOOKS_WIRED accepts site:pre-commit and asc:pre-commit, and the generated script sets git_hook_context while still running from the instance docroot. A failing clone or a missing hooks directory exits 1. Setting go authorizes that only; other APP_ globals stay."
+    summary: "Instance init calls hook_ms once per app subject for action clone and returns that status. ASC_GIT_HOOKS_WIRED accepts site:pre-commit and asc:pre-commit. The generated script sets git_hook_context and still runs from the instance docroot. The instance README listener skips any other context. Setting go authorizes that only; other APP_ globals stay."
     approved: "no"
     go: "no"
