@@ -254,7 +254,7 @@ Runtime discovery (`ASC_SUBJECTS` / `ASC_ACTIONS`, `data/asc/cache/core/active.s
     - `asc/extensions/agent` : wraps and chains LLMs prompts (with pre- and post- process hooks), and provides generic abstractions to manage things like `SKILL.md` (see [pi](https://github.com/earendil-works/pi)) / `CLAUDE.md` / Cursor rules
     - `asc/extensions/apt` : default Debian-based Linux host-level dependencies operations
     - `asc/extensions/builder` : minimalist ASC "clean" code generator
-    - `asc/extensions/checker` : anti-pattern catalog compared to a git diff. Complements `builder`.
+    - `asc/extensions/checker` : anti-pattern catalog compared to staged file contents. Complements `builder`.
     - `asc/extensions/compose` : default Docker compose - related implementations
     - `asc/extensions/crontab` : default crontab-related implementations
     - `asc/extensions/db` : generic abstract placeholders (hooks) for database-related operations
@@ -1274,7 +1274,7 @@ Tests results are (for now) stored in `data/test-results`. This was done to trac
 ASC provides 2 (opt-in) extensions :
 
 - `builder` repeats a shape by generating code from templates.
-- `checker` names and describes a shape a git diff should not repeat.
+- `checker` names and describes a shape staged contents should not contain.
 
 #### Builder extension : patterns
 
@@ -1291,8 +1291,8 @@ A design pattern is a folder or string template. `asc/extensions/builder` genera
 An anti-pattern is one record in this catalog. `asc/extensions/checker` keeps it. The core group is `asc` (`ASC_ANTI_PATTERN_TYPES`): the list for an ASC project instance, read from `data/entities/anti-pattern/asc`.
 
 - `make anti-pattern` records one.
-- `code-smell` is a synonym. That substitution also turns `anti-pattern-list` into `code-smell-list`, which loads the group that fits the diff.
-- `make diff-inspect` compares the diff to that list.
+- `code-smell` is a synonym. That substitution also turns `anti-pattern-list` into `code-smell-list`, which loads the group for that commit.
+- `make stage-inspect` reads the staged blob of each committed path (`git show :path`) and compares those contents to the list.
 
 &lt;/proposal-2026-09-26&gt;
 

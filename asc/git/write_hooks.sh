@@ -35,12 +35,12 @@
 #
 # @param 1 [optional] String : the space-separated Git hooks to (over)write.
 #   Defaults to the following selection (when value is absent or empty) :
-#   - 'pre-applypatch' : used to inspect the current working tree and refuse to
-#     make a commit (exits with non-zero status) if it does not pass certain
-#     test(s).
-#   - 'pre-commit' (see post-merge) : used for permissions/ownership, ACLS, etc.
-#     Prevents commit when exiting with a non-zero status. Can be bypassed with
-#     the 'git commit --no-verify' option.
+#   - 'pre-applypatch' : git am only, after the patch is applied and before
+#     that command commits. Non-zero status leaves that tree uncommitted.
+#     Does not run for git commit.
+#   - 'pre-commit' (see post-merge) : git commit, on the index about to be
+#     committed. Non-zero status aborts the commit. Bypassed with
+#     'git commit --no-verify'. Also used for permissions/ownership, ACLs.
 #   - 'post-checkout' : used to perform repository validity checks, auto-display
 #     differences from the previous HEAD if different, or set working dir
 #     metadata properties (e.g. permissions/ownership). The hook is given three
@@ -96,6 +96,7 @@ f_git_write_hooks() {
   local git_hook=''
   local git_hook_script_path=''
   local git_hooks_whitelist_arr=()
+
   git_hooks_whitelist_arr+=('applypatch-msg')
   git_hooks_whitelist_arr+=('pre-applypatch')
   git_hooks_whitelist_arr+=('post-applypatch')
@@ -133,6 +134,7 @@ f_git_write_hooks() {
       # -> Since ASC requires to be run from PROJECT_DOCROOT, we need to force the
       # execution path from within the generated scripts.
       echo "(over)Writing git hook $relative_path ..."
+
       cat > "$git_hook_script_path" <<EOF
 #!/usr/bin/env bash
 
@@ -153,6 +155,7 @@ cd "$PROJECT_DOCROOT" && \
 
 EOF
       chmod +x "$git_hook_script_path"
+
       echo "(over)Writing git hook $relative_path : done."
 
     else

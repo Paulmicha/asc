@@ -4,7 +4,7 @@
 |-------|--------|
 | **Date** | 2026-09-26 |
 | **Status** | **plan / review**. The split is chosen. Stubs are on disk. Bodies are not filled. Not an implementation go-ahead. |
-| **Scope** | `builder` repeats a shape. `checker` names a shape a git diff must not repeat. A later git hook and the Cursor contrib extension call that checker. This note says how, and what that wiring must not do. |
+| **Scope** | `builder` repeats a shape. `checker` names a shape staged contents must not contain. A later git hook and the Cursor contrib extension call that checker. This note says how, and what that wiring must not do. |
 | **Out of this plan** | Filling the three checker entry points. Writing `checker/git/pre-commit.hook.sh`. Setting `ASC_GIT_HOOKS_WIRED`. Filling `make generate`. Moving builder to `asc/builder/`. A gates row. Enabling `agent`, `workflow`, or `asc/cursor`. Copying Cursor rules or skills. Generating `.mdc` files. Importing a host shell template tree. Reordering [25-concert-order.md](./25-concert-order.md). |
 
 `$` in this file is the ASC docs placeholder (`$subject` / `$action`), except `$HOME`, `$GIT_DIR`, `$APP_DOCROOT`, `$PROJECT_DOCROOT`, and `$1`.
@@ -24,7 +24,7 @@ Two opt-in core extensions. The negative list does not live inside `builder`.
 | List | Extension | What an agent does |
 |------|-----------|--------------------|
 | Design pattern | `asc/extensions/builder` | Generate the shape from a template. Do not hand-write a second copy. |
-| Anti-pattern | `asc/extensions/checker` | After a diff exists, compare it to the catalog. A hit stops the edit. |
+| Anti-pattern | `asc/extensions/checker` | After a path is staged, compare its staged contents to the catalog. A hit stops the edit. |
 
 That stop is the agent's job while editing. A git hook exits non-zero only for a record marked `block`. Those are different duties. Both are spelled out below. Neither is implemented.
 
@@ -50,8 +50,8 @@ A host shell that copies a `templates/` directory and rewrites `{{ NAME }}` toke
 |------|----------|
 | `asc/extensions/checker/global.vars.sh` | Live. `ASC_ANTI_PATTERN_TYPES` appends `asc`. `ASC_SYNONYMS` appends `anti-pattern/code-smell`. The next init that aggregates globals will bake both. |
 | `anti/pattern.sh` | Comment only. No shebang, no bootstrap. Intended pivot `anti-pattern` (short name `code-smell`): record one anti-pattern. |
-| `anti/pattern/list.sh` | Comment only. Intended pivot `anti-pattern-list`. The synonym replaces the substring, so the short name is `code-smell-list`. Loads the list for a git diff. |
-| `diff/inspect.sh` | Comment only. Intended pivot `diff-inspect`. Compares the diff to the loaded list. |
+| `anti/pattern/list.sh` | Comment only. Intended pivot `anti-pattern-list`. The synonym replaces the substring, so the short name is `code-smell-list`. Loads the list for the repository being committed. |
+| `stage/inspect.sh` | Comment only. Intended pivot `stage-inspect`. Reads each staged blob (`git show :path`) and compares those contents to the list. The path was `diff/inspect.sh`. The human moved it on 2026-09-26. |
 
 The core group `asc` is the list for an ASC project instance. The list stub names `data/entities/anti-pattern/asc`. README now says that path. The entity plan's instance file is `data/entities/<type>/<id>.yml`, so the spelling to settle is `asc.yml` versus a directory of one file per anti-pattern. The stub has no `.yml`.
 
@@ -80,7 +80,7 @@ First records are not written. Candidates already decided in [25-concert-order.m
 
 ## Git hooks
 
-Design only. No listener file. No change to `ASC_GIT_HOOKS_WIRED`. The hook is a later caller of `diff-inspect`. Wiring it first, while the three checker scripts are comments, either does nothing or rejects every commit the moment someone adds `exit 1`.
+Design only. No listener file. No change to `ASC_GIT_HOOKS_WIRED`. The hook is a later caller of `stage-inspect`. Wiring it first, while the three checker scripts are comments, either does nothing or rejects every commit the moment someone adds `exit 1`.
 
 ### The writer that already exists
 
@@ -112,15 +112,15 @@ A checker listener, when one is written, lives at `asc/extensions/checker/git/pr
 
 ### Which git hook
 
-The comment on `f_git_write_hooks` swaps two hooks. It describes `pre-applypatch` as the check that inspects the tree and refuses a commit. That hook runs for `git am`, after the patch is applied and before that command commits. It does not run for `git commit`.
+The comment on `f_git_write_hooks` used to describe `pre-applypatch` as the check that inspects the tree and refuses a commit. That text was corrected on 2026-09-26. `pre-applypatch` runs for `git am`, after the patch is applied and before that command commits. It does not run for `git commit`.
 
-The commit gate is `pre-commit`. Git invokes it for `git commit`. A non-zero status aborts the commit. `git commit --no-verify` skips it. The same comment already says the bypass exists, and then attaches the refuse-the-commit job to the wrong name.
+The commit gate is `pre-commit`. Git invokes it for `git commit`. A non-zero status aborts the commit. `git commit --no-verify` skips it. The checker catalog belongs on `pre-commit`. The function's empty-argument default still lists `pre-applypatch` among the six names. This comment fix does not remove it. Instance init still does not write that default.
 
 | Git hook | When git runs it | Can it refuse? | Checker use |
 |----------|------------------|----------------|-------------|
-| `pre-commit` | `git commit`, on the index about to be committed | Yes. Non-zero aborts. `--no-verify` skips it. | The gate. Calls `diff-inspect` on the index. |
+| `pre-commit` | `git commit`, on the index about to be committed | Yes. Non-zero aborts. `--no-verify` skips it. | The gate. Calls `stage-inspect` on the staged blobs. |
 | `pre-applypatch` | `git am` only | Yes, for that am session | Do not wire the catalog here. A normal commit never enters it. |
-| `prepare-commit-msg`, `commit-msg` | After the message file exists, before the commit object | Yes | Message text. A diff smell is not a message smell. Leave them unwired. |
+| `prepare-commit-msg`, `commit-msg` | After the message file exists, before the commit object | Yes | Message text. A smell in file contents is not a message smell. Leave them unwired. |
 | `post-commit` | After the commit object exists | No | Too late to refuse. |
 | `pre-push` | Before refs are sent. Remote name and URL in `$1` and `$2`. Refs on stdin. | Yes. `--no-verify` skips it. | Same inspect, for commits that skipped `pre-commit`. Still opt-in. Still not the core default. |
 | `post-checkout`, `post-merge` | After the worktree already changed | No | A printout of what now applies. A poor gate. |
@@ -128,13 +128,20 @@ The commit gate is `pre-commit`. Git invokes it for `git commit`. A non-zero sta
 
 `post-commit`, `post-merge`, and `post-checkout` are the wrong place to start. They cannot reject the operation that just finished. `post-receive` would run the catalog on a machine that is not the instance that owns `data/entities/anti-pattern/`.
 
-### The diff the hook must read
+### The bytes `stage-inspect` reads
 
-`diff/inspect.sh` says "a git diff" and does not say which one. A pre-commit listener that runs plain `git diff` reads the worktree against the index. Unstaged lines are not the commit. A smell that exists only in the staged hunk is invisible. A smell that exists only in an unstaged edit is reported for a commit that does not contain it.
+The pivot was going to be `diff-inspect`, and the stub said it ran over a git diff. That is the wrong object. An anti-pattern is a property of the file that will be committed (a call, a header, a whole-file shape). A unified diff is a transformation: hunk headers, deleted lines, and context lines. Matching a shape there means reconstructing the file, and a shape that is easier to see in the finished text is awkward to see in the patch.
 
-The index is `git diff --cached`. A detector that then opens the worktree file still sees the wrong bytes: the worktree can differ from the staged blob. The bytes of the commit are `git show :path` (the index stage). Detectors read that blob, or the cached diff, and not the worktree file.
+`stage-inspect` reads contents:
 
-Partial staging makes this sharper. A hunk can be staged while the rest of the file is not. A whole-file read flags lines the commit does not include.
+1. Paths this commit changes: `git diff --cached --name-only` (and `--diff-filter` so a deletion, which has no blob, is skipped).
+2. For each remaining path, the staged blob: `git show :path`. That is the file as the commit will store it.
+
+It does not parse the unified diff. It does not open the worktree file. The worktree can still hold unstaged edits. Those bytes are not in the commit.
+
+What this accepts: inside a path that is part of the commit, lines that were already there are scanned too. A smell introduced in an earlier commit can fail this one. That is the cost of reading the finished file instead of the added lines only. Untouched paths are not listed, so the rest of the repository is not scanned.
+
+Partial staging uses the index blob, not the worktree. The commit's copy of that path is what gets read, including previously committed lines and the hunks that are staged, and excluding unstaged lines.
 
 ### Which repository
 
@@ -147,20 +154,20 @@ Two directories are in play.
 
 The generated script `cd`s to `$PROJECT_DOCROOT` before `hook` runs. Git's own hook starts at the root of the work tree whose `.git/hooks` fired, and git sets `GIT_DIR` for the hook. After the `cd`, a bare `git diff` follows `GIT_DIR` if it is still set, and follows the new cwd if it is not. Whether bootstrap preserves `GIT_DIR` is unverified. A listener that does not record `GIT_DIR` and the starting work tree will inspect whichever repository the shell happens to be in.
 
-The catalog and the diff are allowed to come from different places only on purpose:
+The catalog and the staged blobs are allowed to come from different places only on purpose:
 
-- The diff is the repository whose hook fired.
+- The blobs are the repository whose hook fired.
 - The group `asc` (`ASC_ANTI_PATTERN_TYPES`) loads only when that repository is the ASC instance. The list stub already says this: the `asc` list applies to an ASC project instance repo.
 - An application repository does not load `asc`. "No long-lived `develop`" and "do not copy every Cursor rule" are core-catalog detects. [25-concert-order.md](./25-concert-order.md) leaves each project's branches to that project. Firing the `asc` group on an application commit applies the instance's branch contract to a repository the concert note kept separate.
 - An application repository may load an instance-only group. That group stays in the instance. It is not promoted with the core catalog.
 
-The listener saves the firing repository before any `cd`, passes that path to `diff-inspect`, and selects groups from it. It does not assume cwd and `GIT_DIR` still name the same tree.
+The listener saves the firing repository before any `cd`, passes that path to `stage-inspect`, and selects groups from it. It does not assume cwd and `GIT_DIR` still name the same tree. `git show :path` follows `GIT_DIR`. A listener that loses `GIT_DIR` reads the wrong repository's index.
 
 ### `exit`, siblings, and the `block` flag
 
 `hook` will source every `pre-commit.hook.sh` it finds. The permission sample, if it is ever moved onto a live path, shares that process with the checker. `exit 1` from the checker skips the permission reset and the re-add. `return 1` leaves the commit in place.
 
-An instance that wants both jobs uses one listener that calls them in order, or it wires `pre-commit` with the checker as the only listener. The core checker file does not `exit` on its own if other listeners must still run. The instance's single listener calls `diff-inspect` and then `exit`s when a blocking hit was printed.
+An instance that wants both jobs uses one listener that calls them in order, or it wires `pre-commit` with the checker as the only listener. The core checker file does not `exit` on its own if other listeners must still run. The instance's single listener calls `stage-inspect` and then `exit`s when a blocking hit was printed.
 
 Every record grows a `block` field. Suggested, not accepted:
 
@@ -169,7 +176,7 @@ Every record grows a `block` field. Suggested, not accepted:
 | unset or `no` | Print the hit and the `instead` pointer. Exit 0. |
 | `yes` | Print the hit. The listener exits non-zero. |
 
-The default is `no`. A human sets `yes` only after that detect has matched a real diff on purpose. The first records in this note (branch names, a gates row, a blind rule copy) are not blocking until that trial exists. A vague detect with `block: yes` freezes commits.
+The default is `no`. A human sets `yes` only after that detect has matched a real staged blob on purpose. The first records in this note (branch names, a gates row, a blind rule copy) are not blocking until that trial exists. A vague detect with `block: yes` freezes commits.
 
 The agent's duty stays stricter than the hook's. While editing, any hit stops the edit. The hook refuses only `block: yes`. An unblocked hit is still a hit. The agent does not treat exit 0 as a clean bill.
 
@@ -184,13 +191,13 @@ The agent's duty stays stricter than the hook's. While editing, any hit stops th
 
 ### Branch policy is not a hunk
 
-`long-lived-develop` and the home-directory buffer imposed on another repository are branch facts. `git rev-parse --abbrev-ref HEAD` sees them. `git diff --cached` does not. `diff-inspect` either grows a branch check beside the diff check, or a sibling entry point does, and the same pre-commit listener calls both. A diff-only scanner will miss the records this note already listed, or it will false-positive on the word `develop` inside a file.
+`long-lived-develop` and the home-directory buffer imposed on another repository are branch facts. `git rev-parse --abbrev-ref HEAD` sees them. A staged blob does not. `stage-inspect` either grows a branch check beside the content check, or a sibling entry point does, and the same pre-commit listener calls both. A content-only scanner will miss those records, or it will false-positive on the word `develop` inside a file.
 
 Checker does not generate branch names. The branch contract stays the concert note.
 
 ### Order, when this leaves plan / review
 
-1. `diff-inspect` reads `--cached` (and the branch name) and prints hits. Exit 0 until a record says `block: yes`. No hook yet. This is the command the hook and the agent both call.
+1. `stage-inspect` reads each staged blob (`git show :path` for paths from `git diff --cached --name-only`) and the branch name, and prints hits. Exit 0 until a record says `block: yes`. No hook yet. This is the command the hook and the agent both call.
 2. Settle the `pattern.sh` / `pattern/` clash and the `.yml` spelling before that body exists.
 3. An instance that wants the gate appends `pre-commit` to its own `ASC_GIT_HOOKS_WIRED` and adds the listener `asc/extensions/checker/git/pre-commit.hook.sh`. The listener passes the firing repository, loads `asc` only for the instance repo, and `exit`s only on `block: yes`.
 4. `pre-push` repeats that call. Still opt-in. Still absent from the core default. Stdin is read at most once, so this listener is the only pre-push file, or it is the one that consumes stdin and then calls the others with the saved ref list.
@@ -240,9 +247,9 @@ One `.mdc` per record whose audience is the agent. Suggested field, not accepted
 | `description` | The record's `detect`, short enough for the agent to judge relevance |
 | `globs` | From the record, when the detect cares about paths. Omitted when it does not (a branch-name detect has no glob). |
 
-The body is one pointer: the record id, and the command `diff-inspect`. It does not paste the full catalog, and it does not paste another record. A second copy drifts.
+The body is one pointer: the record id, and the command `stage-inspect`. It does not paste the full catalog, and it does not paste another record. A second copy drifts.
 
-One additional rule, `alwaysApply: true`, one sentence: run `diff-inspect` on the diff before claiming it is done. No `description` on that file, because `alwaysApply: true` ignores `description`. That sentence is the shared how-to from the concert note. It is not a second list.
+One additional rule, `alwaysApply: true`, one sentence: run `stage-inspect` on the staged contents before claiming the commit is done. No `description` on that file, because `alwaysApply: true` ignores `description`. That sentence is the shared how-to from the concert note. It is not a second list.
 
 Generate these files on the instance, from the catalog that instance already has. Do not commit them as the source, and do not teach `host-cursor-rules-sync` to copy them. The sync command will show the filenames. Matching filenames across instances are fine when each instance generated them from the same core records. Instance-only records generate instance-only files and stay put.
 
@@ -257,7 +264,7 @@ A record with a glob uses the glob form. A record with no path (branch policy, a
 ### How the two sides meet
 
 1. The agent has the projected rule in context when the globs or the description match. It can avoid the smell before the commit.
-2. The human or the agent runs `diff-inspect`. Hits print `id`, `detect`, and `instead`.
+2. The human or the agent runs `stage-inspect`. Hits print `id`, `detect`, and `instead`.
 3. A human runs `make generate` when `instead` names a builder template that the generate plan can already render. Today that renderer is empty, so `instead` often names an existing plan (the concert note) rather than a template.
 4. On commit, the opt-in pre-commit listener runs the same inspect. `block: yes` aborts. Everything else prints.
 5. On push, the opt-in pre-push listener runs it again for commits that skipped the first hook.
@@ -281,11 +288,13 @@ Concert order stands. Sidecar path template first, registry left as it is, disco
 - [x] Human placed design patterns on `builder` and anti-patterns on `checker`.
 - [x] README names both, including the core-group path `data/entities/anti-pattern/asc`.
 - [x] Git-hook and Cursor wiring recorded as design. No listener, no wired-list change, no generated rule.
+- [x] `write_hooks.sh` comment: `pre-applypatch` is `git am`. `pre-commit` is the `git commit` gate. The empty-argument default still includes `pre-applypatch`.
 - [ ] Settle `asc.yml` versus a directory of one file per anti-pattern.
 - [ ] Replace `anti/pattern.sh` with `anti/pattern/add.sh` before either script grows a body.
 - [ ] Leave `file_registry` as one string per key. The checker catalog is the entity path.
 - [ ] Accept `block`, `audience`, and `globs` before a listener or a rule projector exists. Default `block` is `no`.
-- [ ] `diff-inspect` reads the index (`git diff --cached` or `git show :path`) and the branch name. Exit 0 until a record is marked `block: yes`. Prove `GIT_DIR` still names the repository whose hook fired.
+- [x] The inspect pivot is `stage-inspect` (`asc/extensions/checker/stage/inspect.sh`). It reads staged blobs, not the unified diff.
+- [ ] `stage-inspect` body: `git diff --cached --name-only`, then `git show :path` per path. Skip deletions. Also read the branch name. Exit 0 until a record is marked `block: yes`. Prove `GIT_DIR` still names the repository whose hook fired.
 - [ ] Do not set the core default of `ASC_GIT_HOOKS_WIRED`. An instance appends `pre-commit` itself. `pre-applypatch`, `post-receive`, and `make git-acp` stay unwired.
 - [ ] Load the `asc` group only for the ASC instance repository. An application repository under `APP_DOCROOT` does not inherit it.
 - [ ] Cursor projector, later, only where `asc/cursor` is enabled. One `.mdc` per agent-facing record, plus one always-on sentence. Not `skill/render`. Not a call to `agent/wrap.sh`.
