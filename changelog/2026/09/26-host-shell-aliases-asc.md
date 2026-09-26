@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-26 |
-| **Status** | plan. The map is `$HOME/<plug>_asc`. The closest-script run and the instance-subject whitelist are still open. |
+| **Status** | plan. The map is `$HOME/<plug>_asc`. The closest-script run is still open. |
 | **Scope** | `make host-shell-write-aliases` (`asc/host/shell/write_aliases.sh`), `ASC_HOST_SHELL_ALIASES` |
 
 `$` here is a shell variable (`$HOME`, `$1`).
@@ -39,7 +39,7 @@ Those three names exist because shells start in different ways. `.profile` is th
 
 For `.bashrc` the same line names `~/.bashrc_asc`. For `.profile`, `~/.profile_asc`.
 
-A later run rewrites the map. When that line is already in the plug, the plug stays as it is. A missing plug is created with that line only.
+A later run rewrites the map. When that line is already in the plug, the plug stays as it is. A missing plug is left absent. The map is still written.
 
 ## Generated file
 
@@ -59,11 +59,17 @@ A name from any other subject is skipped (`core`, `git`, `host`, an extension). 
 
 The writer asks `f_make_list_entry_points` once, when it builds the map. That is the same name-to-script list Make uses. The map stores the relative path (`asc/instance/gacp.sh`). At call time nothing calls `make`, and nothing needs a `Makefile`.
 
-The function starts at the current directory and walks parents. The chosen directory is the closest one that contains that relative path. A nearer project that does not have the file is skipped. It does not call `make host-instance-discover` and does not read the host registry. It does not ask that project which script Make would pick. An extend script that would win under `make` is not consulted. The stored path is the one that runs.
+The function uses the logical current directory (`$PWD`, not the physical path). A symlink is the location it pretends to be. From there:
 
-When the current directory is outside `$HOME`, and no parent contains the file, `$HOME` is the candidate when it contains the file. Under `$HOME`, the parent walk already visits `$HOME`.
+1. If `$PWD/$rel` exists, run it.
+2. Move to the logical parent and check again.
+3. Repeat. `$HOME` is the last directory checked. Parents of `$HOME` are not checked.
 
-When no directory contains it, the function exits non-zero and runs no command.
+When the start is already inside `$HOME`, step 3 ends on `$HOME`. When the start is outside `$HOME`, the parents are checked first, and `$HOME` is checked once after that, because the alias is for any place on the host and `$HOME` is the last check.
+
+A directory that cannot be read counts as not containing the file. The walk continues. A nearer project that does not have the file is skipped. The function does not call `make host-instance-discover` and does not read the host registry. It does not ask that project which script Make would pick. An extend script that would win under `make` is not consulted. The stored path is the one that runs.
+
+When no directory contains it, the function says so on stderr and exits non-zero. It runs no command.
 
 The script is run in a subshell whose current directory is that chosen directory. The interactive shell's current directory stays. The subshell is what makes `. asc/git/acp.sh`, inside `asc/instance/gacp.sh`, resolve. Arguments after the alias are passed through as the script's arguments, with no Make assignment or extra-target rules.
 
@@ -77,8 +83,8 @@ Sketch of the generated file, for one whitelisted name:
 closest_asc_docroot_exec() {
   local rel="$1"
   shift
-  # cwd, then each parent: first directory that contains "$rel".
-  # Outside $HOME, try $HOME when it contains "$rel". Otherwise exit non-zero.
+  # Logical cwd, then each logical parent. $HOME is the last check.
+  # Do not go above $HOME. None found: stderr, exit non-zero.
   ( cd "$docroot" && "./$rel" "$@" )
 }
 
@@ -89,15 +95,16 @@ One alias line per whitelisted name.
 
 ## Writer today
 
-`asc/host/shell/write_aliases.sh` writes the map to `$HOME/<plug>_asc` and the source line into `$HOME/<plug>`. `data/asc/aliases.<shell>.sh` is gone. The shell-type argument is gone. The alias lines are still `alias <name>=<script>`. The closest-script run is not written yet. The instance-subject whitelist is not applied yet. The plug write is untested.
+`asc/host/shell/write_aliases.sh` writes the map to `$HOME/<plug>_asc` and the source line into `$HOME/<plug>`. `data/asc/aliases.<shell>.sh` is gone. The shell-type argument is gone. The alias lines are still `alias <name>=<script>`. The closest-script run is not written yet. A name that is not `asc/instance/<name>.sh` is skipped with a message. An empty result does not truncate the map. A missing plug is not created. The plug write is untested.
 
-[`25-wired-init-lists.md`](25-wired-init-lists.md) still describes init appending `alias <name>=<absolute-path>` into those same three plugs. The plugs here receive the source line only. Alias lines stay in that plug's map.
+The alias-record half of [`25-wired-init-lists.md`](25-wired-init-lists.md) is withdrawn. This note is the one that counts. The plugs receive the source line only. Alias lines stay in that plug's map.
 
 ## Open
 
 - [x] The map is `$HOME/<plug>_asc`, not an instance `data/` file.
 - [x] The plug is `.bash_aliases` (default), `.bashrc`, or `.profile`, under `$HOME`, and it receives one source line.
-- [ ] Regenerate the map from `ASC_HOST_SHELL_ALIASES`, and only for names whose script is `asc/instance/<name>.sh`.
+- [x] Skip a name that is not `asc/instance/<name>.sh`, say so, and do not truncate the map when nothing qualifies.
+- [x] Do not create a missing plug.
 - [ ] In `closest_asc_docroot_exec`, run the stored relative script in the closest directory that contains it, in a subshell. Exit non-zero when none qualifies. Do not call `make`.
 - [ ] Confirm the plug line is written once. Untested.
-- [ ] `ASC_HOST_ALIASES_WIRED` is a separate decision. Empty still writes nothing on init.
+- [x] `ASC_HOST_ALIASES_WIRED` alias records are withdrawn. Init does not write alias lines.

@@ -29,9 +29,14 @@
 
 . asc/bootstrap.sh
 
+if [[ -z "${HOME:-}" || ! -d "$HOME" ]]; then
+  echo "HOME is unset or not a directory. No map written." >&2
+  exit 1
+fi
+
 if [[ -z "$ASC_HOST_SHELL_ALIASES" ]]; then
-  # TODO feedback
-  exit
+  echo "ASC_HOST_SHELL_ALIASES is empty. No map written." >&2
+  exit 1
 fi
 
 p_shell_plug="$1"
@@ -71,37 +76,66 @@ aliases_sh_buf=''
 # ASC_HOST_SHELL_ALIASES defaults to 'ds gu gmp gacp ssk'.
 # @see asc/core/global.vars.sh
 for short_alias in $ASC_HOST_SHELL_ALIASES; do
+  case "$short_alias" in
+    ''|*[!a-zA-Z0-9_-]*)
+      echo "Skipping '$short_alias': not a pivot name." >&2
+      continue
+      ;;
+  esac
+
+  matched=''
   for i in "${!real_scripts_arr[@]}"; do
     task="${pivots_arr[i]}"
     script="${real_scripts_arr[i]}"
 
-    case "$task" in "$short_alias")
-      echo "Adding entry point $i to ~/${p_shell_plug}_asc :"
-      echo "  task = $task"
-      echo "  script = $script"
+    [[ "$task" == "$short_alias" ]] || continue
+    matched=1
 
+    if [[ "$script" == "asc/instance/${short_alias}.sh" ]]; then
+      echo "Adding $short_alias ($script) to ~/${p_shell_plug}_asc"
       # TODO run this relative script from the closest directory that contains it.
       aliases_sh_buf+="alias $task=$script"$'\n'
-    esac
+    else
+      echo "Skipping $short_alias: script is $script, not asc/instance/${short_alias}.sh." >&2
+    fi
+    break
   done
+
+  if [[ -z "$matched" ]]; then
+    echo "Skipping $short_alias: no entry point with that name." >&2
+  fi
 done
 
-printf '%s' "$aliases_sh_buf" > "$generated_aliases_path"
+if [[ -z "$aliases_sh_buf" ]]; then
+  echo "No instance alias to write. Map left unchanged." >&2
+  exit 1
+fi
 
-# Write the source line into the plug once. Other lines stay.
+if ! printf '%s' "$aliases_sh_buf" > "$generated_aliases_path"; then
+  echo "Could not write $generated_aliases_path." >&2
+  exit 1
+fi
+
+# Write the source line into an existing plug, once. Never create the plug.
 # f_str_append_once treats "[" as a pattern, so the search is a fixed string.
 haystack=''
 
 if [[ ! -f "$plug_path" ]]; then
-  printf '%s\n' "$needle" > "$plug_path"
+  echo "Plug $plug_path does not exist. Map written. Plug left unchanged." >&2
 else
   f_fs_get_file_contents "$plug_path" 'haystack' || exit 1
 
   if ! grep -F -q -e "$needle" <<< "$haystack"; then
     if [[ -z "$haystack" ]]; then
-      printf '%s\n' "$needle" > "$plug_path"
+      if ! printf '%s\n' "$needle" > "$plug_path"; then
+        echo "Could not write $plug_path." >&2
+        exit 1
+      fi
     else
-      printf '%s\n%s\n' "$haystack" "$needle" > "$plug_path"
+      if ! printf '%s\n%s\n' "$haystack" "$needle" > "$plug_path"; then
+        echo "Could not write $plug_path." >&2
+        exit 1
+      fi
     fi
   fi
 fi
