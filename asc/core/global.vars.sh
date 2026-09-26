@@ -122,6 +122,10 @@ global ASC_APPS "[default]='site' [help]='ASC apps allow for example to provide 
 
 global ASC_HOST_SHELL_ALIASES "[default]='ds gu gmp gacp ssk' [help]='Space-separated opt-in list of host-level global shell aliases (mapped to given ASC entry points).'"
 
+# Empty: instance init writes no git hooks. Append hook names to write only those.
+# @see asc/git/init.hook.sh
+global ASC_GIT_HOOKS_WIRED "[default]='' [help]='Space-separated git hooks instance init may write. Empty writes none.'"
+
 # global ASC_ALIASES "[append]='reinit'"
 # global ASC_ALIASES "[append]='rebuild'"
 # global ASC_ALIASES "[append]='agent'"

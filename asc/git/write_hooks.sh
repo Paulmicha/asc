@@ -146,8 +146,9 @@ f_git_write_hooks() {
 # @see f_instance_init() in asc/instance/instance.inc.sh
 #
 
-cd $PROJECT_DOCROOT && \
+cd "$PROJECT_DOCROOT" && \
   . asc/bootstrap.sh && \
+  asc_git_hook_args=("\$@") && \
   hook -s 'git' -a "$git_hook" -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'
 
 EOF
