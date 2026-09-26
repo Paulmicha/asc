@@ -26,7 +26,8 @@ The main README (this file) is authoritative on the meaning associated with ASC 
 - Simple, minimal, self-explanatory
 - Delegate as much as possible, but still provide usual, optional (opt-in), generic needs as (overridable) "exemplar" implementation blueprints
 - Define things and (implementation) contracts
-- Generate simple ASC code from folder or string templates (i.e. `asc/extensions/builder`).
+- Generate simple ASC code from folder or string templates (i.e. `asc/extensions/builder`) to record, standardize and encourage recommended, "exemplar" design patterns
+- Provide a complementary "anti-pattern" registry to serve the opposite function (things to avoid, aiming at constant overall code quality improvement)
 
 ### Non-goals ("out of scope"s)
 
@@ -70,7 +71,6 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [Git-ignored, "private" _globals_](#git-ignored-private-globals)
   - [Hooks (and variants)](#hooks-and-variants)
     - [Most specific hooks (`hook_ms()`) lookup and collisions](#most-specific-hooks-hookms-lookup-and-collisions)
-  - [Wrappers](#wrappers)
   - [Entities](#entities)
     - [Custom Yaml syntax (with collisions)](#custom-yaml-syntax-with-collisions)
       - [Reserved root-level keys](#reserved-root-level-keys)
@@ -209,6 +209,10 @@ In this README, the `$` prefix always means the following :
 - `$object` subfolders are almost identical, but they only support `$action` scripts (**not** hook implementations).
 - `$action` are (Bash) shell script files placed in *active dirs* or `$object` subfolders.
 - `$extension` are folders containing *active dirs* representing **enabled** extensions only.
+
+### Vendor (= third-party) libs
+
+Vendor libs should generally not be added into ASC project instances repositories. Exceptions live inside ASC core dir `asc/vendor` and exist to support ASC tests (`asc/vendor/shunit2`), minimal bash Yaml support (`asc/vendor/bash-yaml`) and pdf docs generation (`asc/vendor/katex`, `asc/vendor/mermaid.esm.min.mjs`). The recommended way to deal with dependencies is to delegate their setup to tools like pipx, uv, pnpm, cargo, appimage, snap, apt, or even apt, or simply docker and/or docker compose.
 
 ### Genericity (scale)
 
@@ -682,18 +686,6 @@ Yields (from fewer to more variant tokens = from least to most "specific") :
 #### Most specific hooks (`hook_ms()`) lookup and collisions
 
 TODO include `hook_ms()` explanation + score-based specificity calculations example.
-
-### Wrappers
-
-TODO examples / decide what asc core provides :
-
-1. logged-*
-1. thread ("asc-monitored" generic command execution ?)
-1. batch (synonym : parallel)
-1. chain (synonym : sequence)
-1. pipe
-1. nested (e.g. remote, ssh tunnel, vpn, p2p ?)
-1. stream ?
 
 ### Entities
 
@@ -1272,6 +1264,18 @@ See the embedded vendor [shunit2 README](asc/vendor/shunit2/README.md) for addit
 #### Test results
 
 Tests results are (for now) stored in `data/test-results`. This was done to track the current status of unstable branches in git, but the decision is subject to eventually change according to future enhancements to workflow-related implementations.
+
+### Design patterns VS anti-patterns (`builder` and `checker` core extensions)
+
+TODO
+
+#### Builder extension = Patterns
+
+TODO
+
+#### Checker extension = anti-patterns (registry)
+
+TODO
 
 ### ASC domain-specific language : *DSL* syntax
 
