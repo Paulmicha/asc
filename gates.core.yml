@@ -156,3 +156,11 @@ gates:
     summary: "Compare each instance asc/ and scripts/asc/contrib/asc/ to the local mother and print the drift. The word apply mirrors those two directories from the mother onto the instance. Setting go authorizes that report and that forward mirror; instance files stay out of the mother."
     approved: "no"
     go: "no"
+
+  - changelog: changelog/2026/09/26-app-prefix-inventory.md
+    lane: discuss
+    order: 15
+    task: "Plan review. Retire the clone-on-init env switch."
+    summary: "Instance init calls hook for action clone on the app subject list and ships no hook implementation. The APP_GIT_INIT_CLONE switch and the clone in asc/git/init.hook.sh go away. Setting go authorizes that call and that deletion only; other APP_ globals stay."
+    approved: "no"
+    go: "no"

@@ -1,0 +1,754 @@
+# Retire the app-repo clone switch
+
+| Field | Value |
+|-------|--------|
+| **Date** | 2026-09-26 |
+| **Status** | Plan. No runtime change until `gates.core.yml` has `go: yes` for this file. |
+| **Scope** | The initial application-repo clone during instance init and setup. |
+| **Not this change** | `APP_DOCROOT`, `APP_DOCROOT_C`, hook-file placement, Drupal, Apache, Moodle, and the known-hosts read of `APP_GIT_ORIGIN`. Those stay in the appendix. |
+
+`$` in this file is the ASC docs placeholder (`$subject`, `$action`), except shell variables inside code blocks.
+
+Do not commit unless asked. Do not implement from this note alone.
+
+## Decision
+
+Instance init makes one hook call, action `clone`, on the same subject list it already uses for `ensure_dirs_exist`. Core ships no hook implementation. An ASC project instance clones only by adding `clone.hook.sh` under an active dir whose name is one of those subjects.
+
+`APP_GIT_INIT_CLONE` goes away. The clone block in `asc/git/init.hook.sh` goes with it. `ASC_GIT_HOOKS_WIRED` writing stays in that file.
+
+## Why
+
+Today `f_instance_init` in `asc/instance/instance.inc.sh` calls `hook -a 'init'`. That sources `asc/git/init.hook.sh`. The file clones when `APP_GIT_INIT_CLONE` matches `[Yy]*`, `APP_GIT_ORIGIN` and `APP_DOCROOT` are set, and `$APP_DOCROOT/.git` is missing. A missing directory runs `git clone`. A directory that already exists runs `git init`, adds `origin`, fetches, and checks out `origin/master` with `-f`. No `global` declaration for those three names remains in `asc/core/global.vars.sh`.
+
+The opt-in is a global the mother still executes. The replacement opt-in is a file the instance adds when that instance wants a clone.
+
+## Hook call
+
+In `f_instance_init`, after `f_global_write` and `f_make_generate`, before `hook -a 'init'`:
+
+```sh
+hook -s "$subjects" \
+  -a 'clone' \
+  -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'
+```
+
+`$subjects` is the list already computed just above: `ASC_APPS` when that is non-empty, otherwise `app`. The dry-run branch (`p_ascii_dry_run`) gets the same call with `-p 'dry_run'`, next to the existing dry-run `init` call.
+
+This is `hook`, the same shape as `ensure_dirs_exist`. Each listed subject can supply a hook implementation. `hook_ms` would keep one file and drop the others.
+
+`hook` skips a namespace that does not already list that subject (`f_asc_namespace_has_subject`). A stock tree has no `app` active dir and no `clone.hook.sh`, so the call sources nothing and init does not clone.
+
+An instance that wants the clone adds an active dir named for that subject, for example `scripts/asc/extend/app/clone.hook.sh` when the subject is `app`, or `scripts/asc/extend/site/clone.hook.sh` when `ASC_APPS` is `site`. Discovery on the next bootstrap is what puts that subject on the namespace list. The mother does not add this file, a sample, or a make pivot.
+
+The hook implementation owns the remote, the destination path, and the branch. It returns without cloning when the destination already has `.git`. Core does not read `APP_GIT_INIT_CLONE`, `APP_GIT_ORIGIN`, or `APP_DOCROOT` to decide. The forced `origin/master` checkout is not reimplemented in core.
+
+## What stays in the git init hook implementation
+
+`asc/git/init.hook.sh` still writes the git hooks named in `ASC_GIT_HOOKS_WIRED` (empty writes none). Its header comment stops saying that core clones the application repo.
+
+The writer in `asc/git/write_hooks.sh` still selects `$APP_DOCROOT/.git/hooks` when `APP_DOCROOT` is non-empty, and still aborts when that directory is missing. This plan leaves that. The clone hook call runs first so an instance implementation can create the repo before the writer runs. An instance that sets `APP_DOCROOT` and does not implement `clone` keeps today's writer result.
+
+`asc/extensions/remote_instance/remote/init.sh` still reads `APP_GIT_ORIGIN` for known-hosts. That read is not the clone switch.
+
+`APP_GIT_INIT_HOOK` stays a historical name. `ASC_GIT_HOOKS_WIRED` remains the hook-list setting.
+
+## Pros and cons
+
+Pros: the mother stops cloning on a `Y`/`y` global. Several subjects in `ASC_APPS` can each implement `clone`. A tree with no such file clones nothing.
+
+Cons: an instance that relies on `APP_GIT_INIT_CLONE` today gets no clone until it adds the hook implementation. The writer still depends on `APP_DOCROOT`. A subject that is not discovered yet is skipped by the hook call.
+
+Recommendation: make the hook call and delete the clone block. Do not leave a core `clone.hook.sh` that still reads the old globals.
+
+## When `go` is yes
+
+1. In `f_instance_init` (`asc/instance/instance.inc.sh`, the block around the existing subject list and the `hook -a 'init'` call), add the `clone` hook call on both the dry-run path and the normal path, before `hook -a 'init'`.
+2. Delete the `case "$APP_GIT_INIT_CLONE"` block from `asc/git/init.hook.sh` (the clone and the non-empty-directory `git init` / `fetch` / `checkout -t origin/master -f`). Keep the `ASC_GIT_HOOKS_WIRED` writer. Rewrite the header so it describes hook writing only.
+3. Rewrite the two comments in `scripts/asc/contrib/asc/drupalwt/new/project.sh` that still say instance init clones when `APP_GIT_INIT_CLONE` is `yes`. Leave that script's directory handling as it is.
+4. Add `asc/test/core/clone_hook.test.sh`. `make test-core` already runs `asc/test/core/*.test.sh`. The test asserts all of the following:
+   - `asc/git/init.hook.sh` contains neither `APP_GIT_INIT_CLONE` nor `git clone`
+   - no `clone.hook.sh` exists under `asc/` or `asc/extensions/`
+   - `asc/instance/instance.inc.sh` contains `-a 'clone'` and that call sits above `hook -a 'init'`
+5. Run `make test-core`. The new test passes. Unrun stays unverified.
+
+No new global, no new include, no README edit. README does not name this switch.
+
+## Appendix: APP_ inventory
+
+Snapshot: 2026-09-26, current ASC working tree. Survey for the names this plan does not retire. No runtime behavior has been changed.
+
+Scope: recursive text search including hidden and git-ignored files, excluding `.git/`. Includes core, extensions, contrib, templates, examples, comments, changelogs and local generated data. Git history and the old CWT repository are outside the inventory. Counts are matching source lines per variable, not token counts; a line can contain more than one variable. This report is excluded from subsequent inventory scans.
+
+Four names have executable/configuration uses; a fifth occurs only in historical documentation. No `APP_` variable appears in `asc/core/global.vars.sh`. No exact `APP_` references were found in the current `.env` or `data/asc/globals.sh`.
+
+| Variable | Matching lines | Files | Status |
+| --- | ---: | ---: | --- |
+| `APP_DOCROOT` | 65 | 18 | Executable/configuration uses remain |
+| `APP_DOCROOT_C` | 20 | 6 | Executable/configuration uses remain |
+| `APP_GIT_INIT_CLONE` | 3 | 2 | Executable/configuration uses remain |
+| `APP_GIT_INIT_HOOK` | 2 | 1 | Historical documentation only |
+| `APP_GIT_ORIGIN` | 6 | 2 | Executable/configuration uses remain |
+
+## Planning context
+
+- `asc/core/global.vars.sh:72` declares `ASC_APPS` with default `site`; nearby comments sketch `SITE_DOCROOT`, `SITE_DOCROOT_C`, domains and services. These comments are design context, not implemented replacements for the legacy consumers.
+- `asc/instance/instance.inc.sh` already loops over `ASC_APPS` for hook subjects (for example lines 231–236 and 500–505). Its app-specific YAML Git/path handling at lines 160–170 is commented out.
+- The clone switch uses the subject list above (`ASC_APPS`, or `app`). Default Git working directories and hook destination selection still assume one application. That naming stays outside this plan.
+- Container paths, host paths and web-server document roots must remain distinct. Updating the path globals also affects derived globals, generated configuration, mounts and cron commands.
+- The current `.asc_extensions_ignore` lists `remote`, `remote_instance`, `asc/apache`, `asc/drupalwt`, `asc/drupalwt_d4d` and `asc/moodle_d4php`. Their references are still included because they remain in the project and may be enabled in other instances.
+- `ASC_GIT_HOOKS_WIRED` is already the hook-list setting; the hook writer still uses `APP_DOCROOT` to select its default destination.
+
+## Every exact APP_ location
+
+Each entry links to its source line and reproduces the matching text. “Comment” identifies a source comment; “documentation” identifies Markdown prose. Other entries are code/configuration, including templates and samples.
+
+### APP_DOCROOT
+
+Host application directory. Used by core Git cloning, hook placement and Git helper defaults; Drupal creation, permissions, ownership and config paths; Apache templates; Drupal/Moodle bind mounts. No literal global declaration remains. The Drupal alias still assigns a fallback of `app` using `${APP_DOCROOT:=app}`.
+
+- [asc/core/global.manual-inc.sh:630](/home/paul/Documents/asc/asc/core/global.manual-inc.sh:630) — comment
+
+  ```text
+  # global SERVER_DOCROOT_C "[if-SERVER_DOCROOT]='$APP_DOCROOT/docroot' [true]=/var/www/html/docroot [false]=/var/www/html/web [index]=1"
+  ```
+
+- [asc/extensions/remote/remote.inc.sh:258](/home/paul/Documents/asc/asc/extensions/remote/remote.inc.sh:258) — comment
+
+  ```text
+  #       local: '{{ APP_DOCROOT }}/path/to/public-files_arr
+  ```
+
+- [asc/extensions/remote/remote.inc.sh:263](/home/paul/Documents/asc/asc/extensions/remote/remote.inc.sh:263) — comment
+
+  ```text
+  # - Any global (env) var, e.g. {{ APP_DOCROOT }}, will be replaced by their
+  ```
+
+- [asc/extensions/remote/remote.inc.sh:455](/home/paul/Documents/asc/asc/extensions/remote/remote.inc.sh:455) — comment
+
+  ```text
+  #           local: '{{ APP_DOCROOT }}/private'
+  ```
+
+- [asc/extensions/remote/remote.inc.sh:531](/home/paul/Documents/asc/asc/extensions/remote/remote.inc.sh:531) — comment
+
+  ```text
+  #   export REMOTE_INSTANCE_FILES_PRIVATE_LOCAL='{{ APP_DOCROOT }}/private'
+  ```
+
+- [asc/git/git.opt-inc.sh:740](/home/paul/Documents/asc/asc/git/git.opt-inc.sh:740) — comment
+
+  ```text
+  # @param 1 [optional] String : the git "working dir". Defaults to $APP_DOCROOT.
+  ```
+
+- [asc/git/git.opt-inc.sh:764](/home/paul/Documents/asc/asc/git/git.opt-inc.sh:764) — code/configuration
+
+  ```text
+  p_git_work_tree="$APP_DOCROOT"
+  ```
+
+- [asc/git/git.opt-inc.sh:778](/home/paul/Documents/asc/asc/git/git.opt-inc.sh:778) — comment
+
+  ```text
+  # @param 1 [optional] String : the git "working dir". Defaults to $APP_DOCROOT.
+  ```
+
+- [asc/git/git.opt-inc.sh:802](/home/paul/Documents/asc/asc/git/git.opt-inc.sh:802) — code/configuration
+
+  ```text
+  p_git_work_tree="$APP_DOCROOT"
+  ```
+
+- [asc/git/git.opt-inc.sh:827](/home/paul/Documents/asc/asc/git/git.opt-inc.sh:827) — code/configuration
+
+  ```text
+  if [[ -z "$work_tree" ]] && [[ -n "$APP_DOCROOT" ]]; then
+  ```
+
+- [asc/git/git.opt-inc.sh:828](/home/paul/Documents/asc/asc/git/git.opt-inc.sh:828) — code/configuration
+
+  ```text
+  p_git_work_tree="$APP_DOCROOT"
+  ```
+
+- [asc/git/init.hook.sh:24](/home/paul/Documents/asc/asc/git/init.hook.sh:24) — code/configuration
+
+  ```text
+  && [[ -n "$APP_DOCROOT" ]] \
+  ```
+
+- [asc/git/init.hook.sh:25](/home/paul/Documents/asc/asc/git/init.hook.sh:25) — code/configuration
+
+  ```text
+  && [[ ! -d "$APP_DOCROOT/.git" ]]
+  ```
+
+- [asc/git/init.hook.sh:28](/home/paul/Documents/asc/asc/git/init.hook.sh:28) — code/configuration
+
+  ```text
+  if [[ ! -d "$APP_DOCROOT" ]]; then
+  ```
+
+- [asc/git/init.hook.sh:29](/home/paul/Documents/asc/asc/git/init.hook.sh:29) — code/configuration
+
+  ```text
+  git clone "$APP_GIT_ORIGIN" "$APP_DOCROOT"
+  ```
+
+- [asc/git/init.hook.sh:41](/home/paul/Documents/asc/asc/git/init.hook.sh:41) — code/configuration
+
+  ```text
+  git init "$APP_DOCROOT"
+  ```
+
+- [asc/git/samples/pre-commit.hook.sh:26](/home/paul/Documents/asc/asc/git/samples/pre-commit.hook.sh:26) — code/configuration
+
+  ```text
+  f_git_get_staged_files "$APP_DOCROOT" '' 'staged'
+  ```
+
+- [asc/git/write_hooks.sh:25](/home/paul/Documents/asc/asc/git/write_hooks.sh:25) — comment
+
+  ```text
+  # Applies to folder "$APP_DOCROOT/.git/hooks" if it exists, otherwise to
+  ```
+
+- [asc/git/write_hooks.sh:68](/home/paul/Documents/asc/asc/git/write_hooks.sh:68) — comment
+
+  ```text
+  #   "$APP_DOCROOT/.git/hooks" if it exists, otherwise to
+  ```
+
+- [asc/git/write_hooks.sh:87](/home/paul/Documents/asc/asc/git/write_hooks.sh:87) — code/configuration
+
+  ```text
+  if [[ -n "$APP_DOCROOT" ]]; then
+  ```
+
+- [asc/git/write_hooks.sh:88](/home/paul/Documents/asc/asc/git/write_hooks.sh:88) — code/configuration
+
+  ```text
+  p_git_hook_dir="$APP_DOCROOT/.git/hooks"
+  ```
+
+- [asc/git/write_hooks.sh:138](/home/paul/Documents/asc/asc/git/write_hooks.sh:138) — comment
+
+  ```text
+  # APP_DOCROOT or PROJECT_DOCROOT.
+  ```
+
+- [changelog/2026/09/26-patterns-and-antipatterns.md:10](/home/paul/Documents/asc/changelog/2026/09/26-patterns-and-antipatterns.md:10) — documentation
+
+  ```text
+  `$` in this file is the ASC docs placeholder (`$subject` / `$action`), except `$HOME`, `$GIT_DIR`, `$APP_DOCROOT`, `$PROJECT_DOCROOT`, and `$1`.
+  ```
+
+- [changelog/2026/09/26-patterns-and-antipatterns.md:91](/home/paul/Documents/asc/changelog/2026/09/26-patterns-and-antipatterns.md:91) — documentation
+
+  ```text
+  `asc/git/write_hooks.sh` writes one executable per requested git hook name, into `$APP_DOCROOT/.git/hooks` when `APP_DOCROOT` is non-empty, otherwise into `$PROJECT_DOCROOT/.git/hooks`. The header comment says the app directory is used when it exists, and the project directory otherwise. The function does not check existence before the switch. A non-empty `APP_DOCROOT` whose `.git/hooks` is missing aborts. It does not fall back.
+  ```
+
+- [changelog/2026/09/26-patterns-and-antipatterns.md:156](/home/paul/Documents/asc/changelog/2026/09/26-patterns-and-antipatterns.md:156) — documentation
+
+  ```text
+  | `$APP_DOCROOT` | The application repository, when the instance keeps application source in a second git dir. |
+  ```
+
+- [changelog/2026/09/26-patterns-and-antipatterns.md:302](/home/paul/Documents/asc/changelog/2026/09/26-patterns-and-antipatterns.md:302) — documentation
+
+  ```text
+  - [ ] Load the `asc` group only for the ASC instance repository. An application repository under `APP_DOCROOT` does not inherit it.
+  ```
+
+- [scripts/asc/contrib/asc/apache/config/apache_vhost.tpl.conf:4](/home/paul/Documents/asc/scripts/asc/contrib/asc/apache/config/apache_vhost.tpl.conf:4) — code/configuration
+
+  ```text
+  DocumentRoot {{ PROJECT_DOCROOT }}/{{ APP_DOCROOT }}
+  ```
+
+- [scripts/asc/contrib/asc/apache/config/apache_vhost.tpl.conf:6](/home/paul/Documents/asc/scripts/asc/contrib/asc/apache/config/apache_vhost.tpl.conf:6) — code/configuration
+
+  ```text
+  <Directory {{ PROJECT_DOCROOT }}/{{ APP_DOCROOT }}>
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/app/fs_ownership_pre_set.hook.sh:22](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/app/fs_ownership_pre_set.hook.sh:22) — code/configuration
+
+  ```text
+  if [[ -n "$APP_DOCROOT" ]]; then
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/app/fs_ownership_pre_set.hook.sh:25](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/app/fs_ownership_pre_set.hook.sh:25) — code/configuration
+
+  ```text
+  chown "$FS_OWNER:$FS_GROUP" "$APP_DOCROOT" -R
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/app/fs_perms_pre_set.hook.sh:22](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/app/fs_perms_pre_set.hook.sh:22) — code/configuration
+
+  ```text
+  if [[ -n "$APP_DOCROOT" ]]; then
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/app/fs_perms_pre_set.hook.sh:28](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/app/fs_perms_pre_set.hook.sh:28) — code/configuration
+
+  ```text
+  (find "$APP_DOCROOT" -type f -exec chmod $FS_NW_FILES {} +) 2> /dev/null
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/app/fs_perms_pre_set.hook.sh:31](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/app/fs_perms_pre_set.hook.sh:31) — code/configuration
+
+  ```text
+  (find "$APP_DOCROOT" -type d -exec chmod $FS_NW_DIRS {} +) 2> /dev/null
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/app/global.vars.sh:23](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/app/global.vars.sh:23) — code/configuration
+
+  ```text
+  global DRUPAL_CONFIG_SYNC_DIR "[default]=$APP_DOCROOT/config/sync"
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/app/global.vars.sh:40](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/app/global.vars.sh:40) — code/configuration
+
+  ```text
+  global EXECUTABLE_DIRS "[ifnot-DRUPAL_VERSION]=7 [append]=$APP_DOCROOT/vendor"
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/asc/alias.lamp.hook.sh:13](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/asc/alias.lamp.hook.sh:13) — code/configuration
+
+  ```text
+  alias drupal="${APP_DOCROOT:=app}/vendor/drupal/console/bin/drupal --root=${SERVER_DOCROOT:=/var/www/html}"
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:270](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:270) — comment
+
+  ```text
+  #   "$PROJECT_DOCROOT/$APP_DOCROOT/config/sync" => '../config/sync'
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:874](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:874) — comment
+
+  ```text
+  # it contains the APP_DOCROOT (otherwise the ensure_dirs_exist.hook.sh
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:879](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:879) — comment
+
+  ```text
+  # TODO limit this treatment to relative paths starting with APP_DOCROOT ?
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:881](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:881) — code/configuration
+
+  ```text
+  local to_remove="$APP_DOCROOT/"
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/new/project.sh:9](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/new/project.sh:9) — comment
+
+  ```text
+  #   the folder $APP_DOCROOT be empty, the default behavior is to delete
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/new/project.sh:25](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/new/project.sh:25) — comment
+
+  ```text
+  #   # $APP_DOCROOT folder exists, by default, its content is deleted first. And
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/new/project.sh:32](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/new/project.sh:32) — comment
+
+  ```text
+  #   # Same, but if the $APP_DOCROOT folder exists and is not empty, in case of
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/new/project.sh:40](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/new/project.sh:40) — comment
+
+  ```text
+  #   # *disarding* any conflicting pre-existing files in $APP_DOCROOT folder :
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/new/project.sh:78](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/new/project.sh:78) — code/configuration
+
+  ```text
+  tmp_merge_dir="${APP_DOCROOT}.tmp.bak"
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/new/project.sh:80](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/new/project.sh:80) — code/configuration
+
+  ```text
+  if [[ -d "$APP_DOCROOT" ]]; then
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/new/project.sh:81](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/new/project.sh:81) — code/configuration
+
+  ```text
+  echo "  The command 'composer create-project' requires the folder '$APP_DOCROOT' to be empty."
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/new/project.sh:86](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/new/project.sh:86) — comment
+
+  ```text
+  # tree - meaning just the "$APP_DOCROOT/.git" folder, and nothing else.
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/new/project.sh:89](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/new/project.sh:89) — code/configuration
+
+  ```text
+  rm -rf $APP_DOCROOT/*
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/new/project.sh:90](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/new/project.sh:90) — code/configuration
+
+  ```text
+  rm -rf $APP_DOCROOT/.* 2>/dev/null
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/new/project.sh:99](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/new/project.sh:99) — code/configuration
+
+  ```text
+  echo "  -> Make a temporary copy of the '$APP_DOCROOT' dir."
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/new/project.sh:106](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/new/project.sh:106) — code/configuration
+
+  ```text
+  echo "  -> Make a temporary copy of the '$APP_DOCROOT' dir."
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/new/project.sh:111](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/new/project.sh:111) — comment
+
+  ```text
+  # Temporarily move the $APP_DOCROOT folder for both these cases :
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/new/project.sh:113](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/new/project.sh:113) — code/configuration
+
+  ```text
+  mv "$APP_DOCROOT" "$tmp_merge_dir"
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/new/project.sh:117](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/new/project.sh:117) — code/configuration
+
+  ```text
+  echo "Error in $BASH_SOURCE line $LINENO: unable to temporarily move the '$APP_DOCROOT' dir (to '$tmp_merge_dir')." >&2
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/new/project.sh:127](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/new/project.sh:127) — code/configuration
+
+  ```text
+  destination_dir="$APP_DOCROOT"
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/new/project.sh:146](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/new/project.sh:146) — code/configuration
+
+  ```text
+  f_fs_merge_dirs "$tmp_merge_dir" "$APP_DOCROOT" "$merge_overwrite"
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt_d4d/app/global.compose.vars.sh:18](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt_d4d/app/global.compose.vars.sh:18) — code/configuration
+
+  ```text
+  global SERVER_DOCROOT_C "[if-SERVER_DOCROOT]='$APP_DOCROOT/docroot' [true]=/var/www/html/docroot [false]=/var/www/html/web"
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt_d4d/stack/compose.yml:37](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt_d4d/stack/compose.yml:37) — code/configuration
+
+  ```text
+  - ./$APP_DOCROOT:$APP_DOCROOT_C
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt_d4d/stack/compose.yml:90](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt_d4d/stack/compose.yml:90) — code/configuration
+
+  ```text
+  - ./$APP_DOCROOT:$APP_DOCROOT_C
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt_d4d/stack/compose.yml:113](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt_d4d/stack/compose.yml:113) — code/configuration
+
+  ```text
+  - ./$APP_DOCROOT:$APP_DOCROOT_C
+  ```
+
+- [scripts/asc/contrib/asc/moodle_d4php/global.vars.sh:39](/home/paul/Documents/asc/scripts/asc/contrib/asc/moodle_d4php/global.vars.sh:39) — code/configuration
+
+  ```text
+  global MOODLE_CONFIG_FILE "[default]=$APP_DOCROOT/config.php"
+  ```
+
+- [scripts/asc/contrib/asc/moodle_d4php/stack/compose.yml:17](/home/paul/Documents/asc/scripts/asc/contrib/asc/moodle_d4php/stack/compose.yml:17) — code/configuration
+
+  ```text
+  - ./$APP_DOCROOT:$APP_DOCROOT_C
+  ```
+
+- [scripts/asc/contrib/asc/moodle_d4php/stack/compose.yml:41](/home/paul/Documents/asc/scripts/asc/contrib/asc/moodle_d4php/stack/compose.yml:41) — code/configuration
+
+  ```text
+  - ./$APP_DOCROOT:$APP_DOCROOT_C
+  ```
+
+- [scripts/asc/contrib/asc/moodle_d4php/stack/compose.yml:62](/home/paul/Documents/asc/scripts/asc/contrib/asc/moodle_d4php/stack/compose.yml:62) — code/configuration
+
+  ```text
+  - ./$APP_DOCROOT:$APP_DOCROOT_C
+  ```
+
+
+### APP_DOCROOT_C
+
+Container application directory. Declared with default `/var/www/html` in Drupal Docker and Moodle contrib globals. Used for container path conversion, Drupal config, Composer destination, bind mounts and cron commands.
+
+- [scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:293](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:293) — comment
+
+  ```text
+  # to APP_DOCROOT_C. It must be absolute for the conversion to work.
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:294](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:294) — code/configuration
+
+  ```text
+  if [[ "${var_val:0:1}" != '/' ]] && [[ "${APP_DOCROOT_C:0:1}" == '/' ]]; then
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:295](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:295) — code/configuration
+
+  ```text
+  var_val="$APP_DOCROOT_C/$var_val"
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:417](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:417) — comment
+
+  ```text
+  # to APP_DOCROOT_C. It must be absolute for the conversion to work.
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:418](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:418) — code/configuration
+
+  ```text
+  if [[ "${var_val:0:1}" != '/' ]] && [[ "${APP_DOCROOT_C:0:1}" == '/' ]]; then
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:419](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:419) — code/configuration
+
+  ```text
+  var_val="$APP_DOCROOT_C/$var_val"
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:878](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/drupalwt.inc.sh:878) — comment
+
+  ```text
+  # to APP_DOCROOT_C.
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/new/project.sh:129](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/new/project.sh:129) — code/configuration
+
+  ```text
+  if [[ -n "$APP_DOCROOT_C" ]]; then
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/new/project.sh:130](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/new/project.sh:130) — code/configuration
+
+  ```text
+  destination_dir="$APP_DOCROOT_C"
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt_d4d/app/global.compose.vars.sh:17](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt_d4d/app/global.compose.vars.sh:17) — code/configuration
+
+  ```text
+  global APP_DOCROOT_C "[default]=/var/www/html"
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt_d4d/app/global.compose.vars.sh:24](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt_d4d/app/global.compose.vars.sh:24) — code/configuration
+
+  ```text
+  global DRUPAL_CONFIG_SYNC_DIR_C "[default]=$APP_DOCROOT_C/config/sync"
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt_d4d/stack/compose.yml:37](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt_d4d/stack/compose.yml:37) — code/configuration
+
+  ```text
+  - ./$APP_DOCROOT:$APP_DOCROOT_C
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt_d4d/stack/compose.yml:90](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt_d4d/stack/compose.yml:90) — code/configuration
+
+  ```text
+  - ./$APP_DOCROOT:$APP_DOCROOT_C
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt_d4d/stack/compose.yml:99](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt_d4d/stack/compose.yml:99) — code/configuration
+
+  ```text
+  CRONTAB: "${DWT_CRON_FREQ} drush -r ${APP_DOCROOT_C} cron"
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt_d4d/stack/compose.yml:113](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt_d4d/stack/compose.yml:113) — code/configuration
+
+  ```text
+  - ./$APP_DOCROOT:$APP_DOCROOT_C
+  ```
+
+- [scripts/asc/contrib/asc/moodle_d4php/global.vars.sh:15](/home/paul/Documents/asc/scripts/asc/contrib/asc/moodle_d4php/global.vars.sh:15) — code/configuration
+
+  ```text
+  global APP_DOCROOT_C "[default]=/var/www/html"
+  ```
+
+- [scripts/asc/contrib/asc/moodle_d4php/stack/compose.yml:17](/home/paul/Documents/asc/scripts/asc/contrib/asc/moodle_d4php/stack/compose.yml:17) — code/configuration
+
+  ```text
+  - ./$APP_DOCROOT:$APP_DOCROOT_C
+  ```
+
+- [scripts/asc/contrib/asc/moodle_d4php/stack/compose.yml:41](/home/paul/Documents/asc/scripts/asc/contrib/asc/moodle_d4php/stack/compose.yml:41) — code/configuration
+
+  ```text
+  - ./$APP_DOCROOT:$APP_DOCROOT_C
+  ```
+
+- [scripts/asc/contrib/asc/moodle_d4php/stack/compose.yml:52](/home/paul/Documents/asc/scripts/asc/contrib/asc/moodle_d4php/stack/compose.yml:52) — code/configuration
+
+  ```text
+  CRONTAB: "${MOODLE_CRON_FREQ} php ${APP_DOCROOT_C} admin/cron.php"
+  ```
+
+- [scripts/asc/contrib/asc/moodle_d4php/stack/compose.yml:62](/home/paul/Documents/asc/scripts/asc/contrib/asc/moodle_d4php/stack/compose.yml:62) — code/configuration
+
+  ```text
+  - ./$APP_DOCROOT:$APP_DOCROOT_C
+  ```
+
+
+### APP_GIT_INIT_CLONE
+
+Clone-on-init switch. The core Git init hook accepts values starting with `Y` or `y`. Also described in Drupal project creation comments. No literal global declaration remains.
+
+- [asc/git/init.hook.sh:22](/home/paul/Documents/asc/asc/git/init.hook.sh:22) — code/configuration
+
+  ```text
+  case "$APP_GIT_INIT_CLONE" in [Yy]*)
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/new/project.sh:12](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/new/project.sh:12) — comment
+
+  ```text
+  #   instance init if $APP_GIT_INIT_CLONE is set to 'yes'), this then re-executes
+  ```
+
+- [scripts/asc/contrib/asc/drupalwt/new/project.sh:26](/home/paul/Documents/asc/scripts/asc/contrib/asc/drupalwt/new/project.sh:26) — comment
+
+  ```text
+  #   # if $APP_GIT_INIT_CLONE is set to 'yes', the git work tree will be
+  ```
+
+
+### APP_GIT_INIT_HOOK
+
+Historical name only: two changelog mentions describe its replacement by `ASC_GIT_HOOKS_WIRED`. No executable use or declaration found.
+
+- [changelog/2026/09/25-wired-init-lists.md:11](/home/paul/Documents/asc/changelog/2026/09/25-wired-init-lists.md:11) — documentation
+
+  ```text
+  `ASC_GIT_HOOKS_WIRED` is the git hooks init may pass to `f_git_write_hooks`. Empty: do not call the writer. Non-empty: call it with that list only. The writer's built-in six are not implied. `APP_GIT_INIT_HOOK` is not the name.
+  ```
+
+- [changelog/2026/09/25-wired-init-lists.md:15](/home/paul/Documents/asc/changelog/2026/09/25-wired-init-lists.md:15) — documentation
+
+  ```text
+  The skill sentence that names `APP_GIT_INIT_HOOK`, and the test that greps it, use `ASC_GIT_HOOKS_WIRED` when this lands.
+  ```
+
+
+### APP_GIT_ORIGIN
+
+Application Git remote URL. Used by core cloning and remote-instance SSH host preparation. No literal global declaration remains.
+
+- [asc/extensions/remote_instance/remote/init.sh:58](/home/paul/Documents/asc/asc/extensions/remote_instance/remote/init.sh:58) — code/configuration
+
+  ```text
+  if [[ -n "$APP_GIT_ORIGIN" ]]; then
+  ```
+
+- [asc/extensions/remote_instance/remote/init.sh:59](/home/paul/Documents/asc/asc/extensions/remote_instance/remote/init.sh:59) — code/configuration
+
+  ```text
+  if [[ "$APP_GIT_ORIGIN" =~ $regex ]]; then
+  ```
+
+- [asc/extensions/remote_instance/remote/init.sh:62](/home/paul/Documents/asc/asc/extensions/remote_instance/remote/init.sh:62) — code/configuration
+
+  ```text
+  if [[ "$APP_GIT_ORIGIN" =~ $regex_with_user ]]; then
+  ```
+
+- [asc/git/init.hook.sh:23](/home/paul/Documents/asc/asc/git/init.hook.sh:23) — code/configuration
+
+  ```text
+  if [[ -n "$APP_GIT_ORIGIN" ]] \
+  ```
+
+- [asc/git/init.hook.sh:29](/home/paul/Documents/asc/asc/git/init.hook.sh:29) — code/configuration
+
+  ```text
+  git clone "$APP_GIT_ORIGIN" "$APP_DOCROOT"
+  ```
+
+- [asc/git/init.hook.sh:42](/home/paul/Documents/asc/asc/git/init.hook.sh:42) — code/configuration
+
+  ```text
+  f_git_wrapper remote add origin "$APP_GIT_ORIGIN"
+  ```
+
+## Related names that do not start with APP_
+
+These are excluded from the exact-name counts, but may need documentation cleanup. `YAML_APP_*` are parser-prefixed examples; `API_APP_*` are example names whose actual prefix is `API_`.
+
+- [SPECIMEN.env.yml:9](/home/paul/Documents/asc/SPECIMEN.env.yml:9)
+
+  ```text
+  # API_APP_DOCROOT (on local machine) = API_APP_DOCROOT_C (in container).
+  ```
+
+- [asc/instance/instance.inc.sh:297](/home/paul/Documents/asc/asc/instance/instance.inc.sh:297)
+
+  ```text
+  #   echo "$YAML_APP_DOCROOT"
+  ```
+
+- [asc/instance/instance.inc.sh:298](/home/paul/Documents/asc/asc/instance/instance.inc.sh:298)
+
+  ```text
+  #   echo "$YAML_APP_GIT_ORIGIN"
+  ```
+
+- [asc/instance/instance.inc.sh:364](/home/paul/Documents/asc/asc/instance/instance.inc.sh:364)
+
+  ```text
+  #   echo "$YAML_APP_DOCROOT"
+  ```
+
+- [asc/instance/instance.inc.sh:365](/home/paul/Documents/asc/asc/instance/instance.inc.sh:365)
+
+  ```text
+  #   echo "$YAML_APP_GIT_ORIGIN"
+  ```
+
+## Reproduce the search
+
+Run from the ASC project root:
+
+```sh
+rg -n --hidden --no-ignore -g '!.git/**' \
+  -g '!changelog/2026/09/26-app-prefix-inventory.md' \
+  '\bAPP_[A-Za-z0-9_]+\b' .
+
+# Broader scan also catches YAML_APP_* and API_APP_*:
+rg -n --hidden --no-ignore -g '!.git/**' \
+  -g '!changelog/2026/09/26-app-prefix-inventory.md' 'APP_' .
+```
+
+This is a static inventory of literal references. Names assembled dynamically without a literal `APP_` string and configuration supplied by other project instances are not enumerated.
