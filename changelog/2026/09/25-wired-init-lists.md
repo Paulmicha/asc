@@ -1,5 +1,7 @@
 # Wired lists during instance init
 
+> **2026-09-26.** Alias lines no longer land in the plug. The plug (`.bash_aliases`, `.bashrc`, or `.profile` under `$HOME`) receives one source line for `$HOME/.bash_aliases_asc`. See [`26-host-shell-aliases-asc.md`](26-host-shell-aliases-asc.md).
+
 - **Date:** 2026-09-25
 - **Status:** git list implemented. Alias records are still planned.
 - **Scope:** `asc/git/init.hook.sh`, `asc/core/global.vars.sh`, `asc/host/shell/write_aliases.sh`.

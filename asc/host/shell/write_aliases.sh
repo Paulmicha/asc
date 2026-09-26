@@ -3,21 +3,24 @@
 ##
 # (over)Writes Shell aliases map to ASC entry points (ASC_HOST_SHELL_ALIASES).
 #
-# TODO [wip] must write once the one line where generated aliases are sourced :
-# @see data/asc/aliases.sh
-# @see data/asc/aliases.bash.sh
-# @see data/asc/aliases.dash.sh
+# TODO [wip] untested.
 #
-# TODO untested. Wip.
+# The map is always $HOME/.bash_aliases_asc. It is not under an instance
+# data dir. $HOME does not have to be an ASC project.
+#
+# The argument is the plug under $HOME that sources that map, once.
+# Default: .bash_aliases. Also .bashrc or .profile.
 #
 # @example
-#   make host-shell-write-aliases '~/.bashrc'
-#   make host-shell-write-aliases '~/.profile'
-#   make host-shell-write-aliases '~/.bash_aliases'
+#   # Plug defaults to $HOME/.bash_aliases :
+#   make host-shell-write-aliases
+#
+#   # Same map, other plug :
+#   make host-shell-write-aliases '.bashrc'
+#   make host-shell-write-aliases '.profile'
 #   # Or :
-#   asc/host/shell/write_aliases.sh '~/.bashrc'
-#   asc/host/shell/write_aliases.sh '~/.profile'
-#   asc/host/shell/write_aliases.sh '~/.bash_aliases'
+#   asc/host/shell/write_aliases.sh '.bashrc'
+#   asc/host/shell/write_aliases.sh '.profile'
 #
 
 . asc/bootstrap.sh
@@ -28,21 +31,27 @@ if [[ -z "$ASC_HOST_SHELL_ALIASES" ]]; then
 fi
 
 p_shell_plug="$1"
-p_shell_type="$2"
 
 if [[ -z "$p_shell_plug" ]]; then
-  # TODO feedback
-  p_shell_plug='~/.bash_aliases'
-  # else
-  # TODO input sanitizing
+  p_shell_plug='.bash_aliases'
 fi
 
-if [[ -z "$p_shell_type" ]]; then
-  # TODO feedback
-  p_shell_type='bash'
-  # else
-  # TODO input sanitizing
-fi
+case "$p_shell_plug" in
+  .bash_aliases|.bashrc|.profile)
+    ;;
+  *)
+    echo "Plug must be .bash_aliases, .bashrc, or .profile (a file under \$HOME)." >&2
+    exit 1
+    ;;
+esac
+
+plug_path="$HOME/$p_shell_plug"
+
+# The generated file containing the (mapped) aliases.
+generated_aliases_path="$HOME/${p_shell_plug}_asc"
+
+# One line, in the plug. ~/.bash_aliases_asc is expanded by the shell that sources it.
+needle="[ -f ~/.bash_aliases_asc ] && . ~/${p_shell_plug}_asc"
 
 # Read entry points mapping to scripts.
 pivots_arr=()
@@ -63,33 +72,32 @@ for short_alias in $ASC_HOST_SHELL_ALIASES; do
     script="${real_scripts_arr[i]}"
 
     case "$task" in "$short_alias")
-      echo "Adding entry point $i to data/asc/aliases.${p_shell_type}.sh :"
+      echo "Adding entry point $i to ~/.bash_aliases_asc :"
       echo "  task = $task"
       echo "  script = $script"
 
+      # TODO change to relative make call.
       aliases_sh_buf+="alias $task=$script"$'\n'
     esac
   done
 done
 
-printf '%s' "$aliases_sh_buf" > "data/asc/aliases.${p_shell_type}.sh"
+printf '%s' "$aliases_sh_buf" > "$generated_aliases_path"
 
-# TODO [wip] must write once the line where generated aliases are sourced inside
-# either .bashrc or .profile.
-
-needle="[ -f $PROJECT_DOCROOT/data/asc/aliases.${p_shell_type}.sh ] && \. $PROJECT_DOCROOT/data/asc/aliases.${p_shell_type}.sh"
-file_path="$p_shell_plug"
+# Write the source line into the plug once. Other lines stay.
+# f_str_append_once treats "[" as a pattern, so the search is a fixed string.
 haystack=''
-new_str=''
 
-f_fs_get_file_contents "$p_file_path" 'haystack'
-
-if [[ -z "$haystack" ]]; then
-  echo "$p_needle" > "$p_file_path"
+if [[ ! -f "$plug_path" ]]; then
+  printf '%s\n' "$needle" > "$plug_path"
 else
-  f_str_append_once $'\n'"$p_needle" "$haystack" 'new_str'
+  f_fs_get_file_contents "$plug_path" 'haystack' || exit 1
 
-  if [[ "$new_str" != "$haystack" ]]; then
-    echo "$new_str" > "$p_file_path"
+  if ! grep -F -q -e "$needle" <<< "$haystack"; then
+    if [[ -z "$haystack" ]]; then
+      printf '%s\n' "$needle" > "$plug_path"
+    else
+      printf '%s\n%s\n' "$haystack" "$needle" > "$plug_path"
+    fi
   fi
 fi

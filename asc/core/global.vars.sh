@@ -110,15 +110,16 @@ global ASC_APPS "[default]='site' [help]='ASC apps allow for example to provide 
 # added to ASC_DB_IDS
 
 
-# Update 2026-09-24 :
+# Update 2026-09-26 :
 
-# We want the ability to declare "host-level" bash aliases from the linux home
-# dir project instance. Only works on the host boundary + login shell only :
+# Host-level alias map: $HOME/.bash_aliases_asc.
+# Not an instance data dir. $HOME does not have to be an ASC project.
+# A plug under $HOME (.bash_aliases, .bashrc, or .profile) sources that file once.
 # - 'ds' is a global ASC shortcut for the DSL,
 # - 'ssk' is used to switch between groups of loaded SSH keys,
 # - ASC core "git" extension get shortcuts out of the box,
 # - TODO [wip] Generic ASC-related shortcuts ?
-# @see @see asc/host/shell/write_hooks.sh
+# @see asc/host/shell/write_aliases.sh
 
 global ASC_HOST_SHELL_ALIASES "[default]='ds gu gmp gacp ssk' [help]='Space-separated opt-in list of host-level global shell aliases (mapped to given ASC entry points).'"
 
