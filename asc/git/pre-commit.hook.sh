@@ -3,8 +3,9 @@
 ##
 # Implements hook -s 'git' -a 'pre-commit'.
 #
-# When README.md is part of the commit and contains a <nav> block, regenerates
-# that table of contents and stages the result.
+# When README.md contains a <nav> block and has no unstaged edits, regenerates
+# that table of contents and stages the result, including when the file was
+# not already part of this commit.
 #
 # The generated git hook sets asc_git_hook_args before calling hook. Sourcing
 # this file otherwise only defines f_git_pre_commit_readme_toc().
@@ -20,11 +21,19 @@ f_git_pre_commit_readme_toc() {
 
   [[ -f "$readme" ]] || return 0
 
-  staged="$(git -C "$work_tree" diff --cached --name-only --diff-filter=ACMR -- README.md)"
-  [[ "$staged" == 'README.md' ]] || return 0
-
   if ! grep -q '^<nav>[[:space:]]*$' "$readme"; then
     return 0
+  fi
+
+  # Unstaged edits are not part of this commit.
+  if ! git -C "$work_tree" diff --quiet -- README.md; then
+    return 0
+  fi
+
+  # A tracked file, or one already staged. An untracked README stays out.
+  if ! git -C "$work_tree" ls-files --error-unmatch -- README.md >/dev/null 2>&1; then
+    staged="$(git -C "$work_tree" diff --cached --name-only --diff-filter=A -- README.md)"
+    [[ "$staged" == 'README.md' ]] || return 0
   fi
 
   asc_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"

@@ -10,7 +10,7 @@
 
 `pre-commit` regenerates the list inside the first `<nav>` block of the repository `README.md`, using `asc/doc/md_toc.sh`, then stages that file.
 
-It runs only when `README.md` is already part of the commit and that file has a `<nav>` line. A README without that block is left alone. Other staged paths are not read.
+It runs when `README.md` has a `<nav>` line and no unstaged edits, then stages that file even if it was not already part of the commit. A README without that block is left alone. An untracked README is left alone. Other paths are not read.
 
 `asc/doc/md_toc.sh` does the same for any `README.md`: no `<nav>` … `</nav>` pair means exit 0 and no write. Another markdown path still errors when that pair is missing.
 
