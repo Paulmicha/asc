@@ -63,11 +63,15 @@ Three include filenames, two loaders: `*.inc.sh` (eager autoload), `*.opt-inc.sh
 ❌ New include “for completeness” with no caller
 ❌ Eager *.inc.sh for a function one action/hook needs
 ❌ Clone a sibling’s source of `foo.inc.sh` when this file never calls it
+❌ Copy a third-party library into `asc/vendor/`, contrib, or extend
 ❌ Document or create a file that does not exist yet
 ❌ Fourth loader / glob for `*.manual-inc.sh`
 ❌ `private-inc` (reads as “don’t call me”)
 ❌ Knowledge/task `gap` entity in core
 ✅ Match an existing script’s *shape that still runs*; drop unused sources
+✅ Delegate that library to a host installer (examples: apt, pipx, uv, pnpm, cargo; the set can grow, such as AppImage or snap)
+✅ Outside that list, Docker and/or Docker Compose
+✅ `asc/vendor/` only when every ASC instance needs that copy (shunit2)
 ✅ Lazy or in-entry-point only after a real caller exists
 ```
 

@@ -5,7 +5,7 @@
 #
 # By default, ASC core uses "instance init" to setup 2 things :
 # - the application source files (clones repo if separate & not done already);
-# - a default selection of Git hooks (overwritten by ASC hooks).
+# - the git hooks named in ASC_GIT_HOOKS_WIRED (empty: write none).
 #
 # @see f_git_write_hooks() in asc/git/write_hooks.sh
 # @see f_git_wrapper() in asc/git/git.opt-inc.sh
@@ -46,8 +46,8 @@ case "$APP_GIT_INIT_CLONE" in [Yy]*)
   fi
 esac
 
-# (over)Writes Git hooks to use ASC hooks.
-case "$APP_GIT_INIT_HOOK" in [Yy]*)
+# (over)Writes Git hooks named in ASC_GIT_HOOKS_WIRED. Empty writes none.
+if [[ -n "${ASC_GIT_HOOKS_WIRED:-}" ]]; then
   . asc/git/write_hooks.sh
-  f_git_write_hooks
-esac
+  f_git_write_hooks "$ASC_GIT_HOOKS_WIRED"
+fi

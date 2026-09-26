@@ -28,6 +28,11 @@
 # ASC hook triggers will have the following format :
 # $ hook -s 'git' -a "$git_hook" -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'
 #
+# Git's arguments are stored before that call. git_hook_args_nb is always a
+# scalar, including 0 (pre-commit passes none). git_hook_args holds the
+# values. An empty array has no element 0, so ${git_hook_args+x} is empty
+# after a zero-argument assignment. Listeners use the count, not that test.
+#
 # TODO [evol] Examine opt-in alternative to use a custom value for "git config
 # core.hooksPath" (instead of just generating scripts in "$GIT_DIR/hooks").
 #
@@ -35,12 +40,12 @@
 #
 # @param 1 [optional] String : the space-separated Git hooks to (over)write.
 #   Defaults to the following selection (when value is absent or empty) :
-#   - 'pre-applypatch' : used to inspect the current working tree and refuse to
-#     make a commit (exits with non-zero status) if it does not pass certain
-#     test(s).
-#   - 'pre-commit' (see post-merge) : used for permissions/ownership, ACLS, etc.
-#     Prevents commit when exiting with a non-zero status. Can be bypassed with
-#     the 'git commit --no-verify' option.
+#   - 'pre-applypatch' : git am only, after the patch is applied and before
+#     that command commits. Non-zero status leaves that tree uncommitted.
+#     Does not run for git commit.
+#   - 'pre-commit' (see post-merge) : git commit, on the index about to be
+#     committed. Non-zero status aborts the commit. Bypassed with
+#     'git commit --no-verify'. Also used for permissions/ownership, ACLs.
 #   - 'post-checkout' : used to perform repository validity checks, auto-display
 #     differences from the previous HEAD if different, or set working dir
 #     metadata properties (e.g. permissions/ownership). The hook is given three
@@ -96,6 +101,7 @@ f_git_write_hooks() {
   local git_hook=''
   local git_hook_script_path=''
   local git_hooks_whitelist_arr=()
+
   git_hooks_whitelist_arr+=('applypatch-msg')
   git_hooks_whitelist_arr+=('pre-applypatch')
   git_hooks_whitelist_arr+=('post-applypatch')
@@ -133,6 +139,7 @@ f_git_write_hooks() {
       # -> Since ASC requires to be run from PROJECT_DOCROOT, we need to force the
       # execution path from within the generated scripts.
       echo "(over)Writing git hook $relative_path ..."
+
       cat > "$git_hook_script_path" <<EOF
 #!/usr/bin/env bash
 
@@ -146,12 +153,21 @@ f_git_write_hooks() {
 # @see f_instance_init() in asc/instance/instance.inc.sh
 #
 
-cd $PROJECT_DOCROOT && \
-  . asc/bootstrap.sh && \
-  hook -s 'git' -a "$git_hook" -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'
+cd "$PROJECT_DOCROOT"
 
+. asc/bootstrap.sh
+
+# Count the number of args sent by git in this hook call.
+git_hook_args_nb="\$#"
+
+# Store all the arguments for hook implementations to read them.
+git_hook_args=("\$@")
+
+# Finally, call the ASC hook with the same git hook name (in the "git" subject).
+hook -s 'git' -a "$git_hook" -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE'
 EOF
       chmod +x "$git_hook_script_path"
+
       echo "(over)Writing git hook $relative_path : done."
 
     else

@@ -70,7 +70,7 @@ test_skill_render_writes_one_file_per_product() {
     "[ -f ${skill_render_root}/.codex/skills/author-dev-task/SKILL.md ]"
   assertTrue 'claude projection' \
     "[ -f ${skill_render_root}/.claude/skills/author-dev-task/SKILL.md ]"
-  grep -q 'APP_GIT_INIT_HOOK' \
+  grep -q 'ASC_GIT_HOOKS_WIRED' \
     "${skill_render_root}/.cursor/skills/author-dev-task/SKILL.md" \
     || fail 'task text missing from cursor projection'
   unset SKILL_RENDER_ROOT

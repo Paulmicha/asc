@@ -156,3 +156,11 @@ gates:
     summary: "Compare each instance asc/ and scripts/asc/contrib/asc/ to the local mother and print the drift. The word apply mirrors those two directories from the mother onto the instance. Setting go authorizes that report and that forward mirror; instance files stay out of the mother."
     approved: "no"
     go: "no"
+
+  - changelog: changelog/2026/09/26-app-prefix-inventory.md
+    lane: discuss
+    order: 15
+    task: "Plan review. Clone per app subject. Context tokens in the git hook list."
+    summary: "Instance init calls hook_ms once per app subject for action clone and returns that status. ASC_GIT_HOOKS_WIRED accepts site:pre-commit and asc:pre-commit. The generated script sets git_hook_context and still runs from the instance docroot. The instance README listener skips any other context. Setting go authorizes that only; other APP_ globals stay."
+    approved: "no"
+    go: "no"

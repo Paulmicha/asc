@@ -6,6 +6,7 @@
 # Replaces the markdown list inside the first <nav> ... </nav> block.
 # ATX headings are collected fence-aware (same as asc/doc/md_merge.sh).
 # Skips the document H1 and a "Table of contents" heading.
+# A README.md with no such block is left unchanged.
 #
 # @param 1 String: path to the markdown file.
 #
@@ -179,6 +180,13 @@ awk -v toc_file="$tmp_toc" '
 awk_rc=$?
 
 if [[ "$awk_rc" -ne 0 ]]; then
+  # README files use <nav> ... </nav> only when they carry a TOC. Without that
+  # pair, leave the file alone.
+  readme_base="$(basename -- "$p_md")"
+  readme_base="$(printf '%s' "$readme_base" | tr '[:upper:]' '[:lower:]')"
+  if [[ "$readme_base" == 'readme.md' ]]; then
+    exit 0
+  fi
   echo "No <nav> ... </nav> block found in: $p_md" >&2
   exit 1
 fi

@@ -26,7 +26,8 @@ The main README (this file) is authoritative on the meaning associated with ASC 
 - Simple, minimal, self-explanatory
 - Delegate as much as possible, but still provide usual, optional (opt-in), generic needs as (overridable) "exemplar" implementation blueprints
 - Define things and (implementation) contracts
-- Generate simple ASC code from folder or string templates (i.e. `asc/extensions/builder`).
+- Generate simple ASC code from folder or string templates (i.e. `asc/extensions/builder`) to record, standardize and encourage recommended, "exemplar" design patterns
+- Provide a complementary "anti-pattern" registry to serve the opposite function (things to avoid, aiming at constant overall code quality improvement)
 
 ### Non-goals ("out of scope"s)
 
@@ -48,6 +49,7 @@ The main README (this file) is authoritative on the meaning associated with ASC 
 - [Current status of the ASC project](#current-status-of-the-asc-project)
 - [ASC concepts](#asc-concepts)
   - [General notes](#general-notes)
+  - [Vendor (= third-party) libs](#vendor-third-party-libs)
   - [Genericity (scale)](#genericity-scale)
     - [Primordial](#primordial)
     - [Primitives](#primitives)
@@ -61,6 +63,10 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [Always (= eager) VS conditionally (= lazy) sourced includes](#always-eager-vs-conditionally-lazy-sourced-includes)
       - [Exceptions](#exceptions)
       - [Recap](#recap)
+  - [Project instance (re)initialization process](#project-instance-reinitialization-process)
+    - [Cold → Warm : the initialization process](#cold-warm-the-initialization-process)
+    - [Stale → Warm : drift re-alignment](#stale-warm-drift-re-alignment)
+    - [(any state) → Cold](#any-state-cold)
   - [Extension Point](#extension-point)
   - [Active Dir](#active-dir)
   - [Actions = (make) _Entry points_](#actions-make-entry-points)
@@ -70,7 +76,6 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [Git-ignored, "private" _globals_](#git-ignored-private-globals)
   - [Hooks (and variants)](#hooks-and-variants)
     - [Most specific hooks (`hook_ms()`) lookup and collisions](#most-specific-hooks-hookms-lookup-and-collisions)
-  - [Wrappers](#wrappers)
   - [Entities](#entities)
     - [Custom Yaml syntax (with collisions)](#custom-yaml-syntax-with-collisions)
       - [Reserved root-level keys](#reserved-root-level-keys)
@@ -81,12 +86,16 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [Combination (= inclusion), Overriding (= replacement), Alteration (= merging), Appending (= incrementing)](#combination-inclusion-overriding-replacement-alteration-merging-appending-incrementing)
     - [Reusable Yaml blocks (`includes` : plural)](#reusable-yaml-blocks-includes-plural)
     - [Instanciation ("concrete" entity instances)](#instanciation-concrete-entity-instances)
+      - [Example of a concrete entity discovery → cache → load](#example-of-a-concrete-entity-discovery-cache-load)
     - [Linking, adressing (relationships, references)](#linking-adressing-relationships-references)
   - [ASC discovery recap](#asc-discovery-recap)
   - [Tests](#tests)
     - [ASC core tests](#asc-core-tests)
     - [Pre and post test suite execution (shunit2) functions](#pre-and-post-test-suite-execution-shunit2-functions)
     - [Test results](#test-results)
+  - [Design patterns VS anti-patterns (`builder` and `checker` core extensions)](#design-patterns-vs-anti-patterns-builder-and-checker-core-extensions)
+    - [Builder extension : patterns](#builder-extension-patterns)
+    - [Checker extension : anti-patterns (registry)](#checker-extension-anti-patterns-registry)
   - [ASC domain-specific language : *DSL* syntax](#asc-domain-specific-language-dsl-syntax)
     - [Entry points](#entry-points)
     - [Arguments](#arguments)
@@ -210,6 +219,10 @@ In this README, the `$` prefix always means the following :
 - `$action` are (Bash) shell script files placed in *active dirs* or `$object` subfolders.
 - `$extension` are folders containing *active dirs* representing **enabled** extensions only.
 
+### Vendor (= third-party) libs
+
+Vendor libs should generally not be added into ASC project instances repositories. Exceptions live inside ASC core dir `asc/vendor` and exist to support ASC tests (`asc/vendor/shunit2`), minimal bash Yaml support (`asc/vendor/bash-yaml`) and pdf docs generation (`asc/vendor/katex`, `asc/vendor/mermaid.esm.min.mjs`). The recommended way to deal with dependencies is to delegate their setup to tools like pipx, uv, pnpm, cargo, appimage, snap, apt, or even apt, or simply docker and/or docker compose.
+
 ### Genericity (scale)
 
 Two axes. This list is **kind**. Lookup lists later (extension points, active dirs, collisions) are **which file wins** — not this scale. `$object` is nesting, not a rung. **Kernel** means the five always-sourced includes, not Core.
@@ -247,6 +260,7 @@ Runtime discovery (`ASC_SUBJECTS` / `ASC_ACTIONS`, `data/asc/cache/core/active.s
     - `asc/extensions/agent` : wraps and chains LLMs prompts (with pre- and post- process hooks), and provides generic abstractions to manage things like `SKILL.md` (see [pi](https://github.com/earendil-works/pi)) / `CLAUDE.md` / Cursor rules
     - `asc/extensions/apt` : default Debian-based Linux host-level dependencies operations
     - `asc/extensions/builder` : minimalist ASC "clean" code generator
+    - `asc/extensions/checker` : anti-pattern catalog compared to staged file contents. Complements `builder`.
     - `asc/extensions/compose` : default Docker compose - related implementations
     - `asc/extensions/crontab` : default crontab-related implementations
     - `asc/extensions/db` : generic abstract placeholders (hooks) for database-related operations
@@ -338,13 +352,6 @@ There are 3 kinds of bootstrapped contexts :
 1. after initialization has run (usually once in a local project instance),
 1. and after initialization has run but with some changes that make the cached files outdated (e.g. when some env vars change, or when a new extension is added or removed, etc).
 
-The "warming" process (= instance *setup* or *init* or *reinit*) (re)generates the following files :
-
-- `data/asc/globals.sh` : discovered readonly global env vars,
-- `data/asc/cache/core/active.sh` (and `data/asc/cache/core/stamp`) : discovered enabled extensions and active dirs,
-- `data/asc/pivots.mk` (and `data/asc/cache/pivots.sh`) : discovered entry points (= actions) mapped as `make` entries,
-- and a bunch of hardcoded pre-warmed `data/asc/cache/hook/*.sh` cache files.
-
 **Initial (= cold)** state is the "out of the box" state (or after `make uninit`). In this state, none of the files above have been generated yet. See `Makefile` and `asc/make/default.mk` to see the default `make` entries that will work in this state (notably `init`, `setup`, and `globals-lp`). If the optional `scripts/asc/extend/custom.mk` file exists, the entries it contains will also work out of the box, before instance (re)init or setup has run.
 
 **Initialized (= warm)** means the generated files listed above exist and correctly match the current local project instance state. The bootstrap runs faster because there is no need for the core discovery mechanisms to run (they just get sourced where appropriate). The hook cache progressively gets more and more complete, i.e. : if any hook call does not yet have a corresponding cache file, the corresponding discovery process runs once and generates the missing cache file.
@@ -380,6 +387,46 @@ Here are a few examples to illustrate how this works :
 | (any) | manual | `asc/core/utils/fs_compression.manual-inc.sh` | ❌ not unless a caller manually sources it | not a name match, not caller-dir |
 | `make db-sync-to` | subject-lazy | `asc/extensions/remote_instance/db/db.opt-inc.sh` | ✅ yes | Caller dir `db/` → 2-level `$subject` `db`. |
 | `make git-write-hooks` | subject-lazy | `asc/extensions/remote_instance/db/db.opt-inc.sh` | ❌ no | Wrong caller. Caller opt-inc only looks next to `BASH_SOURCE[1]`. |
+
+### Project instance (re)initialization process
+
+This is the detailed overview of the transitions between the following states that determine the bootstrap context discussed above :
+
+- initial : **cold**
+- initialized : **warm**
+- out of sync : **stale**
+
+#### Cold → Warm : the initialization process
+
+This describes what happens during the (instance) **init** = `make init` action is triggered, which also get called during (instance) **setup** = `make setup`.
+
+The "warming" process runs the following operations in that order :
+
+1. generate `data/asc/cache/core/active.sh` and `data/asc/cache/core/stamp` : discovered **enabled** *extensions* and *active dirs* (before `globals.sh` exists),
+1. generate `data/asc/globals.sh` : discovered readonly global env vars (declared in files like `env.yml` and `global.vars.sh`),
+1. generate `data/asc/pivots.mk` and `data/asc/cache/pivots.sh` : discovered entry points (= actions) mapped as `make` entries,
+1. call `hook -p 'pre' -a 'init'` (*any* subject can implement that hook)
+1. call `hook -a 'init' -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'` (*any* subject can implement that hook)
+1. call `hook -s "$subjects instance" -a 'ensure_dirs_exist'` : this is specifically designed to allow extensions create any dirs that are gitignored but required for applications in the local project instance stack to function
+1. call `f_instance_set_permissions` reinitializes all project instance files permissions
+1. `hook -p 'post' -a 'init'` : includes the generation of a bunch of hardcoded pre-warmed `data/asc/cache/hook/*.sh` cache files.
+
+#### Stale → Warm : drift re-alignment
+
+Short answer : run `make reinit`.
+
+Specific individual steps may be separately run manually :
+
+- TODO only reinit env vars
+- TODO only rebuild hook cache
+- TODO only rebuild entity types discovery
+- TODO only rebuild discovered entity instances (1 or some or all types, such as e.g. hosts and/or remote hosts)
+
+Some convenience entry points exist for usual tasks that usually run together, like `make rere` = `make reinit` then `make restart`.
+
+#### (any state) → Cold
+
+This one is the easiest : just run `make uninit` and all the volatile (generated) files and dirs are gone.
 
 ### Extension Point
 
@@ -682,18 +729,6 @@ Yields (from fewer to more variant tokens = from least to most "specific") :
 #### Most specific hooks (`hook_ms()`) lookup and collisions
 
 TODO include `hook_ms()` explanation + score-based specificity calculations example.
-
-### Wrappers
-
-TODO examples / decide what asc core provides :
-
-1. logged-*
-1. thread ("asc-monitored" generic command execution ?)
-1. batch (synonym : parallel)
-1. chain (synonym : sequence)
-1. pipe
-1. nested (e.g. remote, ssh tunnel, vpn, p2p ?)
-1. stream ?
 
 ### Entities
 
@@ -1272,6 +1307,33 @@ See the embedded vendor [shunit2 README](asc/vendor/shunit2/README.md) for addit
 #### Test results
 
 Tests results are (for now) stored in `data/test-results`. This was done to track the current status of unstable branches in git, but the decision is subject to eventually change according to future enhancements to workflow-related implementations.
+
+### Design patterns VS anti-patterns (`builder` and `checker` core extensions)
+
+ASC provides 2 (opt-in) extensions :
+
+- `builder` repeats a shape by generating code from templates.
+- `checker` names and describes a shape staged contents should not contain.
+
+#### Builder extension : patterns
+
+&lt;proposal-2026-09-26&gt;
+
+A design pattern is a folder or string template. `asc/extensions/builder` generates ASC code from it. Example: `asc/extensions/builder/template/core/`.
+
+&lt;/proposal-2026-09-26&gt;
+
+#### Checker extension : anti-patterns (registry)
+
+&lt;proposal-2026-09-26&gt;
+
+An anti-pattern is one record in this catalog. `asc/extensions/checker` keeps it. The core group is `asc` (`ASC_ANTI_PATTERN_TYPES`): the list for an ASC project instance, read from `data/entities/anti-pattern/asc`.
+
+- `make anti-pattern` records one.
+- `code-smell` is a synonym. That substitution also turns `anti-pattern-list` into `code-smell-list`, which loads the group for that commit.
+- `make stage-inspect` reads the staged blob of each committed path (`git show :path`) and compares those contents to the list.
+
+&lt;/proposal-2026-09-26&gt;
 
 ### ASC domain-specific language : *DSL* syntax
 
