@@ -352,13 +352,6 @@ There are 3 kinds of bootstrapped contexts :
 1. after initialization has run (usually once in a local project instance),
 1. and after initialization has run but with some changes that make the cached files outdated (e.g. when some env vars change, or when a new extension is added or removed, etc).
 
-The "warming" process (= instance *setup* or *init* or *reinit*) (re)generates the following files :
-
-- `data/asc/globals.sh` : discovered readonly global env vars,
-- `data/asc/cache/core/active.sh` (and `data/asc/cache/core/stamp`) : discovered enabled extensions and active dirs,
-- `data/asc/pivots.mk` (and `data/asc/cache/pivots.sh`) : discovered entry points (= actions) mapped as `make` entries,
-- and a bunch of hardcoded pre-warmed `data/asc/cache/hook/*.sh` cache files.
-
 **Initial (= cold)** state is the "out of the box" state (or after `make uninit`). In this state, none of the files above have been generated yet. See `Makefile` and `asc/make/default.mk` to see the default `make` entries that will work in this state (notably `init`, `setup`, and `globals-lp`). If the optional `scripts/asc/extend/custom.mk` file exists, the entries it contains will also work out of the box, before instance (re)init or setup has run.
 
 **Initialized (= warm)** means the generated files listed above exist and correctly match the current local project instance state. The bootstrap runs faster because there is no need for the core discovery mechanisms to run (they just get sourced where appropriate). The hook cache progressively gets more and more complete, i.e. : if any hook call does not yet have a corresponding cache file, the corresponding discovery process runs once and generates the missing cache file.
@@ -407,7 +400,14 @@ This is the detailed overview of the transitions between the following states th
 
 This describes what happens during the (instance) **init** = `make init` action is triggered, which also get called during (instance) **setup** = `make setup`.
 
-TODO step by step details and explanations (how + why).
+The "warming" process (re)generates the following files in that order :
+
+1. `data/asc/globals.sh` : discovered readonly global env vars,
+1. `data/asc/cache/core/active.sh` (and `data/asc/cache/core/stamp`) : discovered enabled extensions and active dirs,
+1. `data/asc/pivots.mk` (and `data/asc/cache/pivots.sh`) : discovered entry points (= actions) mapped as `make` entries,
+1. and a bunch of hardcoded pre-warmed `data/asc/cache/hook/*.sh` cache files.
+
+TODO in the context of changelog/2026/09/26-app-prefix-inventory.md review and dig deeper to explain how hooks can work even in a cold project instance.
 
 #### Stale → Warm : drift re-alignment
 
