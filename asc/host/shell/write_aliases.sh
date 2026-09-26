@@ -5,17 +5,21 @@
 #
 # TODO [wip] untested.
 #
-# The map is always $HOME/.bash_aliases_asc. It is not under an instance
-# data dir. $HOME does not have to be an ASC project.
+# The map is $HOME/<plug>_asc. It is not under an instance data dir.
+# $HOME does not have to be an ASC project.
+#   .bash_aliases → $HOME/.bash_aliases_asc
+#   .bashrc       → $HOME/.bashrc_asc
+#   .profile      → $HOME/.profile_asc
 #
-# The argument is the plug under $HOME that sources that map, once.
-# Default: .bash_aliases. Also .bashrc or .profile.
+# The argument is that plug under $HOME. It sources its own map, once.
+# Default: .bash_aliases. Core does not choose among the three, and does
+# not look at whether one startup file sources another.
 #
 # @example
 #   # Plug defaults to $HOME/.bash_aliases :
 #   make host-shell-write-aliases
 #
-#   # Same map, other plug :
+#   # Its own map, $HOME/.bashrc_asc :
 #   make host-shell-write-aliases '.bashrc'
 #   make host-shell-write-aliases '.profile'
 #   # Or :
@@ -50,8 +54,8 @@ plug_path="$HOME/$p_shell_plug"
 # The generated file containing the (mapped) aliases.
 generated_aliases_path="$HOME/${p_shell_plug}_asc"
 
-# One line, in the plug. ~/.bash_aliases_asc is expanded by the shell that sources it.
-needle="[ -f ~/.bash_aliases_asc ] && . ~/${p_shell_plug}_asc"
+# One line, in the plug. The shell that sources the plug expands "~".
+needle="[ -f ~/${p_shell_plug}_asc ] && . ~/${p_shell_plug}_asc"
 
 # Read entry points mapping to scripts.
 pivots_arr=()
@@ -72,11 +76,11 @@ for short_alias in $ASC_HOST_SHELL_ALIASES; do
     script="${real_scripts_arr[i]}"
 
     case "$task" in "$short_alias")
-      echo "Adding entry point $i to ~/.bash_aliases_asc :"
+      echo "Adding entry point $i to ~/${p_shell_plug}_asc :"
       echo "  task = $task"
       echo "  script = $script"
 
-      # TODO change to relative make call.
+      # TODO run this relative script from the closest directory that contains it.
       aliases_sh_buf+="alias $task=$script"$'\n'
     esac
   done

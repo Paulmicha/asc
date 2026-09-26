@@ -112,9 +112,10 @@ global ASC_APPS "[default]='site' [help]='ASC apps allow for example to provide 
 
 # Update 2026-09-26 :
 
-# Host-level alias map: $HOME/.bash_aliases_asc.
+# Host-level alias map: $HOME/<plug>_asc.
+# Default plug .bash_aliases → $HOME/.bash_aliases_asc.
 # Not an instance data dir. $HOME does not have to be an ASC project.
-# A plug under $HOME (.bash_aliases, .bashrc, or .profile) sources that file once.
+# That plug (.bash_aliases, .bashrc, or .profile) sources its own map once.
 # - 'ds' is a global ASC shortcut for the DSL,
 # - 'ssk' is used to switch between groups of loaded SSH keys,
 # - ASC core "git" extension get shortcuts out of the box,

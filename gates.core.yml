@@ -161,6 +161,6 @@ gates:
     lane: discuss
     order: 15
     task: "Plan review. Writer emits ~/.bash_aliases_asc and one plug block."
-    summary: "Have make host-shell-write-aliases regenerate the host map $HOME/.bash_aliases_asc (not an instance data file) and write one source line into the plug under $HOME (.bash_aliases, .bashrc, or .profile). Setting go authorizes the make -C aliases and the instance-subject whitelist. The map path and the plug split are already in the writer."
+    summary: "Have make host-shell-write-aliases regenerate $HOME/<plug>_asc (not an instance data file) and write one source line for that map into the plug under $HOME (.bash_aliases, .bashrc, or .profile). Setting go authorizes aliases that run the mapped instance script in the closest directory that has it, and the instance-subject whitelist. The per-plug map path is already in the writer."
     approved: "no"
     go: "no"
