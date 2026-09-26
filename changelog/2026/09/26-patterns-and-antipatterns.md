@@ -80,11 +80,13 @@ First records are not written. Candidates already decided in [25-concert-order.m
 
 ## Git hooks
 
-Design only. No listener file. No change to `ASC_GIT_HOOKS_WIRED`. The hook is a later caller of `stage-inspect`. Wiring it first, while the three checker scripts are comments, either does nothing or rejects every commit the moment someone adds `exit 1`.
+Design only for the checker. No checker listener. No change to the core default of `ASC_GIT_HOOKS_WIRED`. The checker hook is a later caller of `stage-inspect`. Wiring that listener first, while the three checker scripts are comments, either does nothing or rejects every commit the moment someone adds `exit 1`.
+
+[26-readme-toc-pre-commit.md](./26-readme-toc-pre-commit.md) is a different listener. `asc/git/pre-commit.hook.sh` refreshes the README `<nav>` block. `asc/git/global.vars.sh` appends `pre-commit`. The core default in `asc/core/global.vars.sh` stays empty.
 
 ### The writer that already exists
 
-[25-wired-init-lists.md](./25-wired-init-lists.md) is in force. `ASC_GIT_HOOKS_WIRED` defaults to empty in `asc/core/global.vars.sh`. `asc/git/init.hook.sh` calls `f_git_write_hooks` only when that variable is non-empty, and it passes that list only. The six names inside `f_git_write_hooks` are what the function uses when its first argument is absent or empty. Instance init never takes that path while the default stays empty. Putting `pre-commit` into the core default undoes that decision.
+[25-wired-init-lists.md](./25-wired-init-lists.md) is in force. `ASC_GIT_HOOKS_WIRED` defaults to empty in `asc/core/global.vars.sh`. `asc/git/init.hook.sh` calls `f_git_write_hooks` only when that variable is non-empty, and it passes that list only. The six names inside `f_git_write_hooks` are what the function uses when its first argument is absent or empty. The core default stays empty. `asc/git/global.vars.sh` appends `pre-commit`, so init writes that hook. Putting the six names into the core default is still refused.
 
 `asc/git/write_hooks.sh` writes one executable per requested git hook name, into `$APP_DOCROOT/.git/hooks` when `APP_DOCROOT` is non-empty, otherwise into `$PROJECT_DOCROOT/.git/hooks`. The header comment says the app directory is used when it exists, and the project directory otherwise. The function does not check existence before the switch. A non-empty `APP_DOCROOT` whose `.git/hooks` is missing aborts. It does not fall back.
 
