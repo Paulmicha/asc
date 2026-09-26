@@ -43,5 +43,10 @@ f_git_pre_commit_readme_toc() {
 }
 
 if [[ -n "${git_hook_args_nb+x}" ]]; then
+  case "${git_hook_context:-}" in
+    ''|asc) ;;
+    *) return 0 ;;
+  esac
+
   f_git_pre_commit_readme_toc || exit $?
 fi

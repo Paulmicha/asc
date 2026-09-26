@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+
+##
+# TODO [wip] disabled archived test to rewrite due to collision risks in real projects.
+#
+# Testing git clone during instance init.
+#
+# @requires asc/vendor/shunit2
+#
+# @example
+#   asc/test/core/clone_hook.test.sh
+#
+
+# Exercise real init/dispatch in an isolated tree; stub only globals and make.
+ASC_BS_SKIP_GLOBALS=1
+. asc/bootstrap.sh
+. asc/instance/instance.inc.sh
+CLONE_TEST_ROOT="$PWD"
+
+setUp() {
+  CLONE_TEST_TMP="$(mktemp -d)"
+}
+tearDown() {
+  rm -rf -- "$CLONE_TEST_TMP"
+}
+
+f_clone_test_fixture() {
+  cd "$CLONE_TEST_TMP" || return 1
+  mkdir -p asc/core scripts/asc/extend/{site,api,instance}
+  : > asc/core/global.vars.sh
+  : > asc/core/global_write.sh
+  : > asc/core/global_debug.sh
+  global() { :; }
+  f_instance_yaml_config_load() { :; }
+  f_global_aggregate() { :; }
+  f_global_write() { :; }
+  f_global_debug() { :; }
+  f_make_generate() { :; }
+  f_instance_set_permissions() { :; }
+
+  ASC_EXTENSIONS=extend
+  INSTANCE_TYPE=dev
+  STACK_VERSION=v1
+  PROVISION_USING=asc
+  HOST_TYPE=local
+  ASC_SUBJECTS=''
+  ASC_ACTIONS=''
+
+  printf '%s\n' 'echo pre >> events' > scripts/asc/extend/instance/pre_init.hook.sh
+  printf '%s\n' 'echo init >> events' > scripts/asc/extend/instance/init.hook.sh
+}
+
+f_clone_test_discover() {
+  f_asc_extend scripts/asc/extend
+}
+
+test_clone_absent_is_noop() {
+  (
+    f_clone_test_fixture
+    f_clone_test_discover
+    f_instance_init -a 'site api' -y
+  )
+  assertEquals 'init succeeds without clones' 0 "$?"
+  assertEquals 'only init events' $'pre\ninit' "$(cat "$CLONE_TEST_TMP/events")"
+}
+
+test_clone_winners_order_and_reinit() {
+  (
+    f_clone_test_fixture
+    printf '%s\n' 'echo wrong >> events' > scripts/asc/extend/site/clone.hook.sh
+    cat > scripts/asc/extend/site/clone.dev.hook.sh <<'HOOK'
+[[ -e site/.git ]] && return 0
+mkdir -p site/.git
+echo site >> events
+HOOK
+    printf '%s\n' 'echo api >> events' > scripts/asc/extend/api/clone.hook.sh
+    f_clone_test_discover
+    f_instance_init -a 'site api' -y || exit $?
+    printf '%s\n' preserved > site/.git/marker
+    f_instance_init -a 'site api' -y
+  )
+  assertEquals 'both initializations succeed' 0 "$?"
+  assertEquals 'one winner per subject; warm reinit skips existing repo' \
+    $'pre\nsite\napi\ninit\npre\napi\ninit' "$(cat "$CLONE_TEST_TMP/events")"
+  assertEquals 'existing repo untouched' preserved "$(cat "$CLONE_TEST_TMP/site/.git/marker")"
+}
+
+test_clone_failure_stops_init() {
+  (
+    f_clone_test_fixture
+    printf '%s\n' 'return 7' > scripts/asc/extend/site/clone.hook.sh
+    printf '%s\n' 'echo api >> events' > scripts/asc/extend/api/clone.hook.sh
+    f_clone_test_discover
+    f_instance_init -a 'site api' -y
+  )
+  assertEquals 'clone failure reaches caller' 7 "$?"
+  assertEquals 'no later subject or init' pre "$(cat "$CLONE_TEST_TMP/events")"
+}
+
+test_clone_dry_run_does_not_clone() {
+  (
+    f_clone_test_fixture
+    printf '%s\n' 'echo wrong >> events' > scripts/asc/extend/site/clone.hook.sh
+    printf '%s\n' 'echo dry >> events' > scripts/asc/extend/site/dry_run_clone.hook.sh
+    f_clone_test_discover
+    f_instance_init -a site -r -y
+  )
+  assertEquals 'dry run succeeds' 0 "$?"
+  assertEquals 'only dry hook ran' dry "$(cat "$CLONE_TEST_TMP/events")"
+}
+
+. asc/vendor/shunit2/shunit2

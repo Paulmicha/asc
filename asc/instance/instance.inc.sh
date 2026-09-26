@@ -34,17 +34,14 @@
 #   f_instance_init
 #
 #   # Initializes an instance of type 'dev', host type 'local', provisionned
-#   # using 'ansible', using 'my-project-2025' as stack version, with git origin :
-#   # 'git@my-git-origin.org:my-git-account/asc.git', app sources cloned in 'dist',
-#   # and using 'dist/web' as app dir - without terminal prompts (-y flag).
+#   # using 'ansible', with apps 'site api', without prompts (-y flag).
+#   # Each app may provide its own clone.hook.sh to create its repository.
 #   f_instance_init \
 #     -t 'dev' \
 #     -h 'local' \
 #     -p 'ansible' \
 #     -s 'asc_dev' \
-#     -g 'git@my-git-origin.org:my-git-account/asc.git' \
-#     -i 'dist' \
-#     -a 'dist/web' \
+#     -a 'site api' \
 #     -y
 #
 f_instance_init() {
@@ -230,6 +227,7 @@ f_instance_init() {
 
   # If used, loop through ASC_APPS.
   # Default to 'app' otherwise.
+  local subject
   local subjects='app'
 
   if [[ -n "$ASC_APPS" ]]; then
@@ -240,23 +238,37 @@ f_instance_init() {
   # written and hooks are replaced by a prefixed variant.
   if [[ $p_ascii_dry_run -eq 1 ]]; then
     . asc/core/global_debug.sh
+
     f_global_debug
+
+    for subject in $subjects; do
+      hook -s "$subjects" -a 'clone' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE' -p 'dry_run'
+    done
+
     hook -a 'init' -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE' -p 'dry_run'
     hook -s "$subjects instance" -a 'ensure_dirs_exist' -p 'dry_run'
+
     return
   fi
 
   . asc/core/global_write.sh
+
   f_global_write
 
   if [[ "$(type -t f_make_generate)" != function ]]; then
     # shellcheck disable=SC1091
     . asc/make/generate.sh
   fi
+
   f_make_generate
 
   # Trigger instance init (optional) extra processes.
   hook -p 'pre' -a 'init'
+
+  for subject in $subjects; do
+    hook_ms -s "$subject" -a 'clone' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE' || return $?
+  done
+
   hook -a 'init' -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'
 
   # Make sure every writeable folders potentially git-ignored gets created

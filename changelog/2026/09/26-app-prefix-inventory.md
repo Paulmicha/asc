@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-26 |
-| **Status** | Plan. No runtime change until `gates.core.yml` has `go: yes` for this file. |
+| **Status** | Implemented on 2026-09-26 following explicit user authorization. Validation details below. |
 | **Scope** | The initial application-repo clone during instance init, and which repo `ASC_GIT_HOOKS_WIRED` writes into. |
 | **Not this change** | `APP_DOCROOT` and `APP_DOCROOT_C` outside the hook writer, Drupal, Apache, Moodle, and the known-hosts read of `APP_GIT_ORIGIN`. Those stay in the appendix. |
 
@@ -125,6 +125,25 @@ Recommendation: make the hook call and delete the clone block. Do not leave a co
 8. Run `make test-core`. The new tests pass. Unrun stays unverified.
 
 No new global, no new include. The cold-order note is the README proposal beside the warming list. Implementation leaves the human lines as they are.
+
+## Implementation validation
+
+The clone dispatch, context-aware hook writer, README listener filter and legacy
+hook migration are implemented. The writer stages each file beside its destination
+and completes all writes before cleaning up any legacy hooks.
+
+- Clone behavior: 4 tests passed.
+- README and Git hook writing: 9 tests passed, including validation, path aliases,
+  context isolation, legacy cleanup and failed writes/chmod.
+- `make test-core` was run. It passes these suites and the globals suite, then
+  stops at the existing `next_steps.test.sh` assumption that `INSTANCE_TYPE` is
+  `core`; this instance's generated globals set it to `dev` (6 assertions fail).
+- The full run exposed a globals fixture that overwrote/deleted the real core
+  globals file. It now preserves and restores pre-existing files. The missing
+  executable bit on `host_shell_aliases.test.sh` was also restored.
+
+The APP_ inventory below is the pre-implementation snapshot; its old source lines
+and counts are retained as migration history.
 
 ## Appendix: APP_ inventory
 

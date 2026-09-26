@@ -8,9 +8,9 @@
 #   folder if it already exists. Because 'composer create-project' requires that
 #   the folder $APP_DOCROOT be empty, the default behavior is to delete
 #   everything inside it before executing it. As it could contain the .git
-#   folder when we are creating a new project (i.e. cloned - even empty - during
-#   instance init if $APP_GIT_INIT_CLONE is set to 'yes'), this then re-executes
-#   the 'init' hook implementation in the 'git' subject from ASC core.
+#   folder created by an instance-provided clone hook, this then re-executes
+#   the core git init hook to write configured Git hooks. It does not recreate
+#   the deleted repository; repository creation belongs to the instance.
 #   @see asc/git/init.hook.sh
 #   Another option is to make a temporary copy, then merge it back afterwards.
 #   There are 2 values to distinguish between keeping or discarding the existing
@@ -22,9 +22,8 @@
 #
 # @example
 #   # Create a new project based on the "Thunder" Drupal distribution. If the
-#   # $APP_DOCROOT folder exists, by default, its content is deleted first. And
-#   # if $APP_GIT_INIT_CLONE is set to 'yes', the git work tree will be
-#   # reinitialized :
+#   # $APP_DOCROOT folder exists, by default, its content is deleted first.
+#   # This does not restore its Git repository; use 'keep' to preserve it :
 #   make new-project thunder/thunder-project
 #   # Or :
 #   asc/extensions/drupalwt/new/project.sh thunder/thunder-project

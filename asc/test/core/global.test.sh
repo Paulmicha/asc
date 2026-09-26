@@ -30,6 +30,8 @@
 oneTimeSetUp() {
   local s
   local s_upper
+  NFTASCGEV_BACKUP="$(mktemp -d)"
+  NFTASCGEV_SUBJECTS=()
 
   # Hook dry-run results are cached at init/warmup; clear those before creating
   # temporary global.vars.sh files so f_global_lookup_paths can see them.
@@ -40,8 +42,15 @@ oneTimeSetUp() {
     # Skip subjects whose folder is not a normal subject namespace (bootstrap
     # phases live under asc/bootstrap/ without being a hook subject dir).
     case "$s" in bootstrap) continue ;; esac
+
     f_str_uppercase "$s" 's_upper'
-    cat > "asc/$s/global.vars.sh" <<EOF
+    NFTASCGEV_SUBJECTS+=("$s")
+
+    if [[ -f "asc/$s/global.vars.sh" ]]; then
+      cp -p "asc/$s/global.vars.sh" "$NFTASCGEV_BACKUP/$s"
+    fi
+
+    cat >> "asc/$s/global.vars.sh" <<EOF
 #!/usr/bin/env bash
 global NFTASCGEVHNC_VAR_ASC_$s_upper 'test'
 EOF
@@ -113,10 +122,13 @@ test_asc_global_aggregate() {
   local s
   local s_upper
   local s_varname
+
   for s in $ASC_SUBJECTS; do
     case "$s" in bootstrap) continue ;; esac
+
     f_str_uppercase "$s" 's_upper'
     s_varname="NFTASCGEVHNC_VAR_ASC_${s_upper}"
+
     assertEquals "Value of NFTASCGEVHNC_VAR_ASC_$s_upper is missing or incorrect." "test" "${!s_varname}"
   done
 
@@ -138,11 +150,14 @@ test_f_global_lookup_paths() {
 
   for s in $ASC_SUBJECTS; do
     case "$s" in bootstrap) continue ;; esac
+
     assertTrue "should list asc/$s/global.vars.sh" \
       "[[ \" \$global_lookup_paths \" == *\" asc/$s/global.vars.sh \"* ]]"
+
     found_subject=1
     break
   done
+
   assertTrue 'at least one subject global.vars.sh should be checked' \
     "[[ $found_subject -eq 1 ]]"
 
@@ -178,6 +193,7 @@ test_f_global_list() {
 
   assertTrue 'f_global_list should populate names' \
     "[[ ${#asc_globals_var_names_arr[@]} -gt 0 ]]"
+
   assertEquals 'names and values arrays should match in length' \
     "${#asc_globals_var_names_arr[@]}" "${#asc_globals_values_arr[@]}"
 
@@ -185,10 +201,12 @@ test_f_global_list() {
     if [[ "${asc_globals_var_names_arr[i]}" == 'NFTASCGEVHNC_VAR_1' ]]; then
       assertEquals 'listed value for NFTASCGEVHNC_VAR_1' \
         'test' "${asc_globals_values_arr[i]}"
+
       found=1
       break
     fi
   done
+
   assertTrue 'NFTASCGEVHNC_VAR_1 should appear in f_global_list names' \
     "[[ $found -eq 1 ]]"
 }
@@ -259,10 +277,16 @@ printf " %s" "$(type -t global)"')"
 #
 oneTimeTearDown() {
   local s
-  for s in $ASC_SUBJECTS; do
-    case "$s" in bootstrap) continue ;; esac
-    rm -f "asc/$s/global.vars.sh"
+
+  for s in "${NFTASCGEV_SUBJECTS[@]}"; do
+    if [[ -f "$NFTASCGEV_BACKUP/$s" ]]; then
+      cp -p "$NFTASCGEV_BACKUP/$s" "asc/$s/global.vars.sh"
+    else
+      rm -f "asc/$s/global.vars.sh"
+    fi
   done
+
+  rm -rf -- "$NFTASCGEV_BACKUP"
   rm -fr 'asc/extensions/nftascgevdehnc'
 }
 

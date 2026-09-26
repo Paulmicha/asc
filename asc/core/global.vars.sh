@@ -121,7 +121,7 @@ global ASC_HOST_SHELL_ALIASES "[default]='ds gu gmp gacp ssk' [help]='Space-sepa
 
 # Empty: instance init writes no git hooks. Append hook names to write only those.
 # @see asc/git/init.hook.sh
-global ASC_GIT_HOOKS_WIRED "[default]='' [help]='Space-separated git hooks instance init may write. Empty writes none.'"
+global ASC_GIT_HOOKS_WIRED "[default]='' [help]='Space-separated git hooks to write: pre-commit or asc:pre-commit targets this repo; site:pre-commit targets SITE_DOCROOT. Empty writes none.'"
 
 # TODO see if we want that always wired in by default.
 # Currently ASC core uses it to automatically rebuild the table of contents in
