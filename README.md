@@ -63,6 +63,10 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [Always (= eager) VS conditionally (= lazy) sourced includes](#always-eager-vs-conditionally-lazy-sourced-includes)
       - [Exceptions](#exceptions)
       - [Recap](#recap)
+  - [Project instance (re)initialization process](#project-instance-reinitialization-process)
+    - [Cold → Warm : the initialization process](#cold-warm-the-initialization-process)
+    - [Stale → Warm : drift re-alignment](#stale-warm-drift-re-alignment)
+    - [(any state) → Cold](#any-state-cold)
   - [Extension Point](#extension-point)
   - [Active Dir](#active-dir)
   - [Actions = (make) _Entry points_](#actions-make-entry-points)
@@ -390,6 +394,36 @@ Here are a few examples to illustrate how this works :
 | (any) | manual | `asc/core/utils/fs_compression.manual-inc.sh` | ❌ not unless a caller manually sources it | not a name match, not caller-dir |
 | `make db-sync-to` | subject-lazy | `asc/extensions/remote_instance/db/db.opt-inc.sh` | ✅ yes | Caller dir `db/` → 2-level `$subject` `db`. |
 | `make git-write-hooks` | subject-lazy | `asc/extensions/remote_instance/db/db.opt-inc.sh` | ❌ no | Wrong caller. Caller opt-inc only looks next to `BASH_SOURCE[1]`. |
+
+### Project instance (re)initialization process
+
+This is the detailed overview of the transitions between the following states that determine the bootstrap context discussed above :
+
+- initial : **cold**
+- initialized : **warm**
+- out of sync : **stale**
+
+#### Cold → Warm : the initialization process
+
+This describes what happens during the (instance) **init** = `make init` action is triggered, which also get called during (instance) **setup** = `make setup`.
+
+TODO step by step details and explanations (how + why).
+
+#### Stale → Warm : drift re-alignment
+
+Short answer : run `make reinit`.
+
+Specific / incremental operations :
+
+- TODO `make rere`
+- TODO only reinit env vars
+- TODO only rebuild hook cache
+- TODO only rebuild entity types discovery
+- TODO only rebuild discovered entity instances (1 or some or all types, such as e.g. hosts and/or remote hosts)
+
+#### (any state) → Cold
+
+This one is the easiest : just run `make uninit` and all the volatile (generated) files and dirs are gone.
 
 ### Extension Point
 
