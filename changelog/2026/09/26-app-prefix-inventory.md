@@ -4,8 +4,8 @@
 |-------|--------|
 | **Date** | 2026-09-26 |
 | **Status** | Plan. No runtime change until `gates.core.yml` has `go: yes` for this file. |
-| **Scope** | The initial application-repo clone during instance init and setup. |
-| **Not this change** | `APP_DOCROOT`, `APP_DOCROOT_C`, hook-file placement, Drupal, Apache, Moodle, and the known-hosts read of `APP_GIT_ORIGIN`. Those stay in the appendix. |
+| **Scope** | The initial application-repo clone during instance init, and which repo `ASC_GIT_HOOKS_WIRED` writes into. |
+| **Not this change** | `APP_DOCROOT` and `APP_DOCROOT_C` outside the hook writer, Drupal, Apache, Moodle, and the known-hosts read of `APP_GIT_ORIGIN`. Those stay in the appendix. |
 
 `$` in this file is the ASC docs placeholder (`$subject`, `$action`), except shell variables inside code blocks.
 
@@ -59,34 +59,50 @@ The hook implementation owns the remote, the destination path, and the branch. W
 
 ## What stays in the git init hook implementation
 
-`asc/git/init.hook.sh` still writes the git hooks named in `ASC_GIT_HOOKS_WIRED` (empty writes none). Its header comment stops saying that core clones the application repo.
+`asc/git/init.hook.sh` still writes the git hooks named in `ASC_GIT_HOOKS_WIRED` (empty writes none). Its header comment stops saying that core clones the application repo. The destination of that write changes as in the next section. `APP_GIT_ORIGIN` in `asc/extensions/remote_instance/remote/init.sh` stays a known-hosts read. `APP_GIT_INIT_HOOK` stays a historical name.
 
-The writer in `asc/git/write_hooks.sh` still selects `$APP_DOCROOT/.git/hooks` when `APP_DOCROOT` is non-empty, and still aborts when that directory is missing. This plan leaves that. The clone hook call runs first so an instance implementation can create the repo before the writer runs. An instance that sets `APP_DOCROOT` and does not implement `clone` keeps today's writer result.
+## Wired hooks, several repos
 
-`asc/extensions/remote_instance/remote/init.sh` still reads `APP_GIT_ORIGIN` for known-hosts. That read is not the clone switch.
+`f_git_write_hooks` today takes an optional hooks directory. With that argument empty it sets the directory to `$PROJECT_DOCROOT/.git/hooks`, then replaces it with `$APP_DOCROOT/.git/hooks` whenever `APP_DOCROOT` is non-empty, then `exit 1`s if that directory is missing. The header comment describes a fallback the function does not do. The generated script always `cd`s to `$PROJECT_DOCROOT` and calls `hook -s 'git' -a "$git_hook"`. Listeners cannot tell the instance repo from a sub-repo.
 
-`APP_GIT_INIT_HOOK` stays a historical name. `ASC_GIT_HOOKS_WIRED` remains the hook-list setting.
+`ASC_GIT_HOOKS_WIRED` stays the only list. Empty still writes none. There is no `wire` action and no second global. A token is either a bare git hook name or `context:name`.
+
+| Token | Writes | `git_hook_context` |
+| --- | --- | --- |
+| `pre-commit` | `$PROJECT_DOCROOT/.git/hooks/pre-commit` only. Same as today: no sub-repo target. | empty |
+| `asc:pre-commit` | the same instance-repo file | `asc` |
+| `site:pre-commit` | `$SITE_DOCROOT/.git/hooks/pre-commit` | `site` |
+
+`asc` is the dev stack repo (`$PROJECT_DOCROOT`). Any other context is an app subject: the work tree is the global whose name is that subject in uppercase plus `_DOCROOT`, the sketch already next to `ASC_APPS` in `asc/core/global.vars.sh` (`SITE_DOCROOT`, and the same shape for another subject). A focused test suite uses its own subject the same way (`suite:pre-commit` reads `SUITE_DOCROOT`).
+
+The name after the colon is the git hook name and must stay on the existing whitelist. The context is one token with no slash. One colon. A bare name and `asc:` for the same hook name are one file, the instance repo; when `asc:` is present, `git_hook_context` is `asc`. A different context is a different file. The writer drops the `APP_DOCROOT` destination.
+
+Every generated script still starts with `cd "$PROJECT_DOCROOT"` and the bootstrap, including a script installed in a sub-repo. Git may start the script in that sub-repo. ASC still runs from the instance docroot. Next to `git_hook_args_nb` and `git_hook_args`, the script sets `git_hook_context` to the context token, or to empty for a bare name. The hook call stays `hook -s 'git' -a "$git_hook"`. Listeners stay on subject `git` and read `git_hook_context` when they must act for one repo only. A top-level `return` still leaves `hook()` and skips the remaining listeners; a listener that ignores other contexts uses a conditional body.
+
+A listed context whose `.git/hooks` directory is missing, or whose `_DOCROOT` global is empty, is `exit 1`. The clone loop runs first, so a sub-repo declared in the list can exist before the writer runs. Init checks nothing else. Dry-run does not write hook files.
 
 ## Pros and cons
 
 Pros: the mother stops cloning on a `Y`/`y` global. Several subjects in `ASC_APPS` can each implement `clone`. A tree with no such file clones nothing.
 
-Cons: an instance that relies on `APP_GIT_INIT_CLONE` today gets no clone until it adds the hook implementation. The writer still depends on `APP_DOCROOT`. A subject that is not discovered yet is skipped by the hook call.
+Cons: an instance that relies on `APP_GIT_INIT_CLONE` today gets no clone until it adds the hook implementation. A bare `pre-commit` still writes only the instance repo. Targeting a sub-repo is the `site:pre-commit` token, and that token `exit 1`s when `SITE_DOCROOT/.git/hooks` is missing. A subject that is not discovered yet is skipped by the clone call.
 
 Recommendation: make the hook call and delete the clone block. Do not leave a core `clone.hook.sh` that still reads the old globals.
 
 ## When `go` is yes
 
 1. In `f_instance_init` (`asc/instance/instance.inc.sh`), after `hook -p 'pre' -a 'init'` and before `hook -a 'init'`, loop the app subject list and call `hook_ms` once per subject as above. On the dry-run path, call `hook` with `-p 'dry_run'` and do not call `hook_ms`.
-2. Delete the `case "$APP_GIT_INIT_CLONE"` block from `asc/git/init.hook.sh` (the clone and the non-empty-directory `git init` / `fetch` / `checkout -t origin/master -f`). Keep the `ASC_GIT_HOOKS_WIRED` writer. Rewrite the header so it describes hook writing only.
-3. Rewrite the two comments in `scripts/asc/contrib/asc/drupalwt/new/project.sh` that still say instance init clones when `APP_GIT_INIT_CLONE` is `yes`. Leave that script's directory handling as it is.
-4. Add `asc/test/core/clone_hook.test.sh`. `make test-core` already runs `asc/test/core/*.test.sh`. Run the behavior in a subshell, with fixtures (temporary active dirs and `clone.hook.sh` files, hook cache cleared). Assert:
+2. Delete the `case "$APP_GIT_INIT_CLONE"` block from `asc/git/init.hook.sh` (the clone and the non-empty-directory `git init` / `fetch` / `checkout -t origin/master -f`). Keep the call to `f_git_write_hooks` with `ASC_GIT_HOOKS_WIRED`. Rewrite the header so it describes hook writing only.
+3. In `f_git_write_hooks`, parse each token as a bare hook name or `context:name`. Drop the `APP_DOCROOT` destination. Write bare names and `asc:` into `$PROJECT_DOCROOT/.git/hooks`. Write any other context into `$SUBJECT_DOCROOT/.git/hooks`. Set `git_hook_context` in the generated script. Keep `cd "$PROJECT_DOCROOT"` and `hook -s 'git'`. `exit 1` when a listed context has no hooks directory.
+4. Rewrite the two comments in `scripts/asc/contrib/asc/drupalwt/new/project.sh` that still say instance init clones when `APP_GIT_INIT_CLONE` is `yes`. Leave that script's directory handling as it is.
+5. Add `asc/test/core/clone_hook.test.sh`. `make test-core` already runs `asc/test/core/*.test.sh`. Run the behavior in a subshell, with fixtures (temporary active dirs and `clone.hook.sh` files, hook cache cleared). Assert:
    - with no `clone.hook.sh`, the call sources nothing
    - two app subjects each run their own `hook_ms` winner
    - the dry-run path does not source an ordinary `clone.hook.sh`
    - a fixture that runs `exit 1` ends the subshell before the init hook call
    - a second call leaves an existing `.git` directory in place
-5. Run `make test-core`. The new test passes. Unrun stays unverified.
+6. In the same test file, or in `asc/test/core/git_wire.test.sh` when the fixture setup diverges, assert the writer behavior in a subshell: bare `pre-commit` writes only `$PROJECT_DOCROOT/.git/hooks/pre-commit` and sets `git_hook_context` empty; `asc:pre-commit` sets `git_hook_context=asc` in that same file; `site:pre-commit` writes `$SITE_DOCROOT/.git/hooks/pre-commit` with `git_hook_context=site` and that script `cd`s to `$PROJECT_DOCROOT`; a missing `SITE_DOCROOT/.git/hooks` exits 1; the hook call in the script stays `hook -s 'git'`.
+7. Run `make test-core`. The new tests pass. Unrun stays unverified.
 
 No new global, no new include. The cold-order note is the README proposal beside the warming list. Implementation leaves the human lines as they are.
 
@@ -110,10 +126,10 @@ Four names have executable/configuration uses; a fifth occurs only in historical
 
 - `asc/core/global.vars.sh:72` declares `ASC_APPS` with default `site`; nearby comments sketch `SITE_DOCROOT`, `SITE_DOCROOT_C`, domains and services. These comments are design context, not implemented replacements for the legacy consumers.
 - `asc/instance/instance.inc.sh` already loops over `ASC_APPS` for hook subjects (for example lines 231–236 and 500–505). Its app-specific YAML Git/path handling at lines 160–170 is commented out.
-- The clone switch uses the subject list above (`ASC_APPS`, or `app`). Default Git working directories and hook destination selection still assume one application. That naming stays outside this plan.
+- The clone switch uses the subject list above (`ASC_APPS`, or `app`). A `context:name` token in `ASC_GIT_HOOKS_WIRED` uses that same subject as the context, and the work tree global `SUBJECT_DOCROOT`.
 - Container paths, host paths and web-server document roots must remain distinct. Updating the path globals also affects derived globals, generated configuration, mounts and cron commands.
 - The current `.asc_extensions_ignore` lists `remote`, `remote_instance`, `asc/apache`, `asc/drupalwt`, `asc/drupalwt_d4d` and `asc/moodle_d4php`. Their references are still included because they remain in the project and may be enabled in other instances.
-- `ASC_GIT_HOOKS_WIRED` is already the hook-list setting; the hook writer still uses `APP_DOCROOT` to select its default destination.
+- `ASC_GIT_HOOKS_WIRED` is the hook-list setting. A bare name writes the instance repo. `asc:pre-commit` sets `git_hook_context=asc` there. `site:pre-commit` writes `SITE_DOCROOT`. The writer still uses `APP_DOCROOT` until this plan lands.
 
 ## Every exact APP_ location
 

@@ -160,7 +160,7 @@ gates:
   - changelog: changelog/2026/09/26-app-prefix-inventory.md
     lane: discuss
     order: 15
-    task: "Plan review. Retire the clone-on-init env switch."
-    summary: "Instance init calls hook_ms once per app subject for action clone and ships no hook implementation. A failing clone exits 1. The APP_GIT_INIT_CLONE switch and the clone in asc/git/init.hook.sh go away. Setting go authorizes that call and that deletion only; other APP_ globals stay."
+    task: "Plan review. Clone per app subject. Context tokens in the git hook list."
+    summary: "Instance init calls hook_ms once per app subject for action clone. ASC_GIT_HOOKS_WIRED accepts site:pre-commit and asc:pre-commit, and the generated script sets git_hook_context while still running from the instance docroot. A failing clone or a missing hooks directory exits 1. Setting go authorizes that only; other APP_ globals stay."
     approved: "no"
     go: "no"
