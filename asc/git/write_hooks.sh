@@ -28,6 +28,11 @@
 # ASC hook triggers will have the following format :
 # $ hook -s 'git' -a "$git_hook" -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'
 #
+# Git's arguments are stored before that call. git_hook_args_nb is always a
+# scalar, including 0 (pre-commit passes none). git_hook_args holds the
+# values. An empty array has no element 0, so ${git_hook_args+x} is empty
+# after a zero-argument assignment. Listeners use the count, not that test.
+#
 # TODO [evol] Examine opt-in alternative to use a custom value for "git config
 # core.hooksPath" (instead of just generating scripts in "$GIT_DIR/hooks").
 #
@@ -148,11 +153,18 @@ f_git_write_hooks() {
 # @see f_instance_init() in asc/instance/instance.inc.sh
 #
 
-cd "$PROJECT_DOCROOT" && \
-  . asc/bootstrap.sh && \
-  asc_git_hook_args=("\$@") && \
-  hook -s 'git' -a "$git_hook" -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'
+cd "$PROJECT_DOCROOT"
 
+. asc/bootstrap.sh
+
+# Count the number of args sent by git in this hook call.
+git_hook_args_nb="\$#"
+
+# Store all the arguments for hook implementations to read them.
+git_hook_args=("\$@")
+
+# Finally, call the ASC hook with the same git hook name (in the "git" subject).
+hook -s 'git' -a "$git_hook" -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE'
 EOF
       chmod +x "$git_hook_script_path"
 

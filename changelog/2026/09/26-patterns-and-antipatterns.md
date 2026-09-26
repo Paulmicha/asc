@@ -95,13 +95,14 @@ The generated file is this shape (`<name>` is the git hook name):
 ```bash
 cd "$PROJECT_DOCROOT" && \
   . asc/bootstrap.sh && \
-  asc_git_hook_args=("$@") && \
+  git_hook_args_nb="$#" && \
+  git_hook_args=("$@") && \
   hook -s 'git' -a "<name>" -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'
 ```
 
 Consequences for a checker:
 
-- The script saves git's arguments in `asc_git_hook_args` and does not pass them to `hook`. A listener reads that array. `pre-commit` has no useful arguments. `pre-push` puts the remote name and the remote URL in `$1` and `$2`, and the ref list on stdin. Stdin is not copied into the array. Two listeners that both read stdin leave the second at EOF.
+- The script saves git's arguments before calling `hook`. `git_hook_args_nb` is the count, including `0`. `git_hook_args` holds the values. `pre-commit` has no useful arguments. An empty array has no element 0, so listeners use the count. `pre-push` puts the remote name and the remote URL in `$1` and `$2`, and the ref list on stdin. Stdin is not copied into the array. Two listeners that both read stdin leave the second at EOF.
 - The script has no `set -e`. A listener that `return`s non-zero does not reject the git operation. A listener that `exit`s non-zero does.
 - `hook` sources every matching file. `hook_ms` picks one winner. The generated script calls `hook`. A checker file does not replace another `pre-commit` listener. An `exit` inside one of them does skip the rest, because they share the process.
 - The comment in the generated file says the file is overwritten every time it is executed. Execution does not rewrite it. `f_git_write_hooks` overwrites it on the next init that lists that hook name.

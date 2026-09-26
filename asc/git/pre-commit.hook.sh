@@ -7,11 +7,8 @@
 # that table of contents and stages the result, including when the file was
 # not already part of this commit.
 #
-# The generated git hook sets asc_git_hook_args before calling hook. Sourcing
-# this file otherwise only defines f_git_pre_commit_readme_toc().
-#
-# @see asc/doc/md_toc.sh
 # @see f_git_write_hooks() in asc/git/write_hooks.sh
+# @see asc/doc/md_toc.sh
 #
 
 f_git_pre_commit_readme_toc() {
@@ -45,6 +42,6 @@ f_git_pre_commit_readme_toc() {
   git -C "$work_tree" add -- README.md
 }
 
-if [[ -n "${asc_git_hook_args+x}" ]]; then
+if [[ -n "${git_hook_args_nb+x}" ]]; then
   f_git_pre_commit_readme_toc || exit $?
 fi

@@ -12,7 +12,8 @@
 
 . asc/bootstrap.sh
 
-unset asc_git_hook_args
+unset git_hook_args
+unset git_hook_args_nb
 # shellcheck disable=SC1091
 . asc/git/pre-commit.hook.sh
 
@@ -123,6 +124,27 @@ EOF
   before="$(cat "$readme")"
   f_git_pre_commit_readme_toc "$dir"
   assertEquals 'unstaged README is left alone' "$before" "$(cat "$readme")"
+
+  rm -rf "$dir"
+}
+
+test_git_write_hooks_zero_args_set_a_count() {
+  local dir script rc
+  dir="$(mktemp -d)"
+  # shellcheck disable=SC1091
+  . asc/git/write_hooks.sh
+  f_git_write_hooks 'pre-commit' "$dir" >/dev/null
+  script="$dir/pre-commit"
+
+  local needle rc
+  needle='git_hook_args_nb="$#"'
+  grep -F -q -- "$needle" "$script"
+  rc=$?
+  assertEquals 'wrapper records the argument count' 0 "$rc"
+
+  bash -c 'git_hook_args_nb="$#"; git_hook_args=("$@"); [[ -n "${git_hook_args_nb+x}" && "$git_hook_args_nb" == 0 ]]'
+  rc=$?
+  assertEquals 'zero git arguments still set the count' 0 "$rc"
 
   rm -rf "$dir"
 }

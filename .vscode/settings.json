@@ -1,0 +1,8 @@
+{
+  // Show .git in the explorer. The object store stays hidden.
+  // `false` overrides the editor default that hides **/.git.
+  "files.exclude": {
+    "**/.git": false,
+    "**/.git/objects": true
+  }
+}
