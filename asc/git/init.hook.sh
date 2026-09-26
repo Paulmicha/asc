@@ -3,8 +3,8 @@
 ##
 # Implements hook -a 'init'.
 #
-# Writes the hooks named in ASC_GIT_HOOKS_WIRED.
-# Empty writes none. App cloning belongs to instance-provided clone hooks.
+# Writes the hooks named in ASC_GIT_HOOKS_WIRED. Empty writes none.
+# Sub-repo cloning belongs to hook implementation(s).
 #
 # @see f_git_write_hooks() in asc/git/write_hooks.sh
 #
