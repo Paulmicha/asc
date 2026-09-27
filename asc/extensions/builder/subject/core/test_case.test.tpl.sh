@@ -9,7 +9,7 @@
 # @see asc/test/core.sh
 #
 # @example
-#   {{ ACTION_TEST_PATH }}
+#   {{ example }}
 #
 
 . asc/bootstrap.sh
