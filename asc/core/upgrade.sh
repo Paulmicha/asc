@@ -8,10 +8,8 @@
 # - asc
 # - scripts/asc/contrib/asc
 #
-# It leaves everything else untouched.
-#
-# The remote branch/tag is overridable using a global named 'ASC_BRANCH'
-# (defaults to 'main').
+# It leaves everything else untouched. The remote branch/tag is overridable
+# using a global named 'ASC_BRANCH' (defaults to 'main').
 #
 # @example
 #   make core-upgrade
