@@ -1,5 +1,5 @@
 ---
-description: In most programming languages, line breaks must allow some breathing room to guide the reader's eyes and allow quick scanning of code blocks.
+description: In most programming languages, line breaks must allow some breathing room to guide the reader's eyes and allow quick visual scanning of code blocks.
 globs: '*.sh, *.yml, *.py, *.js, *.jsx, *.php, *.rust, *.go, *.java, *.c, *.cpp'
 ---
 
