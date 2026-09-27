@@ -40,6 +40,8 @@ not to this skill directory. Run ASC commands from that project root.
 - Apply the anti-patterns when choosing actions, functions, includes, and hook
   calls. Each addition must justify its existence. Prefer direct code to trivial
   wrappers and optional loading to unnecessary eager loading, as prescribed.
+- Retain a source/include only when this file uses it or its required side
+  effects. A source line in a sibling is not evidence that this file needs it.
 - Adapt existing code within the requested scope; do not refactor unrelated
   files or third-party code to make the entire tree match.
 - If no template fits, inspect the closest template and a working implementation
@@ -58,6 +60,9 @@ Review the actual diff or proposed code against the selected templates and every
 applicable record read. Correct violations introduced by this work, check that
 no template placeholders remain, and run checks appropriate to the change.
 Do not describe a stub checker as verification.
+Support runtime claims with the relevant ASC test or action actually executed,
+and report its result. Static inspection or syntax checks alone do not prove
+runtime behavior; mark behavior that was not run as unverified.
 
 Briefly report the templates/records used, validation performed, and unresolved
 departures. Reading guidance once does not replace this final comparison. Apply
