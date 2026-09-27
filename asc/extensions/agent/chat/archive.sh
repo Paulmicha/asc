@@ -10,18 +10,18 @@
 #
 # To list all the possible paths that can be used among which existing files_arr
 # will be sourced when the hook is triggered, run (in this order) :
-# $ make hook-debug s:instance p:pre a:destroy v:STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE
-# $ make hook-debug s:instance a:destroy v:STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE
-# $ make hook-debug s:instance p:post a:destroy v:STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE
+# $ make hook-debug s:chat p:pre a:archive v:STACK_VERSION HOST_TYPE chat_TYPE
+# $ make hook-debug s:chat a:archive v:STACK_VERSION HOST_TYPE chat_TYPE
+# $ make hook-debug s:chat p:post a:archive v:STACK_VERSION HOST_TYPE chat_TYPE
 #
 # @example
-#   make destroy
+#   make chat-archive
 #   # Or :
-#   asc/instance/destroy.sh
+#   asc/extensions/agent/chat/archive.sh
 #
 
 . asc/bootstrap.sh
 
-hook -s 'instance' -p 'pre' -a 'destroy' -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'
-hook -s 'instance' -a 'destroy' -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'
-hook -s 'instance' -p 'post' -a 'destroy' -v 'STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE'
+hook -s 'chat' -p 'pre' -a 'archive' -v 'STACK_VERSION HOST_TYPE chat_TYPE'
+hook -s 'chat' -a 'archive' -v 'STACK_VERSION HOST_TYPE chat_TYPE'
+hook -s 'chat' -p 'post' -a 'archive' -v 'STACK_VERSION HOST_TYPE chat_TYPE'
