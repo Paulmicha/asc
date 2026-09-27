@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
 ##
-# [abstract] Deletes all traces of this project instance stack on current host.
+# [abstract] Archives a given chat ID.
 #
-# This action provides an entry point for triggering a specific hook. "Abstract"
+# This action provides an entry point for triggering specific hooks. "Abstract"
 # means that ASC core itself doesn't provide any actual implementation for this
 # functionality. In order for this action to have any effect, it is necessary
-# to use an extension that implements at least one of these hooks.
+# to use an extension that implements at least one of these hook calls.
 #
-# To list all the possible paths that are sourceable when the hook is triggered,
-# run (in this order) :
+# To list all the possible paths that can be used among which existing files_arr
+# will be sourced when the hook is triggered, run (in this order) :
 # $ make hook-debug s:instance p:pre a:destroy v:STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE
 # $ make hook-debug s:instance a:destroy v:STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE
 # $ make hook-debug s:instance p:post a:destroy v:STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE

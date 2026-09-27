@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ##
-# C
+# {{ docblock }}
 #
 # @requires asc/vendor/shunit2
 #

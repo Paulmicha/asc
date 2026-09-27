@@ -4,7 +4,7 @@
 # {{ docblock }}
 #
 # @example
-#   {{ examples }}
+#   {{ example }}
 #
 
 {{ slot }}
