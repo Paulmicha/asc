@@ -67,6 +67,7 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [Cold → Warm : the initialization process](#cold-warm-the-initialization-process)
     - [Stale → Warm : drift re-alignment](#stale-warm-drift-re-alignment)
     - [(any state) → Cold](#any-state-cold)
+    - [Interdependence](#interdependence)
   - [Extension Point](#extension-point)
   - [Active Dir](#active-dir)
   - [Actions = (make) _Entry points_](#actions-make-entry-points)
@@ -427,6 +428,10 @@ Some convenience entry points exist for usual tasks that usually run together, l
 #### (any state) → Cold
 
 This one is the easiest : just run `make uninit` and all the volatile (generated) files and dirs are gone.
+
+#### Interdependence
+
+TODO document chicken and egg problems like `asc/instance/switch_stack_version.sh` (why it exists)
 
 ### Extension Point
 

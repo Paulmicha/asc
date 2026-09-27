@@ -72,7 +72,7 @@ Equal-depth twins in the same namespace (`baz_toto` vs `baz-toto`): first listin
 
 ### 3. Hooks stay two-level (already in README)
 
-`hook()` / `hook_ms()` must ignore primitive paths with more than one `/`. Do not look for `asc/host/dependency/install.hook.sh`. Without that skip, unfiltered `ASC_ACTIONS` (`hook -e …`, `hook -v …`, `asc/instance/hook.make.sh`) would split `host/dependency/install` as `$action=dependency` and emit bogus `asc/host/dependency.hook.sh`.
+`hook()` / `hook_ms()` must ignore primitive paths with more than one `/`. Do not look for `asc/host/dependency/install.hook.sh`. Without that skip, unfiltered `ASC_ACTIONS` (`hook -e …`, `hook -v …`, `asc/make/hook.make.sh`) would split `host/dependency/install` as `$action=dependency` and emit bogus `asc/host/dependency.hook.sh`.
 
 `hook -a toto -s foobar` **never walks 3-level paths**: `-a` rewrites the actions list to `$s/$arg_val` only. A dry-run with `-a` does **not** prove the skip. Test unfiltered (`-e` and/or `-v`, no `-a`) with a 3-level pair in that namespace.
 

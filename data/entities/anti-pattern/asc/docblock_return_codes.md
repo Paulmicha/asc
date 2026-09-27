@@ -1,15 +1,25 @@
 ---
-description: Every ASC shell function must have a preceding docblock describing what it does, how (when deemed not self-explanatory), and follows a Javadoc-like syntax to list eventual arguments, return codes, and references.
+description: ASC docblocks must use the @return syntax to document all the return codes of a script or a function.
 globs: '*.sh'
 ---
-
-ASC uses unconventional Bash coding styleguides. In particular, it uses a DocBlock convention originating from the classic Javadoc blueprint, but tailored for eventual static analysis.
 
 # Anti-pattern example (don't)
 
 ```sh
-# Compresses a file in its own folder.
-# Returns the exit code of f_fs_compress().
+##
+# Same as f_fs_compress() but presetting folder to compress in place.
+#
+# @see f_fs_compress()
+#
+# @param 1 String : the input (file or dir) path to compress.
+#
+# @example
+#   # Will compress given path to arhive file inside dir 'path/to' :
+#   f_fs_compress_in_place path/to/file.ext
+#   # -> Result : path/to/file.ext.tgz
+#   f_fs_compress_in_place path/to/folder
+#   # -> Result : path/to/folder.tgz
+#
 f_fs_compress_in_place() {
   # (snip)
 }

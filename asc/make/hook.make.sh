@@ -18,18 +18,18 @@
 # @example
 #   # Print lookup paths for the ASC hook call :
 #   # hook -s 'instance' -a 'stop' -v 'PROVISION_USING HOST_TYPE'
-#   asc/instance/hook.make.sh -d -t s:instance a:stop v:PROVISION_USING HOST_TYPE
+#   asc/make/hook.make.sh -d -t s:instance a:stop v:PROVISION_USING HOST_TYPE
 #
 #   # Print result of the "most specific" hook call variant :
-#   asc/instance/hook.make.sh -d -t ms s:instance a:stop v:PROVISION_USING HOST_TYPE
+#   asc/make/hook.make.sh -d -t ms s:instance a:stop v:PROVISION_USING HOST_TYPE
 #
 #   # Trigger "instance start" manually :
-#   asc/instance/hook.make.sh s:instance a:start
+#   asc/make/hook.make.sh s:instance a:start
 #
 #   # Print lookup paths for "instance start" using PROVISION_USING variant :
-#   asc/instance/hook.make.sh -d -t s:instance a:start v:PROVISION_USING
+#   asc/make/hook.make.sh -d -t s:instance a:start v:PROVISION_USING
 #   # Same but using more variants :
-#   asc/instance/hook.make.sh -d -t s:instance a:start v:STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE
+#   asc/make/hook.make.sh -d -t s:instance a:start v:STACK_VERSION PROVISION_USING HOST_TYPE INSTANCE_TYPE
 #
 
 . asc/bootstrap.sh
