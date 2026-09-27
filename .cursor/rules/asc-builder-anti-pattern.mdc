@@ -1,0 +1,38 @@
+---
+description: New ASC code matches the mother builder templates. Anti-pattern records apply whenever their globs match.
+alwaysApply: true
+---
+
+# Builder templates and anti-patterns
+
+Apply when the work writes or edits ASC code (shell, YAML, hooks, actions, includes, tests) in this instance or in `$HOME/Documents/asc`. Otherwise skip.
+
+The shapes and the constraints live in the mother. Read them from disk at the start of the task. Do not rely on memory, and do not paste those files into the reply.
+
+## New ASC code
+
+Match the closest template under `$HOME/Documents/asc/asc/extensions/builder/subject/`:
+
+| Writing | Template |
+|---------|----------|
+| Action script | `action.tpl.sh` |
+| Eager include | `subject.inc.tpl.sh` |
+| Optional include | `subject.opt-inc.tpl.sh` |
+| Hook | `core.hook.tpl.sh` |
+| Abstract hook call | `abstract_hook_call.tpl.sh` |
+| Hook call with pre and post | `abstract_hook_call_with_pre_post.tpl.sh` |
+| Test group | `test_group.tpl.sh` |
+| Core test case | `core/test_case.test.tpl.sh` |
+| Suite test case | `{test_suite}/test_case.test.tpl.sh` |
+
+Read that template and follow it closely: same skeleton, slots filled, placeholders not left in the file. An existing script of the same kind is the second reference. Do not invent a third shape.
+
+## Anti-patterns, the whole task
+
+Read `$HOME/Documents/asc/data/entities/anti-pattern/`. For every file you will add or change, read each record whose `globs` match it, and keep those constraints in mind until the task is done.
+
+The "Correct example" is the form to write. The "Anti-pattern example" is the form to refuse. A record whose examples are still `TODO` still binds through its `description`. Do not invent the missing example.
+
+If a template and a record disagree, stop and say which lines disagree. Do not pick one silently.
+
+Editing existing ASC code still follows the matching anti-pattern records. Reshape that file onto a template only when the task is to change its shape.
