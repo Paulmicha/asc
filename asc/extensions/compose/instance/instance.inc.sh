@@ -17,15 +17,16 @@
 f_dc_instance_start() {
   echo "Starting $INSTANCE_DOMAIN containers ..."
 
-  docker compose pull
-
-  if [[ $? -ne 0 ]]; then
-    echo >&2
-    echo "Error in f_dc_instance_start() - $BASH_SOURCE line $LINENO : 'docker compose pull' exited with non-zero status." >&2
-    echo "-> Aborting (1)." >&2
-    echo >&2
-    exit 1
-  fi
+  # Update 2026-09-28 workaround timeouts (keep cached images, do manual pulls
+  # explicitly during upgrades if needed instead).
+  # docker compose pull
+  # if [[ $? -ne 0 ]]; then
+  #   echo >&2
+  #   echo "Error in f_dc_instance_start() - $BASH_SOURCE line $LINENO : 'docker compose pull' exited with non-zero status." >&2
+  #   echo "-> Aborting (1)." >&2
+  #   echo >&2
+  #   exit 1
+  # fi
 
   docker compose up -d --remove-orphans
 
