@@ -613,16 +613,16 @@ f_dwt_sites() {
 #
 # This function writes its result to the following variable which MUST be preset
 # in calling scope :
-# @var dwt_site_datp_dict
+# @var dwt_site_data
 #
 # It will also attempt to use pre-existing dwt_sites_* variables if the site
 # data was already loaded in current shell scope (i.e. avoids unnecessarily
 # reloading sites.*.yml config files_arr).
 #
 # @example
-#   declare -A dwt_site_datp_dict
+#   declare -A dwt_site_data
 #   f_dwt_site_data 'my_site_id'
-#   echo "site dir = ${dwt_site_datp_dict[dir]}"
+#   echo "site dir = ${dwt_site_data[dir]}"
 #
 f_dwt_site_data() {
   local p_site="$1"
@@ -632,11 +632,11 @@ f_dwt_site_data() {
   local domain_specificity
   local conflicting_domain_specificity
   local var_isset
-  local datp_keys
+  local data_keys
 
-  dwt_site_datp_dict=()
+  dwt_site_data=()
   f_dwt_sites_yml_keys
-  datp_keys="$dwt_sites_yml_keys"
+  data_keys="$dwt_sites_yml_keys"
 
   # Avoid unnecessarily reloading sites.*.yml config files.
   # Considers the "dir" key as mandatory (this is the entry used to check if
@@ -654,16 +654,16 @@ f_dwt_site_data() {
     var="db_$var"
     f_str_sanitize_var_name "$var" 'var'
     f_str_lowercase "$var" 'var'
-    datp_keys+=" $var"
+    data_keys+=" $var"
   done
 
   # Assemble.
-  for key in $datp_keys; do
+  for key in $data_keys; do
     var="dwt_sites_${p_site}_${key}"
     f_str_sanitize_var_name "$var" 'var'
     eval "var_isset=\"\${$var+set}\"" # <- Variables may be set to empty strings.
     if [[ -n "$var_isset" ]]; then
-      dwt_site_datp_dict[$key]="${!var}"
+      dwt_site_data[$key]="${!var}"
     else
 
       # Special case for 'domain' : when it's not found in YAML settings, we
@@ -683,18 +683,18 @@ f_dwt_site_data() {
           eval "var_isset=\"\${$var+set}\""
           if [[ -n "$var_isset" ]]; then
             # In case of multiple matching variants, take the most specific.
-            if [[ -n "${dwt_site_datp_dict[domain]}" ]]; then
+            if [[ -n "${dwt_site_data[domain]}" ]]; then
               f_str_split1 'domain_specificity' "$sub_key" '_'
-              f_str_split1 'conflicting_domain_specificity' "${dwt_site_datp_dict[_domain_sub_key]}" '_'
-              # echo "  conflict : [${dwt_site_datp_dict[_domain_sub_key]}] ${dwt_site_datp_dict[domain]} <- [$sub_key] ${!var}"
+              f_str_split1 'conflicting_domain_specificity' "${dwt_site_data[_domain_sub_key]}" '_'
+              # echo "  conflict : [${dwt_site_data[_domain_sub_key]}] ${dwt_site_data[domain]} <- [$sub_key] ${!var}"
               if [[ ${#domain_specificity[@]} -gt ${#conflicting_domain_specificity[@]} ]]; then
-                dwt_site_datp_dict[domain]="${!var}"
-                dwt_site_datp_dict[_domain_sub_key]="$sub_key"
+                dwt_site_data[domain]="${!var}"
+                dwt_site_data[_domain_sub_key]="$sub_key"
                 # echo "    1set _domain_sub_key to $sub_key (${!var})"
               fi
             else
-              dwt_site_datp_dict[domain]="${!var}"
-              dwt_site_datp_dict[_domain_sub_key]="$sub_key"
+              dwt_site_data[domain]="${!var}"
+              dwt_site_data[_domain_sub_key]="$sub_key"
               # echo "    2set _domain_sub_key to $sub_key (${!var})"
             fi
           fi
