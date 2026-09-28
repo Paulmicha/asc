@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ##
-# Synchronizes every ASC project instances core files on this host.
+# TODO [wip] Synchronizes every ASC project instances core files on this host.
 #
 # The idea is to have the mother repo changes applied to other ASC projects,
 # and the contrary : check wether another other ASC project instance on the same
@@ -30,5 +30,15 @@
 #
 
 . asc/bootstrap.sh
+
+# If specified in host-level registry, read the "mother" ASC repo local git
+# clone path. Defaults to "$HOME/Documents/asc".
+asc_mother_repo-path="$HOME/Documents/asc"
+
+f_host_registry_get 'asc_mother_repo_path'
+
+if [[ -n "$reg_val" ]]; then
+  asc_mother_repo="$reg_val"
+fi
 
 # TODO

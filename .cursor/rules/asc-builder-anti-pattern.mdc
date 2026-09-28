@@ -1,17 +1,26 @@
 ---
-description: New ASC code matches the mother builder templates. Anti-pattern records apply whenever their globs match.
+description: New ASC code matches the builder templates in the docroot being edited. Anti-pattern records apply whenever their globs match.
 alwaysApply: true
 ---
 
 # Builder templates and anti-patterns
 
-Apply when the work writes or edits ASC code (shell, YAML, hooks, actions, includes, tests) in this instance or in `$HOME/Documents/asc`. Otherwise skip.
+Apply when the work writes or edits ASC code (shell, YAML, hooks, actions, includes, tests). Otherwise skip.
 
-The shapes and the constraints live in the mother. Read them from disk at the start of the task. Do not rely on memory, and do not paste those files into the reply.
+Read the shapes and the constraints from disk at the start of the task. Do not rely on memory, and do not paste those files into the reply.
+
+Paths below are relative to the docroot of the tree being edited. For this project instance, that docroot is the workspace root. When the files being edited are in a mother checkout other than the workspace, resolve that docroot from the host registry:
+
+```bash
+. asc/bootstrap.sh
+f_host_registry_get asc_mother_repo_path
+```
+
+The path is `$reg_val`. When `$reg_val` is empty, use `$HOME/Documents/asc`.
 
 ## New ASC code
 
-Match the closest template under `$HOME/Documents/asc/asc/extensions/builder/subject/`:
+Match the closest template under `asc/extensions/builder/subject/`:
 
 | Writing | Template |
 |---------|----------|
@@ -29,7 +38,7 @@ Read that template and follow it closely: same skeleton, slots filled, placehold
 
 ## Anti-patterns, the whole task
 
-Read `$HOME/Documents/asc/data/entities/anti-pattern/`. For every file you will add or change, read each record whose `globs` match it, and keep those constraints in mind until the task is done.
+Read `data/entities/anti-pattern/`. For every file you will add or change, read each record whose `globs` match it, and keep those constraints in mind until the task is done.
 
 The "Correct example" is the form to write. The "Anti-pattern example" is the form to refuse. A record whose examples are still `TODO` still binds through its `description`. Do not invent the missing example.
 

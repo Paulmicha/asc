@@ -92,31 +92,6 @@ case "$proceed_with_download" in y|yes)
   fi
 esac
 
-# Delete managed folders from current project instance.
-if [[ -d 'asc' ]]; then
-  rm -rf 'asc'
-
-  if [[ $? -ne 0 ]]; then
-    echo >&2
-    echo "Error in $BASH_SOURCE line $LINENO: failed to remove ASC core dir 'asc'." >&2
-    echo "-> Aborting (2)." >&2
-    echo >&2
-    exit 2
-  fi
-fi
-
-if [ -d 'scripts/asc/contrib/asc' ]; then
-  rm -rf 'scripts/asc/contrib/asc'
-
-  if [[ $? -ne 0 ]]; then
-    echo >&2
-    echo "Error in $BASH_SOURCE line $LINENO: failed to remove ASC contrib extensions dir 'scripts/asc/contrib/asc'." >&2
-    echo "-> Aborting (2)." >&2
-    echo >&2
-    exit 2
-  fi
-fi
-
 # Consolidated synchronizing of entire folders.
 dirs_swapped=()
 dirs_swapped+=('asc')
@@ -127,6 +102,7 @@ dirs_swapped+=('.agents/skills/asc-mother-guard')
 
 # Ensure the parent folders of every path that needs replacing already exists.
 mkdir -p 'scripts/asc/contrib'
+mkdir -p '.cursor/rules'
 mkdir -p '.agents/skills'
 
 # Delete the paths whose contents are to be entirely replaced (= swapped), then
