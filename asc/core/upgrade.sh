@@ -117,26 +117,66 @@ if [ -d 'scripts/asc/contrib/asc' ]; then
   fi
 fi
 
-# Replace them with the new ones.
-cp -r "$tmp_dir/asc" 'asc'
+# Consolidated synchronizing of entire folders.
+dirs_swapped=()
+dirs_swapped+=('asc')
+dirs_swapped+=('scripts/asc/contrib/asc')
+dirs_swapped+=('.agents/skills/asc-author-code')
+dirs_swapped+=('.agents/skills/asc-author-docs')
+dirs_swapped+=('.agents/skills/asc-mother-guard')
 
-if [[ $? -ne 0 || ! -d 'asc' ]]; then
-  echo >&2
-  echo "Error in $BASH_SOURCE line $LINENO: unable to copy the new sources from '$tmp_dir/asc' to 'asc'." >&2
-  echo "-> Aborting (2)." >&2
-  echo >&2
-  exit 2
-fi
+# Ensure the parent folders of every path that needs replacing already exists.
+mkdir -p 'scripts/asc/contrib'
+mkdir -p '.agents/skills'
 
-cp -r "$tmp_dir/scripts/asc/contrib/asc" 'scripts/asc/contrib/asc'
+# Delete the paths whose contents are to be entirely replaced (= swapped), then
+# copy the new ones in their place.
+for dir_swapped in "${dirs_swapped[@]}"; do
+  if [[ -d "$dir_swapped" ]]; then
+    rm -rf "$dir_swapped"
 
-if [[ $? -ne 0 || ! -d 'scripts/asc/contrib/asc' ]]; then
-  echo >&2
-  echo "Error in $BASH_SOURCE line $LINENO: unable to copy the new sources from '$tmp_dir/scripts/asc/contrib/asc' to 'scripts/asc/contrib/asc'." >&2
-  echo "-> Aborting (3)." >&2
-  echo >&2
-  exit 3
-fi
+    if [[ $? -ne 0 ]]; then
+      echo >&2
+      echo "Error in $BASH_SOURCE line $LINENO: failed to remove ASC core dir '$dir_swapped'." >&2
+      echo "-> Aborting (2)." >&2
+      echo >&2
+      exit 2
+    fi
+  fi
+
+  # Replace them with the new ones.
+  cp -r "$tmp_dir/$dir_swapped" "$dir_swapped"
+
+  if [[ $? -ne 0 || ! -d "$dir_swapped" ]]; then
+    echo >&2
+    echo "Error in $BASH_SOURCE line $LINENO: unable to copy the new sources from '$tmp_dir/$dir_swapped' to '$dir_swapped'." >&2
+    echo "-> Aborting (3)." >&2
+    echo >&2
+    exit 3
+  fi
+done
+
+# Cursor rules to be shared among every ASC project instances are dealt with
+# on a case by case basis in order to preserve any other eventual rules specific
+# to the local project instance (which may version others, thus preventing a
+# whole dir swap like for the other paths).
+cursor_rules=()
+cursor_rules+=('.cursor/rules/asc-builder-anti-pattern.mdc')
+cursor_rules+=('.cursor/rules/asc-dollar-prefix.mdc')
+cursor_rules+=('.cursor/rules/asc-lightweight.mdc')
+cursor_rules+=('.cursor/rules/asc-mother-guard.mdc')
+
+for cursor_rule in "${cursor_rules[@]}"; do
+  cp -f "$tmp_dir/$cursor_rule" "$cursor_rule"
+
+  if [[ $? -ne 0 || ! -f "$cursor_rule" ]]; then
+    echo >&2
+    echo "Error in $BASH_SOURCE line $LINENO: unable to copy the new cursor rule from '$tmp_dir/$cursor_rule' to '$cursor_rule'." >&2
+    echo "-> Aborting (4)." >&2
+    echo >&2
+    exit 4
+  fi
+done
 
 # Clean up temporary folder, unless prevented in arg 2 (pass 'k').
 if [[ "$2" != 'k' ]]; then
@@ -144,13 +184,9 @@ if [[ "$2" != 'k' ]]; then
 fi
 
 # TODO 2026-09-27 we'll go back to this later on. Comment everything out for now.
-
 # echo "Upgrading ASC from the source repo on Github : done."
 # echo
-
 # echo "Running post-upgrade hook ..."
-
 # hook -s 'core' -a 'post_upgrade' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE PROVISION_USING'
-
 # echo "Running post-upgrade hook : done."
 # echo
