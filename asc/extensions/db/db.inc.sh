@@ -206,7 +206,6 @@ f_db_set() {
           export DB_ADMIN_PASS="${DB_ADMIN_PASS:-"$DB_PASS"}"
           ;;
       esac
-      return
       ;;
 
     # The 'auto' mode means we only store the password, which gets generated
@@ -267,7 +266,9 @@ f_db_set() {
     ;;
   esac
 
-  # Finally, export prefixed DB_* vars.
+  # Export every DB_* name from f_db_vars_list(), unprefixed and prefixed.
+  # A preset hook may assign them without export. docker compose is a child
+  # process and only sees this environment.
   v=''
   db_var=''
   prefixed_db_var=''
@@ -278,8 +279,16 @@ f_db_set() {
     db_var="DB_$v"
     prefixed_db_var="${db_id}_${db_var}"
     f_str_uppercase "$prefixed_db_var" 'prefixed_db_var'
+    export "$db_var"
     export "$prefixed_db_var=${!db_var}"
   done
+
+  # 'none' does not select a DB service alias and does not require DB_NAME.
+  case "$ASC_DB_MODE" in
+    none)
+      return
+      ;;
+  esac
 
   # Allow bash aliases to be adapted to the currently active DB_ID.
   # @see asc/extensions/mysql/asc/alias.compose.hook.sh
