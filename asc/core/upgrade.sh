@@ -39,7 +39,7 @@
 
 . asc/bootstrap.sh
 
-echo "Upgrading ASC from the source repo on Github ..."
+echo "Upgrading ASC core from upstream repo ..."
 
 tmp_dir="data/tmp/upstream-asc"
 
@@ -170,10 +170,5 @@ if [[ "$2" != 'k' ]]; then
   rm -rf "$tmp_dir"
 fi
 
-# TODO 2026-09-27 we'll go back to this later on. Comment everything out for now.
-# echo "Upgrading ASC from the source repo on Github : done."
-# echo
-# echo "Running post-upgrade hook ..."
-# hook -s 'core' -a 'post_upgrade' -v 'STACK_VERSION HOST_TYPE INSTANCE_TYPE PROVISION_USING'
-# echo "Running post-upgrade hook : done."
-# echo
+echo "Upgrading ASC core from upstream repo : done."
+echo
