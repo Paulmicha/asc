@@ -156,3 +156,19 @@ gates:
     summary: "Compare each instance asc/ and scripts/asc/contrib/asc/ to the local mother and print the drift. The word apply mirrors those two directories from the mother onto the instance. Setting go authorizes that report and that forward mirror; instance files stay out of the mother."
     approved: "no"
     go: "no"
+
+  - changelog: changelog/2026/09/28-agent-instructions-travel.md
+    lane: discuss
+    order: 15
+    task: "Plan review. This lane cannot authorize the work."
+    summary: "Record which agent-instruction files travel with core-upgrade and which stay in the instance. Lane discuss stays go no, so this row never authorizes file transport, a rule shrink, or guidance-render."
+    approved: "no"
+    go: "no"
+
+  - changelog: changelog/2026/09/28-agent-instructions-travel.md
+    lane: parallel
+    order: 2
+    task: "File transport. Copy the allowlist. Install AGENTS.md when absent."
+    summary: "Copy the skill directories and the four Cursor rules, install AGENTS.md only when missing, and restore the post_upgrade hook call without a push. Setting go authorizes that transport only. It does not claim an agent follows the files, and it does not shrink or delete a rule."
+    approved: "no"
+    go: "no"

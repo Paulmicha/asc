@@ -1,7 +1,6 @@
 ---
 description: In prose, $ is only for ASC conceptual placeholders — not for pivot or tool names
 globs: docs/**/*.md, changelog/**/*.md, README.md, data/**/*.md
-alwaysApply: true
 ---
 
 # `$` prefix (documentation only)

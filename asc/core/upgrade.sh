@@ -154,6 +154,9 @@ for cursor_rule in "${cursor_rules[@]}"; do
   fi
 done
 
+# Individual files.
+cp -f "$tmp_dir/AGENTS.md" 'AGENTS.md'
+
 # Clean up temporary folder, unless prevented in arg 2 (pass 'k').
 if [[ "$2" != 'k' ]]; then
   rm -rf "$tmp_dir"
