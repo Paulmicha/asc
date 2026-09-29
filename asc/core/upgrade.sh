@@ -157,6 +157,14 @@ done
 # Individual files.
 cp -f "$tmp_dir/AGENTS.md" 'AGENTS.md'
 
+if [[ $? -ne 0 || ! -f 'AGENTS.md' ]]; then
+  echo >&2
+  echo "Error in $BASH_SOURCE line $LINENO: unable to copy AGENTS.md to '$tmp_dir/AGENTS.md'." >&2
+  echo "-> Aborting (5)." >&2
+  echo >&2
+  exit 5
+fi
+
 # Clean up temporary folder, unless prevented in arg 2 (pass 'k').
 if [[ "$2" != 'k' ]]; then
   rm -rf "$tmp_dir"
