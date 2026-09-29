@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|--------|
-| **Date** | 2026-09-28. Revised 2026-09-29 after review, then again the same day after two of the local trees were pulled. The 2026-09-28 counts stay as that earlier snapshot. |
+| **Date** | 2026-09-28. Revised 2026-09-29 after review, after two local trees were pulled, and after commit `7801625`. The 2026-09-28 counts stay as that earlier snapshot. |
 | **Status** | **plan / review**. Nothing in this note is an implementation go-ahead. |
 | **Scope** | Which agent-instruction files every ASC project instance should receive from the mother, which files stay in the instance, and how `make core-upgrade` delivers the shared set. |
 | **Out of this plan** | Implementing [27-agent-guidance-from-antipatterns.md](./27-agent-guidance-from-antipatterns.md). Filling `guidance-render`. Adding `data/skills/`. Extending [23-host-asc-core-sync.md](./23-host-asc-core-sync.md) to copy `.cursor/` or `.agents/`. Editing the home-directory instance's user rules. A README edit. A `git commit` or `git push` from `core-upgrade`. Enabling `agent`, `asc/cursor`, `asc/codex`, or `asc/claude` on this mother's ignore list. |
@@ -60,12 +60,12 @@ Line counts below are `wc -l` on that date.
 | `AGENTS.md` | 36 | Project index. This mother loads it as an always-on workspace rule. It tells the agent to read the three skills. |
 | `.cursor/rules/asc-lightweight.mdc` | 115 | `alwaysApply: true`. Size, tests, README proposals, gates, labels, synonyms. |
 | `.cursor/rules/asc-builder-anti-pattern.mdc` | 47 | `alwaysApply: true`. Template table and anti-pattern records. |
-| `.cursor/rules/asc-dollar-prefix.mdc` | 29 | `globs` set and `alwaysApply: true`. The globs do not narrow it. |
+| `.cursor/rules/asc-dollar-prefix.mdc` | 28 | `globs` set. `alwaysApply` removed in `7801625`. Attaches when a matching markdown file is in context. Not injected into every chat. |
 | `.cursor/rules/asc-mother-guard.mdc` | 18 | `alwaysApply: true`. Short hazard rule. |
 
-399 lines in that set. No other files under `.agents/` or `.cursor/`.
+398 lines in that set. No other files under `.agents/` or `.cursor/`.
 
-`asc/core/upgrade.sh` (168 lines) replaces these directories from the GitHub clone:
+`asc/core/upgrade.sh` (171 lines) replaces these directories from the GitHub clone:
 
 - `asc`
 - `scripts/asc/contrib/asc`
@@ -80,7 +80,7 @@ It then copies these files, leaving every other file in `.cursor/rules/` in plac
 - `.cursor/rules/asc-lightweight.mdc`
 - `.cursor/rules/asc-mother-guard.mdc`
 
-`AGENTS.md` is tracked and is on neither list.
+It then runs `cp -f "$tmp_dir/AGENTS.md" 'AGENTS.md'`. That copy is not in either array. It replaces an existing file. It does not check the status of `cp`, so a missing source does not exit 4 the way a missing Cursor rule does.
 
 The hook call at the end of `upgrade.sh` is commented out (TODO 2026-09-27). `asc/core/post_upgrade.hook.sh` sources `asc/instance/reinit.sh`. The rest of that hook implementation is a commented `git add`, `git commit`, and `git push`.
 
@@ -107,6 +107,12 @@ Those two trees were pulled. `cmp` against the mother was clean for `asc/core/up
 | Tree with no `upgrade.sh` | Unchanged. No shared instruction files. |
 
 The pull is not a run of `make core-upgrade` observed for this note. It does show that a tree can hold the shared files and its own rules in the same `.cursor/rules/` directory. No live `post_upgrade` hook call remained on the trees checked that day.
+
+### Mother tip after that resurvey
+
+Commit `7801625` changed the mother after the `cmp` above. `asc-dollar-prefix.mdc` lost `alwaysApply` and is 28 lines. `upgrade.sh` grew to 171 lines and copies `AGENTS.md` with `cp -f` on every run. The hook call is still commented. Rechecked against that tip, the two pulled trees differ on `upgrade.sh` and `asc-dollar-prefix.mdc`, and `AGENTS.md` is still absent. The home-directory instance is still the 156-line script.
+
+Their next `make core-upgrade` still executes the 168-line script. It copies the new dollar-prefix bytes, because that path is on its allowlist, and it does not copy `AGENTS.md`. The run after that executes the 171-line script and replaces `AGENTS.md` every time.
 
 Codex on this host has a trusted-project entry for the mother and only its own system skills under the user skill directory. No `.claude/` and no `CLAUDE.md` in the trees checked.
 
@@ -137,9 +143,9 @@ These are current sentences, not proposals.
 
 **README edits.** `asc-lightweight.mdc` allows an edit inside an escaped dated proposal, beside the human line. The home-directory `asc.mdc` says agents do not write `README.md` unless explicitly asked.
 
-**Frontmatter.** The 2026-09-27 note records Cursor's modes: `alwaysApply: true` ignores `description` and `globs`. `asc-dollar-prefix.mdc` sets both `globs` and `alwaysApply: true`. The rule is injected while editing shell. The generator in that note does not emit `alwaysApply: true`. The handwritten dollar-prefix file does.
+**Frontmatter.** The 2026-09-27 note records Cursor's modes: `alwaysApply: true` ignores `description` and `globs`. Until `7801625`, `asc-dollar-prefix.mdc` set both, so the rule was injected while editing shell. That line is gone. The file now has `globs` and no `alwaysApply`. `asc-lightweight.mdc` and `asc-builder-anti-pattern.mdc` still set `alwaysApply: true`. The generator in that note does not emit that mode.
 
-**`post_upgrade`.** On 2026-09-28 two local trees still called the hook. The mother script and the home-directory script commented the call out. On 2026-09-29 those two trees match the mother script, commented call included, and the home-directory script still comments it. The hook implementation that a new `asc/` would run does not commit, because that body is commented. A tree that still has an older `post_upgrade.hook.sh` is replaced when `asc/` is swapped, so the hook that runs after that swap is the commented one. The auto-push must stay commented. An upgrade that publishes the instance is the wrong default.
+**`post_upgrade`.** On 2026-09-28 two local trees still called the hook. The mother script and the home-directory script commented the call out. Those two trees matched the mother script, commented call included, until `7801625`. After that commit the mother script is the 171-line file and those trees are still on the 168-line file. The home-directory script still comments the call. The hook implementation that a new `asc/` would run does not commit, because that body is commented. A tree that still has an older `post_upgrade.hook.sh` is replaced when `asc/` is swapped, so the hook that runs after that swap is the commented one. The auto-push must stay commented. An upgrade that publishes the instance is the wrong default.
 
 ---
 
@@ -166,7 +172,7 @@ Shared means: every ASC project instance that runs `make core-upgrade` receives 
 | `.agents/skills/asc-mother-guard/` | The procedure before a mother write. |
 | `.cursor/rules/asc-mother-guard.mdc` | The hazard rule. A skipped agent skill is how a client fact reaches a mother diff. This one stays `alwaysApply: true`, which is the exception the 2026-09-27 generator refuses to emit. Handwritten on purpose. |
 
-`AGENTS.md` is the always-on index. Skills without it do not tell Cursor or Codex to read them. File transport installs that index when the destination is absent, and leaves an existing file untouched. It does not write the markers from the 2026-09-27 note. A whole-file replace of an existing `AGENTS.md` would delete instance paragraphs. A hand-written span would stick: that note's ownership table says a populated span with no matching manifest hash is a conflict, and `guidance-render` must preserve the file.
+`AGENTS.md` is the always-on index. Skills without it do not tell Cursor or Codex to read them. Commit `7801625` copies it with `cp -f` on every upgrade. That replaces an existing file, so instance paragraphs go away, and so does a span `guidance-render` would have appended. The file-transport slice changes that line: copy when the destination is absent, leave an existing file untouched. It does not write the markers from the 2026-09-27 note. A hand-written span would stick: that note's ownership table says a populated span with no matching manifest hash is a conflict, and `guidance-render` must preserve the file.
 
 The handoff is the renderer's own initial install. When the file exists, the manifest has no section entry, and the file has no marker, the first successful `guidance-render` appends the span and leaves the surrounding bytes. Transport is what puts those surrounding bytes there, and only on a tree that does not already have the file. If `guidance-render` runs first on an empty path, it creates a span-only file, and a later transport will not overwrite it. Run transport first on a tree that should keep this handwritten index.
 
@@ -195,7 +201,7 @@ Not file transport. Two later rows. Deleting the mother files in the same commit
 
 `upgrade.sh` replaces `asc/` and `scripts/asc/contrib/asc/` before it copies Cursor rules. The copy is `cp -f` from the clone. A missing source exits 4. The running script is the previous one: its array still names the files, the new script is already on disk, and the instance rule is left as it was. The next run executes the new script, which no longer copies those paths, so the old instance files stay active.
 
-Changing frontmatter in place is a different case. `asc-dollar-prefix.mdc` can lose `alwaysApply` and stay on the active allowlist. The old script's `cp` then overwrites the instance file with the new bytes. That path is not a retirement.
+Changing frontmatter in place is a different case. `asc-dollar-prefix.mdc` lost `alwaysApply` in `7801625` and stayed on the active allowlist. An older script's `cp` overwrites the instance file with those bytes. That edit is not a retirement. Deleting the file still is, and still waits for stage A.
 
 Retirement is only for a file that leaves the allowlist:
 
@@ -203,7 +209,7 @@ Retirement is only for a file that leaves the allowlist:
 |------|--------------------|
 | `asc-builder-anti-pattern.mdc` | `asc-author-code` already says to read the templates and the records. The table in the rule is a cache. |
 | `asc-lightweight.mdc` | 115 lines on every turn, including turns that do not touch ASC. It also tells the agent to patch the rule itself on every step. That is how the rule grows. The durable points (tests are runs, README proposals, gates, small diffs) belong in `asc-author-code`, `asc-author-docs`, and `AGENTS.md`, each said once. |
-| `asc-dollar-prefix.mdc` | Only if the vocabulary note inside `asc-author-docs` replaces it. A globs-only edit stays on the active allowlist. |
+| `asc-dollar-prefix.mdc` | Only if the vocabulary note inside `asc-author-docs` replaces the file. The globs-only edit already landed. The file stays on the active allowlist. |
 
 ### Stage A — files still in the clone
 
@@ -237,7 +243,7 @@ What actually happens, by the script the tree is running when the slice reaches 
 |--------------------------------|---------------------------|------------|
 | 156-line script, hook call live. Observed 2026-09-28. Not found on the trees rechecked 2026-09-29. | Replaces `asc/` and `scripts/asc/contrib/asc/` with the new script. Deletes the clone. Calls the hook. The new hook does not have the clone. Skills, rules, and `AGENTS.md` are not copied. The hook does run reinit, below. | The new script runs. It copies the allowlist from a fresh clone, installs `AGENTS.md` when absent, then calls the hook. |
 | 156-line script, hook call commented. Home-directory instance, still true on 2026-09-29. | Same swap. No hook. No instruction copy. No reinit from this upgrade. | The new script copies the allowlist, installs `AGENTS.md` when absent, then calls the hook. |
-| 168-line script, hook call commented, skills and four rules already present. The two pulled trees on 2026-09-29. `AGENTS.md` still absent. | The running script already copies the allowlist, so the skills and four rules are copied again from the clone. It does not install `AGENTS.md`. It does not call the hook. | The new script installs `AGENTS.md` because the file is absent, recopies the allowlist, then calls the hook. |
+| 168-line script, hook call commented, skills and four rules already present. The two pulled trees, compared before `7801625`. `AGENTS.md` still absent. | The running script already copies the allowlist, so the skills and four rules are copied again from the clone, including the globs-only dollar-prefix file. It does not install `AGENTS.md`. It does not call the hook. | Against the current tip, the 171-line script replaces `AGENTS.md` with `cp -f` and still does not call the hook. Against this slice, that copy runs only when the file is absent, and the hook runs. |
 | No `upgrade.sh`. Still true for one tree on 2026-09-29. | No spread until that tree has the script. Out of this slice. |  |
 
 On a 156-line script whose hook call is live, that first run does execute the new `post_upgrade` hook implementation. The two trees pulled on 2026-09-29 no longer take that path. Their first upgrade against the slice uses the 168-line script, whose hook call is commented, so that first run does not reinit. The second run does.
@@ -248,7 +254,7 @@ The hook implementation sources `asc/instance/reinit.sh`. Reinit clears `data/as
 
 Proposed for this slice: `post_upgrade.hook.sh` runs reinit and, when `init.sh` returns non-zero, `return`s that status from the sourced file so `hook` stops before it overwrites the status. The new `upgrade.sh` exits with that status. There is no rollback. The directory swap has already happened. On a second-run failure the instruction copy has already happened too. The commented `git add` / `git commit` / `git push` stays deleted.
 
-Say the two-run install, and this reinit, in the header comment of `upgrade.sh`. Two runs are still the install for a tree whose running script is not yet this slice. That includes the two trees pulled on 2026-09-29: they already copy the allowlist, and they still need the second run before `AGENTS.md` is installed and before the restored hook runs. One run is the install only when the script already contains this slice. Every run that calls the hook re-inits the instance.
+Say the two-run install, and this reinit, in the header comment of `upgrade.sh`. Two runs are still the install for a tree whose running script is not yet this slice. The two trees pulled on 2026-09-29 already copy the allowlist. Against the current tip, their second run replaces `AGENTS.md` and still skips the hook, because `7801625` did not restore the call. Against this slice, that second run copies `AGENTS.md` only when it is absent, and the hook runs. One run is the install only when the script already contains this slice. Every run that calls the hook re-inits the instance.
 
 ### Why this is not a per-tool hook implementation
 
@@ -267,7 +273,7 @@ This slice places bytes. It does not claim the opening goal. The opening goal ne
 Authorized only when that parallel row has `approved: "yes"` and `go: "yes"`.
 
 1. Leave the directory list and the four Cursor rule paths in `asc/core/upgrade.sh`.
-2. When `AGENTS.md` is absent, copy it from the clone. When it exists, leave it and continue. Do not write `<!-- asc-agent-guidance:start -->` or the end marker.
+2. Replace the unconditional `cp -f` of `AGENTS.md` with a copy that runs only when the destination is absent. Do not write `<!-- asc-agent-guidance:start -->` or the end marker. Give that copy the same failure exit the Cursor-rule loop already has.
 3. Restore the `hook -s core -a post_upgrade` call after the clone is removed.
 4. `post_upgrade.hook.sh` still runs reinit and does no `git` write. Delete the commented push. When `init.sh` returns non-zero, return that status from the sourced hook so `upgrade.sh` can exit with it.
 5. Document the two-run install and the reinit side effect in the script header.
@@ -295,6 +301,7 @@ The slice includes a fixture. A header comment and a manual run do not replace i
 - [x] Mother and four local trees compared on 2026-09-28. Counts and `upgrade.sh` differences recorded above.
 - [x] `guidance-render` is absent. The three agent skills are handwritten.
 - [x] 2026-09-29: the discuss row stays `go: no`. File transport is a parallel row, also `go: no`.
-- [x] 2026-09-29 resurvey: two pulled trees match the mother's allowlist and comment the hook call. Skills and the four rules are present and byte-identical. `AGENTS.md` is absent. Local rules are still beside the shared ones. The home-directory instance and the tree with no `upgrade.sh` are unchanged.
-- [ ] File transport, only after the parallel row has `go: yes`. Same four rules, three skill directories, `AGENTS.md` only when absent, hook call restored, init failure exits non-zero, push stays out.
+- [x] 2026-09-29 resurvey: two pulled trees match the mother's allowlist and comment the hook call. Skills and the four rules are present and byte-identical. `AGENTS.md` is absent. Local rules are still beside the shared ones. The home-directory instance and the tree with no `upgrade.sh` are unchanged. That match is against the mother before `7801625`.
+- [x] `7801625`: `asc-dollar-prefix.mdc` no longer sets `alwaysApply`. `upgrade.sh` copies `AGENTS.md` with `cp -f` and does not check that copy.
+- [ ] File transport, only after the parallel row has `go: yes`. Same four rules and three skill directories. The `AGENTS.md` copy becomes install-when-absent. Hook call restored. Init failure exits non-zero. Push stays out.
 - [ ] Shrink stage A, shrink stage B, and home-repository cleanup stay unstarted. The `AGENTS.md` span stays unstarted until `guidance-render` writes it.

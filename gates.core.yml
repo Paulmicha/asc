@@ -168,7 +168,7 @@ gates:
   - changelog: changelog/2026/09/28-agent-instructions-travel.md
     lane: parallel
     order: 2
-    task: "File transport. Copy the allowlist. Install AGENTS.md when absent."
-    summary: "Copy the skill directories and the four Cursor rules, install AGENTS.md only when missing, and restore the post_upgrade hook call without a push. Setting go authorizes that transport only. It does not claim an agent follows the files, and it does not shrink or delete a rule."
+    task: "File transport. Leave an existing AGENTS.md in place."
+    summary: "upgrade.sh already replaces AGENTS.md on every run. Setting go authorizes copying it only when missing, and restoring the post_upgrade hook call without a push. It does not claim an agent follows the files, and it does not shrink or delete a rule."
     approved: "no"
     go: "no"
