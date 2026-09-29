@@ -41,3 +41,9 @@ uv init --app --python 3.12 --vcs none --no-readme path/to/subject
 uv add --project path/to/subject faster-whisper
 uv run python path/to/subject/script.py
 ```
+
+It is also possible to reuse the same venv as any installed `pipx` dependency :
+
+```sh
+~/.local/share/pipx/venvs/foobar/bin/python path/to/custom/script.py
+```
