@@ -20,6 +20,9 @@ today's date. Leave a blank line above and below each delimiter in the source.
 Make the nearby explanation clearer or shorter; use one example per idea.
 Keep detailed plans in the appropriate docs or changelog, rather than expanding
 README proposals into implementation inventories or creating alternate READMEs.
+Do not add a README sibling, a `.diff`, or a changelog whose only purpose is
+to stand in for a README edit. Raw `<proposal-…>` tags are HTML; GitHub hides
+them. Keep the tags escaped.
 
 ## Vocabulary and notation
 
@@ -29,9 +32,12 @@ README proposals into implementation inventories or creating alternate READMEs.
 - In prose, distinguish a hook call from a hook implementation.
 - Use `$` for conceptual placeholders such as `$subject`, `$object`, `$action`,
   `$subject-$action`, `$subject--$predicate--$object`, `$entity`, `$field`,
-  `$extension` (or `$ext`), and `$vendor`. Actual names such as index, extract,
-  and run-agent have no `$` prefix. Preserve real shell-variable syntax when
-  explaining shell expressions.
+  `$extension` (or `$ext`), and `$vendor`. That prefix is not a make target
+  and not a pivot name. Actual names such as index, extract, relate, research,
+  and run-agent have no `$` prefix. Preserve real shell-variable syntax, such
+  as `$HOME` and `$1`, when explaining shell expressions.
+- English is the pivot natural language for labels (README, Overarching goal).
+  Do not put another project's language policy in this tree.
 - Keep instance-specific facts and policies in their owning instance. Link to
   maintained definitions and contracts instead of duplicating implementation
   inventories in skills.

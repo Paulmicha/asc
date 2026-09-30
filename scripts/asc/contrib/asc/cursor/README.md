@@ -1,16 +1,16 @@
 # Cursor ASC contrib extension
 
-Hooks and host commands for the Cursor IDE. `skill/render.hook.sh` writes a skill projection. `host/cursor_rules_sync.sh` (`make host-cursor-rules-sync`) pulls the mother and prints each local instance’s `.cursor/rules` next to the mother’s. It does not copy rules.
+Hooks and host commands for the Cursor IDE. `skill/render.hook.sh` writes a skill projection. `host/cursor_rules_sync.sh` (`make host-cursor-rules-sync`) reports the host's user rules and each local instance's project rules. It does not copy rules.
 
 ## Where Cursor rules apply
 
-Files in a project’s `.cursor/rules/*.mdc` are project rules. They load for the workspace whose root is that project. `alwaysApply: true` means every Agent chat in that workspace, including files under subfolders while the window stays rooted there.
+Files in a project's `.cursor/rules/*.mdc` are project rules. They load for the workspace whose root is that project. `alwaysApply: true` means every Agent chat in that workspace, including files under subfolders while the window stays rooted there. Keep instance-specific rules there.
 
-Open a different folder as the workspace and those files drop out. That window uses that folder’s own `.cursor/rules`. A parent folder’s `.cursor/rules` still applies to projects under that parent, because discovery walks upward.
+Open a different folder as the workspace and those project rules drop out. That window uses that folder's own `.cursor/rules`. A parent folder's `.cursor/rules` still applies to projects under that parent, because discovery walks upward.
 
-Rules that follow the user to every project are User Rules, set in Customize → Rules. They are plain text on the Cursor account. They have no frontmatter, no globs, and no `alwaysApply`. Team rules, when present, also apply across that team’s projects and may use a glob. Precedence when guidance conflicts: Team Rules, then Project Rules, then User Rules. All applicable rules are merged.
+Rules that follow the user to every project are User Rules. Account rules are set in Customize → Rules; they are plain text and sync with the Cursor account. User rule files under `~/.cursor/rules/*.mdc` apply across workspaces on this host and stay on this machine unless a separate home repository syncs them. Shared ASC Cursor guidance for this host is versioned there. Team rules, when present, also apply across that team's projects and may use a glob. Precedence when guidance conflicts: Team Rules, then Project Rules, then User Rules. All applicable rules are merged.
 
-A home directory that is itself the workspace does not make its `.cursor/rules` host-wide. Same path on disk, project scope only. `~/.cursor/rules` is machine-local storage. It is not applied when another folder is the workspace.
+`AGENTS.md` and `.agents/skills/` may still be versioned in each ASC instance for tools that read them. `core-upgrade` transports those files, but does not transport Cursor rules. It also points `.claude/skills` at `../.agents/skills`, so Claude can discover and invoke those skills, including automatic selection. A real directory at that path is replaced. `AGENTS.md` is still replaced on every run. Copying it only when absent remains gated.
 
 Rules apply to Agent chat. They do not apply to Tab completion or Inline Edit.
 

@@ -1,5 +1,7 @@
 # Shared agent instructions, and what stays in the instance
 
+The Cursor-rule ownership and transport portions of this plan were superseded by the direct user instruction recorded in [30-cursor-rules-home.md](./30-cursor-rules-home.md). Where the procedure text should live after that move is [30-asc-guidance-as-project-skills.md](./30-asc-guidance-as-project-skills.md). That note is a plan. The separate `AGENTS.md` and post-upgrade hook proposal remains gated.
+
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-28. Revised 2026-09-29 after review, after two local trees were pulled, and after commit `7801625`. The 2026-09-28 counts stay as that earlier snapshot. |

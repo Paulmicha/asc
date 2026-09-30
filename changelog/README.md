@@ -25,7 +25,8 @@ Live work is leftover core lazy waves after fs+db+yaml. Meadows loop **skipped**
 | [12-subject-object-action-entry-points.md](2026/09/12-subject-object-action-entry-points.md) | Heuristic A: `$subject` / `$object` / `$action` |
 | [17-pdf-graphviz-support.md](2026/09/17-pdf-graphviz-support.md) | Graphviz fences in the print pipeline |
 | [17-pdf-graphviz-edge-labels.md](2026/09/17-pdf-graphviz-edge-labels.md) | Opt-in gvpr edge labels |
-| [20-garage-lightweight-rule.md](2026/09/20-garage-lightweight-rule.md) | Garage clause in `asc-lightweight.mdc` |
+| [20-garage-lightweight-rule.md](2026/09/20-garage-lightweight-rule.md) | Historical garage clause; mother rule retired on 2026-09-30 |
+| [30-cursor-rules-home.md](2026/09/30-cursor-rules-home.md) | Shared Cursor rules owned by home user rules; mother copy retired |
 | [20-self-explainable-labels.md](2026/09/20-self-explainable-labels.md) | Labels / pivot NL; harness = abstract hook vs contrib `hook_ms` |
 | [20-match-script-not-clone-includes.md](2026/09/20-match-script-not-clone-includes.md) | Sibling `. include` is not a caller |
 | [20-two-include-kinds.md](2026/09/20-two-include-kinds.md) | Two include kinds only; `utils/` opt-inc is explicit `.` |
@@ -59,6 +60,7 @@ Live work is leftover core lazy waves after fs+db+yaml. Meadows loop **skipped**
 | [22-make-generate-string.md](2026/09/22-make-generate-string.md) | First slice: print one `{{ name }}` substitution. Plan only |
 | [22-workflow.md](2026/09/22-workflow.md) | Workflow lap: changelog → gates → `workflow-next`. Plan only |
 | [22-gitflow.md](2026/09/22-gitflow.md) | Mother / buffer / machine branch. Plan only. No scripts |
+| [30-asc-guidance-as-project-skills.md](2026/09/30-asc-guidance-as-project-skills.md) | Compatibility diff in the work tree, unpublished. Not a direction to upgrade. |
 | [20-builder-kernel-subject.md](2026/09/20-builder-kernel-subject.md) | `asc/builder/` one kernel subject + `template.able` / `literal.able` sketches |
 | [20-gap-entity-not-core.md](2026/09/20-gap-entity-not-core.md) | Knowledge/task `gap` is a project instance (Projet Complexe), not core |
 | [10-begin-entity-system-with-remote-instances.md](2026/09/10-begin-entity-system-with-remote-instances.md) | Entity types → instances → cache. Stub path still wrong |

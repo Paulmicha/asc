@@ -28,9 +28,12 @@ in the owning client repository. Keep instance-specific policies and knowledge
 in that instance; only generic, reusable changes belong in the mother.
 
 When acting on a gated proposal, read the applicable project gates file and its
-scope and approval rules. Do not infer authorization from a changelog or silently
-repair contradictory gate fields. Direct user instructions and existing session
-authorization take precedence; ask only when authorization for the relevant
-scope is genuinely missing or ambiguous. Adding a loader, hook implementation,
-wrapper, or global within an already authorized task needs no second approval
-merely because it belongs to that category.
+scope and approval rules. Match that file's existing shape. Do not invent a
+second registry. Do not infer authorization from a changelog or silently
+repair contradictory gate fields. A deprecation needs its own changelog and a
+gates row; the changelog alone is not approval. Direct user instructions and
+existing session authorization take precedence; ask only when authorization for
+the relevant scope is genuinely missing or ambiguous. Adding a loader, hook
+implementation, wrapper, or global within an already authorized task needs no
+second approval merely because it belongs to that category. After a gated task
+is implemented, remove its row.

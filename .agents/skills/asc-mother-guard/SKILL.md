@@ -24,6 +24,9 @@ patches, commit messages, and issue, pull request, or release text as well.
 3. Extract the generic change using neutral examples. Review the proposed text
    as an outside reader: removing a name is insufficient when surrounding facts
    still identify a client or a person associated with that client.
+4. When the need arises to mention a path in the host that contains a private
+   name outside of its repo, it is possible to use registry keys as anonymized
+   pivots to those paths : see the `asc/extensions/file_registry/` extension.
 
 ## Before delivering or publishing
 

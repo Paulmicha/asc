@@ -102,7 +102,6 @@ dirs_swapped+=('.agents/skills/asc-mother-guard')
 
 # Ensure the parent folders of every path that needs replacing already exists.
 mkdir -p 'scripts/asc/contrib'
-mkdir -p '.cursor/rules'
 mkdir -p '.agents/skills'
 
 # Delete the paths whose contents are to be entirely replaced (= swapped), then
@@ -132,28 +131,6 @@ for dir_swapped in "${dirs_swapped[@]}"; do
   fi
 done
 
-# Cursor rules to be shared among every ASC project instances are dealt with
-# on a case by case basis in order to preserve any other eventual rules specific
-# to the local project instance (which may version others, thus preventing a
-# whole dir swap like for the other paths).
-cursor_rules=()
-cursor_rules+=('.cursor/rules/asc-builder-anti-pattern.mdc')
-cursor_rules+=('.cursor/rules/asc-dollar-prefix.mdc')
-cursor_rules+=('.cursor/rules/asc-lightweight.mdc')
-cursor_rules+=('.cursor/rules/asc-mother-guard.mdc')
-
-for cursor_rule in "${cursor_rules[@]}"; do
-  cp -f "$tmp_dir/$cursor_rule" "$cursor_rule"
-
-  if [[ $? -ne 0 || ! -f "$cursor_rule" ]]; then
-    echo >&2
-    echo "Error in $BASH_SOURCE line $LINENO: unable to copy the new cursor rule from '$tmp_dir/$cursor_rule' to '$cursor_rule'." >&2
-    echo "-> Aborting (4)." >&2
-    echo >&2
-    exit 4
-  fi
-done
-
 # Individual files.
 cp -f "$tmp_dir/AGENTS.md" 'AGENTS.md'
 
@@ -164,6 +141,21 @@ if [[ $? -ne 0 || ! -f 'AGENTS.md' ]]; then
   echo >&2
   exit 5
 fi
+
+# Claude discovers and invokes project skills from .claude/skills/<name>/SKILL.md.
+# One directory symlink is that tree. It is not a second copy of the skill files.
+# TODO [wip] postponed, let's come back to it later on.
+# mkdir -p '.claude'
+
+# ln -sfn '.agents/skills' '.claude/skills'
+
+# if [[ $? -ne 0 || ! -L '.claude/skills' ]]; then
+#   echo >&2
+#   echo "Error in $BASH_SOURCE line $LINENO: unable to link '.claude/skills' to '.agents/skills'." >&2
+#   echo "-> Aborting (6)." >&2
+#   echo >&2
+#   exit 6
+# fi
 
 # Clean up temporary folder, unless prevented in arg 2 (pass 'k').
 if [[ "$2" != 'k' ]]; then
