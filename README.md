@@ -49,7 +49,8 @@ The main README (this file) is authoritative on the meaning associated with ASC 
 - [Current status of the ASC project](#current-status-of-the-asc-project)
 - [Documentation](#documentation)
   - [Skills, Instructions, Capabilities (`AGENTS.md` & `SKILL.md`)](#skills-instructions-capabilities-agentsmd-skillmd)
-  - [Specs, Contracts, Living Docs](#specs-contracts-living-docs)
+  - [Specs, Contracts, Living Docs (SPECS)](#specs-contracts-living-docs-specs)
+  - [Changes, Implementation Steps, Execution Plans (PLANS)](#changes-implementation-steps-execution-plans-plans)
   - [Problems, Improvements (ISSUES)](#problems-improvements-issues)
 - [ASC concepts](#asc-concepts)
   - [General notes](#general-notes)
@@ -225,7 +226,7 @@ ASC core (this repo = "mother" ASC repo) contains an `AGENTS.md` document pointi
 - `.agents/skills/asc-author-code` describes ASC-specific (bash) shell coding styles and design patterns ;
 - `.agents/skills/asc-mother-guard` guards against potential privacy-related issues when improvements made on ASC itself is being contributed to this "mother" (*upstream*) repo from other projects using ASC.
 
-### Specs, Contracts, Living Docs
+### Specs, Contracts, Living Docs (SPECS)
 
 Currently, the ASC main README file (this file) is serving as the main source of truth for all ASC-related implementations. It is entirely human-written, with eventual LLM-generated prose clearly delimited by escaped tags like `<proposal-2026-10-02>` and `</proposal-2026-10-02>` for marking what is currently being reviewed and rewritten.
 
@@ -239,7 +240,7 @@ Currently, the ASC main README file (this file) is serving as the main source of
 
 &lt;/proposal-2026-10-02&gt;
 
-### Changes, Implementation Steps, Execution Plans
+### Changes, Implementation Steps, Execution Plans (PLANS)
 
 TODO [wip]
 
