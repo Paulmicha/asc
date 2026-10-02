@@ -60,7 +60,7 @@ The destination in the table is the only actionable copy of that topic.
 
 ### Loading candidates
 
-These are the leftovers named by the four references. Performance work waits on a timing measurement. A concrete defect, or the same maintenance repeating, can justify a clarity or correctness change without that measurement.
+These are the leftovers named by the four references. The 2026-10-02 reinit timings are in [02-reinit-performance.md](../10/02-reinit-performance.md). That note is its own plan and does not reopen this loading list. A concrete defect, or the same maintenance repeating, can still justify a clarity or correctness change without a further measurement.
 
 | Candidate | Where it is named |
 |-----------|-------------------|

@@ -8,6 +8,12 @@ Files: `YYYY/MM/DD-short-label.md`. Each file starts with a status table. `$` in
 
 **Priority (2026-09-27).** The frontier section below still describes 2026-09-21. Until it is rewritten, the order is [2026/09/27-backlog-priority.md](2026/09/27-backlog-priority.md).
 
+## 2026-10
+
+| File | Role |
+|------|------|
+| [02-reinit-performance.md](2026/10/02-reinit-performance.md) | Plan only. Warmup must not replay a cache hit. Then lookup membership, shared permission targets, and token rendering. Does not reorder the 2026-09-27 backlog. |
+
 ## Current frontier (2026-09-21)
 
 Live work is leftover core lazy waves after fs+db+yaml. Meadows loop **skipped**. Eager/lazy **working table** (not SoT — root README is): [2026/09/19-eager-vs-lazy-include-cases.md](2026/09/19-eager-vs-lazy-include-cases.md). `*.manual-inc.sh` **implemented**. Entity discovery is a separate unstarted plan. Print/PDF is shipped. Agent queue: [`NEXT_STEPS.agent.core.md`](../NEXT_STEPS.agent.core.md), refreshed by `asc/doc/next_steps.sh`. Discussion: [`NEXT_STEPS.core.md`](../NEXT_STEPS.core.md). Go-ahead: [`gates.core.yml`](../gates.core.yml) when `INSTANCE_TYPE` is `core`. Copy model: [`SPECIMEN.gates.yml`](../SPECIMEN.gates.yml).

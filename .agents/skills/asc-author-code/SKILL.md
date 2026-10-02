@@ -18,8 +18,6 @@ README holds bootstrap, Bash 4, `$PROJECT_DOCROOT`, the naming prefixes
 (`f_`, `p_`), include extensions, and the generated files that must not be
 hand-edited (`.env`, `data/asc/globals.sh`, `data/asc/pivots.mk`,
 `data/asc/cache/*`). `global.vars.sh` in an active directory is source.
-The data-dir diagram also labels `data/asc/global.vars.sh`. That is not
-`data/asc/globals.sh`.
 
 A `*.sh` file in an active directory is an action. After the `.sh` suffix is
 removed, a name that still contains a dot is not an action. Helpers use a
