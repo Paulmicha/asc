@@ -47,6 +47,10 @@ The main README (this file) is authoritative on the meaning associated with ASC 
 - [How (concepts in brief)](#how-concepts-in-brief)
 - [Example project (demo / case study)](#example-project-demo-case-study)
 - [Current status of the ASC project](#current-status-of-the-asc-project)
+- [Documentation](#documentation)
+  - [Skills, Instructions, Capabilities (`AGENTS.md` & `SKILL.md`)](#skills-instructions-capabilities-agentsmd-skillmd)
+  - [Specs, Contracts, Living Docs](#specs-contracts-living-docs)
+  - [Problems, Improvements (ISSUES)](#problems-improvements-issues)
 - [ASC concepts](#asc-concepts)
   - [General notes](#general-notes)
   - [Vendor (= third-party) libs](#vendor-third-party-libs)
@@ -206,6 +210,42 @@ Implications : change ASC core current files discovery mechanisms to support bot
 1. [ ] Complete the Builder
 1. [ ] Complete the baseline implementations
 1. [ ] Implement agents (for now : Ollama and Cursor to test MVP, next : Codex + Claude code)
+
+## Documentation
+
+At the time of writing (mostly july to october 2026), there seems to be emerging open standards specifically built for AI context and standardized Markdown conventions aiming at constraining and structuring tasks.
+
+ASC attemtps to unify humans and AI agents use of "prose" by using distinct types of documents while leveraging those emergent patterns where appropriate.
+
+### Skills, Instructions, Capabilities (`AGENTS.md` & `SKILL.md`)
+
+ASC core (this repo = "mother" ASC repo) contains an `AGENTS.md` document pointing at 3 skills :
+
+- `.agents/skills/asc-author-docs` tells which documents are used to describe which rules, constraints, instructions, etc. - and what agents are allowed and not allowed to do in those docs ;
+- `.agents/skills/asc-author-code` describes ASC-specific (bash) shell coding styles and design patterns ;
+- `.agents/skills/asc-mother-guard` guards against potential privacy-related issues when improvements made on ASC itself is being contributed to this "mother" (*upstream*) repo from other projects using ASC.
+
+### Specs, Contracts, Living Docs
+
+Currently, the ASC main README file (this file) is serving as the main source of truth for all ASC-related implementations. It is entirely human-written, with eventual LLM-generated prose clearly delimited by escaped tags like `<proposal-2026-10-02>` and `</proposal-2026-10-02>` for marking what is currently being reviewed and rewritten.
+
+&lt;proposal-2026-10-02&gt;
+
+**Three-Tier Boundary System** : A standard practice within agent specs that categorizes rules into :
+
+- Always do (e.g., run tests before committing)
+- Ask first (e.g., deleting a file, adding a new npm package)
+- Never do (e.g., rewriting historical git history)
+
+&lt;/proposal-2026-10-02&gt;
+
+### Changes, Implementation Steps, Execution Plans
+
+TODO [wip]
+
+### Problems, Improvements (ISSUES)
+
+TODO [wip]
 
 ## ASC concepts
 
