@@ -160,7 +160,7 @@ f_ssh_key_generate() {
 
   if [[ -z "$1" ]]; then
     echo >&2
-    echo "Error: must pass key pair files name suffix as 1st argument." >&2
+    echo "Error: you must provide key pair files name suffix as 1st argument." >&2
     echo "Usage : f_ssh_key_generate 'foobar'" >&2
     echo >&2
     return 1

@@ -1832,7 +1832,8 @@ asc/instance/rebuild.sh
   ├── app,site,api/ …         ← [optional, nested git repos] application trees (per ASC_APPS / env.yml)
   ├── changelog/              ← [optional] documentation of past or planned modifications
   ├── asc/                    ← [$subject/$action ext.point] ASC core (update = replace folder)
-  │   ├── env/                ← core global.vars.sh + helpers
+  │   ├── core/               ← low-level, "kernel" functions & utilities
+  │   ├── doc/                ← markdown-related functions & markdown to pdf generation
   │   ├── extensions/         ← bundled extensions (opt-in via ignore file)
   │   │   ├── $ext/           ← [$subject/$action ext.point] core asc extension
   │   │   │   ├── .asc_subjects_ignore  ← [$subject/$action ext.point] blacklisted subfolder(s)
@@ -1841,28 +1842,23 @@ asc/instance/rebuild.sh
   │   ├── git/                ← git hooks integration + utilities
   │   ├── host/               ← host provision, registry, vitals
   │   ├── instance/           ← core unprefixed entry points (generic init, setup, etc)
-  │   ├── log/,sidecar/,loop/,thread/ ← core ASC wrappers
+  │   ├── log/                ← [wip] TODO refactor in progress
   │   ├── make/               ← default.mk + call_wrap
   │   ├── test/               ← shunit2 low-level tests suite
-  │   ├── utilities/          ← internal libraries
-  │   ├── vendor/             ← shunit2, bash-yaml
+  │   ├── thread/             ← [wip] TODO refactor in progress
+  │   ├── vendor/             ← shunit2, bash-yaml, katex, mermaid js + licenses
   │   ├── .asc_subjects_ignore  ← [$subject/$action ext.point] blacklisted subfolder(s)
-  │   └── bootstrap.sh        ← included in all entry points, loads bash functions and globals
+  │   ├── escape.sh           ← custom script that escapes args for use in make shortcuts
+  │   └── bootstrap.sh        ← sourced in all entry points: loads bash functions and globals
   ├── data/                   ← runtime / generated (mostly gitignored)
   │   ├── asc/                ← [git-ignored] Generated files for this instance
-  │   │   ├── cache/          ← current local instance generated hooks and *.opt-inc.sh auto-include cache
-  │   │   │   └── $subject/   ← $action per $subject filesystem structure
-  │   │   │       └── $action/
-  │   │   │           └── ...
+  │   │   ├── cache/          ← core ASC cache files (hooks & autoload-related)
   │   │   ├── registry/       ← [optional] contains keyed "file-based store" values
   │   │   ├── pivots.mk       ← current local instance generated make entry points
   │   │   └── globals.sh      ← current local instance generated (readonly) ENV vars
-  │   ├── cronjobs/           ← [optional, git-ignored] default place for cron jobs outputs
+  │   ├── entities/               ← [optional, git-ignored] default place for logs (see also log-rotate)
   │   ├── logs/               ← [optional, git-ignored] default place for logs (see also log-rotate)
-  │   ├── loops/              ← [optional, git-ignored] default place for loops (see also log-rotate)
-  │   ├── media/              ← [optional, git-ignored] default place for media
   │   ├── private/            ← [optional, git-ignored] default place for private files
-  │   ├── process/            ← [optional, git-ignored] default place for storing process info
   │   ├── test-results/       ← [optional] frozen (versionned) test results
   │   ├── threads/            ← [optional, git-ignored] default place for storing threads info
   │   ├── tmp/                ← [optional, git-ignored] default place for temporary files
