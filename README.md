@@ -52,6 +52,8 @@ The main README (this file) is authoritative on the meaning associated with ASC 
   - [Specs, Contracts, Living Docs (SPECS)](#specs-contracts-living-docs-specs)
   - [Changes, Implementation Steps, Execution Plans (PLANS)](#changes-implementation-steps-execution-plans-plans)
   - [Problems, Improvements (ISSUES)](#problems-improvements-issues)
+  - [Priorities (NEXT_STEPS)](#priorities-nextsteps)
+  - [Guards, "gates"](#guards-gates)
 - [ASC concepts](#asc-concepts)
   - [General notes](#general-notes)
   - [Vendor (= third-party) libs](#vendor-third-party-libs)
@@ -245,6 +247,14 @@ Currently, the ASC main README file (this file) is serving as the main source of
 TODO [wip]
 
 ### Problems, Improvements (ISSUES)
+
+TODO [wip]
+
+### Priorities (NEXT_STEPS)
+
+TODO [wip]
+
+### Guards, "gates"
 
 TODO [wip]
 
@@ -680,7 +690,7 @@ For example, when `PROVISION_USING='compose'` and `INSTANCE_TYPE='dev'`, calling
 ```sh
 hook -s 'my_subject' -a 'my_action' -v 'PROVISION_USING INSTANCE_TYPE'
 ```
-... will source all of the following bash script files (any that exists) in any active dir, noted `*` :
+... will source all of the following bash script files (any that exists) in any *extension point*, here noted `*` :
 
 - `*/my_subject/my_action.hook.sh`
 - `*/my_subject/my_action.compose.hook.sh`
@@ -1809,6 +1819,11 @@ asc/instance/rebuild.sh
 
 ```txt
 /path/to/my-project/          ← $PROJECT_DOCROOT
+  ├── .git
+  │   ├── hooks/
+  │   │   ├── pre-commit      ← [optional] local instance git ↔ ASC hooks wiring
+  │   │   └── ...
+  │   └── ...
   ├── app,site,api/ …         ← [optional, nested git repos] application trees (per ASC_APPS / env.yml)
   ├── changelog/              ← [optional] documentation of past or planned modifications
   │   └── ...
@@ -1869,11 +1884,9 @@ asc/instance/rebuild.sh
   │       │   ├── instance        ← [optional] active dir allowing unprefixed entry points
   │       │   └── ...
   │       ├── local/              ← [git-ignored] manual debug scripts
-  │       ├── override/           ← allows to swap "autoloaded" core + contrib includes and/or hooks implementations
-  │       └── sandbox/            ← [optional, git-ignored] Contains code generators results to evaluate (see builder)
-  │           ├── prototype/      ← [optional] Iterative generated code results
-  │           └── review/         ← [optional] Generated code ready for evaluation
+  │       └── override/           ← allows to swap "autoloaded" core + contrib includes and/or hooks implementations
   ├── .asc_extensions_ignore      ← lists disabled core and contrib extensions
+  ├── .editorconfig               ← coding styles standardization
   ├── .gitignore
   ├── .env                    ← [git-ignored] generated current local instance ENV vars
   ├── .env-local.yml          ← [optional, git-ignored] secret ENV vars (hardcoded)
