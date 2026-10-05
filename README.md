@@ -1819,6 +1819,11 @@ asc/instance/rebuild.sh
 
 ```txt
 /path/to/my-project/          ← $PROJECT_DOCROOT
+  ├── .agents/
+  │   └── skills/             ← default, generic ASC rules for agents
+  │       ├── asc-author-code/
+  │       │   └── SKILL.md
+  │       └── ...
   ├── .git
   │   ├── hooks/
   │   │   ├── pre-commit      ← [optional] local instance git ↔ ASC hooks wiring
@@ -1826,14 +1831,12 @@ asc/instance/rebuild.sh
   │   └── ...
   ├── app,site,api/ …         ← [optional, nested git repos] application trees (per ASC_APPS / env.yml)
   ├── changelog/              ← [optional] documentation of past or planned modifications
-  │   └── ...
   ├── asc/                    ← [$subject/$action ext.point] ASC core (update = replace folder)
   │   ├── env/                ← core global.vars.sh + helpers
   │   ├── extensions/         ← bundled extensions (opt-in via ignore file)
   │   │   ├── $ext/           ← [$subject/$action ext.point] core asc extension
   │   │   │   ├── .asc_subjects_ignore  ← [$subject/$action ext.point] blacklisted subfolder(s)
   │   │   │   └── ...
-  │   │   ├── .asc_extensions_ignore  ← default blacklisted core asc extensions
   │   │   └── ...
   │   ├── git/                ← git hooks integration + utilities
   │   ├── host/               ← host provision, registry, vitals
@@ -1855,9 +1858,6 @@ asc/instance/rebuild.sh
   │   │   ├── pivots.mk       ← current local instance generated make entry points
   │   │   └── globals.sh      ← current local instance generated (readonly) ENV vars
   │   ├── cronjobs/           ← [optional, git-ignored] default place for cron jobs outputs
-  │   │   └── $subject/       ← $action per $subject filesystem structure
-  │   │       └── $action/
-  │   │           └── ...
   │   ├── logs/               ← [optional, git-ignored] default place for logs (see also log-rotate)
   │   ├── loops/              ← [optional, git-ignored] default place for loops (see also log-rotate)
   │   ├── media/              ← [optional, git-ignored] default place for media
@@ -1866,9 +1866,6 @@ asc/instance/rebuild.sh
   │   ├── test-results/       ← [optional] frozen (versionned) test results
   │   ├── threads/            ← [optional, git-ignored] default place for storing threads info
   │   ├── tmp/                ← [optional, git-ignored] default place for temporary files
-  │   └── ...
-  ├── docs/
-  │   ├── asc/                ← ASC-related deep-dive guides and living documentation
   │   └── ...
   ├── scripts/
   │   └── asc/
