@@ -1865,15 +1865,15 @@ asc/instance/rebuild.sh
   │   └── ...
   ├── scripts/
   │   └── asc/
-  │       ├── contrib/             ← contrib asc implementations
-  │       │   ├── asc/             ← asc ships its own "vendor" contrib "namespace"
-  │       │   │   └── ...          ← ... as well as some vendor Extension defaults
+  │       ├── contrib/
+  │       │   ├── asc/             ← ASC ships its own "contrib" extensions
+  │       │   │   └── ...
   │       │   ├── $vendor/         ← yields : $vendor.$ext exclusions patterns in .asc_extensions_ignore
   │       │   │   ├── $ext/            ← [$subject/$action ext.point] contrib asc extension
   │       │   │   │   └── ...
   │       │   │   └── ...
   │       │   └── ...
-  │       ├── extend/             ← [$subject/$action ext.point] project-specific asc implementations
+  │       ├── extend/             ← [$subject/$action ext.point] project-specific implementations
   │       │   ├── instance        ← [optional] active dir allowing unprefixed entry points
   │       │   └── ...
   │       ├── local/              ← [git-ignored] manual debug scripts
