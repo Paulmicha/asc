@@ -386,18 +386,18 @@ The older CWT `u_make_list_entry_points` is that same prefix rule. No depth repl
 
 Counted from generated makefiles and from action scripts on 2026-09-21. Hooks, includes, tests, `*.make.sh`, and `*.wrap.sh` were not treated as pivots. The two CWT instances are not named here.
 
-**Long-running CWT instance, larger extend tree.** `scripts/cwt/local/generated.mk`: 262 parsed targets, 127 of them under `scripts/cwt/extend/`. No target whose short name was also implemented by an extension script. The extend scripts are extra commands (`api-console`, and the rest of that `api-` set), not overlays of core. `composer.sh` appears twice, under `api/` and under `site/`, so the task names differ (`api-composer`, `site-composer`).
+**Long-running CWT instance, larger extend tree.** `scripts/asc/local/generated.mk`: 262 parsed targets, 127 of them under `scripts/asc/extend/`. No target whose short name was also implemented by an extension script. The extend scripts are extra commands (`api-console`, and the rest of that `api-` set), not overlays of core. `composer.sh` appears twice, under `api/` and under `site/`, so the task names differ (`api-composer`, `site-composer`).
 
 **Long-running CWT instance, smaller extend tree.** 157 parsed targets, 86 under extend. Two real clashes, both kept as two targets:
 
 | Short name | Script that owns it | Prefixed name | Other script |
 |------------|---------------------|---------------|--------------|
-| `composer` | `scripts/cwt/extend/instance/composer.sh` | `dwt-composer` | `cwt/extensions/drupalwt/instance/composer.sh` |
-| `drupal` | `scripts/cwt/extend/instance/drupal.sh` | `dwt-drupal` | `cwt/extensions/drupalwt/instance/drupal.sh` |
+| `composer` | `scripts/asc/extend/instance/composer.sh` | `dwt-composer` | `cwt/extensions/drupalwt/instance/composer.sh` |
+| `drupal` | `scripts/asc/extend/instance/drupal.sh` | `dwt-drupal` | `cwt/extensions/drupalwt/instance/drupal.sh` |
 
 A score that let extend win would drop `dwt-composer` and `dwt-drupal`. Those targets are in the makefile the instance actually generates.
 
-That same instance has `remote/db_download.sh`, `db_dump.sh`, `db_restore.sh`, and `db_upload.sh` both under `cwt/extensions/remote_db/remote/` and under `scripts/cwt/extend/remote/`. Only the extend paths are make targets. The extension is listed in `cwt/extensions/.cwt_extensions_ignore` (`remote_db`, among others). The project disabled the extension and added its own scripts. It did not need a score, and a score would not have been what turned the extension off.
+That same instance has `remote/db_download.sh`, `db_dump.sh`, `db_restore.sh`, and `db_upload.sh` both under `cwt/extensions/remote_db/remote/` and under `scripts/asc/extend/remote/`. Only the extend paths are make targets. The extension is listed in `cwt/extensions/.cwt_extensions_ignore` (`remote_db`, among others). The project disabled the extension and added its own scripts. It did not need a score, and a score would not have been what turned the extension off.
 
 **projet-complexe.** 79 action-like scripts under `scripts/asc/extend/`. No `$subject/$action` filename shared between that tree and `scripts/asc/contrib/` (or between extend and `asc/extensions/`). Its make generator is still the prefix rule. Nothing there is waiting for a winner.
 

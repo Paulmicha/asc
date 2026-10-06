@@ -1,0 +1,1 @@
+test_git_write_hooks_zero_args_set_a_count

@@ -1,30 +1,32 @@
-test_entity_load_is_defined
-test_entity_load_requires_type_and_id
-test_entity_load_missing_cache_fails
-test_entity_load_sources_data_asc_cache
-test_entity_cache_purge_removes_type_dir_files
-Clearing '_probe' entity instances cache entries ...
-Clearing '_probe' entity instances cache entries : done.
+test_dwt_settings_tokens_are_literal_php
+(Re)write Drupal local settings file (/tmp/asc-dwt-tokens.C0GYax/web/sites/default/settings.php) ...
+  using template : /tmp/asc-dwt-tokens.C0GYax/settings.tpl.php ...
+(Re)write Drupal local settings file (/tmp/asc-dwt-tokens.C0GYax/web/sites/default/settings.php) : done.
 
-test_entity_cache_purge_empty_type_fails
-test_entity_types_discover_includes_host
-test_entity_types_discover_does_not_index_able_files
-test_entity_type_includes_able_host_sidecar
-test_entity_instances_discover_finds_host_fixture
-test_entity_cache_generate_host_fixture
-Clearing 'host' entity instances cache entries ...
-Clearing 'host' entity instances cache entries : done.
+PENDING: php -l was not run because php is not installed.
+(Re)write Drupal local settings file (/tmp/asc-dwt-tokens.C0GYax/web/sites/default/settings.php) ...
+  using template : /tmp/asc-dwt-tokens.C0GYax/settings.tpl.php ...
+(Re)write Drupal local settings file (/tmp/asc-dwt-tokens.C0GYax/web/sites/default/settings.php) : done.
 
-test_entity_cache_generate_skips_include_field
-test_entity_cache_generate_all_purges_stale_sidecar_cache
-Clearing 'host' entity instances cache entries ...
-Clearing 'host' entity instances cache entries : done.
+test_dwt_settings_write_errors_are_not_success
+test_dwt_settings_token_cache_stays_in_the_batch
+test_dwt_settings_db_ids_and_site_tokens
+(Re)write Drupal local settings file (/tmp/asc-dwt-sites.5Gm3Q8/web/sites/news/settings.php) ...
+  using template : /tmp/asc-dwt-sites.5Gm3Q8/settings.tpl.php ...
+(Re)write Drupal local settings file (/tmp/asc-dwt-sites.5Gm3Q8/web/sites/news/settings.php) : done.
 
-test_entity_post_init_hook_file_exists
-test_entity_spec_get_keys_host_includes_id_and_hostname
-test_entity_spec_get_key_host_hostname
-test_remote_instance_load_wraps_entity_load
 
-Ran 17 tests.
+Ran 4 tests.
+
+OK
+test_fs_perms_set_shared_dirs_once
+Setting writeable file permissions 0664 to files inside '/tmp/asc-dwt-perms.ySXMEH/sites'
+Setting writeable dir permissions 0775 to '/tmp/asc-dwt-perms.ySXMEH/sites'
+Setting writeable file permissions 0664 to files inside '/tmp/asc-dwt-perms.ySXMEH/private'
+Setting writeable dir permissions 0775 to '/tmp/asc-dwt-perms.ySXMEH/private'
+Setting protected file permissions 0440 to '/tmp/asc-dwt-perms.ySXMEH/sites/alpha/settings.php'
+Setting protected file permissions 0440 to '/tmp/asc-dwt-perms.ySXMEH/sites/nfdir/settings.php'
+
+Ran 1 test.
 
 OK

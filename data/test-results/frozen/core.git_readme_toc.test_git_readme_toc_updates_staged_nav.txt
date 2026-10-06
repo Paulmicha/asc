@@ -1,0 +1,2 @@
+test_git_readme_toc_updates_staged_nav
+Updated TOC in /tmp/tmp.8FBSjzJxmB/README.md

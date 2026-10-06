@@ -117,6 +117,29 @@ test_f_in_array_and_add_once() {
 }
 
 ##
+# Optional membership index: first-seen order, one key per appended value.
+#
+test_f_array_add_once_with_index() {
+  local my_array_arr=()
+  local -A seen_arr=()
+
+  f_array_add_once 'test1' my_array_arr seen_arr
+  f_array_add_once 'test1' my_array_arr seen_arr
+  f_array_add_once 'test4' my_array_arr seen_arr
+
+  assertEquals 'indexed add keeps one element for a repeat' \
+    '2' "${#my_array_arr[@]}"
+  assertEquals 'indexed add keeps first-seen order' \
+    'test1' "${my_array_arr[0]}"
+  assertEquals 'indexed add appends the new item' \
+    'test4' "${my_array_arr[1]}"
+  assertEquals 'index records the first item' \
+    '1' "${seen_arr[test1]-}"
+  assertEquals 'index records the new item' \
+    '1' "${seen_arr[test4]-}"
+}
+
+##
 # f_array_qsort must terminate and sort values (lexicographic [[ < ]]).
 #
 test_f_array_qsort() {

@@ -13,9 +13,4 @@
 #   asc/test/core.sh
 #
 
-if [[ "$(type -t f_test_batch_exec)" != function ]]; then
-  # shellcheck disable=SC1091
-  . asc/test/test.opt-inc.sh
-fi
-
 f_test_batch_exec 'asc/extensions/compose/test/core'

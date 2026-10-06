@@ -3,16 +3,30 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-10-02 |
-| **Status** | **plan / review** (not an implementation go-ahead) |
+| **Status** | **partial**. Tasks 1–4 are in the tree. Optional lookup cuts and the instance settings override are not. Acceptance still open is under Outstanding. |
 | **Scope** | Four measured costs inside `make reinit`: warmup replaying a hook-cache hit, linear membership scans while building hook lookup paths, repeated walks of shared writable directories in Drupal contrib, and candidate-driven token scans while rendering Drupal settings. |
 | **Out of this plan** | A gates row. A root README edit. A configuration-only reinit mode. Preserving hook or discovery caches across reinit. Parallel hook execution. Replacing `f_in_array` for every caller. Deduplicating direct lookup candidates. A persistent permission-completion cache. PHP escaping of settings values. Editing the instance settings override from this repo. |
-| **Evidence** | One plain `make reinit` and one instrumented run on a working multi-site tree, plus one isolated dry-run lookup comparison. OS caches were not flushed. No production patch was applied. The core suite was not run for this note. |
+| **Evidence** | The 2026-10-02 timings below are the baseline, not a post-change reinit. What has been run since the code landed is under Validation. |
 
 `$` in this file is the ASC docs placeholder (`$subject` / `$action`), except `$HOME` and the shell parameters named below.
 
-Go-ahead is a new row in [`gates.core.yml`](../../../gates.core.yml). This note does not add that row. `discuss` stays `go: no` until a later approval. Tasks 1–3 are sequential on the measured tree: each later run still pays the cost the earlier task removes. Task 4 changes the generic renderer only. Its acceptance test is that renderer. The measured settings time becomes evidence of improvement only after the instance adaptation named under task 4.
+This note did not add a [`gates.core.yml`](../../../gates.core.yml) row. The code below was written after a direct request to implement the plan. Tasks 1–3 were ordered so that each later measurement on the original tree would still have included the earlier cost. Task 4 changes the generic renderer only. The 29.50 s settings figure becomes evidence of improvement only after the instance adaptation under task 4.
 
 The mother copies of the files named here were read on 2026-10-02. The measurement compared those copies with the tree it timed and reported a byte match.
+
+## Validation
+
+### Completed
+
+- `asc/test/core/hook.test.sh`, `asc/test/core/utilities.test.sh`, and `asc/test/core/autoload.test.sh` passed on 2026-10-06, including the six full candidate and match lists.
+- With `asc/drupalwt` temporarily absent from `.asc_extensions_ignore`, `hook -s test -a core -t` matched `scripts/asc/contrib/asc/drupalwt/test/core.hook.sh`. That hook body then ran both contrib test files. The ignore file was restored. The measured instance was not used.
+
+### Outstanding
+
+- `php -l` on a rendered settings file. `php` is not installed in this checkout, so the token test prints `PENDING` and does not treat the skip as a pass.
+- A post-change `make reinit` timing.
+- The instance settings override.
+- `make test-core` on this checkout is not green. The archived failure in [`core.next_steps.test_gates_yml_docroot_rung.txt`](../../../data/test-results/frozen/core.next_steps.test_gates_yml_docroot_rung.txt) is the `core` / `dev` fixture mismatch (`INSTANCE_TYPE` is `dev`; the test expects `core`). That failure is not these optimizations.
 
 ---
 
@@ -70,7 +84,7 @@ Both trials emitted the same ordered candidate list and the same matched impleme
 
 On a miss, the same function already skips those `.` lines when `b_cache_warmup` is 1, then writes the cache file. Cold warmup is the behavior the hit path should keep.
 
-- [ ] **Step 1: Add a failing core test for warmup execution**
+- [x] **Step 1: Add a failing core test for warmup execution**
 
 In `asc/test/core/hook.test.sh`, add one case with a temporary hook body that appends one line to a marker file:
 
@@ -86,13 +100,13 @@ Run: `asc/test/core/hook.test.sh` (or the equivalent `make test-core` filter thi
 
 Expected before the fix: step 3 fails because the warmup hit sources the cached body.
 
-- [ ] **Step 2: Return on a warmup hit**
+- [x] **Step 2: Return on a warmup hit**
 
 When the cache file exists and `b_cache_warmup` is 1, return 0 without sourcing it. When the cache file exists and warmup is off, source it as today. Leave the miss path as it is: build the cache, source optional includes and hook bodies only when warmup is off, then write the file.
 
 `mkdir -p data/asc/cache/hook` on every hit is a separate, smaller process launch. Leave it in this task.
 
-- [ ] **Step 3: Re-run the hook test file**
+- [x] **Step 3: Re-run the hook test file**
 
 Expected: the new case and the existing cache-key cases pass.
 
@@ -115,7 +129,7 @@ This task keeps that split. Direct additions stay direct additions. The index an
 
 `f_in_array` stays a linear scan. Entity keys, YAML keys, git paths, and DB ids keep today’s call. Do not give every mutable array a hidden global index.
 
-- [ ] **Step 1: Lock ordered candidate lists and match lists**
+- [x] **Step 1: Lock ordered candidate lists and match lists**
 
 In `asc/test/core/hook.test.sh`, clear the hook cache for a temporary action, then capture two lists from `hook -t -d`: the full ordered candidate list printed for `lookup_paths_arr`, and `hook_dry_run_matches`. Compare both lists, in order, for:
 
@@ -132,7 +146,7 @@ In `asc/test/core/autoload.test.sh`, pass that index through `f_autoload_add_loo
 
 Run the three test files. Expected before the index exists: the hook-list cases pass on today’s builders, and the new index assertions fail.
 
-- [ ] **Step 2: Index direct additions without filtering them**
+- [x] **Step 2: Index direct additions without filtering them**
 
 `f_array_add_once` gains an optional third parameter, the name of an associative array in the caller. When it is set, membership is that key; on a miss, set the key and append. When it is empty, keep the `f_in_array` body.
 
@@ -142,9 +156,9 @@ A direct path that was just appended is then visible to a later `f_array_add_onc
 
 The index lives only for that `hook()` call. It is not written under `data/asc/cache/`.
 
-- [ ] **Step 3: Re-run utilities, autoload, and hook tests**
+- [x] **Step 3: Re-run utilities, autoload, and hook tests**
 
-Expected: the four candidate/match comparisons are unchanged, including repeated direct candidates for repeated filters and for `-r`. Indexed autoload paths match the unindexed lists.
+Expected: the six candidate lists and the six match lists stay complete and ordered. The six calls are ordinary, repeated `-a`, repeated `-s`, and each of those with `-r`. Indexed autoload paths match the unindexed lists.
 
 Two further cuts on this same path were inspected and not timed. Leave them until the index is in and a fresh lookup timing says they still matter:
 
@@ -174,7 +188,7 @@ The protected-file lines in the same hook replace `sites/default` with `sites/$s
 
 `scripts/asc/contrib/asc/drupalwt/test/core.hook.sh` is what makes the directory run. Match `asc/extensions/builder/test/core.hook.sh`: source `asc/test/test.opt-inc.sh` when `f_test_batch_exec` is missing, then `f_test_batch_exec 'scripts/asc/contrib/asc/drupalwt/test/core' || exit $?`. Task 4 uses this same hook. This mother checkout lists `asc/drupalwt` in `.asc_extensions_ignore`, so `f_asc_extensions` never adds it to `ASC_EXTENSIONS`, `hook -s test -a core` never adds `scripts/asc/contrib/asc/drupalwt` to its base paths, and `make test-core` here does not run that file. This repo has no enabled fixture for that extension.
 
-- [ ] **Step 1: Add a failing contrib test**
+- [x] **Step 1: Add a failing contrib test**
 
 Fixture: three site ids. Two resolve to one temporary directory and one private directory. One of those ids is `news-fr`. Its directory variable is `dwt_sites_news_fr_dir` (the sanitized form of `dwt_sites_news-fr_dir`), and its settings file lives under `sites/` plus that variable’s value.
 
@@ -184,7 +198,7 @@ Assert:
 2. The protected settings path for `news-fr` uses the sanitized directory variable’s value. An empty `site_dir` produces `sites//…`, and the raw id `news-fr` is the wrong variable name.
 3. The protected `chmod` runs after the writable walks, so a path covered by both ends with `FS_P_FILES`.
 
-- [ ] **Step 2: Apply unique targets, then protected files**
+- [x] **Step 2: Apply unique targets, then protected files**
 
 Inside this hook invocation, remember each writable path together with its type (`f` or `d`) and mode. Run `find` only for a pair not already seen. Then apply each site’s protected settings file and local settings file.
 
@@ -192,9 +206,11 @@ Before the `sites/default` substitution, resolve `site_dir` from the original si
 
 Do not record that a directory was finished in a file under `data/`. A later process or dependency install can change modes between runs. Overlapping paths stay ordered: writable walks first, protected files after.
 
-- [ ] **Step 3: Run the contrib batch where `asc/drupalwt` is enabled**
+- [x] **Step 3: Run the contrib batch where `asc/drupalwt` is enabled**
 
 Expected: the three assertions pass. Run `make test-core` on the instance that produced the reinit timings, which enables `asc/drupalwt`. Keep that instance’s name and docroot out of this file. Confirm the batch actually executed `fs_perms_set.test.sh`. A copy of this repo with the `asc/drupalwt` ignore line removed is the other place the same command dispatches the hook. Do not remove that line in this checkout, and do not add a new top-level test entry point.
+
+Verified on 2026-10-06 with `asc/drupalwt` temporarily removed from `.asc_extensions_ignore`, then restored. Dry-run `hook -s test -a core -t` selected `scripts/asc/contrib/asc/drupalwt/test/core.hook.sh`, and that hook body ran `fs_perms_set.test.sh`. `make test-core` on this checkout still skips the extension while the ignore line is present. The measured instance was not used.
 
 ---
 
@@ -220,7 +236,7 @@ Token contract for the generic renderer:
 - A replacement value is literal, including when the value itself contains `{{ DB_USER }}`. One pass does not scan the inserted text. Successive `sed -i` passes can replace that token in a later loop. This task chooses the one-pass result.
 - Quotes and backslashes are asserted as PHP source in that single-quoted shape. This task does not add PHP escaping. The current `sed` path does not escape either. A value that contains a single quote is recorded as raw bytes and is not claimed to be valid PHP.
 
-- [ ] **Step 1: Add a failing render test**
+- [x] **Step 1: Add a failing render test**
 
 Use a temporary PHP template in the shipped quoting style:
 
@@ -244,7 +260,7 @@ Assert the written PHP source, not a free-text blob:
 
 Run it the way task 3 runs contrib tests: `make test-core` only where `asc/drupalwt` is enabled. On the current successive `sed` path, the hash-salt assertion fails: the later DB pass replaces the inserted `{{ DB_USER }}` with `dbuser`. The unknown-token line already survives today, because that name is never a candidate. That assertion fails if a new renderer clears unresolved tokens. It is the regression lock for tokens that are present and unknown.
 
-- [ ] **Step 2: Substitute from the template’s token set**
+- [x] **Step 2: Substitute from the template’s token set**
 
 After the template is copied, read it once. Collect distinct `{{ NAME }}` tokens. Resolve only those names with the current rules:
 
@@ -259,9 +275,11 @@ Per site, keep the `hook_ms` template selection, the `sites.php` / default-setti
 
 Inside one `f_dwt_write_settings` call, build the DB field-name list once and reuse it. Read a template’s token list once per distinct template path in that call. Site values stay per site.
 
-- [ ] **Step 3: Re-run the generic renderer test**
+- [x] **Step 3: Re-run the generic renderer test**
 
 Expected: the PHP file matches the five assertions, including the surviving unknown token and the literal inner token. That result accepts the generic renderer. It does not accept a shorter settings phase on the measured instance.
+
+Verified on 2026-10-06 through the same enabled-extension hook body. The token file covers literal substitution, a `0444` template, a refused write, batch-scoped token lists, current-site and other-site DB names, `ASC_DB_IDS`, and `SITE_*` paths. `PROVISION_USING` is readonly here, so `_C` paths go through `f_dwt_settings_resolve_token` with an explicit `compose` argument. `php -l` remains outstanding.
 
 - [ ] **Instance adaptation, tracked in that instance**
 

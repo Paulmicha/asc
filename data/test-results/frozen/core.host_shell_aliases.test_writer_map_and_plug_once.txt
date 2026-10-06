@@ -1,0 +1,11 @@
+test_writer_map_and_plug_once
+Adding ds (asc/instance/ds.sh) to ~/.bash_aliases_asc
+Adding gu (asc/instance/gu.sh) to ~/.bash_aliases_asc
+Adding gmp (asc/instance/gmp.sh) to ~/.bash_aliases_asc
+Adding gacp (asc/instance/gacp.sh) to ~/.bash_aliases_asc
+Adding ssk (asc/instance/ssk.sh) to ~/.bash_aliases_asc
+Adding ds (asc/instance/ds.sh) to ~/.bash_aliases_asc
+Adding gu (asc/instance/gu.sh) to ~/.bash_aliases_asc
+Adding gmp (asc/instance/gmp.sh) to ~/.bash_aliases_asc
+Adding gacp (asc/instance/gacp.sh) to ~/.bash_aliases_asc
+Adding ssk (asc/instance/ssk.sh) to ~/.bash_aliases_asc

@@ -1,0 +1,5 @@
+test_closest_script_skips_an_unreadable_directory
+
+Ran 9 tests.
+
+OK

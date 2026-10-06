@@ -1,5 +1,7 @@
 test_gates_yml_docroot_rung
+ASSERT:gates lookup instance type is core. expected:<core> but was:<dev>
+ASSERT:gates.core.yml wins rung 4. expected:<gates.core.yml> but was:<>
 
 Ran 4 tests.
 
-OK
+FAILED (failures=6)

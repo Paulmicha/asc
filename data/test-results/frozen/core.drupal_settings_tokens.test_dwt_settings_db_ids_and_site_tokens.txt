@@ -1,0 +1,9 @@
+test_dwt_settings_db_ids_and_site_tokens
+(Re)write Drupal local settings file (/tmp/asc-dwt-sites.5Gm3Q8/web/sites/news/settings.php) ...
+  using template : /tmp/asc-dwt-sites.5Gm3Q8/settings.tpl.php ...
+(Re)write Drupal local settings file (/tmp/asc-dwt-sites.5Gm3Q8/web/sites/news/settings.php) : done.
+
+
+Ran 4 tests.
+
+OK

@@ -116,6 +116,9 @@ f_autoload_print_lookup_paths() {
 # @see f_hook_build_lookup_by_subject()
 # @see f_hook_build_project_root_dir_lookup()
 #
+# @param 7 [optional] String : associative membership index variable name,
+#   forwarded to f_array_add_once. Empty keeps the linear scan.
+#
 # @example
 #   # Add entries in the 'lookup_paths_arr' array as in hooks' lookups,
 #   # e.g. : pre_bootstrap.compose.hook.sh
@@ -132,6 +135,7 @@ f_autoload_add_lookup_level() {
   local p_lookups_var_name="$4"
   local p_extra_level_name="$5"
   local p_sep="$6"
+  local p_index_name="${7:-}"
 
   local sep="."
   if [[ -n "$p_sep" ]]; then
@@ -143,10 +147,10 @@ f_autoload_add_lookup_level() {
   local version_part="${p_name##*-}"
 
   if [[ ! "$version_part" =~ [0-9.]+$ ]]; then
-    f_array_add_once "${p_prefix}${p_name}${sep}${p_suffix}" "$p_lookups_var_name"
+    f_array_add_once "${p_prefix}${p_name}${sep}${p_suffix}" "$p_lookups_var_name" "$p_index_name"
 
     if [[ -n "$p_extra_level_name" ]]; then
-      f_autoload_add_lookup_level "${p_prefix}${p_name}${sep}" "$p_suffix" "$p_extra_level_name" "$p_lookups_var_name"
+      f_autoload_add_lookup_level "${p_prefix}${p_name}${sep}" "$p_suffix" "$p_extra_level_name" "$p_lookups_var_name" '' '' "$p_index_name"
     fi
 
     return
@@ -156,10 +160,10 @@ f_autoload_add_lookup_level() {
   f_autoload_item_split_version name_version_arr "$p_name"
 
   if [[ -n "${name_version_arr[1]}" ]]; then
-    f_array_add_once "${p_prefix}${name_version_arr[0]}.${p_suffix}" "$p_lookups_var_name"
+    f_array_add_once "${p_prefix}${name_version_arr[0]}.${p_suffix}" "$p_lookups_var_name" "$p_index_name"
 
     if [[ -n "$p_extra_level_name" ]]; then
-      f_autoload_add_lookup_level "${p_prefix}${name_version_arr[0]}." "$p_suffix" "$p_extra_level_name" "$p_lookups_var_name"
+      f_autoload_add_lookup_level "${p_prefix}${name_version_arr[0]}." "$p_suffix" "$p_extra_level_name" "$p_lookups_var_name" '' '' "$p_index_name"
     fi
 
     local v
@@ -170,18 +174,18 @@ f_autoload_add_lookup_level() {
 
     for v in "${version_arr[@]}"; do
       path+="${v}${sep}"
-      f_array_add_once "${path}${p_suffix}" "$p_lookups_var_name"
+      f_array_add_once "${path}${p_suffix}" "$p_lookups_var_name" "$p_index_name"
 
       if [[ -n "$p_extra_level_name" ]]; then
-        f_autoload_add_lookup_level "${path}" "$p_suffix" "$p_extra_level_name" "$p_lookups_var_name"
+        f_autoload_add_lookup_level "${path}" "$p_suffix" "$p_extra_level_name" "$p_lookups_var_name" '' '' "$p_index_name"
       fi
     done
 
   else
-    f_array_add_once "${p_prefix}${p_name}${sep}${p_suffix}" "$p_lookups_var_name"
+    f_array_add_once "${p_prefix}${p_name}${sep}${p_suffix}" "$p_lookups_var_name" "$p_index_name"
 
     if [[ -n "$p_extra_level_name" ]]; then
-      f_autoload_add_lookup_level "${p_prefix}${p_name}${sep}" "$p_suffix" "$p_extra_level_name" "$p_lookups_var_name"
+      f_autoload_add_lookup_level "${p_prefix}${p_name}${sep}" "$p_suffix" "$p_extra_level_name" "$p_lookups_var_name" '' '' "$p_index_name"
     fi
   fi
 }

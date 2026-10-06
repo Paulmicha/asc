@@ -1,1 +1,9 @@
 test_doc_next_steps_docroot_rung
+ASSERT:next-steps lookup instance type is core. expected:<core> but was:<dev>
+
+Error in f_doc_next_steps_confirm_rung() - asc/doc/next_steps.sh line 345: both docroot files must exist (NEXT_STEPS.agent.dev.md, NEXT_STEPS.dev.md).
+Aborting (1).
+
+ASSERT:docroot write failed. expected:<0> but was:<1>
+ASSERT:agent core variant wins rung 4. expected:<NEXT_STEPS.agent.core.md> but was:<NEXT_STEPS.agent.dev.md>
+ASSERT:human core file wins without the agent variant. expected:<NEXT_STEPS.core.md> but was:<>

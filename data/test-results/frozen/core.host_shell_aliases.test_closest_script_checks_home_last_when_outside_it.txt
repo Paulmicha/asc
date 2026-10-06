@@ -1,0 +1,1 @@
+test_closest_script_checks_home_last_when_outside_it

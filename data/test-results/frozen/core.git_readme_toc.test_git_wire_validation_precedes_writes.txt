@@ -1,0 +1,1 @@
+test_git_wire_validation_precedes_writes

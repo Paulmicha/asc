@@ -257,6 +257,265 @@ test_hook_cache_debug_and_warmup_share_file() {
 }
 
 ##
+# A warmup hit must not source the cached hook body.
+#
+test_hook_cache_warmup_hit_skips_body() {
+  local action='nftaschw'
+  local hook_file="asc/test/${action}.hook.sh"
+  local marker="data/asc/${action}_marker.txt"
+  local lines
+  local n_cache
+
+  rm -f data/asc/cache/hook/*"${action}"* "$marker" "$hook_file"
+  mkdir -p data/asc
+  printf '%s\n' "printf '%s\n' ran >> ${marker}" > "$hook_file"
+
+  hook -a "$action" -s 'test'
+  lines=0
+  if [[ -f "$marker" ]]; then
+    lines="$(wc -l < "$marker" | tr -d ' ')"
+  fi
+  n_cache="$(find data/asc/cache/hook -name "*${action}*" 2>/dev/null | wc -l | tr -d ' ')"
+  assertEquals 'normal call runs the body once' '1' "$lines"
+  assertEquals 'normal call writes one cache file' '1' "$n_cache"
+
+  hook -w -a "$action" -s 'test'
+  lines="$(wc -l < "$marker" | tr -d ' ')"
+  n_cache="$(find data/asc/cache/hook -name "*${action}*" 2>/dev/null | wc -l | tr -d ' ')"
+  assertEquals 'warmup hit does not run the body again' '1' "$lines"
+  assertEquals 'warmup hit keeps the one cache file' '1' "$n_cache"
+
+  rm -f data/asc/cache/hook/*"${action}"* "$marker"
+  hook -w -a "$action" -s 'test'
+  lines=0
+  if [[ -f "$marker" ]]; then
+    lines="$(wc -l < "$marker" | tr -d ' ')"
+  fi
+  n_cache="$(find data/asc/cache/hook -name "*${action}*" 2>/dev/null | wc -l | tr -d ' ')"
+  assertEquals 'cold warmup does not run the body' '0' "$lines"
+  assertEquals 'cold warmup writes the cache file' '1' "$n_cache"
+
+  hook -a "$action" -s 'test'
+  lines="$(wc -l < "$marker" | tr -d ' ')"
+  assertEquals 'later normal call runs the cached body once' '1' "$lines"
+
+  rm -f data/asc/cache/hook/*"${action}"* "$marker" "$hook_file"
+}
+
+##
+# Prints hook -d candidate paths from a debug capture, one per line.
+#
+# @param 1 String : debug stdout file.
+#
+_hook_test_lookup_candidates() {
+  awk '
+    /lookup paths :/ {p=1; next}
+    p==1 && /^$/ {p=2; next}
+    p==2 && /^$/ {exit}
+    p==2 && $0 !~ /^  / {print}
+  ' "$1"
+}
+
+##
+# Repeats each direct action.hook.sh line after its variant block.
+#
+# @param 1 String : ordered candidate list.
+# @param 2 String : action name.
+# @param 3 Int : extra copies of each direct path.
+#
+_hook_test_expand_directs() {
+  local p_list="$1"
+  local p_action="$2"
+  local p_extra="$3"
+  local line
+  local direct=''
+  local block=''
+  local out=''
+  local i
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ -z "$line" ]]; then
+      continue
+    fi
+
+    if [[ "$line" == "${p_action}.hook.sh" || "$line" == */"${p_action}.hook.sh" ]]; then
+      if [[ -n "$direct" ]]; then
+        out+="$block"
+
+        for (( i = 0 ; i < p_extra ; i++ )); do
+          out+="$direct"$'\n'
+        done
+      fi
+
+      direct="$line"
+      block="$line"$'\n'
+    else
+      block+="$line"$'\n'
+    fi
+  done <<< "$p_list"
+
+  if [[ -n "$direct" ]]; then
+    out+="$block"
+
+    for (( i = 0 ; i < p_extra ; i++ )); do
+      out+="$direct"$'\n'
+    done
+  fi
+
+  printf '%s' "${out%$'\n'}"
+}
+
+##
+# Copies of each direct action.hook.sh line, variants omitted.
+#
+# @param 1 String : ordered candidate list.
+# @param 2 String : action name.
+# @param 3 Int : copies of each direct path.
+#
+_hook_test_directs_only() {
+  local p_list="$1"
+  local p_action="$2"
+  local p_copies="$3"
+  local line
+  local out=''
+  local i
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ "$line" == "${p_action}.hook.sh" || "$line" == */"${p_action}.hook.sh" ]]; then
+      for (( i = 0 ; i < p_copies ; i++ )); do
+        out+="$line"$'\n'
+      done
+    fi
+  done <<< "$p_list"
+
+  printf '%s' "${out%$'\n'}"
+}
+
+##
+# Project-root candidates for one raw -a value, including its instance variant.
+#
+# @param 1 String : raw action filter.
+#
+_hook_test_root_candidates() {
+  local p_action="$1"
+
+  printf '%s\n%s' "${p_action}.hook.sh" "${p_action}.${INSTANCE_TYPE}.hook.sh"
+}
+
+##
+# Candidate lines that exist as files, in the same order, repeats included.
+#
+# @param 1 String : ordered candidate list.
+#
+_hook_test_existing_candidates() {
+  local p_list="$1"
+  local line
+  local out=''
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ -n "$line" && -f "$line" ]]; then
+      out+="$line"$'\n'
+    fi
+  done <<< "$p_list"
+
+  printf '%s' "${out%$'\n'}"
+}
+
+##
+# Repeated -a and -s keep repeated direct candidates. -r appends root paths.
+#
+test_hook_lookup_repeated_filters_keep_direct_candidates() {
+  local action='nftasclook'
+  local hook_file="asc/test/${action}.hook.sh"
+  local dbg='data/asc/nftasclook-dbg.txt'
+  local ordinary=''
+  local repeated_a=''
+  local repeated_s=''
+  local with_root=''
+  local repeated_a_root=''
+  local repeated_s_root=''
+  local ordinary_m=''
+  local repeated_a_m=''
+  local repeated_s_m=''
+  local with_root_m=''
+  local repeated_a_root_m=''
+  local repeated_s_root_m=''
+  local expect_a
+  local expect_s
+  local root_one
+  local root_repeat
+
+  rm -f data/asc/cache/hook/*"${action}"* "$hook_file" "$dbg"
+  touch "$hook_file"
+
+  hook_dry_run_matches=''
+  rm -f data/asc/cache/hook/*"${action}"*
+  hook -a "$action" -s 'test' -t -d > "$dbg"
+  ordinary="$(_hook_test_lookup_candidates "$dbg")"
+  ordinary_m="${hook_dry_run_matches%$'\n'}"
+
+  hook_dry_run_matches=''
+  rm -f data/asc/cache/hook/*"${action}"*
+  hook -a "$action $action" -s 'test' -t -d > "$dbg"
+  repeated_a="$(_hook_test_lookup_candidates "$dbg")"
+  repeated_a_m="${hook_dry_run_matches%$'\n'}"
+
+  hook_dry_run_matches=''
+  rm -f data/asc/cache/hook/*"${action}"*
+  hook -a "$action" -s 'test test' -t -d > "$dbg"
+  repeated_s="$(_hook_test_lookup_candidates "$dbg")"
+  repeated_s_m="${hook_dry_run_matches%$'\n'}"
+
+  hook_dry_run_matches=''
+  rm -f data/asc/cache/hook/*"${action}"*
+  hook -a "$action" -s 'test' -t -d -r > "$dbg"
+  with_root="$(_hook_test_lookup_candidates "$dbg")"
+  with_root_m="${hook_dry_run_matches%$'\n'}"
+
+  hook_dry_run_matches=''
+  rm -f data/asc/cache/hook/*"${action}"*
+  hook -a "$action $action" -s 'test' -t -d -r > "$dbg"
+  repeated_a_root="$(_hook_test_lookup_candidates "$dbg")"
+  repeated_a_root_m="${hook_dry_run_matches%$'\n'}"
+
+  hook_dry_run_matches=''
+  rm -f data/asc/cache/hook/*"${action}"*
+  hook -a "$action" -s 'test test' -t -d -r > "$dbg"
+  repeated_s_root="$(_hook_test_lookup_candidates "$dbg")"
+  repeated_s_root_m="${hook_dry_run_matches%$'\n'}"
+
+  expect_a="$(_hook_test_expand_directs "$ordinary" "$action" 1)"
+  expect_s="$expect_a"$'\n'"$(_hook_test_directs_only "$ordinary" "$action" 2)"
+  root_one="$(_hook_test_root_candidates "$action")"
+  root_repeat="$(_hook_test_root_candidates "$action $action")"
+
+  assertEquals 'ordinary candidates and matches stay in one order' \
+    "$(_hook_test_existing_candidates "$ordinary")" "$ordinary_m"
+  assertEquals 'repeated -a candidate list' \
+    "$expect_a" "$repeated_a"
+  assertEquals 'repeated -a match list' \
+    "$(_hook_test_existing_candidates "$expect_a")" "$repeated_a_m"
+  assertEquals 'repeated -s candidate list' \
+    "$expect_s" "$repeated_s"
+  assertEquals 'repeated -s match list' \
+    "$(_hook_test_existing_candidates "$expect_s")" "$repeated_s_m"
+  assertEquals 'ordinary -r candidate list' \
+    "$ordinary"$'\n'"$root_one" "$with_root"
+  assertEquals 'ordinary -r match list' \
+    "$(_hook_test_existing_candidates "$ordinary"$'\n'"$root_one")" "$with_root_m"
+  assertEquals 'repeated -a -r candidate list' \
+    "$expect_a"$'\n'"$root_repeat" "$repeated_a_root"
+  assertEquals 'repeated -a -r match list' \
+    "$(_hook_test_existing_candidates "$expect_a"$'\n'"$root_repeat")" "$repeated_a_root_m"
+  assertEquals 'repeated -s -r candidate list' \
+    "$expect_s"$'\n'"$root_one" "$repeated_s_root"
+  assertEquals 'repeated -s -r match list' \
+    "$(_hook_test_existing_candidates "$expect_s"$'\n'"$root_one")" "$repeated_s_root_m"
+
+  rm -f data/asc/cache/hook/*"${action}"* "$hook_file" "$dbg"
+}
+
+##
 # f_provision_using_lookup_values: dual-compat + printf -v output.
 #
 test_f_provision_using_lookup_values() {
@@ -465,6 +724,8 @@ oneTimeTearDown() {
     rm -f "asc/$s/nftaschhnc_dry_run.hook.sh"
   done
   rm -fr "asc/extensions/nftaschdehnc"
+  rm -f asc/test/nftaschw.hook.sh data/asc/nftaschw_marker.txt data/asc/cache/hook/*nftaschw*
+  rm -f asc/test/nftasclook.hook.sh data/asc/nftasclook-dbg.txt data/asc/cache/hook/*nftasclook*
   _hook_test_zzscore_cleanup
 }
 

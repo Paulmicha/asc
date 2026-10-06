@@ -68,6 +68,40 @@ test_f_autoload_add_lookup_level() {
 }
 
 ##
+# Lookup index records paths and keeps the unindexed order.
+#
+test_f_autoload_add_lookup_level_index() {
+  local lookup_paths_arr=()
+  local unindexed_arr=()
+  local -A seen_arr=()
+
+  f_autoload_add_lookup_level 'asc/test/init.' 'hook.sh' 'compose' lookup_paths_arr '' '' seen_arr
+  f_autoload_add_lookup_level 'asc/test/init.' 'hook.sh' 'compose' lookup_paths_arr '' '' seen_arr
+  f_autoload_add_lookup_level 'asc/test/init.' 'hook.sh' 'compose' unindexed_arr
+
+  assertEquals 'indexed plain path matches unindexed' \
+    "${unindexed_arr[0]}" "${lookup_paths_arr[0]}"
+  assertEquals 'indexed repeat stays one path' '1' "${#lookup_paths_arr[@]}"
+  assertEquals 'index records the plain path' \
+    '1' "${seen_arr[asc/test/init.compose.hook.sh]-}"
+
+  lookup_paths_arr=()
+  unindexed_arr=()
+  seen_arr=()
+  f_autoload_add_lookup_level 'asc/test/init.' 'hook.sh' 'app-1.2' lookup_paths_arr '' '' seen_arr
+  f_autoload_add_lookup_level 'asc/test/init.' 'hook.sh' 'app-1.2' unindexed_arr
+
+  assertEquals 'indexed versioned length matches unindexed' \
+    "${#unindexed_arr[@]}" "${#lookup_paths_arr[@]}"
+  assertEquals 'indexed versioned order matches unindexed' \
+    "${unindexed_arr[*]}" "${lookup_paths_arr[*]}"
+  assertEquals 'index records the versioned base' \
+    '1' "${seen_arr[asc/test/init.app.hook.sh]-}"
+  assertEquals 'index records the versioned leaf' \
+    '1' "${seen_arr[asc/test/init.app-1.2.hook.sh]-}"
+}
+
+##
 # f_autoload_print_lookup_paths must keep path components intact (no word-split).
 #
 test_f_autoload_print_lookup_paths() {

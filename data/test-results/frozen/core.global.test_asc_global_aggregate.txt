@@ -1,1 +1,2 @@
 test_asc_global_aggregate
+asc/core/global.manual-inc.sh: line 352: INSTANCE_TYPE: readonly variable

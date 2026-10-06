@@ -1,0 +1,7 @@
+test_writer_does_not_create_a_missing_plug
+Adding ds (asc/instance/ds.sh) to ~/.bash_aliases_asc
+Adding gu (asc/instance/gu.sh) to ~/.bash_aliases_asc
+Adding gmp (asc/instance/gmp.sh) to ~/.bash_aliases_asc
+Adding gacp (asc/instance/gacp.sh) to ~/.bash_aliases_asc
+Adding ssk (asc/instance/ssk.sh) to ~/.bash_aliases_asc
+Plug /tmp/tmp.xF3GTDwwbG/noplug/.bash_aliases does not exist. Map written. Plug left unchanged.

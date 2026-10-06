@@ -1,0 +1,2 @@
+test_writer_rejects_a_plug_outside_the_allowlist
+Plug must be .bash_aliases, .bashrc, or .profile (a file under $HOME).

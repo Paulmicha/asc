@@ -1,0 +1,6 @@
+test_writer_bashrc_map_follows_the_plug
+Adding ds (asc/instance/ds.sh) to ~/.bashrc_asc
+Adding gu (asc/instance/gu.sh) to ~/.bashrc_asc
+Adding gmp (asc/instance/gmp.sh) to ~/.bashrc_asc
+Adding gacp (asc/instance/gacp.sh) to ~/.bashrc_asc
+Adding ssk (asc/instance/ssk.sh) to ~/.bashrc_asc

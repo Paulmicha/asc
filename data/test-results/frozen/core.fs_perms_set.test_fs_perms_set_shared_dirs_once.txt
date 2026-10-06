@@ -1,0 +1,11 @@
+test_fs_perms_set_shared_dirs_once
+Setting writeable file permissions 0664 to files inside '/tmp/asc-dwt-perms.ySXMEH/sites'
+Setting writeable dir permissions 0775 to '/tmp/asc-dwt-perms.ySXMEH/sites'
+Setting writeable file permissions 0664 to files inside '/tmp/asc-dwt-perms.ySXMEH/private'
+Setting writeable dir permissions 0775 to '/tmp/asc-dwt-perms.ySXMEH/private'
+Setting protected file permissions 0440 to '/tmp/asc-dwt-perms.ySXMEH/sites/alpha/settings.php'
+Setting protected file permissions 0440 to '/tmp/asc-dwt-perms.ySXMEH/sites/nfdir/settings.php'
+
+Ran 1 test.
+
+OK

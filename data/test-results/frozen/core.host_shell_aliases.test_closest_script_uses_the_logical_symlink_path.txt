@@ -1,0 +1,1 @@
+test_closest_script_uses_the_logical_symlink_path

@@ -3,8 +3,6 @@
 ##
 # Implements hook -s 'test' -a 'core' -v 'HOST_TYPE PROVISION_USING'.
 #
-# Verifies current instance can execute pgsql actions normally.
-#
 # @see f_test_batch_exec() in asc/test/test.opt-inc.sh
 #
 # @example
@@ -13,4 +11,4 @@
 #   asc/test/core.sh
 #
 
-f_test_batch_exec 'asc/extensions/pgsql/test/asc'
+f_test_batch_exec 'scripts/asc/contrib/asc/drupalwt/test/core' || exit $?

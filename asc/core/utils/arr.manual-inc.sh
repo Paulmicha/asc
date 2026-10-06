@@ -41,6 +41,8 @@ f_in_array() {
 #
 # @param 1 String needle.
 # @param 2 String the Array variable name (haystack).
+# @param 3 [optional] String : associative array variable name. When set,
+#   membership is that key instead of a linear scan. The caller owns the array.
 #
 # @example
 #   declare -a my_array_arr=("test1" "test2" "test3");
@@ -53,6 +55,19 @@ f_in_array() {
 f_array_add_once() {
   local p_needle="$1"
   local -n p_haystack="$2"
+  local p_index_name="${3:-}"
+
+  if [[ -n "$p_index_name" ]]; then
+    local -n p_seen="$p_index_name"
+
+    if [[ -n "${p_seen[$p_needle]+x}" ]]; then
+      return 0
+    fi
+
+    p_seen["$p_needle"]=1
+    p_haystack+=("$p_needle")
+    return 0
+  fi
 
   if ! f_in_array "$p_needle" "$2"; then
     p_haystack+=("$p_needle")

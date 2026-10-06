@@ -237,6 +237,11 @@ hook() {
   local hook_cache_file="data/asc/cache/hook/${hook_cache_key}.sh"
 
   if [[ -f "$hook_cache_file" ]]; then
+    # -w shares this key. A hit must not source the cached bodies.
+    if [[ $b_cache_warmup -eq 1 ]]; then
+      return 0
+    fi
+
     . "$hook_cache_file"
     return
   fi
@@ -361,8 +366,10 @@ hook() {
   #   echo "  prefixes = '$prefixes'"
   # fi
 
-  # Build lookup paths.
+  # Build lookup paths. lookup_seen_arr records direct additions for later
+  # membership checks inside this call. It does not drop a repeated direct add.
   local lookup_paths_arr=()
+  local -A lookup_seen_arr=()
   local lookup_subject
 
   for lookup_subject in $subjects; do
@@ -534,6 +541,7 @@ f_hook_build_lookup_by_subject() {
   local v_val
   local v_flag
   local v_fallback
+  local added_path
 
   # By default, this function will produce lookup paths using the default
   # double-extension pattern "*.hook.sh". This can be altered when using the
@@ -562,7 +570,9 @@ f_hook_build_lookup_by_subject() {
 
         # First, add "pure" actions suggestions - unless excluded (see prefixes).
         if [[ -z "$o_prefixes_filter" ]]; then
-          lookup_paths_arr+=("$bp/${p_path}.${suffix}")
+          added_path="$bp/${p_path}.${suffix}"
+          lookup_paths_arr+=("$added_path")
+          lookup_seen_arr["$added_path"]=1
         fi
 
         f_str_split1 'p_parts_arr' "$p_path" '/'
@@ -570,7 +580,9 @@ f_hook_build_lookup_by_subject() {
 
         # Then add "prefixed" actions suggestions.
         for x_val in $prefixes; do
-          lookup_paths_arr+=("$bp/$o_subject/${x_val}_${a}.${suffix}")
+          added_path="$bp/$o_subject/${x_val}_${a}.${suffix}"
+          lookup_paths_arr+=("$added_path")
+          lookup_seen_arr["$added_path"]=1
         done
 
         # Finally, add the variants suggestions.
@@ -587,7 +599,7 @@ f_hook_build_lookup_by_subject() {
         f_str_subsequences "$v_values" '.'
         if [[ -z "$o_prefixes_filter" ]]; then
           for v_val in $str_subsequences; do
-            f_autoload_add_lookup_level "$bp/$o_subject/${a}." "$suffix" "$v_val" lookup_paths_arr
+            f_autoload_add_lookup_level "$bp/$o_subject/${a}." "$suffix" "$v_val" lookup_paths_arr '' '' lookup_seen_arr
           done
         fi
 
@@ -595,7 +607,7 @@ f_hook_build_lookup_by_subject() {
         # pre_bootstrap.compose.hook.sh
         for x_val in $prefixes; do
           for v_val in $str_subsequences; do
-            f_autoload_add_lookup_level "$bp/$o_subject/${x_val}_${a}." "$suffix" "$v_val" lookup_paths_arr
+            f_autoload_add_lookup_level "$bp/$o_subject/${x_val}_${a}." "$suffix" "$v_val" lookup_paths_arr '' '' lookup_seen_arr
           done
         done
       esac
@@ -637,6 +649,7 @@ f_hook_build_project_root_dir_lookup() {
   local v_val
   local v_flag
   local v_fallback
+  local added_path
 
   # TODO [evol] Whitelist possible values ?
   a="$o_action"
@@ -651,12 +664,16 @@ f_hook_build_project_root_dir_lookup() {
 
   # First, add "pure" actions suggestions - unless excluded (see prefixes).
   if [[ -z "$o_prefixes_filter" ]]; then
-    lookup_paths_arr+=("${a}.${suffix}")
+    added_path="${a}.${suffix}"
+    lookup_paths_arr+=("$added_path")
+    lookup_seen_arr["$added_path"]=1
   fi
 
   # Then add "prefixed" actions suggestions.
   for x_val in $prefixes; do
-    lookup_paths_arr+=("${x_val}_${a}.${suffix}")
+    added_path="${x_val}_${a}.${suffix}"
+    lookup_paths_arr+=("$added_path")
+    lookup_seen_arr["$added_path"]=1
   done
 
   # Finally, add the variants suggestions.
@@ -673,7 +690,7 @@ f_hook_build_project_root_dir_lookup() {
   f_str_subsequences "$v_values" '.'
   if [[ -z "$o_prefixes_filter" ]]; then
     for v_val in $str_subsequences; do
-      f_autoload_add_lookup_level "${a}." "$suffix" "$v_val" lookup_paths_arr
+      f_autoload_add_lookup_level "${a}." "$suffix" "$v_val" lookup_paths_arr '' '' lookup_seen_arr
     done
   fi
 
@@ -681,7 +698,7 @@ f_hook_build_project_root_dir_lookup() {
   # pre_bootstrap.compose.hook.sh
   for x_val in $prefixes; do
     for v_val in $str_subsequences; do
-      f_autoload_add_lookup_level "${x_val}_${a}." "$suffix" "$v_val" lookup_paths_arr
+      f_autoload_add_lookup_level "${x_val}_${a}." "$suffix" "$v_val" lookup_paths_arr '' '' lookup_seen_arr
     done
   done
 }

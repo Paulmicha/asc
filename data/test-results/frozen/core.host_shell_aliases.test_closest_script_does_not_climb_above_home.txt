@@ -1,0 +1,2 @@
+test_closest_script_does_not_climb_above_home
+closest_asc_docroot_exec: no asc/instance/host_shell_alias_fixture.sh from /tmp/tmp.xF3GTDwwbG/above/home/proj/sub through /tmp/tmp.xF3GTDwwbG/above/home.

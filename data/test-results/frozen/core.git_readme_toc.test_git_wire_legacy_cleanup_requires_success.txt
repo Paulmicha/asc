@@ -1,0 +1,5 @@
+test_git_wire_legacy_cleanup_requires_success
+
+Ran 9 tests.
+
+OK

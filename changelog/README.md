@@ -12,7 +12,7 @@ Files: `YYYY/MM/DD-short-label.md`. Each file starts with a status table. `$` in
 
 | File | Role |
 |------|------|
-| [02-reinit-performance.md](2026/10/02-reinit-performance.md) | Plan only. Warmup must not replay a cache hit. Then lookup membership, shared permission targets, and token rendering. Does not reorder the 2026-09-27 backlog. |
+| [02-reinit-performance.md](2026/10/02-reinit-performance.md) | Partial. Tasks 1–4 are in the tree. `php -l`, post-change reinit timing, and the instance settings override are still open. |
 
 ## Current frontier (2026-09-21)
 
