@@ -28,6 +28,11 @@ Before adding a function, search `scripts/asc/extend/<subject>/<subject>.inc.sh`
 then `asc/extensions/*/*.inc.sh`, then `asc/core/`. Call another action as
 `scripts/asc/extend/<subject>/<action>.sh`.
 
+Prefer direct variable expansions, local path assignments, and simple shell
+conditions over helper functions. Multiple callers alone do not justify
+extraction. A new helper must encapsulate substantial behavior beyond naming
+the expression it replaces. That is `shell_function_existence.md`.
+
 The extension ignore file is the project-root `.asc_extensions_ignore` and the
 variants listed in `f_asc_extensions_ignore_filepath`.
 `scripts/asc/override/.asc_extensions_ignore` is not one of them (legacy path).
@@ -59,11 +64,16 @@ Another vendor: `scripts/asc/contrib/$vendor/`. One project:
 
 1. Read the relevant concepts, scope, and naming conventions in `README.md`,
    plus `.editorconfig` for the files being changed.
-2. List the current files under `data/entities/anti-pattern/`. Read the full
-   applicable records, including examples: `general` for applicable formatting,
-   `asc` for ASC shell/YAML work, and language or other groups when relevant.
-   Use descriptions, globs, and the actual task to judge applicability. Include
-   new records added since this skill was written.
+2. Read the anti-pattern catalog before choosing a shape. The maintained
+   catalog is `data/entities/anti-pattern/` in the ASC tree being edited.
+   When that directory is absent, read `$reg_val/data/entities/anti-pattern/`
+   after `f_host_registry_get asc_mother_repo_path`. When `$reg_val` is empty,
+   use `$HOME/Documents/asc` if that tree contains `asc/bootstrap.sh`.
+   Records that exist in the tree being edited still apply. Read each record
+   whose `globs` match a file you will add or change: `general` for formatting,
+   `asc` for shell and YAML, and other groups when relevant. Include new
+   records added since this skill was written. If neither catalog can be read,
+   stop and name the missing path. Do not skip the records and continue.
 3. List and read matching templates under `asc/extensions/builder/subject/`,
    including relevant subdirectories. Select the shape before creating a file.
    Do not paste those templates, or the anti-pattern records, into the reply.
@@ -110,9 +120,15 @@ Another vendor: `scripts/asc/contrib/$vendor/`. One project:
 ## Before delivering
 
 Review the actual diff or proposed code against the selected templates and every
-applicable record read. Correct violations introduced by this work, check that
-no template placeholders remain, and run checks appropriate to the change.
-Do not describe a stub checker as verification.
+applicable record read. Which new functions can be replaced by direct
+expressions without losing substantial behavior? Remove those before delivery.
+Correct other violations introduced by this work, check that no template
+placeholders remain, and run checks appropriate to the change.
+Do not describe a stub checker as verification. `asc/extensions/checker/stage/inspect.sh`
+does not enforce these records while it is still a TODO.
+A syntax check of this skill is not evidence the function rule holds. After a
+change to this guidance, replay a small representative shell task in a fresh
+agent session and read the functions it created.
 Support runtime claims with `make test-core`, a file under `asc/test/`, or the
 action under test, actually executed, and report its result. Static inspection
 or syntax checks alone do not prove runtime behavior. Unrun stays unverified.

@@ -229,6 +229,56 @@ f_test_results_tree_put() {
 }
 
 ##
+# Remove CSI color sequences from one shunit2 output line.
+#
+# @param $1 String : raw line.
+#
+f_test_results_plain_line() {
+  local line="$1"
+
+  printf '%s' "$line" | sed -E $'s/\033\\[[0-9;]*[[:alpha:]]//g'
+}
+
+##
+# Classify one shunit2 summary line.
+#
+# SKIP is only for a file that contains one test function. An aggregate
+# OK (skipped=N) on a multi-function file stays PASS. shunit2 omits the
+# skip counter when nothing was skipped, so both FAILED shapes are FAIL.
+#
+# @param $1 String : summary line with color sequences removed.
+# @param $2 Int : number of test_* functions in the capture.
+#
+# @echo PASS, FAIL, SKIP, or empty when the line is not a summary.
+#
+f_test_results_summary_status() {
+  local plain="$1"
+  local test_count="$2"
+
+  if [[ "$plain" =~ ^FAILED ]]; then
+    echo 'FAIL'
+    return 0
+  fi
+
+  if [[ "$plain" == 'OK' ]]; then
+    echo 'PASS'
+    return 0
+  fi
+
+  if [[ "$plain" =~ ^OK\ \(skipped=[1-9][0-9]*\)$ ]]; then
+    if [[ "$test_count" -eq 1 ]]; then
+      echo 'SKIP'
+    else
+      echo 'PASS'
+    fi
+
+    return 0
+  fi
+
+  echo ''
+}
+
+##
 # Parse shunit2 suite stdout and write per-case archives.
 #
 # @param $1 suite stem
@@ -237,9 +287,10 @@ f_test_results_tree_put() {
 f_test_results_parse_shunit_suite() {
   local suite="$1"
   local capture="$2"
-  local test_dir case_name block status line root
+  local test_dir case_name block status line plain root
   local in_case=0
   local current_case=''
+  local test_count=0
 
   if ! f_test_results_enabled || [[ "${test_results_active:-0}" -ne 1 ]]; then
     return 0
@@ -249,13 +300,23 @@ f_test_results_parse_shunit_suite() {
   test_dir="${root}/frozen"
 
   while IFS= read -r line || [[ -n "$line" ]]; do
-    if [[ "$line" =~ ^test_[a-zA-Z0-9_]+$ ]]; then
+    plain="$(f_test_results_plain_line "$line")"
+
+    if [[ "$plain" =~ ^test_[a-zA-Z0-9_]+$ ]]; then
+      test_count=$((test_count + 1))
+    fi
+  done <"$capture"
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    plain="$(f_test_results_plain_line "$line")"
+
+    if [[ "$plain" =~ ^test_[a-zA-Z0-9_]+$ ]]; then
       if [[ -n "$current_case" ]]; then
         f_test_results_flush_case "$suite" "$current_case" "$block"
       fi
 
-      current_case="$line"
-      block="$line"$'\n'
+      current_case="$plain"
+      block="$plain"$'\n'
       in_case=1
 
       continue
@@ -264,17 +325,13 @@ f_test_results_parse_shunit_suite() {
     if [[ "$in_case" -eq 1 ]]; then
       block+="$line"$'\n'
 
-      if [[ "$line" =~ ^Ran\ [0-9]+\ test ]]; then
-        :
-      elif [[ "$line" == 'OK' || "$line" =~ ^FAILED ]]; then
-        status='PASS'
+      if [[ "$plain" =~ ^Ran\ [0-9]+\ test ]]; then
+        continue
+      fi
 
-        if [[ "$line" =~ ^FAILED ]]; then
-          status='FAIL'
-        elif echo "$block" | grep -qi 'skipped'; then
-          status='SKIP'
-        fi
+      status="$(f_test_results_summary_status "$plain" "$test_count")"
 
+      if [[ -n "$status" ]]; then
         f_test_results_flush_case "$suite" "$current_case" "$block" "$status"
 
         current_case=''
@@ -285,10 +342,12 @@ f_test_results_parse_shunit_suite() {
   done <"$capture"
 
   if [[ -n "$current_case" ]]; then
-    status='PASS'
+    plain="$(printf '%s' "$block" | sed -e '/^$/d' | tail -n 1)"
+    plain="$(f_test_results_plain_line "$plain")"
+    status="$(f_test_results_summary_status "$plain" "$test_count")"
 
-    if echo "$block" | grep -q 'FAILED'; then
-      status='FAIL'
+    if [[ -z "$status" ]]; then
+      status='PASS'
     fi
 
     f_test_results_flush_case "$suite" "$current_case" "$block" "$status"

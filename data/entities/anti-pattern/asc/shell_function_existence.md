@@ -1,5 +1,5 @@
 ---
-description: Every ASC shell function must have a valid reason to exist as a function. It must do something substancial and it must carry intrinsic value for avoiding repeating blocks of code reused in several places.
+description: Every ASC shell function must encapsulate substantial behavior beyond naming the expression it replaces. Multiple callers alone do not justify extraction. Prefer direct variable expansions, local path assignments, and simple shell conditions.
 globs: '*.sh'
 ---
 
