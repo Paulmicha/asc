@@ -96,6 +96,7 @@ esac
 dirs_swapped=()
 dirs_swapped+=('asc')
 dirs_swapped+=('scripts/asc/contrib/asc')
+dirs_swapped+=('.agents/skills/asc-actions-priority')
 dirs_swapped+=('.agents/skills/asc-author-code')
 dirs_swapped+=('.agents/skills/asc-author-docs')
 dirs_swapped+=('.agents/skills/asc-mother-guard')
