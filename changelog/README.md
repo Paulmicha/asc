@@ -13,6 +13,7 @@ Files: `YYYY/MM/DD-short-label.md`. Each file starts with a status table. `$` in
 | File | Role |
 |------|------|
 | [02-reinit-performance.md](2026/10/02-reinit-performance.md) | Partial. Tasks 1–4 are in the tree. `php -l`, post-change reinit timing, and the instance settings override are still open. |
+| [29-local-concurrent-stacks.md](2026/10/29-local-concurrent-stacks.md) | Plan only. One laptop, several Compose projects, one way to share ports 80 and 443. Not a go-ahead. |
 
 ## Current frontier (2026-09-21)
 
