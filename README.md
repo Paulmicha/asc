@@ -495,14 +495,14 @@ The "warming" process runs the following operations in that order :
 
 Short answer : run `make reinit`.
 
-Specific individual steps may be separately run manually :
+Specific individual steps may be separately run :
 
 - TODO only reinit env vars
 - TODO only rebuild hook cache
 - TODO only rebuild entity types discovery
 - TODO only rebuild discovered entity instances (1 or some or all types, such as e.g. hosts and/or remote hosts)
 
-Some convenience entry points exist for usual tasks that usually run together, like `make rere` = `make reinit` then `make restart`.
+Some convenience entry points exist for tasks that usually run together, like `make rere` = `make reinit` then `make restart`.
 
 #### (any state) → Cold
 

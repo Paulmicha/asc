@@ -7,9 +7,11 @@
 # repo :
 # - asc
 # - scripts/asc/contrib/asc
+# - the shared ASC skill directories under .agents/skills
 #
-# It leaves everything else untouched. The remote branch/tag is overridable
-# using a global named 'ASC_BRANCH' (defaults to 'main').
+# It also replaces AGENTS.asc.md, leaving the instance's AGENTS.md untouched.
+# The remote branch/tag is overridable using a global named 'ASC_BRANCH'
+# (defaults to 'main').
 #
 # @example
 #   make core-upgrade
@@ -132,12 +134,12 @@ for dir_swapped in "${dirs_swapped[@]}"; do
   fi
 done
 
-# Individual files.
-cp -f "$tmp_dir/AGENTS.md" 'AGENTS.md'
+# Shared agent instructions. The instance owns its root AGENTS.md.
+cp -f "$tmp_dir/AGENTS.asc.md" 'AGENTS.asc.md'
 
-if [[ $? -ne 0 || ! -f 'AGENTS.md' ]]; then
+if [[ $? -ne 0 || ! -f 'AGENTS.asc.md' ]]; then
   echo >&2
-  echo "Error in $BASH_SOURCE line $LINENO: unable to copy AGENTS.md to '$tmp_dir/AGENTS.md'." >&2
+  echo "Error in $BASH_SOURCE line $LINENO: unable to copy '$tmp_dir/AGENTS.asc.md' to 'AGENTS.asc.md'." >&2
   echo "-> Aborting (5)." >&2
   echo >&2
   exit 5
