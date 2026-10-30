@@ -207,12 +207,12 @@ Implications : change ASC core current files discovery mechanisms to support bot
 1. [x] ~~Stabilize DSL~~
 1. [x] ~~Stabilize Yml~~
 1. [x] ~~Refactor Bootstrap~~
-1. [ ] Stabilize workflow + git flow
+1. [ ] Stabilize workflow (agent loop controls, git branching model, gates)
 1. [x] ~~Refactor core + core extensions~~
 1. [x] ~~Refactor tests~~
 1. [ ] Complete the Builder
 1. [ ] Complete the baseline implementations
-1. [ ] Implement agents (for now : Ollama and Cursor to test MVP, next : Codex + Claude code)
+1. [ ] Implement agents (for now : Cursor + Codex + Ollama, next : Claude Code)
 
 ## Documentation
 
@@ -224,9 +224,37 @@ ASC attemtps to unify humans and AI agents use of "prose" by using distinct type
 
 ASC core (this repo = "mother" ASC repo) contains an `AGENTS.md` document pointing at 3 skills :
 
+- `.agents/skills/asc-actions-priority` prioritizes the use of local project instance ASC entry points defined as preferred alternatives compared to custom scripts and commands (e.g. like Docker compose, see the corresponding ASC extension) ;
 - `.agents/skills/asc-author-docs` tells which documents are used to describe which rules, constraints, instructions, etc. - and what agents are allowed and not allowed to do in those docs ;
 - `.agents/skills/asc-author-code` describes ASC-specific (bash) shell coding styles and design patterns ;
 - `.agents/skills/asc-mother-guard` guards against potential privacy-related issues when improvements made on ASC itself is being contributed to this "mother" (*upstream*) repo from other projects using ASC.
+
+&lt;proposal-2026-10-30&gt;
+
+TODO [wip] we need to clarify things for the special use case of eventually turning the linux home dir into an ASC project instance, and more generally, how the eventual customzing of local project instances skills may conflict with eventual ASC upstream updates to be merged into individual project instances.
+
+**The home directory becomes both an ASC instance and the location of user-wide agent configuration.** The distinction is the path and the agent feature involved.
+
+For example, on a laptop, the four ASC skills in [`~/.agents/skills/`](~/.agents/skills) are **available across local workspaces** to Codex and Cursor. Codex sessions see both those home copies and the mother checkout’s project copies. Cursor also documents `~/.agents/skills/` as a global local-machine location. [Cursor skills documentation](https://cursor.com/help/customization/skills)
+
+**Available everywhere does not mean applied in full on every task.** A skill supplies a name and description for discovery; the agent reads its `SKILL.md` when the task calls for it or when instructed to use it. An `AGENTS.md` instruction can make that use mandatory for a particular kind of work. [OpenAI skills documentation](https://developers.openai.com/plugins/concepts/skills)
+
+| Location | Role on this laptop |
+|---|---|
+| `~/asc/` and `~/AGENTS.md` | Parts of the home-directory ASC instance. Its `AGENTS.md` is project guidance when that instance is in scope; it is not the same thing as Codex’s global instruction file. |
+| `~/.agents/skills/` | User-wide skills location for local Codex and Cursor sessions—even in unrelated projects. The ASC skills themselves describe when they apply. |
+| Mother `.agents/skills/` | Project copies belonging to the mother checkout. Other ASC instances can have their own project copies. |
+| `~/.cursor/rules/` | Separate Cursor user-level rule files. Several currently say `alwaysApply: true`, including ASC-related rules; some of their text limits their applicability to ASC work. Cursor documents these as machine-local user rules, but I haven’t tested their delivery in a fresh Cursor session. [Cursor rules documentation](https://prod.cursor.com/help/customization/rules) |
+
+For **Codex**, the global `AGENTS.md` location is under `~/.codex`; project instructions are discovered from the repository root toward the working directory. Consequently, don’t assume `~/AGENTS.md` is injected into every separate repository under your home directory. In this chat, the instructions injected for the mother checkout are its own project instructions. [OpenAI’s AGENTS.md guidance](https://learn.chatgpt.com/docs/agent-configuration/agents-md)
+
+For the goal of getting mother skills into every ASC instance, the current mother checkout’s [`asc/core/upgrade.sh`](~/Documents/asc/asc/core/upgrade.sh:94) explicitly replaces the four named skill directories in the **instance where the upgrade runs**. If run from the home instance, those destinations are also the user-wide `~/.agents/skills` locations. It also **overwrites that instance’s `AGENTS.md`**, so instance-specific instructions in that file need attention before an upgrade.
+
+The upgrade script `asc/core/upgrade.sh` copies from the selected upstream branch, and the script actually running in an instance may differ from the mother checkout’s current version. A local home copy does not necessarily travel automatically to other machines or Cursor cloud agents; Cursor specifically says `~/.agents/skills/` stays local.
+
+The practical arrangement is therefore: **keep the mother as the maintained source, distribute its skills into each ASC instance, and treat the home instance’s copies as globally discoverable on this laptop.** Project-level copies and `AGENTS.md` remain valuable for other machines, collaborators, and remote agents.
+
+&lt;/proposal-2026-10-30&gt;
 
 ### Specs, Contracts, Living Docs (SPECS)
 
