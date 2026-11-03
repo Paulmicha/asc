@@ -45,6 +45,27 @@ from print_paginate import (
     content_width_px,
 )
 
+FIT_DIAGRAMS_JS = """(pageHeight) => {
+  document.querySelectorAll('.mermaid-wrap, .graphviz-wrap').forEach((wrap) => {
+    const svg = wrap.querySelector('svg');
+    if (!svg) return;
+
+    const rect = svg.getBoundingClientRect();
+    const style = getComputedStyle(wrap);
+    const spacing = (parseFloat(style.marginTop) || 0) +
+      (parseFloat(style.marginBottom) || 0) +
+      (parseFloat(style.paddingTop) || 0) +
+      (parseFloat(style.paddingBottom) || 0) +
+      (parseFloat(style.borderTopWidth) || 0) +
+      (parseFloat(style.borderBottomWidth) || 0);
+    const maxHeight = Math.max(1, pageHeight - spacing - 2);
+    if (rect.width > 0 && rect.height > maxHeight) {
+      svg.style.width = (rect.width * maxHeight / rect.height) + 'px';
+      svg.style.height = 'auto';
+    }
+  });
+}"""
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 # asc/doc -> asc -> project root (repo containing data/, docs/, asc/)
 ASC_DIR = SCRIPT_DIR.parent
@@ -467,6 +488,7 @@ def patch_html_renderer() -> None:
                         file=sys.stderr,
                     )
                 await page.emulate_media(media="print")
+                await page.evaluate(FIT_DIAGRAMS_JS, content_height_px())
                 await page.evaluate(MARK_LONG_PARAS_JS)
                 if not _NO_PAGINATE:
                     inserted = await apply_print_pushes(page, pdf_options)

@@ -915,4 +915,34 @@ test_graphviz_er_fixture_pdf() {
   return 0
 }
 
+test_diagrams_fit_print_page() {
+  "$PDF_PY" - <<'PYTEST'
+import asyncio
+from playwright.async_api import async_playwright
+from md2pdf_asc import FIT_DIAGRAMS_JS
+
+async def check():
+    async with async_playwright() as playwright:
+        browser = await playwright.chromium.launch()
+        page = await browser.new_page(viewport={"width": 800, "height": 1000})
+        await page.set_content("""<style>
+          .mermaid-wrap, .graphviz-wrap { margin: 6px 0; }
+          .mermaid-wrap { display: flex; }
+          svg { max-width: 100%; height: auto; }
+        </style>
+        <div class="mermaid-wrap"><svg width="500" height="2000" viewBox="0 0 500 2000"></svg></div>
+        <div class="graphviz-wrap"><svg width="500" height="2000" viewBox="0 0 500 2000"></svg></div>
+        <div class="graphviz-wrap"><svg width="300" height="100" viewBox="0 0 300 100"></svg></div>""")
+        await page.evaluate(FIT_DIAGRAMS_JS, 900)
+        sizes = await page.locator("svg").evaluate_all("els => els.map(e => { const r = e.getBoundingClientRect(); return [r.width, r.height]; })")
+        assert all(h <= 888.1 for w, h in sizes[:2]), sizes
+        assert all(abs(w / h - 0.25) < 0.001 for w, h in sizes[:2]), sizes
+        assert abs(sizes[2][0] - 300) < 0.1, sizes
+        await browser.close()
+
+asyncio.run(check())
+PYTEST
+  assertEquals 'diagram page fitting failed' 0 $?
+}
+
 . asc/vendor/shunit2/shunit2
