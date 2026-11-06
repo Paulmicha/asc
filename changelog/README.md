@@ -8,6 +8,13 @@ Files: `YYYY/MM/DD-short-label.md`. Each file starts with a status table. `$` in
 
 **Priority (2026-09-27).** The frontier section below still describes 2026-09-21. Until it is rewritten, the order is [2026/09/27-backlog-priority.md](2026/09/27-backlog-priority.md).
 
+## 2026-11
+
+| File | Role |
+|------|------|
+| [06-host-needs-and-skill-feedback.md](2026/11/06-host-needs-and-skill-feedback.md) | Proposed. Host Markdown needs. Not a go-ahead. A same-day review found corrections the plan file does not yet contain. |
+| [06-simplify-disk-entities-contracts.md](2026/11/06-simplify-disk-entities-contracts.md) | Proposed. First inventory for retiring unread entity and contract YAML. Not a go-ahead. |
+
 ## 2026-10
 
 | File | Role |
