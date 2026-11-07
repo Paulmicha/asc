@@ -145,6 +145,11 @@ if [[ $? -ne 0 || ! -f 'AGENTS.asc.md' ]]; then
   exit 5
 fi
 
+# For newly created project instances, we need an initial AGENTS.md.
+if [[ -n 'AGENTS.md' ]]; then
+  cp "$tmp_dir/AGENTS.md" 'AGENTS.md'
+fi
+
 # Claude discovers and invokes project skills from .claude/skills/<name>/SKILL.md.
 # One directory symlink is that tree. It is not a second copy of the skill files.
 # TODO [wip] postponed, let's come back to it later on.
