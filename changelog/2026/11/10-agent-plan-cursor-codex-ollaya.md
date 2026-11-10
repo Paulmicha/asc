@@ -4,8 +4,8 @@
 |-------|--------|
 | **Date** | 2026-11-10 |
 | **Status** | **plan / review** — contracts settled; implementation planning in [10-agent-plan-cursor-codex-ollaya-impl.md](./10-agent-plan-cursor-codex-ollaya-impl.md). Nothing here is an implementation go-ahead. |
-| **Goal** | One ASC action that drafts a changelog plan with Cursor, reviews it with Codex in a headless loop, and stops when a local Ollaya decision says the review is clean **for staged plan bytes the reviewer actually received**. |
-| **v1 products** | Cursor (writer), Codex (reviewer), Ollaya (decider). Claude chat roles are the same shape later; not this slice. |
+| **Goal** | One ASC action that drafts a changelog plan with Cursor, reviews it with Codex against the **original brief and declared needs**, and stops when that named next step is ready—preserving the distinction between “reviewer found no blockers” and “ready for the next step” **inside the result**, with one public predicate `plan-is 'ready'` for independent callers. |
+| **v1 products** | Cursor (writer), Codex (reviewer). Optional Ollaya hook behind `plan-is 'ready'` only when free-form interpretation earns its keep. Claude deferred. |
 | **Visibility** | Headless CLI / SDK sessions. Desktop-visible “type into the open composer” stays in [27-desktop-agent-terminal-reply.md](../09/27-desktop-agent-terminal-reply.md). |
 | **Boundaries** | No project-level provider env vars. Live plan path updated only by the orchestrator after flock + recheck (§3 residual race acknowledged). **Enforced reviewer filesystem claim (narrow):** writes to live docroot paths and staging **plan** bytes are blocked, except (1) enumerated auth/session RW binds and (2) the **sandbox-only** mount of `data/asc/cache` whose **backing store is outside the live tree** and is **per-role / not shared** (§4). Network/socket side effects are out of claim. Weakened = detection only. Mother keeps `asc/ollaya` on `.asc_extensions_ignore`. No Claude. No gates row in this note. |
 | **Out of this plan** | Desktop UI injection. Shipping the scripts without a later go-ahead. A second make pivot per tool (`cursor-plan`, `codex-plan`). |
@@ -34,12 +34,15 @@ v1 therefore accepts background conversations and a durable changelog file as th
 | Reviewer writes (boundary wording) | Enforced = no writes to docroot + staging except enumerated auth RW binds (§4). Weakened = omit auto-write flags + post-scan detection only |
 | Sandbox handoff | `agent-plan` (and tests) run each writer/reviewer **chat harness subprocess inside** `f_plan_sandbox_run`; hooks do not need to call the runner |
 | Review input | Immutable snapshot bytes **inlined** in the reviewer prompt |
-| Stop condition | Ollaya on reviewer reply, bound to snapshot digest; live path must still match at success |
-| Ollaya transport | Prefer `/v1/systemone` (truncation → `422`); never accept truncated state as success |
-| Ollaya clean floor | `answers.plan_ready.choice == clean` and `confidence ≥ 0.75` on the **recorded** model after fixture tuning |
-| Uncertainty | Not treated as writer “issues”; separate `needs_human_review` |
-| Stalled draft | After `issues`, if staged digest is unchanged → always `stalled_draft` |
-| Role selection | **Extend core `hook_ms`** with role-qualified pick + conflict (§1); harnesses call that API. Chat: `writer` / `reviewer`. Decide: `decider` |
+| Stop condition | Structured review non-blocking for the **named next step**; digest binding holds; `plan-is 'ready'` → **yes** (prerequisites for that step pass; outcomes of that step not required). Optional suggestions do **not** keep the loop alive |
+| Needs ownership | Declared **in the plan** (acceptance criteria, prerequisites, open decisions, tied to steps). Not a second Make target in v1 |
+| Reviewer input | Original operator brief + declared needs/acceptance criteria + exact plan bytes (digest-bound). Not plan-only |
+| Public predicate | **Only** `make plan-is 'ready'`. Defer `review/is.sh` and `plan/needs.sh` until a concrete caller needs them |
+| Readiness evidence | Original brief, plan revision, structured review result, and any required host/check outcomes the review-text alone cannot see |
+| Authorization | Separate: discussion in `NEXT_STEPS.core.md`; human go-ahead in `gates.core.yml`. `plan-is` does not authorize implementation |
+| Uncertainty / pause | Missing evidence or human decision → **pause** (`unknown` / `needs_human_review`); never coerce to ready |
+| Stalled draft | Blocking findings + unchanged staging digest after a writer turn → `stalled_draft` |
+| Role / predicate selection | **Extend core `hook_ms`** (§1). Chat: `writer` / `reviewer`. Predicate: `plan`/`is`/`ready` → `is.ready.hook.sh` only |
 | Cursor model | **Auto** |
 | Codex model | **GPT Terra 6.1 – High effort** |
 | Max rounds | **8** (§7) |
@@ -58,7 +61,7 @@ Implementation follows these rules; it does not invent softer ones.
 
 `hook_ms` ranks by **rung first**, then dot/slash sum inside that rung, and sources nothing when there is no match ([`hook_ms`](../../../asc/core/hook.manual-inc.sh)). Its dry-run keeps `hook_dry_run_matches` **local**. Before sourcing, normal `hook_ms` calls `f_hook_source_opt_incs_for_path` then applies override ([lines 829–836](../../../asc/core/hook.manual-inc.sh)).
 
-The same role rules apply to **chat** (`CHAT_ROLE`, subject `chat`, actions `new`|`reply`) and **decide** (`DECIDE_ROLE`, subject `decide`, action `run`).
+The same role-qualified pick rules apply to **chat** (`CHAT_ROLE`, subject `chat`, actions `new`|`reply`) and to the public predicate **`plan-is`** (subject `plan`, action `is`, role token `ready`).
 
 **Maintained-contract decision (do not silently fork ranking):**  
 The [asc-author-code](../../../.agents/skills/asc-author-code/SKILL.md) harness law is “generic `$subject-$action` makes a **`hook_ms`** call.” Role qualification and same-rung conflict detection are **stricter** than today’s winner-only `hook_ms`. v1 therefore **extends the shared core** in `asc/core/hook.manual-inc.sh` rather than duplicating rank math in the agent extension:
@@ -70,17 +73,20 @@ The [asc-author-code](../../../.agents/skills/asc-author-code/SKILL.md) harness 
    - fails `unqualified_hook_winner` if the overall winner is unqualified or another role (**no** fall-through to a lower-ranked role file);
    - fails `hook_role_conflict` if two or more role-qualified files sit on the winning rung;
    - seeds opt-incs, resolves override once, and sources that bound path.
-3. Abstract `chat/new`, `chat/reply`, and `decide/run` call that **extended** API — they do not reimplement `f_hook_ms_measure`.
+3. Abstract `chat/new`, `chat/reply`, and `plan/is` are **plain actions**: after bootstrap they call that **extended** API **directly** (no agent thin wrapper around the pick). They do not reimplement `f_hook_ms_measure`. Do **not** add `review/is` or `plan/needs` in v1.
 4. Keep the skill’s “harness → `hook_ms`” wording true after the extension; if the public entry name differs, update the skill in the same authorized change with one sentence naming the mode.
 
-**Harness steps (using the extended API):**
+**Harness steps (plain action, using the extended API):**
 
-1. Require the role ∈ `{writer, reviewer}` (chat) or `{decider}` (decide).
-2. Invoke the extended pick with subject/action/role (and `-v` variants as needed).
-3. On missing / unqualified / conflict → JSON failure; non-zero exit.
-4. Bound source path does not change between validation and `.` (single pick).
+1. Require the role/predicate token: chat ∈ `{writer, reviewer}`; `plan-is` requires argument `ready` (v1). Reject other tokens with JSON failure.
+2. Call the extended core pick with subject/action/role (and `-v` variants as needed). The pick **sources** the bound hook once (same as `hook_ms`: seed opt-incs, resolve override, `.` the path). The action must **not** source that path again.
+3. On missing / unqualified / conflict → local JSON failure on stdout; non-zero exit (no second source attempt).
+4. After a successful pick, map provider outcome → one stdout JSON object. Encode with a **proper JSON encoder**—**not** raw `printf` interpolation of string fields.
+5. For `plan-is`, the machine answer is **`yes` | `no` | `unknown`** plus a **`reason`** (and structured fields when useful). Uncertain, missing evidence, malformed, truncated, or unavailable results are **`unknown`**—never coerce them to **`yes`**. A bare Boolean/exit-0 is not readiness.
 
-**Tests:** missing; unqualified-only; writer/decider overall winner; extend beats contrib; two role files on same rung → conflict; unqualified higher-sum + role lower-sum → `unqualified_hook_winner`; **parity** unconstrained `hook_ms` dry-run winner equals extended pick on the same fixtures; opt-inc seeded; hook-cache clear after hook/extension changes.
+**Minimality (no loader tower):** Do **not** add `*.opt-inc.sh` for these actions, a custom include loader, a success sentinel for bootstrap include status, or thin `f_agent_*` wrappers that only forward to core. Extract a `manual-inc` / function only when it encapsulates **substantial** behavior (e.g. staging/promotion or sandbox profiles) that would otherwise make `plan.sh` hard to follow. Expand the file map only when an actual need appears during implementation—not to preempt hypothetical sharing.
+
+**Tests:** missing; unqualified-only; writer/`ready` overall winner; extend beats contrib; two role files on same rung → conflict; unqualified higher-sum + role lower-sum → `unqualified_hook_winner`; **parity** unconstrained `hook_ms` dry-run winner equals extended pick on the same fixtures; hook opt-incs seeded by the **core** pick path; **marker hook invoked exactly once**; JSON round-trip for string fields; `plan-is` answer ∈ {yes,no,unknown} with reason; unknown≠yes; hook-cache clear after hook/extension changes.
 
 ### 2. Chat turn I/O contract [P1]
 
@@ -88,6 +94,7 @@ Make runs the target in a **subprocess** ([`call_wrap.make.sh`](../../../asc/mak
 
 - Diagnostics → **stderr**.
 - Machine result → **exactly one JSON object on stdout**.
+- Encode string fields (`prompt`, `reply_text`, errors that may carry text) with a proper JSON encoder; do not interpolate unescaped shell strings into JSON via `printf`.
 - Optional `result:<path>` mirror; stdout authoritative.
 
 **Schema** (always attempt before exit; ids nullable when no session yet):
@@ -112,7 +119,7 @@ Make runs the target in a **subprocess** ([`call_wrap.make.sh`](../../../asc/mak
 | `status` | `completed` \| `failed` \| `empty_reply` |
 | `error` | `null` on success; short token otherwise |
 
-Orchestrator on crash / empty / malformed stdout: `error=missing_result_json`, abort, no Ollaya success, no promotion.
+Orchestrator on crash / empty / malformed stdout: `error=missing_result_json`, abort, no readiness **yes**, no promotion.
 
 **Tests:** create/resume both roles; empty/failed provider; harness failure with null ids; `missing_result_json`.
 
@@ -166,19 +173,34 @@ v1 therefore **weakens** the claim as follows and does not pretend otherwise:
 
 **Also refuse promotion** if a post-writer docroot scan fails (`write_boundary`).
 
+**Plan content (writer must produce / keep):** The plan is the canonical place to **declare what the work needs**, each tied to a named step:
+
+| Declaration | Meaning |
+|-------------|---------|
+| **Prerequisites** (for a step) | Must already hold **before** that step may start; v1 also emits them as the `<!-- asc-prerequisites named_step="…" -->` JSON array block (§6) so `agent-plan` can establish the authoritative id list |
+| **Outcomes** (of a step) | Expected results **of** running the step—must not be treated as start blockers |
+| **Open decisions** | Human/evidence gates; missing → pause, not silent start |
+
+Example: a plan may be **ready to begin Task 0** while Task 0’s outcomes (e.g. authenticated create+resume verified) do not exist yet; those are outcomes of Task 0, not prerequisites for starting it. Implementation of later work can remain blocked by other declared needs. **Ready for a named step does not authorize that step**—[`NEXT_STEPS.core.md`](../../../NEXT_STEPS.core.md) / [`gates.core.yml`](../../../gates.core.yml) still govern go-ahead.
+
+**Needs wording:** Extracting needs from the plan alone cannot reveal a need the writer omitted. Supplying the **original brief** gives the reviewer a chance to spot that omission; that remains a **review judgment**, not a guaranteed mechanical check.
+
 **Reviewer user message (required parts, in order):**
 
-1. **Review task** — fixed orchestrator text: assess the changelog plan for mistakes, gaps, and improvement opportunities; do not edit files.
-2. **Expected response** — fixed orchestrator text: either list concrete remaining issues, or state that there are no remaining issues and the plan is ready for implementation (so Ollaya can classify).
-3. Live **path** string and **digest**.
-4. **Inlined snapshot bytes** (exact staging bytes for that digest). No “read this path” reliance.
-5. Optional short pointer that the operator’s original prompt was for the **writer** (draft), not a substitute for (1)–(2).
+1. **Review task** — fixed orchestrator text: assess whether this plan revision fits the **original operator brief** and the plan’s **declared needs**; separate **blocking** findings from **optional** suggestions; do not edit files.
+2. **Expected response** — structured JSON (schema §6) the loop can act on without a second Make target.
+3. **Original operator brief** (intent) — required, same bytes the writer received.
+4. **Declared needs excerpt** — from the plan (prerequisites / outcomes / open decisions for the named step under review). Present for convenience; omission-catching still depends on (3) + reviewer judgment.
+5. Live **path** string and **digest**.
+6. **Inlined snapshot bytes** (exact staging bytes for that digest).
 
-Do **not** send only the operator draft prompt to the reviewer. Oversize inlined bytes → `oversized_plan` (no truncate).
+Do **not** send only the plan bytes, and do **not** omit the brief. Oversize inlined bytes → `oversized_plan` (no truncate).
 
-**Stalled draft:** prior Ollaya class `issues` and post-writer staging digest equals the last reviewed digest → `stalled_draft`.
+**Review result (loop-internal evidence, not a Make target):** Schema and failure rules in §6. Blocking → **revise**; missing evidence/human decision → **pause**; optional suggestions alone do not keep the loop alive.
 
-**Success:** Ollaya `clean` at threshold **and** live digest equals the inlined snapshot digest from that reviewer turn.
+**Stalled draft:** prior review had **blocking** findings and post-writer staging digest equals the last reviewed digest → `stalled_draft`.
+
+**Success:** structured review allows readiness assessment, live digest matches the reviewed snapshot, **and** `plan-is 'ready'` → **yes** with a reason (prerequisites for the named step met; outcomes of that step not required yet).
 
 **Tests:** edit live **during** writer turn → `live_changed`, human bytes preserved; inject an unlocked edit in the promotion check→rename interval (document flake risk; assert best-effort detection or overwrite risk acknowledgment in the test note); second cooperative promoter blocks on flock; create from absent / `RENAME_NOREPLACE` when available; reject live symlink; traversal/`..`; missing parent; promote D0 then D1 before each review.
 
@@ -201,20 +223,10 @@ Inside the sandbox namespace, `$PROJECT_DOCROOT/data/asc/cache` (and any other l
 
 | Rule | Requirement |
 |------|-------------|
-| Ownership | Orchestrator creates per-role backing dirs (`writer`, `reviewer`; orchestrator/decide uses a third `orchestrator` or host-native cache **outside** any provider bind). |
+| Ownership | Orchestrator creates per-role backing dirs (`writer`, `reviewer`; orchestrator / `plan-is` use a third `orchestrator` or host-native cache **outside** any provider bind). |
 | Lifetime | Fresh empty backing dir (or **orchestrator-prepared pristine seed**) at the start of each wrapped turn; discard or quarantine under staging after the turn; **never** promote provider-backed cache into the live docroot cache. |
-| Non-reuse | Writer-backed cache must not be mounted for reviewer or for a later trusted orchestrator/`decide-run` process. Warm starts use only orchestrator-controlled seeds, never the previous writer turn’s dirty cache. |
+| Non-reuse | Writer-backed cache must not be mounted for reviewer or for a later trusted orchestrator / predicate-action process. Warm starts use only orchestrator-controlled seeds, never the previous writer turn’s dirty cache. |
 | Tests | Cold empty bind; warm from pristine seed; writer double poisons its cache → reviewer/orchestrator turn must not observe that poison. |
-
-**Include-load failure (harness, not bootstrap):** ASC bootstrap sources `*.opt-inc.sh` without checking `$?` ([bootstrap](../../../asc/bootstrap.sh)). Opt-inc return status alone does **not** stop the action.
-
-| Rule | Requirement |
-|------|-------------|
-| Pre-bootstrap | Harness **unsets or zeros** `AGENT_HARNESS_INC_OK` (and clears `AGENT_HARNESS_INC_ERROR`) **before** `. asc/bootstrap.sh`, so an inherited env value cannot mask a missing/skipped opt-inc. |
-| Success sentinel | Opt-inc sets `AGENT_HARNESS_INC_OK=1` only after every required include succeeds (including `harness_result`). |
-| Abort path | If after bootstrap the sentinel is unset/≠1 → emit failure JSON and `exit 1` **before** any provider body. |
-| Emitter independence | That failure JSON **must not** call `harness_result` / its emitter: load of `source_manual`, `role_select`, or `harness_result` may already have failed. Use a **minimal inline** `printf` (or equivalent) of valid `ok:false` / `error=include_load_failed` (+ optional `detail` from `AGENT_HARNESS_INC_ERROR`). |
-| Tests | Fail each of the three load points separately; assert valid JSON on stdout, non-zero exit, and no provider-body execution. |
 
 **Enforced reviewer acceptance (minimum):** authenticated **create and resume** (Tasks 3–4); write to live docroot fails; write to staging plan path fails; cache exception + non-reuse rules above; every other RW bind listed; sockets out of filesystem claim. A `--help` probe alone is insufficient.
 
@@ -244,129 +256,211 @@ Inside the sandbox namespace, `$PROJECT_DOCROOT/data/asc/cache` (and any other l
 
 ### 5. Prompt / Make argument interface [P2]
 
-1. `make agent-plan plan:<path> prompt:<file>` (preferred)  
-2. stdin / pipe  
-3. Inline only `prompt:"'…'"` — no multiline inline  
+**Make quoting:** ASC’s wrapper strips one quote layer ([`call_wrap.make.sh`](../../../asc/make/call_wrap.make.sh)). Values with spaces need the **nested** form `key:"'value with spaces'"` (same pattern as `prompt:"'…'"`). A single layer such as `named_step:'Task 0'` is consumed before the script runs and will split or drop the value. Prefer file paths without spaces when possible; still document nested quoting for `named_step`.
 
-Unsupported: bare multiword Make args ([`call_wrap.make.sh`](../../../asc/make/call_wrap.make.sh)).
+**`agent-plan`:**
 
-### 6. Decide harness + Ollaya `decider` contract [P2]
+```bash
+make agent-plan plan:changelog/…/plan.md prompt:brief.md named_step:"'Task 0'"
+# optional explicit prereq list file:
+make agent-plan … named_step:"'Task 0'" required_prerequisites:data/…/task-0-prereqs.json
+```
 
-Classification is **not** an inline helper inside `agent-plan`. It uses the same contrib pattern as Cursor/Codex:
+| Arg | Required | Meaning |
+|-----|----------|---------|
+| `plan:` | yes | Live plan path under docroot |
+| `prompt:` / stdin | yes | Original operator brief (writer intent); multiword inline only as `prompt:"'…'"` — no multiline inline |
+| `named_step:` | yes | Next step for **start** readiness; use `named_step:"'Task 0'"` when the value has spaces |
+| `required_prerequisites:` | no | Path to JSON array of prerequisite **ids** for that step. If omitted, §6 extraction from the plan applies. |
 
-| Piece | Path / rule |
-|-------|-------------|
-| Abstract harness | `asc/extensions/agent/decide/run.sh` → `make decide-run` |
-| Role | call-local `DECIDE_ROLE=decider` (hardcoded literal; no provider env) |
-| Contrib | `scripts/asc/contrib/asc/ollaya` (enablement-gated like `asc/cursor`) |
-| Hook implementation | `decide/run.decider.hook.sh` |
-| Selection | §1 with subject `decide`, action `run`, role `decider` |
-| I/O | One JSON object on stdout (stderr diagnostics); orchestrator never reads hook-locals |
+Unsupported: bare multiword Make args; omitting `named_step:`; single-layer quotes around multiword `named_step` / `prompt`.
 
-**Decide JSON (success or failure):**
+**Tests:** end-to-end Make invocation with `named_step:"'Task 0'"` reaches the orchestrator with `named_step=Task 0` (not split tokens).
+
+**`plan-is`:** evidence keys in §6; same nested quoting for any multiword `named_step:` value.
+
+### 6. Readiness: one public predicate `plan-is 'ready'` [P2]
+
+Keep **one** public question for independent callers: `make plan-is 'ready'`. Preserve “reviewer found no blockers” vs “ready for the named next step” **in evidence**, not as two Make targets.
+
+| Question | Where the answer lives |
+|----------|------------------------|
+| What does this plan require? | **In the plan** (prerequisites / outcomes / open decisions per step) |
+| What did the reviewer find? | **Structured review result** (loop artifact), digest-tied |
+| Is this revision ready for the named next step? | **`plan-is 'ready'`** |
+| May the agent start that step? | **`NEXT_STEPS.core.md` + `gates.core.yml`**—not this predicate |
+
+Defer **`review/is.sh`** and **`plan/needs.sh`**. Do not use `chat-is 'done'` / `chat-is 'over'`.
+
+#### Named-step readiness (definition)
+
+`plan-is 'ready'` answers: **may the named next step start**, given the evidence package—not “has the whole plan’s work already been finished.”
+
+| Check kind | Blocks `yes` for starting `named_step`? |
+|------------|----------------------------------------|
+| Prerequisite for `named_step` | **Yes**—must be recorded `pass` |
+| Outcome **of** `named_step` | **No**—absence is expected before the step runs |
+| Open decision / missing human gate for starting | → **`unknown`** or **`no`** with reason (pause), never silent `yes` |
+| Prerequisite recorded `fail` | → **`no`** with actionable reason |
+| Prerequisite required but record `missing` / absent | → **`unknown`**, reason lists the missing id |
+
+Example: ready to start **Task 0** (host feasibility) does not require Task 0’s create+resume outcome to exist yet. Ready to start **Task 3** may require Task 0 outcomes as **prerequisites** once Task 0 is declared done.
+
+#### Structured review result (minimum fields)
+
+Produced by the reviewer turn (Codex); consumed by the loop and by `plan-is`. Prefer one JSON object (file or stdout field). Minimum:
 
 ```json
 {
-  "ok": true,
-  "action": "run",
-  "role": "decider",
-  "class": "clean",
-  "choice": "clean",
-  "confidence": 0.81,
-  "model": "winnow:e4b",
-  "state": "…reviewer reply…",
-  "raw": {},
-  "status": "completed",
-  "error": null
+  "verdict": "blocking",
+  "plan_digest": "<sha256 of reviewed plan bytes>",
+  "named_step": "Task 0",
+  "blocking": [
+    {"id": "B1", "text": "…", "fixable_by_writer": true}
+  ],
+  "optional": [
+    {"id": "O1", "text": "…"}
+  ],
+  "rationale": "short prose"
 }
 ```
 
 | Field | Rule |
 |-------|------|
-| `class` | `clean` \| `issues` \| `uncertain` \| `invalid` (orchestrator switch) |
-| `choice` / `confidence` / `model` | from Ollaya when parseable; else null with `class=invalid` |
-| `raw` | parsed decide body or null |
-| Crash / empty stdout | orchestrator `missing_result_json` (same as chat) |
+| `verdict` | exactly `blocking` \| `ready_for_named_step` \| `needs_human_or_evidence` |
+| `plan_digest` | sha256 of the inlined bytes for that turn |
+| `named_step` | non-empty string; **must equal** caller `named_step:` or merge returns `unknown` |
+| `blocking` / `optional` | arrays (may be empty); each item has `text`; `blocking[].fixable_by_writer` boolean when present |
+| `rationale` | non-empty string |
 
-The `agent-plan` loop calls `make decide-run` (or the abstract script) with `DECIDE_ROLE=decider` and the reviewer `reply_text` as state. It does **not** embed `/v1/systemone` curl in `plan.sh`.
+**Malformed / unusable review → treat as not ready to proceed silently:**
 
-**Transport (truncation = unconditional failure) — implemented inside the ollaya hook:**
+| Condition | Loop | `plan-is` if invoked |
+|-----------|------|----------------------|
+| Missing/non-JSON / wrong types / unknown `verdict` | Pause / abort path; do not promote success | `answer=unknown`, `reason` cites parse error |
+| `plan_digest` ≠ digest of plan bytes in the evidence package | Pause | `unknown`, reason `review_digest_mismatch` |
+| `named_step` ≠ caller’s `named_step:` (even if digest and verdict look valid) | Pause | `unknown`, reason `review_named_step_mismatch` |
+| `verdict=blocking` but `blocking` empty; or `ready_for_named_step` with non-empty blocking | Pause | `unknown`, reason `review_contradiction` |
+| `verdict=needs_human_or_evidence` | Pause | `unknown` (or `no` if reason says revise)—never `yes` |
+| Free-form reply that fails schema | Pause; optional later Ollaya only if explicitly added—not v1 default | n/a until structured |
 
-| API | Truncation behavior | v1 rule |
-|-----|---------------------|---------|
-| **Primary:** `POST http://127.0.0.1:11435/v1/systemone` | `422 STATE_TRUNCATED` | Class `invalid` |
-| Optional native `POST /api/decide` | May set `state_truncated: true` | Require key present and JSON `false`; else `invalid`. Test API-side truncation below any local length cap |
+#### Evidence interface (caller → `plan-is`)
 
-**Request:**
+`make plan-is 'ready'` plus Make `key:value` paths (style locked in the action header; same keys for `agent-plan` when it invokes the action):
 
-- `model`: pinned id from host feasibility (record in implementation note).
-- `state`: reviewer `reply_text` only (not the plan body).
-- `questions`:
+| Input | Required | Meaning |
+|-------|----------|---------|
+| `named_step:` | yes | Step being assessed for **start** readiness |
+| `brief:` | yes | Path to original operator brief bytes |
+| `plan:` | yes | Path to plan file (or staging file) |
+| `plan_digest:` | yes | Expected sha256 of those plan bytes |
+| `review:` | yes | Path to structured review JSON for that digest |
+| `required_prerequisites:` | yes | Path to JSON **array of prerequisite id strings** required to **start** `named_step` (authoritative; may be `[]`) |
+| `checks:` | yes | Path to JSON array of check **records** (results); may be `[]` |
+
+**Authoritative required IDs (prevents false `yes` on empty `checks`):**
+
+- `required_prerequisites` is the **only** list of IDs that must be satisfied for start-readiness. It is **not** inferred from which rows appear in `checks`.
+- For each `id` in that list: find a `checks` record with the same `id`, `kind=prerequisite`, and (if present) matching `named_step`.  
+  - no row → treat as absent → **`unknown`**, `reason` lists the id (and `missing_evidence`)  
+  - `status=missing` → **`unknown`**  
+  - `status=fail` → **`no`**, actionable reason  
+  - `status=pass` → ok for that id  
+- Extra `checks` rows whose ids are **not** in `required_prerequisites` do not create requirements (outcome rows still ignored for start-readiness).
+- If the established list is `[]`, an empty `checks` array can yield **`yes`** (subject to review/digest rules)—that means “this step declares no start prerequisites,” not “we forgot to pass checks.”
+- **Never silently invent `[]`:** if the authoritative list cannot be established, readiness is **`unknown`** (`reason=required_prerequisites_unestablished`), not a false `yes`.
+
+**How `agent-plan` establishes `required_prerequisites` (concrete, in order):**
+
+1. **CLI file** — if `required_prerequisites:<path>` was passed (§5), read that JSON array of id strings. Invalid JSON / non-array → unestablished → **`unknown`** (do not coerce to `[]`).
+2. **Else parse the plan** — look for a single, fixed machine-readable block the writer is instructed to keep, e.g. an HTML comment or fenced block with stable markers:
+
+   `<!-- asc-prerequisites named_step="Task 0" -->` … JSON array … `<!-- /asc-prerequisites -->`
+
+   Matching `named_step` (exact string equality with CLI `named_step:`). If the block is missing, duplicated, wrong step, or not a JSON array → unestablished → **`unknown`**. A present block whose array is literally `[]` **is** established (step declares no start prereqs).
+3. **Do not** scan `checks`, host notes, or free-form prose to invent ids. Do not invent a second needs framework beyond this block + optional CLI file.
+
+`agent-plan` writes the established array to a staging evidence file and passes its path into `plan-is`. If unestablished, it still invokes `plan-is` only with an explicit failure signal (or skips merge and records the same `unknown` outcome)—**never** by writing a synthetic empty array and treating it as success-eligible.
+
+**Check record:**
 
 ```json
 {
-  "plan_ready": {
-    "type": "choice",
-    "instructions": "Does this Codex review say the changelog plan is ready with no remaining issues?",
-    "criteria": {
-      "clean": "No remaining issues; ready for implementation",
-      "issues": "Still finds mistakes, gaps, or improvements to address before implementation"
-    }
-  }
+  "id": "host_bwrap",
+  "kind": "prerequisite",
+  "named_step": "Task 0",
+  "status": "pass"
 }
 ```
 
-**Field validation (all required for a usable decide):**
+| `kind` | `status` |
+|--------|----------|
+| `prerequisite` \| `outcome` | `pass` \| `fail` \| `missing` |
 
-| Check | Rule |
-|-------|------|
-| Transport | HTTP success / CLI exit 0; not `422` |
-| `answers.plan_ready.choice` | exactly `clean` or `issues` |
-| `answers.plan_ready.confidence` | present, finite number, in `[0, 1]` |
-| `answers.plan_ready.probabilities` | persist in logs (both labels) |
-| Malformed / missing confidence, non-finite, wrong type, bad choice | `invalid` |
+v1 merge **ignores** `kind=outcome` for the yes/no/unknown decision (may log them).
 
-**Meaning of `confidence`:** TypeSafe/Ollaya **normalized top probability** `(K · p_max − 1) / (K − 1)` ([API](https://ollaya.dev/docs/api)). For **K = 2**, `confidence = 0.75` means `p_max = 0.875`. Tune the threshold **per answering model** on the fixture corpus; if fixtures fail at 0.75, revise the threshold in this plan before coding the stop rule. Log canonical `model` on every decide.
+**`agent-plan` package:** `named_step:` from CLI (§5, nested quotes tested); `brief:` from `prompt:`; plan path + digest; review JSON path; `required_prerequisites:` = established list file from the route above (or unestablished → unknown); `checks:` = known result records only. Independent callers of `plan-is` must pass an already-established `required_prerequisites:` file themselves.
 
-**Classification:**
+#### Answer contract
 
-| Condition | Class |
+| `answer` | When | `reason` must |
+|----------|------|----------------|
+| `yes` | Review usable; `review.named_step` == caller `named_step:`; `verdict` is `ready_for_named_step` (or equivalent: no blocking, not needs_human); digests match; **every** id in `required_prerequisites` has a `pass` record | State that named step may start; cite digest |
+| `no` | Review `blocking` with fixable items, or a required prerequisite `fail`, or verdict implies revise | Be **actionable** (what to fix / which check failed) |
+| `unknown` | Malformed/contradictory/digest-mismatched/`named_step` mismatch; **required list unestablished**; required id absent or `missing`; `needs_human_or_evidence`; unavailable evidence file | Say **what is missing** (including unestablished list / absent ids) |
+
+Never coerce `unknown` → `yes`. Crash / empty stdout → orchestrator `missing_result_json`.
+
+```json
+{
+  "ok": true,
+  "subject": "plan",
+  "action": "is",
+  "question": "ready",
+  "answer": "unknown",
+  "reason": "missing prerequisite record: cursor_create_resume (required to start Task 3)",
+  "named_step": "Task 3",
+  "missing_evidence": ["cursor_create_resume"],
+  "status": "completed",
+  "error": null
+}
+```
+
+#### v1 default implementation (Ollaya absent)
+
+| Piece | Path / rule |
+|-------|-------------|
+| Abstract | `asc/extensions/agent/plan/is.sh` → `make plan-is 'ready'` |
+| **Default hook** | `asc/extensions/agent/plan/is.ready.hook.sh` — **deterministic evidence merge** (no LLM). Always shipped with agent so §1 pick has a winner when agent is enabled |
+| Optional later | `scripts/asc/contrib/asc/ollaya/plan/is.ready.hook.sh` only if free-form interpretation is still needed after structured review; mother ignore remains |
+| Selection | §1 subject `plan`, action `is`, role `ready` |
+
+**What the deterministic hook does:** validate evidence files; verify `plan_digest` matches plan bytes; require `review.named_step` == caller `named_step:`; validate review schema and contradiction rules; refuse unestablished / invalid `required_prerequisites` (→ unknown, not `[]`); for each id in an established list, require a matching pass record (absent → unknown); emit yes/no/unknown + reason.
+
+**What it does not do:** independently infer that the plan covers every requirement in a free-form brief. Coverage of the brief is a **structured review judgment**. The merge trusts a valid review result; it does not re-read the brief to invent findings.
+
+`agent-plan` calls this on the path toward success after a non-blocking review. It does not embed Ollaya HTTP in `plan.sh`.
+
+#### Ollaya (non-default)
+
+If added later: truncation → `unknown`; confidence floor alone never yields `yes`; false-stop fixtures required. Not required for v1 green path.
+
+### 7. Loop outcomes and rounds [P2]
+
+| Situation | Action |
 |-----------|--------|
-| `choice == issues` | `issues` |
-| `choice == clean` and `confidence ≥ 0.75` (or revised pinned threshold) | `clean` |
-| `choice == clean` and `confidence <` threshold | `uncertain` |
-| Transport/schema/`STATE_TRUNCATED`/`state_truncated` not false / missing fields | `invalid` |
+| Blocking findings the writer can address | **Revise** (writer); unchanged digest → `stalled_draft`; else promote (§3) and re-review |
+| Missing evidence, open human decision, or `plan-is` → **unknown** | **Pause** (`needs_human_review` / missing_evidence)—no silent success |
+| Only optional suggestions | **Do not** keep revising; proceed to readiness assessment |
+| `plan-is` → **no** with revise reason | Writer path |
+| `plan-is` → **yes** + digest binding | Success: **named next step may start** (authorization remains gates/NEXT_STEPS; step outcomes not required yet) |
+| Crash / malformed JSON | Abort |
 
-Ollaya classifies the **review text**; it does not prove the plan is correct.
-
-**Fixture corpus (minimum; assert expected class):**
-
-| Fixture | Expect |
-|---------|--------|
-| Short “no remaining issues, ready” | `clean` (if model+threshold agree) |
-| Bullet list of gaps | `issues` |
-| Clean-with-caveats | typically `issues` or `uncertain` (record expected per model) |
-| Unresolved questions only | `issues` or `uncertain` |
-| Negation (“no issues except …”) | not `clean` |
-| Mixed findings | `issues` |
-| Empty `state` | `invalid` or `uncertain` (pin one) |
-| Non-JSON / garbage decide response | `invalid` |
-| `422 STATE_TRUNCATED` or `state_truncated: true` | `invalid` |
-
-### 7. Uncertainty and rounds [P2]
-
-| Class | Action |
-|-------|--------|
-| `issues` | Writer; unchanged digest → `stalled_draft`; else promote (§3) and re-review |
-| `uncertain` | No writer; ≤1 reclassify on same `reply_text`; else `needs_human_review` |
-| `invalid` | Abort |
-| `clean` | Success iff digest binding holds |
-
-**Round:** writer + reviewer + one primary Ollaya decide. Max **8**.
+**Round:** writer + reviewer (+ readiness when review is non-blocking). Max **8**. Optional improvements alone do not consume rounds after agreed work is accounted for.
 
 ### 8. Acceptance matrix and compatibility [P2]
 
-Cover §1–§7 including: live edit during writer → no overwrite; promotion race documentation + flock test; unqualified-vs-role ranking; opt-incs; weakened inventory; path validation; reviewer message contains task + expected response + bytes; Ollaya fixtures; promotion of each digest before review.
+Cover §1–§7 including: live edit during writer → no overwrite; promotion race documentation + flock test; unqualified-vs-role ranking; weakened inventory; path validation; reviewer message contains **brief + needs + bytes**; `required_prerequisites` vs empty `checks` (no false yes); `review.named_step` mismatch → unknown; `agent-plan` requires nested-quoted `named_step:"'…'"`; unestablished prereq list → unknown (no silent `[]`); `plan-is` yes/no/unknown+reason; promotion of each digest before review.
 
 **Compatibility:** new/reply drop pre/post + JSON I/O; read/archive only `CHAT_TYPE` rename; document break for sourced `chat_id` parents.
 
@@ -374,40 +468,42 @@ Cover §1–§7 including: live edit during writer → no overwrite; promotion r
 
 ## Architecture
 
-### Abstract harness (`asc/extensions/agent`)
+### Plain actions (`asc/extensions/agent`)
 
 | Path | Pivot | Role |
 |------|-------|------|
-| `asc/extensions/agent/chat/new.sh` | `make chat-new` | §1 select + opt-incs + JSON |
+| `asc/extensions/agent/chat/new.sh` | `make chat-new` | Plain action: §1 extended pick + local JSON |
 | `asc/extensions/agent/chat/reply.sh` | `make chat-reply` | Same |
-| `asc/extensions/agent/decide/run.sh` | `make decide-run` | §1 select + JSON for `DECIDE_ROLE` |
-| Orchestrator | `make agent-plan` | Validate path, stage, isolate, promote (§3), loop; calls chat + decide harnesses |
+| `asc/extensions/agent/plan/is.sh` | `make plan-is 'ready'` | Pick default deterministic `is.ready` hook; evidence package → yes/no/unknown + reason |
+| Orchestrator | `make agent-plan` | Validate path, stage, isolate, promote (§3), loop; chat + review evidence + plan-is |
 
 ### Contrib hooks
 
-| Role | Extension | Files |
-|------|-----------|--------|
+| Role / predicate | Extension | Files |
+|------------------|-----------|--------|
 | `writer` | `scripts/asc/contrib/asc/cursor` | `chat/new.writer.hook.sh`, `chat/reply.writer.hook.sh` |
 | `reviewer` | `scripts/asc/contrib/asc/codex` | `chat/new.reviewer.hook.sh`, `chat/reply.reviewer.hook.sh` |
-| `decider` | `scripts/asc/contrib/asc/ollaya` | `decide/run.decider.hook.sh` |
+| `ready` | `asc/extensions/agent` (default deterministic) | `plan/is.ready.hook.sh` |
+| `ready` (optional) | `scripts/asc/contrib/asc/ollaya` | only if free-form interpretation is added later |
 
 ### Loop (summary)
 
 ```text
-make agent-plan plan:<path> prompt:<file>
+make agent-plan plan:<path> prompt:<file> named_step:"'Task 0'"
   → validate plan path under PROJECT_DOCROOT (§3)
   → create staging; log writer_isolation / reviewer_isolation
   → live_before snapshot
   → chat-new writer (staging)
   → inventory check; flock + recheck + rename promote → live (D0) or live_changed
-  → reviewer msg: task + expected response + path + D0 + inlined bytes
+  → reviewer msg: brief + needs/criteria + path + D0 + plan bytes
   → chat-new reviewer
-  → decide-run DECIDE_ROLE=decider (state = reviewer reply) per §6
-       clean     → success if live digest == D0
-       issues    → live_before'; writer; if digest==D0 → stalled_draft
-                   else promote D1; reviewer task+bytes for D1; decide-run again …
-       uncertain → one reclassify (second decide-run) or needs_human_review
-       invalid   → abort
+  → parse structured review result (blocking vs optional) — loop-internal, not review-is
+       blocking → writer revise / stalled_draft / promote+re-review
+       needs_human_or_evidence → pause
+       ready_for_named_step (or only optional suggestions) → plan-is 'ready'
+            yes + digest → success (gates still govern implementation)
+            no (revise reason) → writer
+            unknown / no (missing evidence) → pause
   → max 8 rounds
 ```
 
@@ -423,7 +519,7 @@ make agent-plan plan:<path> prompt:<file>
 | `live_changed` | Abort; **do not** overwrite live; keep staging |
 | Promotion race (unlocked editor in check→rename gap) | Acknowledged residual risk (§3); not claimed solved |
 | `missing_draft` / `oversized_plan` / `stalled_draft` / `write_boundary` / `reviewer_write` / `inventory_error` | Abort |
-| Ollaya `invalid` / unavailable | Abort |
+| `plan-is` crash or persistent **unknown** / missing evidence | Pause or abort per §7 |
 | `needs_human_review` / `max_rounds` | Non-zero + artifacts |
 
 ---
@@ -432,12 +528,12 @@ make agent-plan plan:<path> prompt:<file>
 
 | Step | Work | Done when |
 |------|------|-----------|
-| 0 | Host feasibility: providers, Ollaya, **sandbox profile draft** | Host note; enforced vs weakened chosen honestly |
-| 1 | Extend core `hook_ms` + chat harness + explicit manual-inc loads | Parity + role tests via `make test-core` (agent enabled) |
+| 0 | Host feasibility: providers, optional Ollaya, **sandbox profile draft** | Host note; enforced vs weakened chosen honestly |
+| 1 | Extend core `hook_ms` + slim plain chat actions | Parity + role tests via `make test-core` (agent enabled) |
 | 2 | Staging / promotion / inventory | §3–§4a tests green |
 | 2b | Writer/reviewer bwrap profiles + runner | Prohibited-write tests; auth binds; no false `enforced` |
 | 3 | Cursor writer + Codex reviewer hooks (sandboxed) | Auto / Terra 6.1 High |
-| 4 | `decide/run` + `asc/ollaya` + **mother ignore `asc/ollaya`** | Corpus green; ignore hygiene |
+| 4 | `plan-is 'ready'` + default `is.ready.hook.sh` (deterministic) | Schema/digest/prereq fixtures; optional ollaya later |
 | 5 | `agent-plan` orchestrator | Loop §3–§8 |
 | 6 | Instance smoke; mother still lists `asc/ollaya` (and peers) as disabled | Success + failure; ignore grep passes |
 
@@ -456,8 +552,8 @@ This note is not step 0–6.
 ## Open tasks
 
 - [ ] After go-ahead: implement §1–§8 as written (including host feasibility step 0).
-- [ ] After go-ahead: Cursor writer + Codex reviewer + Ollaya decider (no Claude).
-- [ ] Pin Ollaya model id; confirm or revise 0.75 against fixtures (K=2 ⇒ p_max 0.875).
+- [ ] After go-ahead: Cursor writer + Codex reviewer + `plan-is 'ready'` (Ollaya optional; no Claude).
+- [ ] If Ollaya used: pin model id; false-stop fixtures; do not treat 0.75 alone as readiness.
 - [ ] Record `writer_isolation` / `reviewer_isolation` (`enforced` / `weakened`) on the laptop.
 - [ ] Do not add a gates row from this note alone.
 - [ ] Keep `asc/ollaya` (and peers) on mother `.asc_extensions_ignore`; instance overrides may enable locally.

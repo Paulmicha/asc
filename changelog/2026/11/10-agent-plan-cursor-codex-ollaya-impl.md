@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Implement headless `make agent-plan` per the settled contracts in [10-agent-plan-cursor-codex-ollaya.md](./10-agent-plan-cursor-codex-ollaya.md): Cursor writer, Codex reviewer, Ollaya decider, staging/promotion, JSON harness I/O.
+**Goal:** Implement headless `make agent-plan` per the settled contracts in [10-agent-plan-cursor-codex-ollaya.md](./10-agent-plan-cursor-codex-ollaya.md): Cursor writer, Codex reviewer, single public `plan-is 'ready'`, staging/promotion, JSON action I/O.
 
-**Architecture:** Abstract `chat/new`, `chat/reply`, and `decide/run` call an **extended core `hook_ms` / role-pick API** (not a forked ranker in agent). Contrib: `cursor` (writer), `codex` (reviewer), `ollaya` (decider). `make agent-plan` owns staging, **sandbox profiles**, flock+recheck promotion, reviewer prompt assembly, and the loop; it calls harnesses and does not embed Ollaya HTTP.
+**Architecture:** Plain `chat/new`, `chat/reply`, and `plan/is` call an **extended core `hook_ms` / role-pick API** directly and encode JSON locally. Contrib: `cursor` (writer), `codex` (reviewer); optional `ollaya` for `is.ready` only. `make agent-plan` owns staging, sandbox, promotion, **brief+needs reviewer assembly**, structured review parsing, and the loop. Defer `review/is` and `plan/needs`.
 
 **Tech Stack:** Bash 4 / ASC bootstrap, Make pivots, Cursor Agent CLI, Codex CLI, Ollaya API via `asc/ollaya`, shunit2 via `make test-core` + agent `test/core.hook.sh`, optional `bwrap` profiles for `enforced` isolation.
 
@@ -16,14 +16,14 @@
 
 - **Headless only** — no desktop composer injection.
 - **Models** — Cursor **Auto**; Codex **GPT Terra 6.1 – High effort** (Task 0).
-- **Roles** — `CHAT_ROLE` writer/reviewer; `DECIDE_ROLE` decider; file placement; no provider env config.
-- **hook_ms contract** — extend core; harnesses call the extended pick; no duplicated `f_hook_ms_measure` in agent (design §1).
+- **Roles / predicates** — `CHAT_ROLE` writer/reviewer; only public predicate `plan-is 'ready'`; file placement; no provider env config.
+- **hook_ms contract** — extend core; plain actions call the extended pick **directly**; no duplicated `f_hook_ms_measure` in agent (design §1).
+- **Minimality (no loader tower)** — do **not** create harness `*.opt-inc.sh`, `f_agent_source_manual`, include success sentinels, or thin `f_agent_*` wrappers that only forward to core. Handle small I/O contracts **in the action**. Extract a `manual-inc` / function **only** when it encapsulates substantial behavior that would otherwise make the calling script hard to follow (staging/promotion and sandbox profiles are the expected cases). Do not expand the file map for hypothetical sharing—extract when duplication or opacity becomes real.
 - **Promotion race** — flock + recheck + rename is not kernel CAS; unlocked editors can still race.
 - **Weakened isolation** — scan-time docroot inventories only; temporary restores invisible; outside-docroot not claimed.
 - **Enforced isolation** — harness subprocess runs inside a bwrap profile; ASC cache on staging-backed RW binds; cwd alone is insufficient; provider profiles verified only after Tasks 3–4 create+resume.
-- **Ollaya / decider** — classifies review text only; `/v1/systemone`; truncation → `invalid`; body in `asc/ollaya`.
+- **Readiness** — start-readiness for `named_step:` (Make nested quotes `named_step:"'Task 0'"`); **`required_prerequisites`** authoritative via CLI file or plan `asc-prerequisites` block—**never** silent `[]` when unestablished; `review.named_step` must match. Default deterministic `is.ready.hook.sh`. Authorization remains NEXT_STEPS/gates.
 - **Hook cache** — clear `data/asc/cache/hook/*` keys after hook/extension changes in tests and smokes.
-- **Includes** — unset `AGENT_HARNESS_INC_OK` before bootstrap; opt-inc sets it only on full success; on failure harness uses **inline** JSON abort (never `harness_result`).
 - **ASC cache binds** — per-role staging-backed mounts; never reuse writer cache for reviewer/orchestrator.
 - **Tests** — verified entry: enable `agent`, then `make test-core`; assert agent suite files ran (see Task 1). Never `make test-agent || fallback`.
 - **Mother ignore** — `asc/ollaya` line required; instance ignore overrides can enable locally.
@@ -35,126 +35,54 @@
 
 | Path | Responsibility |
 |------|----------------|
-| `asc/core/hook.manual-inc.sh` (modify) | Shared ranking helper; extended role-qualified pick used by harnesses; keep unconstrained `hook_ms` semantics |
+| `asc/core/hook.manual-inc.sh` (modify) | Shared ranking helper; extended role-qualified pick; keep unconstrained `hook_ms` semantics |
 | `asc/test/core/hook.test.sh` (modify) | Parity + role conflict / unqualified cases for the extended API |
-| `asc/extensions/agent/agent/source_manual.manual-inc.sh` (new) | Defines `f_agent_source_manual` (override XOR original; preserves `.` exit status) |
-| `asc/extensions/agent/chat/new.opt-inc.sh` (new) | **First-load** `source_manual` (inline map), then `f_agent_source_manual` for role_select + harness_result |
-| `asc/extensions/agent/chat/reply.opt-inc.sh` (new) | Same first-load path as `new.opt-inc.sh` |
-| `asc/extensions/agent/decide/run.opt-inc.sh` (new) | Same for decide |
-| `asc/extensions/agent/agent/plan.opt-inc.sh` (new) | Same + stage + sandbox manuals |
-| `asc/extensions/agent/agent/role_select.manual-inc.sh` (new) | Thin wrapper calling core pick; sets `CHAT_HOOK_SOURCE` / `DECIDE_HOOK_SOURCE` |
-| `asc/extensions/agent/agent/harness_result.manual-inc.sh` (new) | JSON stdout emitter for chat + decide |
-| `asc/extensions/agent/chat/new.sh`, `reply.sh` | Explicit `.` of manual-incs after bootstrap; extended pick; no pre/post |
+| `asc/extensions/agent/chat/new.sh`, `reply.sh` | Plain actions: bootstrap → require role → extended core pick (**sources hook**) → encode JSON locally; drop pre/post |
 | `asc/extensions/agent/chat/read.sh`, `archive.sh` | `CHAT_TYPE` rename only |
-| `asc/extensions/agent/decide/run.sh` (new) | Same load route; `DECIDE_ROLE=decider` |
-| `asc/extensions/agent/agent/plan.sh` (new) | Orchestrator |
-| `asc/extensions/agent/agent/plan_stage.inc.sh` or `.manual-inc.sh` (new) | Path, stage, promote, inventory — **explicit** load from `plan.sh` |
-| `asc/extensions/agent/agent/plan_sandbox.manual-inc.sh` (new) | Load/run writer & reviewer bwrap profiles; mode selection |
+| `asc/extensions/agent/plan/is.sh` (new) | Plain action: require evidence package; pick `is.ready` |
+| `asc/extensions/agent/plan/is.ready.hook.sh` (new) | **Default** deterministic merge (schema, digest, prereqs) → yes/no/unknown + reason |
+| `asc/extensions/agent/agent/plan.sh` (new) | Orchestrator loop |
+| `asc/extensions/agent/agent/plan_stage.manual-inc.sh` (new, **if needed**) | Path, stage, promote, inventory — **explicit** `.` from `plan.sh` only when inlining would obscure the loop |
+| `asc/extensions/agent/agent/plan_sandbox.manual-inc.sh` (new, **if needed**) | Load/run writer & reviewer bwrap profiles; mode selection — same rule |
 | `asc/extensions/agent/agent/sandbox/writer.bwrap.conf` (new) | Checked-in writer profile (paths parameterized) |
 | `asc/extensions/agent/agent/sandbox/reviewer.bwrap.conf` (new) | Checked-in reviewer RO profile |
 | `scripts/asc/contrib/asc/cursor/chat/new.writer.hook.sh` | Cursor Auto create |
 | `scripts/asc/contrib/asc/cursor/chat/reply.writer.hook.sh` | Cursor Auto resume |
 | `scripts/asc/contrib/asc/codex/chat/new.reviewer.hook.sh` | Codex High create |
 | `scripts/asc/contrib/asc/codex/chat/reply.reviewer.hook.sh` | Codex resume (no force) |
-| `scripts/asc/contrib/asc/ollaya/decide/run.decider.hook.sh` (new) | Decide HTTP + class map |
+| `scripts/asc/contrib/asc/ollaya/…` | **Not** required for v1; mother ignore stays |
 | `.asc_extensions_ignore` (mother) | **Must contain** `asc/ollaya` (preemptively added; keep when committing contrib) |
-| `asc/extensions/agent/test/core/*.test.sh` (new) | role_select, plan_stage, plan_sandbox, decide_ollaya, include_load |
+| `asc/extensions/agent/test/core/*.test.sh` (new) | hook/role + plan_stage, plan_sandbox, plan_is (schema/digest/prereq/outcome), plan_loop |
 | `changelog/2026/11/10-agent-plan-cursor-codex-ollaya-host.md` (new) | Host feasibility |
 
-### Include loading route (required)
+**Do not create:** loader/sentinel machinery; **`review/is.sh`**; **`plan/needs.sh`**; `review/is.clean.hook.sh`.
 
-ASC auto-loads the **caller** `*.opt-inc.sh` after bootstrap ([bootstrap](../../../asc/bootstrap.sh)). That is the entry for helpers—not an extension-root include.
-
-**Path map** (same rule as [`f_autoload_override`](../../../asc/core/autoload.manual-inc.sh)): `asc/foo` → `scripts/overrides/foo`.
-
-**Break the cycle — two layers:**
-
-1. **`source_manual.manual-inc.sh`** defines `f_agent_source_manual` only:
+### Plain action shape (required)
 
 ```bash
-f_agent_source_manual() {
-  local P="$1"
-  local o="${P/asc/scripts/overrides}"
-  [[ -f "$P" || -f "$o" ]] || return 1
-  if [[ -f "$o" ]]; then
-    # shellcheck source=/dev/null
-    . "$o"
-    return $?   # preserve failure — do NOT force 0
-  fi
-  # shellcheck source=/dev/null
-  . "$P"
-  return $?
-}
-```
-
-2. **Each harness `*.opt-inc.sh`** (auto-loaded by bootstrap **without checking `$?`** — [bootstrap](../../../asc/bootstrap.sh) lines 117–128) performs the first load inline, then `f_agent_source_manual` for the rest. On any failure it must **not** set the success sentinel; on full success it sets `AGENT_HARNESS_INC_OK=1` (and clears `AGENT_HARNESS_INC_ERROR`).
-
-```bash
-# Example: asc/extensions/agent/chat/new.opt-inc.sh
-AGENT_HARNESS_INC_OK=0
-AGENT_HARNESS_INC_ERROR=''
-_sm='asc/extensions/agent/agent/source_manual.manual-inc.sh'
-_smo="${_sm/asc/scripts/overrides}"
-if [[ -f "$_smo" ]]; then
-  . "$_smo" || { AGENT_HARNESS_INC_ERROR='source_manual_override'; return 0; }
-else
-  . "$_sm" || { AGENT_HARNESS_INC_ERROR='source_manual'; return 0; }
-fi
-f_agent_source_manual 'asc/extensions/agent/agent/role_select.manual-inc.sh' \
-  || { AGENT_HARNESS_INC_ERROR='role_select'; return 0; }
-f_agent_source_manual 'asc/extensions/agent/agent/harness_result.manual-inc.sh' \
-  || { AGENT_HARNESS_INC_ERROR='harness_result'; return 0; }
-AGENT_HARNESS_INC_OK=1
-```
-
-(`return 0` here only ends the opt-inc; bootstrap ignores status. The sentinel carries failure.)
-
-3. **Each harness action** (`new.sh` / `reply.sh` / `decide/run.sh`):
-
-```bash
-# BEFORE bootstrap — defeat inherited env masking a skipped/missing opt-inc
-unset AGENT_HARNESS_INC_OK AGENT_HARNESS_INC_ERROR
-# or: AGENT_HARNESS_INC_OK=0; AGENT_HARNESS_INC_ERROR=''
-
+# chat/new.sh (reply / plan-is analogous)
 . asc/bootstrap.sh || exit 1
-
-if [[ "${AGENT_HARNESS_INC_OK:-}" != 1 ]]; then
-  # Independent minimal JSON — do NOT call harness_result / f_agent_* emitters
-  # (source_manual, role_select, or harness_result may have failed to load).
-  _detail="${AGENT_HARNESS_INC_ERROR:-unknown}"
-  printf '{"ok":false,"error":"include_load_failed","detail":"%s"}\n' "$_detail"
-  exit 1
-fi
-# provider / pick body only below this line
+# require CHAT_ROLE ∈ writer|reviewer; on fail → JSON-encode failure + exit 1
+# call extended core pick (subject=chat action=new role="$CHAT_ROLE")
+#   → pick itself sources the bound hook once; do NOT `.` it again
+# on pick fail → JSON-encode failure (ok:false, error token) + exit 1
+# map provider outcome → one stdout JSON object via jq (or equivalent encoder)
+#   — never raw printf interpolation of prompt/reply_text
 ```
 
-`agent/plan.sh` uses the same pre-bootstrap unset + sentinel; if it has no JSON contract yet, stderr + non-zero exit is enough for the orchestrator path.
+**Single-source rule:** the extended pick owns `.` of the hook (design §1). A marker-hook test must assert **exactly one** invocation per successful action run.
 
-| Caller action | Opt-inc loads after first-load |
-|---------------|--------------------------------|
-| `chat/new.sh` → `chat/new.opt-inc.sh` | role_select + harness_result |
-| `chat/reply.sh` → `chat/reply.opt-inc.sh` | same |
-| `decide/run.sh` → `decide/run.opt-inc.sh` | same |
-| `agent/plan.sh` → `agent/plan.opt-inc.sh` | those two + stage + sandbox manuals |
+**JSON encoding:** use `jq -n --arg …` (or another real encoder). Raw `printf '{"prompt":"%s"}'` is forbidden for string fields.
 
-**Tests (`include_load.test.sh`) — complete path in a fresh process:**
+Shared helpers appear **only** when Cursor/Codex/Ollaya/bwrap work still leaves substantial ASC logic (staging, sandbox runner). Providers stay in contrib hooks; orchestration stays in `plan.sh`.
 
-1. Happy path: harness defines select/emitter; `AGENT_HARNESS_INC_OK=1`.
-2. Override `source_manual` with a marker; fresh process hits marker.
-3. **Three failure points** (separate cases; each uses a failing override / bad path so that load aborts **before** later manuals):
-   - `source_manual` fails
-   - `role_select` fails
-   - `harness_result` fails  
-   For each: stdout is **valid JSON** `ok:false` / `error=include_load_failed` (optional `detail`), exit ≠ 0, body-only marker **absent**. Assert the abort path did **not** require a loaded `harness_result` emitter (e.g. stub harness with only the inline `printf`).
-4. Inherited `AGENT_HARNESS_INC_OK=1` in the environment **before** the harness runs: harness still fails if opt-inc is skipped/missing (pre-bootstrap unset wins).
-5. Successful override of `role_select` is sourced exactly once (not also the original).
 ---
 
 ### Sandbox handoff (required)
 
-Chat harnesses are **subprocesses**. They do not inherit functions from `plan.sh`.
+Chat actions are **subprocesses**. They do not inherit functions from `plan.sh`.
 
-**Wrap the harness cmdline:**
+**Wrap the action cmdline:**
 
 ```bash
 f_plan_sandbox_run writer -- env CHAT_ROLE=writer … asc/extensions/agent/chat/new.sh …
@@ -169,7 +97,7 @@ Clarify the exception: inside the sandbox, `$PROJECT_DOCROOT/data/asc/cache` is 
 v1 profile **must**:
 
 1. Keep live project tree RO except enumerated auth binds and these **staging-backed** ASC state mounts.
-2. Use a **separate backing directory per role** (`writer`, `reviewer`); orchestrator/`decide-run` uses host-native or `orchestrator` backing — **never** the writer’s.
+2. Use a **separate backing directory per role** (`writer`, `reviewer`); orchestrator / `plan-is` use host-native or `orchestrator` backing — **never** the writer’s.
 3. **Lifetime:** empty (cold) or **orchestrator-prepared pristine seed** (warm) at the start of each wrapped turn; discard/quarantine after the turn; never copy provider-backed cache into live docroot cache.
 4. **Cold test:** empty role backing; wrapped harness bootstrap succeeds; new cache bytes land only in that backing dir.
 5. **Warm test:** seed from orchestrator-controlled pristine copy only (not from a prior writer turn).
@@ -194,27 +122,22 @@ Hooks remain sandbox-unaware. Bare `make chat-new` without the wrapper is not `e
 
 - [ ] **Step 2: Codex** — install if needed; record create/resume and **GPT Terra 6.1 – High** selection; confirm how to omit auto-write/`--force`/`--yolo`.
 
-- [ ] **Step 3: Ollaya** — `ollaya` / `127.0.0.1:11435`; one `/v1/systemone` decide with `plan_ready` questions (design §6); record `confidence` on clean vs issues samples; keep or revise 0.75.
+- [ ] **Step 3: Readiness path** — confirm v1 uses deterministic `plan/is.ready.hook.sh`; structured Codex review JSON is the judgment source; Ollaya not on the critical path.
 
 - [ ] **Step 4: Sandbox probe** — `bwrap`; draft profiles with RO docroot + **RW binds for `data/asc/cache` (and other cold-start write paths)** onto staging-backed dirs; prove forbidden docroot write fails; list every RW bind (auth + ASC state); note cold vs warm bootstrap under the draft; optional early auth probe (final verify waits for Tasks 3–4).
 
 - [ ] **Step 5: Write host note** with all of the above.
 
-- [ ] **Step 6: Stop** if Auto, Terra High, or Ollaya decide is unreachable.
+- [ ] **Step 6: Stop** if Auto or Terra High is unreachable.
 ---
 
-### Task 1: Extend core `hook_ms` + harness load route + verified tests
+### Task 1: Extend core `hook_ms` + plain chat actions + verified tests
 
 **Files:**
 - Modify: `asc/core/hook.manual-inc.sh`
 - Modify: `asc/test/core/hook.test.sh`
-- Create: `asc/extensions/agent/agent/source_manual.manual-inc.sh`
-- Create: `asc/extensions/agent/agent/role_select.manual-inc.sh`
-- Create: `asc/extensions/agent/agent/harness_result.manual-inc.sh`
-- Create: `asc/extensions/agent/chat/new.opt-inc.sh`, `chat/reply.opt-inc.sh`
-- Create: `asc/extensions/agent/test/core/include_load.test.sh`
-- Create: `asc/extensions/agent/test/core/role_select.test.sh`
 - Modify: `chat/new.sh`, `reply.sh`, `read.sh`, `archive.sh`
+- Create (only if a real shared need appears later — **not** in this task): none of the removed loader files
 
 **Verified test entry (do not use `make test-agent`):**
 
@@ -226,30 +149,27 @@ Hooks remain sandbox-unaware. Bare `make chat-new` without the wrapper is not `e
 make test-core
 ```
 
-3. Assert discovery: `f_test_batch_exec` path for agent is exercised. Concrete check in `include_load.test.sh` / CI step:
+3. Assert discovery: `f_test_batch_exec` path for agent is exercised. Concrete check:
 
 ```bash
-# After make test-core, or inside a meta-test:
-grep -E 'role_select|include_load|hook' data/logs/...   # prefer: shunit2 counts
 # Hard requirement: fail the task if agent test/*.test.sh files are zero-executed.
-# Implement: agent test/core.hook.sh already batches asc/extensions/agent/test/core
+# agent test/core.hook.sh already batches asc/extensions/agent/test/core
 # Confirm new files appear in that directory and make test-core output lists them
-# (or run: ASC_TEST_FILTER=role_select make test-core if such a filter exists;
-#  otherwise run f_test_batch_exec 'asc/extensions/agent/test/core' directly and
+# (or run f_test_batch_exec 'asc/extensions/agent/test/core' directly and
 #  assert non-zero testsRan from shunit2).
 ```
 
 Never: `make test-agent || asc/extensions/agent/test/core.sh` (unknown Make targets can succeed; that fallback path does not exist).
 
-- [ ] **Step 1: Failing tests** — core parity/role/conflict; cache stale/clear; `include_load` happy + three fail points (`source_manual` / `role_select` / `harness_result`) with **inline** JSON abort (no emitter); inherited sentinel masked; body marker absent.
+- [ ] **Step 1: Failing tests** — core parity/role/conflict for the extended pick; chat action: missing role / pick failure → valid JSON + non-zero exit + no provider body; **marker hook count == 1** on success (fails if action re-sources); JSON with quotes/newlines in `prompt`/`reply_text` round-trips; cache stale/clear after hook/extension fixture changes.
 
-- [ ] **Step 2: `make test-core` with agent enabled — expect FAIL**; confirm new test files appear in the run/summary.
+- [ ] **Step 2: `make test-core` with agent enabled — expect FAIL**; confirm intended test files appear in the run/summary.
 
-- [ ] **Step 3: Implement** core extended pick; `source_manual.manual-inc.sh`; `role_select` / `harness_result`; opt-incs with sentinel; first-load sequence.
+- [ ] **Step 3: Implement** core ranking helper + extended pick that **sources** the bound path; slim `new.sh` / `reply.sh` to plain actions (call pick only—no second `.`; encode JSON with `jq` or equivalent); drop pre/post; `CHAT_TYPE` on read/archive.
 
-- [ ] **Step 4: Slim `new.sh` / `reply.sh`** — **unset sentinel before bootstrap**; after bootstrap require `AGENT_HARNESS_INC_OK=1` else **inline** JSON `include_load_failed` + `exit 1` (no `harness_result` call); drop pre/post; `CHAT_TYPE` on read/archive.
+- [ ] **Step 4: Refuse loader creep** — confirm no new harness `*.opt-inc.sh`, `source_manual`, `role_select`, `harness_result`, or sentinel landed in this task.
 
-- [ ] **Step 5: `make test-core` PASS; assert intended cases ran (three include-fail points + inherited-sentinel)**
+- [ ] **Step 5: `make test-core` PASS; assert intended cases ran (single-source marker + JSON encode)**
 
 - [ ] **Step 6: Commit only if asked**
 ---
@@ -259,14 +179,14 @@ Never: `make test-agent || asc/extensions/agent/test/core.sh` (unknown Make targ
 **Normative:** design §3, §4a.
 
 **Files:**
-- Create: `asc/extensions/agent/agent/plan_stage.manual-inc.sh`
+- Create: `asc/extensions/agent/agent/plan_stage.manual-inc.sh` **when** validate/stage/promote/inventory would make `plan.sh` hard to follow; otherwise keep logic in `plan.sh` until that threshold is clear.
 - Create: `asc/extensions/agent/test/core/plan_stage.test.sh`
 
 - [ ] **Step 1: Failing tests** — path escape / live symlink / missing parent; create-from-absent; `live_changed` when live edited during simulated writer turn; flock second promoter; `stalled_draft` identical digest after issues; weakened inventory: ignored-file change, add/delete, symlink, unreadable, `inventory_error`; document residual unlocked promotion race.
 
 - [ ] **Step 2: Implement** validate, stage, `live_before`, flock+recheck+rename, inventories.
 
-- [ ] **Step 3: Load only via `f_agent_source_manual` from `plan.sh` and from tests** (same override rules).
+- [ ] **Step 3: Load only via explicit `.` from `plan.sh` / tests** if extracted—no opt-inc, no custom loader.
 
 - [ ] **Step 4: `make test-core` (agent enabled) — PASS; cases discovered**
 
@@ -277,7 +197,7 @@ Never: `make test-agent || asc/extensions/agent/test/core.sh` (unknown Make targ
 **Normative:** design §4 (narrow reviewer claim + handoff).
 
 **Files:**
-- Create: `asc/extensions/agent/agent/plan_sandbox.manual-inc.sh`
+- Create: `asc/extensions/agent/agent/plan_sandbox.manual-inc.sh` **when** profile selection + wrap cmdline is substantial; else keep in `plan.sh` until needed.
 - Create: `asc/extensions/agent/agent/sandbox/writer.bwrap.conf`
 - Create: `asc/extensions/agent/agent/sandbox/reviewer.bwrap.conf`
 - Create: `asc/extensions/agent/test/core/plan_sandbox.test.sh`
@@ -299,7 +219,7 @@ Never: `make test-agent || asc/extensions/agent/test/core.sh` (unknown Make targ
 
 - [ ] **Step 3: `make test-core` PASS; cases discovered**
 
-- [ ] **Step 4: Document handoff + state binds** in `plan_sandbox.manual-inc.sh` header.
+- [ ] **Step 4: Document handoff + state binds** next to the runner (header comment).
 
 ---
 
@@ -311,7 +231,7 @@ Never: `make test-agent || asc/extensions/agent/test/core.sh` (unknown Make targ
 - Create: `scripts/asc/contrib/asc/cursor/chat/new.writer.hook.sh`
 - Create: `scripts/asc/contrib/asc/cursor/chat/reply.writer.hook.sh`
 
-- [ ] **Step 1: Implement** create-chat + Auto `-p` / resume per host note; `--force` only if host note requires it for staging writes; emit JSON via harness emitter vars/contract.
+- [ ] **Step 1: Implement** create-chat + Auto `-p` / resume per host note; `--force` only if host note requires it for staging writes; instruct the writer to keep **declared needs** (acceptance criteria, prerequisites, open decisions) in the plan; leave JSON assembly to the plain chat action.
 
 - [ ] **Step 2: Clear** `data/asc/cache/hook/*` after adding files; enable `asc/cursor` on test instance.
 
@@ -334,7 +254,7 @@ Never: `make test-agent || asc/extensions/agent/test/core.sh` (unknown Make targ
 - Create: `scripts/asc/contrib/asc/codex/chat/new.reviewer.hook.sh`
 - Create: `scripts/asc/contrib/asc/codex/chat/reply.reviewer.hook.sh`
 
-- [ ] **Step 1: Implement** create/resume with High effort; **no** `--force`/`--yolo`/auto-write; do not strip inlined plan bytes from the prompt.
+- [ ] **Step 1: Implement** create/resume with High effort; **no** `--force`/`--yolo`/auto-write; do not strip inlined **brief, needs, or plan bytes** from the prompt; emit structured verdict (blocking vs optional).
 
 - [ ] **Step 2: Clear hook cache; enable `asc/codex` on test instance**
 
@@ -348,61 +268,56 @@ Never: `make test-agent || asc/extensions/agent/test/core.sh` (unknown Make targ
 - [ ] **Step 5: Tests/smoke PASS**
 ---
 
-### Task 5: Abstract `decide-run` + `scripts/asc/contrib/asc/ollaya`
+### Task 5: `plan-is 'ready'` + default deterministic hook
 
-**Normative:** design §1 (decide role), §6 (full Ollaya contract), Boundaries (mother ignore).
+**Normative:** design §6 (named-step readiness, review schema, evidence interface, default hook).
 
 **Files:**
-- Create: `asc/extensions/agent/decide/run.sh`
-- Create: `scripts/asc/contrib/asc/ollaya/decide/run.decider.hook.sh`
-- Create: fixtures under `asc/extensions/agent/test/core/fixtures/ollaya_plan_ready/`
-- Create: `asc/extensions/agent/test/core/decide_ollaya.test.sh`
-- Optional short: `scripts/asc/contrib/asc/ollaya/README.md`
+- Create: `asc/extensions/agent/plan/is.sh`
+- Create: `asc/extensions/agent/plan/is.ready.hook.sh` (**default**, deterministic)
+- Create: fixtures under `asc/extensions/agent/test/core/fixtures/plan_is_ready/`
+- Create: `asc/extensions/agent/test/core/plan_is.test.sh`
 
-- [ ] **Step 0:** `grep -qx 'asc/ollaya' .asc_extensions_ignore` or add the line in the same change set as the first ollaya file. README: instance ignore may omit the line to enable.
+**Do not create (v1):** `review/is.sh`, `plan/needs.sh`, ollaya `is.ready` unless explicitly authorized later.
 
-- [ ] **Step 1: Fixtures** per design §6 table (clean, issues, caveats, negation, mixed, empty, garbage, `422`/`state_truncated`).
+- [ ] **Step 1: Fixtures** — valid yes (established list all `pass`); established `[]` + empty `checks` → yes when review ok; **unestablished list → unknown** (not silent `[]`); non-empty list + empty `checks` → unknown; id absent → unknown; prereq fail → no; digest / **`named_step` mismatch** / contradiction / malformed → unknown.
 
-- [ ] **Step 2: Failing tests** — role select for `run.decider.hook.sh`; cache clear after add; classify fixtures → classes; malformed confidence → `invalid`.
+- [ ] **Step 2: Failing tests** — evidence inputs; answer ∈ yes/no/unknown with reason; unknown≠yes.
 
-- [ ] **Step 3: `decide/run.opt-inc.sh` + `decide/run.sh`** — same first-load path as chat opt-incs; extended pick `DECIDE_ROLE=decider`; pass reviewer `reply_text` as state (document arg/file/stdin in header).
+- [ ] **Step 3: Implement** `plan/is.sh` + deterministic `is.ready.hook.sh` per design §6. No LLM in this task.
 
-- [ ] **Step 4: `run.decider.hook.sh`** — `POST /v1/systemone` with §6 questions; map to `class`; emit decide JSON schema from §6.
+- [ ] **Step 4: `make test-core` PASS** with agent enabled; cases discovered.
 
-- [ ] **Step 5: Live + mocked truncation; clear decide hook cache keys**
-
-- [ ] **Step 6: If threshold changes, edit design §6 in the same authorized change**
-
-- [ ] **Step 7: Hygiene** — `grep -qx 'asc/ollaya' .asc_extensions_ignore` must pass.
-
----
+- [ ] **Step 5: Commit only if asked**
 
 ### Task 6: `make agent-plan` orchestrator
 
-**Normative:** design loop summary; §3–§7; Sandbox handoff; Include loading route.
+**Normative:** design loop summary; §3–§7; Sandbox handoff; design §1 minimality; §6 predicates.
 
 **Files:**
 - Create: `asc/extensions/agent/agent/plan.sh`
 - Create: `asc/extensions/agent/test/core/plan_loop.test.sh`
 
-- [ ] **Step 1: Rely on `agent/plan.opt-inc.sh`** for first-load + manuals (stage, sandbox, select, result); `plan.sh` only bootstraps and runs the loop.
+- [ ] **Step 1: Keep `plan.sh` readable** — bootstrap + loop in the action; explicit `.` of `plan_stage` / `plan_sandbox` **only if** those files exist because the logic is substantial. No `plan.opt-inc.sh`.
 
-- [ ] **Step 2: CLI** — `plan:<path>` + `prompt:<file>` or stdin (design §5); reject bare multiword Make prompts.
+- [ ] **Step 2: CLI** — `plan:` + `prompt:` / stdin + **`named_step:"'…'"`** (design §5 nested quoting); optional `required_prerequisites:<file>`; reject missing `named_step:`; reject bare multiword Make prompts. **E2E test:** `make agent-plan … named_step:"'Task 0'"` delivers `Task 0` intact.
 
 - [ ] **Step 3: Loop**
   1. Validate + stage; `live_before`.
   2. `f_plan_sandbox_run writer -- <chat-new writer…>`; parse JSON; abort on `missing_result_json` / failed / empty.
   3. Inventory; promote or `live_changed`.
-  4. Build reviewer message (task + expected response + path + digest + inlined bytes) — design §3.
+  4. Build reviewer message (brief + needs/criteria + path + digest + plan bytes) — design §3.
   5. `f_plan_sandbox_run reviewer -- <chat-new/reply reviewer…>`.
-  6. `decide-run` with `DECIDE_ROLE=decider` (no Ollaya curl in `plan.sh`).
-  7. Branch on `class` per §7; max 8 rounds.
+  6. Parse structured review JSON (§6 schema); malformed/contradiction/digest mismatch → pause.
+  7. Establish `required_prerequisites` (CLI file else plan `asc-prerequisites` block); if unestablished → unknown (do not write `[]`). Else call `plan-is 'ready'` with full evidence package; max 8 rounds.
 
 - [ ] **Step 4: Log** isolation mode; print `enforced` for a role only if that role’s profile was verified in Task 3 (writer) / Task 4 (reviewer), not merely after 2b doubles.
 
-- [ ] **Step 5: Banner once:** promotion race if lock ignored; weakened scan-time only; decider classifies review text only; enforced reviewer claim is docroot+staging except listed auth RW binds; ASC cache lives on staging-backed binds.
+- [ ] **Step 5: Banner once:** promotion race if lock ignored; weakened scan-time only; review≠readiness; prerequisites≠outcomes for named step; gates/NEXT_STEPS authorize; ASC cache on staging-backed binds.
 
-- [ ] **Step 6: Tests** with extend doubles for writer/reviewer/decider; optional `AGENT_PLAN_LIVE=1`.
+- [ ] **Step 6: Tests** with extend doubles for writer/reviewer/`plan-is`; false-stop cases; optional `AGENT_PLAN_LIVE=1`.
+
+- [ ] **Step 7: Refuse loader creep** — diff must not introduce harness opt-incs, include loaders, or thin forwarder wrappers “for consistency.”
 ---
 
 ### Task 7: Instance smoke + mother hygiene
@@ -433,25 +348,26 @@ test -d scripts/asc/contrib/asc/ollaya
 | Spec / gap | Task |
 |------------|------|
 | §1 extended `hook_ms` + parity | 1 |
-| Include load + harness abort sentinel / JSON | 1, 5 |
+| §1 minimality / no loader tower | 1, 5, 6 |
 | Per-role ASC cache non-reuse / poison | 2b, 6 |
 | Verified `make test-core` + discovery assert | 1, 2, 2b, 5 |
 | §3 staging / promotion | 2 |
 | §4 sandbox doubles + cold/warm ASC state binds | 0, 2b |
 | §4 provider create+resume before profile verified | 3, 4 |
-| Sandbox wraps chat harness subprocess | 2b, 3, 4, 6 |
-| §6 ollaya contrib + ignore line | 5, 7 |
+| Sandbox wraps chat action subprocess | 2b, 3, 4, 6 |
+| §6 plan-is + default deterministic is.ready | 5, 6 |
 | Mother `asc/ollaya` ignore | 5 Step 0, 7 (preemptive line already in tree) |
 | Loop + limits banner | 6 |
 | Hook cache | 1, 3, 4, 5, 7 |
-| Override via `scripts/overrides/…` + `f_agent_source_manual` | Include route, 1 |
 
 ## Self-review notes
 
-- P1 include abort: pre-bootstrap unset; sentinel; **inline** JSON (independent of `harness_result`); tests for `source_manual` / `role_select` / `harness_result` fails + inherited sentinel + body not run.
-- P1 cache mount: staging-backed per-role exception; poison non-reuse across writer → reviewer/orchestrator; cold/warm with pristine seeds only.
-- P1 sandbox visibility: wrap harness cmdline; 2b = doubles; 3–4 = authenticated create **and** resume before profile verified.
-- P1 reviewer claim: docroot+staging; auth RW exceptions enumerated.
+- Dropped the include-loader tower. Plain actions + local JSON via a real encoder; pick sources the hook once (marker test); no second `.` in the action.
+- Nested Make quoting for `named_step`; `required_prerequisites` via CLI or plan marker block—unestablished → unknown; review step mismatch → unknown; gates still authorize.
+- Core hook extension and staging/sandbox stay only where behavior is substantial; extract late, not preemptively.
+- Tasks 1 and 6 include an explicit **refuse loader creep** check.
+- P1 cache mount: staging-backed per-role exception; poison non-reuse; cold/warm pristine seeds only.
+- P1 sandbox visibility: wrap action cmdline; 2b = doubles; 3–4 = authenticated create **and** resume before profile verified.
 - Mother ignore + `make test-core` discovery asserts retained.
 
 ---
