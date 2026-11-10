@@ -3,11 +3,11 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-11-10 |
-| **Status** | **plan / review**. Contract section below must stay settled before implementation. Nothing here is an implementation go-ahead. |
+| **Status** | **plan / review** — contracts settled; implementation planning in [10-agent-plan-cursor-codex-ollaya-impl.md](./10-agent-plan-cursor-codex-ollaya-impl.md). Nothing here is an implementation go-ahead. |
 | **Goal** | One ASC action that drafts a changelog plan with Cursor, reviews it with Codex in a headless loop, and stops when a local Ollaya decision says the review is clean **for staged plan bytes the reviewer actually received**. |
-| **v1 products** | Cursor (writer) and Codex (reviewer) only. Claude is the same shape later; not this slice. |
+| **v1 products** | Cursor (writer), Codex (reviewer), Ollaya (decider). Claude chat roles are the same shape later; not this slice. |
 | **Visibility** | Headless CLI / SDK sessions. Desktop-visible “type into the open composer” stays in [27-desktop-agent-terminal-reply.md](../09/27-desktop-agent-terminal-reply.md). |
-| **Boundaries** | No project-level provider env vars. Live plan path updated only by the orchestrator after flock + recheck (§3 residual race acknowledged). Reviewer writes: **prevented** in `enforced` isolation; **detected / not claimed prevented** in `weakened` (logged). No mother default enablement of `agent`, `asc/cursor`, or `asc/codex`. No Claude hook implementations in this plan. No gates row in this note. |
+| **Boundaries** | No project-level provider env vars. Live plan path updated only by the orchestrator after flock + recheck (§3 residual race acknowledged). Reviewer writes: **prevented** in `enforced` isolation; **detected / not claimed prevented** in `weakened` (logged). No mother default enablement of `agent`, `asc/cursor`, `asc/codex`, or `asc/ollaya`. No Claude hook implementations in this plan. No gates row in this note. |
 | **Out of this plan** | Desktop UI injection. Shipping the scripts without a later go-ahead. A second make pivot per tool (`cursor-plan`, `codex-plan`). |
 
 `$` in this file is the ASC docs placeholder (`$subject` / `$action` / `$extension`), not a shell variable.
@@ -38,7 +38,7 @@ v1 therefore accepts background conversations and a durable changelog file as th
 | Ollaya clean floor | `answers.plan_ready.choice == clean` and `confidence ≥ 0.75` on the **recorded** model after fixture tuning |
 | Uncertainty | Not treated as writer “issues”; separate `needs_human_review` |
 | Stalled draft | After `issues`, if staged digest is unchanged → always `stalled_draft` |
-| Role selection | Rank all candidates like `hook_ms`; **sourced path must be that overall winner and role-qualified**; else fail. Seed opt-incs before source (§1) |
+| Role selection | Rank all candidates like `hook_ms`; **sourced path must be that overall winner and role-qualified**; else fail. Seed opt-incs before source (§1). Chat roles: `writer` / `reviewer`. Decide role: `decider` via `DECIDE_ROLE` |
 | Cursor model | **Auto** |
 | Codex model | **GPT Terra 6.1 – High effort** |
 | Max rounds | **8** (§7) |
@@ -59,20 +59,23 @@ Implementation follows these rules; it does not invent softer ones.
 
 **Required implementation route (v1 harness — do not call `hook_ms` for select-then-run):**
 
-1. Require `CHAT_ROLE` ∈ `{writer, reviewer}`.
+The same algorithm applies to **chat** (`CHAT_ROLE`, subject `chat`, actions `new`|`reply`) and **decide** (`DECIDE_ROLE`, subject `decide`, action `run`).
+
+1. Require the role var ∈ the allowed set for that harness (`writer`|`reviewer` for chat; `decider` for decide in v1).
 2. In the harness calling scope: `hook_dry_run_matches=''`, then  
-   `hook -t -s 'chat' -a '<new|reply>' -v '… CHAT_ROLE …'`.  
+   `hook -t -s '<subject>' -a '<action>' -v '… <ROLE_VAR> …'`.  
    `hook()` writes `hook_dry_run_matches` into the **caller** when not shadowed by `hook_ms`’s `local`.
 3. Rank **all** candidates with the same rules as `f_hook_ms_measure` / `hook_ms` (rung, then sum; equal keeps later). Call the unique overall winner `C_win` (lookup path before override).
 4. **Missing:** no candidates → `no_hook_for_role`.
 5. **Winner must be role-qualified:** basename of `C_win` must match  
-   `^(new|reply)\.${CHAT_ROLE}\.hook\.sh$`.  
-   If `C_win` is unqualified (e.g. `new.hook.sh`) **or** carries another role → fail `unqualified_hook_winner`.  
+   `^<action>\.${ROLE}\.hook\.sh$`  
+   (e.g. `new.writer.hook.sh`, `run.decider.hook.sh`).  
+   If `C_win` is unqualified (e.g. `new.hook.sh` / `run.hook.sh`) **or** carries another role → fail `unqualified_hook_winner`.  
    **Do not** fall through to a lower-ranked role-qualified file on the same rung. Example: same rung has `new.hook.sh` (higher sum) and `new.writer.hook.sh` (lower sum) → **fail**, do not source the writer file.
 6. **Same-rung role conflicts:** if **two or more** role-qualified candidates exist on `C_win`’s rung (regardless of sum order among them) → fail `hook_role_conflict` and list them. (If exactly one role-qualified exists on that rung but it is not `C_win`, step 5 already failed.)
-7. Resolve override **once** for `C_win` (`f_autoload_override` / `f_hook_resolve_source_path`, same as `hook_ms`). Store the final path in `CHAT_HOOK_SOURCE`.
+7. Resolve override **once** for `C_win` (`f_autoload_override` / `f_hook_resolve_source_path`, same as `hook_ms`). Store the final path in `CHAT_HOOK_SOURCE` or `DECIDE_HOOK_SOURCE`.
 8. **Opt-incs:** call `f_hook_source_opt_incs_for_path` on the lookup path **before** sourcing, matching `hook_ms` (so implementer `*.opt-inc.sh` files are not skipped).
-9. Source **only** `CHAT_HOOK_SOURCE`. No second lookup.
+9. Source **only** that bound path. No second lookup.
 
 **Tests:** missing; unqualified-only; writer is overall winner; extend beats contrib; two `.writer.` on same rung → conflict; **unqualified higher-sum + writer lower-sum on same rung → `unqualified_hook_winner` (not sourcing writer)**; reviewer never sources `.writer.`; opt-inc side effect observed when a colocated opt-inc exists; bound path equals sourced path.
 
@@ -223,11 +226,47 @@ If step 0 cannot verify reviewer RO flags **and** cannot run `enforced`, the loo
 
 Unsupported: bare multiword Make args ([`call_wrap.make.sh`](../../../asc/make/call_wrap.make.sh)).
 
-### 6. Ollaya decide contract [P2]
+### 6. Decide harness + Ollaya `decider` contract [P2]
 
-This section is the maintained classifier contract for `agent-plan` (do not defer to a prior draft of this file).
+Classification is **not** an inline helper inside `agent-plan`. It uses the same contrib pattern as Cursor/Codex:
 
-**Transport (truncation = unconditional failure):**
+| Piece | Path / rule |
+|-------|-------------|
+| Abstract harness | `asc/extensions/agent/decide/run.sh` → `make decide-run` |
+| Role | call-local `DECIDE_ROLE=decider` (hardcoded literal; no provider env) |
+| Contrib | `scripts/asc/contrib/asc/ollaya` (enablement-gated like `asc/cursor`) |
+| Hook implementation | `decide/run.decider.hook.sh` |
+| Selection | §1 with subject `decide`, action `run`, role `decider` |
+| I/O | One JSON object on stdout (stderr diagnostics); orchestrator never reads hook-locals |
+
+**Decide JSON (success or failure):**
+
+```json
+{
+  "ok": true,
+  "action": "run",
+  "role": "decider",
+  "class": "clean",
+  "choice": "clean",
+  "confidence": 0.81,
+  "model": "winnow:e4b",
+  "state": "…reviewer reply…",
+  "raw": {},
+  "status": "completed",
+  "error": null
+}
+```
+
+| Field | Rule |
+|-------|------|
+| `class` | `clean` \| `issues` \| `uncertain` \| `invalid` (orchestrator switch) |
+| `choice` / `confidence` / `model` | from Ollaya when parseable; else null with `class=invalid` |
+| `raw` | parsed decide body or null |
+| Crash / empty stdout | orchestrator `missing_result_json` (same as chat) |
+
+The `agent-plan` loop calls `make decide-run` (or the abstract script) with `DECIDE_ROLE=decider` and the reviewer `reply_text` as state. It does **not** embed `/v1/systemone` curl in `plan.sh`.
+
+**Transport (truncation = unconditional failure) — implemented inside the ollaya hook:**
 
 | API | Truncation behavior | v1 rule |
 |-----|---------------------|---------|
@@ -317,7 +356,8 @@ Cover §1–§7 including: live edit during writer → no overwrite; promotion r
 |------|-------|------|
 | `asc/extensions/agent/chat/new.sh` | `make chat-new` | §1 select + opt-incs + JSON |
 | `asc/extensions/agent/chat/reply.sh` | `make chat-reply` | Same |
-| Orchestrator | `make agent-plan` | Validate path, stage, isolate, promote (§3), loop, Ollaya |
+| `asc/extensions/agent/decide/run.sh` | `make decide-run` | §1 select + JSON for `DECIDE_ROLE` |
+| Orchestrator | `make agent-plan` | Validate path, stage, isolate, promote (§3), loop; calls chat + decide harnesses |
 
 ### Contrib hooks
 
@@ -325,6 +365,7 @@ Cover §1–§7 including: live edit during writer → no overwrite; promotion r
 |------|-----------|--------|
 | `writer` | `scripts/asc/contrib/asc/cursor` | `chat/new.writer.hook.sh`, `chat/reply.writer.hook.sh` |
 | `reviewer` | `scripts/asc/contrib/asc/codex` | `chat/new.reviewer.hook.sh`, `chat/reply.reviewer.hook.sh` |
+| `decider` | `scripts/asc/contrib/asc/ollaya` | `decide/run.decider.hook.sh` |
 
 ### Loop (summary)
 
@@ -336,11 +377,12 @@ make agent-plan plan:<path> prompt:<file>
   → chat-new writer (staging)
   → inventory check; flock + recheck + rename promote → live (D0) or live_changed
   → reviewer msg: task + expected response + path + D0 + inlined bytes
-  → ollaya (/v1/systemone) per §6
+  → chat-new reviewer
+  → decide-run DECIDE_ROLE=decider (state = reviewer reply) per §6
        clean     → success if live digest == D0
        issues    → live_before'; writer; if digest==D0 → stalled_draft
-                   else promote D1; reviewer task+bytes for D1; …
-       uncertain → one reclassify or needs_human_review
+                   else promote D1; reviewer task+bytes for D1; decide-run again …
+       uncertain → one reclassify (second decide-run) or needs_human_review
        invalid   → abort
   → max 8 rounds
 ```
@@ -370,9 +412,9 @@ make agent-plan plan:<path> prompt:<file>
 | 1 | Chat harness §1–§2 + `CHAT_TYPE` on read/archive + drop pre/post | Ranking/opt-inc/JSON tests green |
 | 2 | Cursor writer + staging | Auto; promotion flock/recheck + isolation tests |
 | 3 | Codex reviewer | Terra 6.1 High; inlined bytes; enforced or weakened reviewer logged |
-| 4 | Ollaya helper + fixtures + truncation | Corpus green |
-| 5 | `agent-plan` orchestrator | §3–§8 including live-edit-during-writer |
-| 6 | Instance smoke | Success + failure path; mother ignore list unchanged |
+| 4 | Abstract `decide/run` + `asc/ollaya` `run.decider.hook.sh` + fixtures | Corpus green; hook cache cleared after adds |
+| 5 | `agent-plan` orchestrator (calls chat + decide) | §3–§8 including live-edit-during-writer |
+| 6 | Instance smoke (`agent`, `asc/cursor`, `asc/codex`, `asc/ollaya` enabled on instance only) | Success + failure path; mother ignore list unchanged |
 
 This note is not step 0–6.
 
@@ -389,8 +431,8 @@ This note is not step 0–6.
 ## Open tasks
 
 - [ ] After go-ahead: implement §1–§8 as written (including host feasibility step 0).
-- [ ] After go-ahead: Cursor writer + Codex reviewer only (no Claude).
+- [ ] After go-ahead: Cursor writer + Codex reviewer + Ollaya decider (no Claude).
 - [ ] Pin Ollaya model id; confirm or revise 0.75 against fixtures (K=2 ⇒ p_max 0.875).
 - [ ] Record `writer_isolation` / `reviewer_isolation` (`enforced` / `weakened`) on the laptop.
 - [ ] Do not add a gates row from this note alone.
-- [ ] Do not enable `agent` / `asc/cursor` / `asc/codex` on the mother by default.
+- [ ] Do not enable `agent` / `asc/cursor` / `asc/codex` / `asc/ollaya` on the mother by default.
