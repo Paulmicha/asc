@@ -48,7 +48,6 @@ v1 therefore accepts background conversations and a durable changelog file as th
 | Max rounds | **8** (§7) |
 | Prompt interface | File or stdin primary |
 | `chat/read` + `chat/archive` | Rename `chat_TYPE` → `CHAT_TYPE`; keep plain `hook`; no JSON I/O |
-| `chat/new` + `chat/reply` pre/post | **Dropped** in v1 |
 | Claude | Deferred |
 
 ---

@@ -37,7 +37,7 @@
 |------|----------------|
 | `asc/core/hook.manual-inc.sh` (modify) | Shared ranking helper; extended role-qualified pick; keep unconstrained `hook_ms` semantics |
 | `asc/test/core/hook.test.sh` (modify) | Parity + role conflict / unqualified cases for the extended API |
-| `asc/extensions/agent/chat/new.sh`, `reply.sh` | Plain actions: bootstrap → require role → extended core pick (**sources hook**) → encode JSON locally; drop pre/post |
+| `asc/extensions/agent/chat/new.sh`, `reply.sh` | Plain actions: bootstrap → require role → extended core pick (**sources hook**) → encode JSON locally |
 | `asc/extensions/agent/chat/read.sh`, `archive.sh` | `CHAT_TYPE` rename only |
 | `asc/extensions/agent/plan/is.sh` (new) | Plain action: require evidence package; pick `is.ready` |
 | `asc/extensions/agent/plan/is.ready.hook.sh` (new) | **Default** deterministic merge (schema, digest, prereqs) → yes/no/unknown + reason |
@@ -165,7 +165,7 @@ Never: `make test-agent || asc/extensions/agent/test/core.sh` (unknown Make targ
 
 - [ ] **Step 2: `make test-core` with agent enabled — expect FAIL**; confirm intended test files appear in the run/summary.
 
-- [ ] **Step 3: Implement** core ranking helper + extended pick that **sources** the bound path; slim `new.sh` / `reply.sh` to plain actions (call pick only—no second `.`; encode JSON with `jq` or equivalent); drop pre/post; `CHAT_TYPE` on read/archive.
+- [ ] **Step 3: Implement** core ranking helper + extended pick that **sources** the bound path; slim `new.sh` / `reply.sh` to plain actions (call pick only—no second `.`; encode JSON with `jq` or equivalent); `CHAT_TYPE` on read/archive.
 
 - [ ] **Step 4: Refuse loader creep** — confirm no new harness `*.opt-inc.sh`, `source_manual`, `role_select`, `harness_result`, or sentinel landed in this task.
 

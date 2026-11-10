@@ -113,3 +113,46 @@ A safe migration would be:
 6. Document a lightweight default for ASC instances, allowing a project to add categories without requiring every instance to mirror the mother’s exact tree.
 
 My preference is to adopt the **meaning and authority rules as the durable cross-project convention**, while keeping the directory scheme small and allowing optional categories. That is more likely to survive changes in agents and tooling than tying the whole structure to a particular agent’s workflow.
+
+## Follow-up notes
+
+Remove `docs/reference/` and use **`docs/specs/` as the shared home for living specifications and technical reference**. For ASC, maintaining both directories would often force an arbitrary choice: a page describing a hook’s contract could naturally include its parameters, behavior, and examples.
+
+There is a real distinction in meaning: a specification can state what a system **must** do, while reference documentation can describe what it **currently** does. But they do not need separate directories. The important thing is to make the distinction clear **within the document**, especially when intended and implemented behavior differ:
+
+```markdown
+# Foobar
+
+Status: current
+
+## Contract
+
+The behavior implementations are expected to provide.
+
+## Current implementation
+
+What exists today, including known limitations.
+
+## Proposed changes
+
+Changes under consideration, linked to the relevant plan.
+```
+
+Not every spec needs all three sections. The point is that an agent should not interpret an aspirational statement as a description of working code—or treat an observed implementation detail as a required contract. That fits ASC’s existing distinction between the authoritative README, proposals, and actual implementations. [Diátaxis](https://diataxis.fr/) describes reference as a documentation purpose; it does not require a separate `reference/` directory.
+
+For `guides/`, a combined approach makes sense : let's allow both `foobar.md` and `how-to-foobar.md`, with the opening lines making the reader’s goal clear. A prefix can be useful when two guides cover the same subject from different angles; it need not become mandatory everywhere.
+
+The resulting structure would be:
+
+```text
+docs/
+  README.md
+  ideas/2026/11/10-foobar.md
+  plans/2026/11/10-foobar.md
+  decisions/2026/11/10-foobar.md
+  specs/foobar.md
+  guides/foobar.md
+  guides/how-to-foobar.md
+```
+
+I would keep specs and guides organized primarily by **subject**, since readers are more likely to look for the current documentation about a topic than for its creation date. Dated, task-specific records remain grouped chronologically. As those living directories grow, subject subdirectories can help navigation without forcing dates onto documents that are continually maintained.
