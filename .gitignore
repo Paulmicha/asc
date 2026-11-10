@@ -93,3 +93,6 @@ docker-runtime
 *.sshconfig
 __pycache__
 *.py[cod]
+
+# Wip: evalute OpenIDEA editor.
+.openidea
