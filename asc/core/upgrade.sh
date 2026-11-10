@@ -146,7 +146,7 @@ if [[ $? -ne 0 || ! -f 'AGENTS.asc.md' ]]; then
 fi
 
 # For newly created project instances, we need an initial AGENTS.md.
-if [[ -n 'AGENTS.md' ]]; then
+if [[ ! -f 'AGENTS.md' ]]; then
   cp "$tmp_dir/AGENTS.md" 'AGENTS.md'
 fi
 
