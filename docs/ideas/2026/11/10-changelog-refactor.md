@@ -31,8 +31,6 @@ docs/
         10-foobar.md               # Significant decision and its rationale
   guides/
     foobar.md                      # Optional: how to perform a task
-  reference/
-    foobar.md                      # Optional: detailed factual reference
 ```
 
 The central distinction is:
