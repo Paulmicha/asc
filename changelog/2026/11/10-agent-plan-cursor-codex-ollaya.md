@@ -7,7 +7,7 @@
 | **Goal** | One ASC action that drafts a changelog plan with Cursor, reviews it with Codex in a headless loop, and stops when a local Ollaya decision says the review is clean **for staged plan bytes the reviewer actually received**. |
 | **v1 products** | Cursor (writer), Codex (reviewer), Ollaya (decider). Claude chat roles are the same shape later; not this slice. |
 | **Visibility** | Headless CLI / SDK sessions. Desktop-visible “type into the open composer” stays in [27-desktop-agent-terminal-reply.md](../09/27-desktop-agent-terminal-reply.md). |
-| **Boundaries** | No project-level provider env vars. Live plan path updated only by the orchestrator after flock + recheck (§3 residual race acknowledged). Reviewer writes: **prevented** in `enforced` isolation; **detected / not claimed prevented** in `weakened` (logged). No mother default enablement of `agent`, `asc/cursor`, `asc/codex`, or `asc/ollaya`. No Claude hook implementations in this plan. No gates row in this note. |
+| **Boundaries** | No project-level provider env vars. Live plan path updated only by the orchestrator after flock + recheck (§3 residual race acknowledged). **Enforced reviewer filesystem claim (narrow):** writes to live docroot paths and staging **plan** bytes are blocked, except (1) enumerated auth/session RW binds and (2) the **sandbox-only** mount of `data/asc/cache` whose **backing store is outside the live tree** and is **per-role / not shared** (§4). Network/socket side effects are out of claim. Weakened = detection only. Mother keeps `asc/ollaya` on `.asc_extensions_ignore`. No Claude. No gates row in this note. |
 | **Out of this plan** | Desktop UI injection. Shipping the scripts without a later go-ahead. A second make pivot per tool (`cursor-plan`, `codex-plan`). |
 
 `$` in this file is the ASC docs placeholder (`$subject` / `$action` / `$extension`), not a shell variable.
@@ -31,14 +31,15 @@ v1 therefore accepts background conversations and a durable changelog file as th
 | Automation surface | Headless Cursor ↔ Codex loop |
 | Plan bytes | Orchestrator-owned **staging file**; live path updated only by orchestrator promotion (§3). Not kernel content-CAS; remaining race stated explicitly |
 | Write isolation | Same mode for writer and reviewer: **enforced** when sandbox works; otherwise **weakened** with explicit non-claims (§4). Smoke logs both. |
-| Reviewer writes (boundary wording) | Enforced = no reviewer writes by sandbox. Weakened = omit auto-write flags + post-scan detection only; **not** a prevention guarantee |
+| Reviewer writes (boundary wording) | Enforced = no writes to docroot + staging except enumerated auth RW binds (§4). Weakened = omit auto-write flags + post-scan detection only |
+| Sandbox handoff | `agent-plan` (and tests) run each writer/reviewer **chat harness subprocess inside** `f_plan_sandbox_run`; hooks do not need to call the runner |
 | Review input | Immutable snapshot bytes **inlined** in the reviewer prompt |
 | Stop condition | Ollaya on reviewer reply, bound to snapshot digest; live path must still match at success |
 | Ollaya transport | Prefer `/v1/systemone` (truncation → `422`); never accept truncated state as success |
 | Ollaya clean floor | `answers.plan_ready.choice == clean` and `confidence ≥ 0.75` on the **recorded** model after fixture tuning |
 | Uncertainty | Not treated as writer “issues”; separate `needs_human_review` |
 | Stalled draft | After `issues`, if staged digest is unchanged → always `stalled_draft` |
-| Role selection | Rank all candidates like `hook_ms`; **sourced path must be that overall winner and role-qualified**; else fail. Seed opt-incs before source (§1). Chat roles: `writer` / `reviewer`. Decide role: `decider` via `DECIDE_ROLE` |
+| Role selection | **Extend core `hook_ms`** with role-qualified pick + conflict (§1); harnesses call that API. Chat: `writer` / `reviewer`. Decide: `decider` |
 | Cursor model | **Auto** |
 | Codex model | **GPT Terra 6.1 – High effort** |
 | Max rounds | **8** (§7) |
@@ -57,27 +58,29 @@ Implementation follows these rules; it does not invent softer ones.
 
 `hook_ms` ranks by **rung first**, then dot/slash sum inside that rung, and sources nothing when there is no match ([`hook_ms`](../../../asc/core/hook.manual-inc.sh)). Its dry-run keeps `hook_dry_run_matches` **local**. Before sourcing, normal `hook_ms` calls `f_hook_source_opt_incs_for_path` then applies override ([lines 829–836](../../../asc/core/hook.manual-inc.sh)).
 
-**Required implementation route (v1 harness — do not call `hook_ms` for select-then-run):**
+The same role rules apply to **chat** (`CHAT_ROLE`, subject `chat`, actions `new`|`reply`) and **decide** (`DECIDE_ROLE`, subject `decide`, action `run`).
 
-The same algorithm applies to **chat** (`CHAT_ROLE`, subject `chat`, actions `new`|`reply`) and **decide** (`DECIDE_ROLE`, subject `decide`, action `run`).
+**Maintained-contract decision (do not silently fork ranking):**  
+The [asc-author-code](../../../.agents/skills/asc-author-code/SKILL.md) harness law is “generic `$subject-$action` makes a **`hook_ms`** call.” Role qualification and same-rung conflict detection are **stricter** than today’s winner-only `hook_ms`. v1 therefore **extends the shared core** in `asc/core/hook.manual-inc.sh` rather than duplicating rank math in the agent extension:
 
-1. Require the role var ∈ the allowed set for that harness (`writer`|`reviewer` for chat; `decider` for decide in v1).
-2. In the harness calling scope: `hook_dry_run_matches=''`, then  
-   `hook -t -s '<subject>' -a '<action>' -v '… <ROLE_VAR> …'`.  
-   `hook()` writes `hook_dry_run_matches` into the **caller** when not shadowed by `hook_ms`’s `local`.
-3. Rank **all** candidates with the same rules as `f_hook_ms_measure` / `hook_ms` (rung, then sum; equal keeps later). Call the unique overall winner `C_win` (lookup path before override).
-4. **Missing:** no candidates → `no_hook_for_role`.
-5. **Winner must be role-qualified:** basename of `C_win` must match  
-   `^<action>\.${ROLE}\.hook\.sh$`  
-   (e.g. `new.writer.hook.sh`, `run.decider.hook.sh`).  
-   If `C_win` is unqualified (e.g. `new.hook.sh` / `run.hook.sh`) **or** carries another role → fail `unqualified_hook_winner`.  
-   **Do not** fall through to a lower-ranked role-qualified file on the same rung. Example: same rung has `new.hook.sh` (higher sum) and `new.writer.hook.sh` (lower sum) → **fail**, do not source the writer file.
-6. **Same-rung role conflicts:** if **two or more** role-qualified candidates exist on `C_win`’s rung (regardless of sum order among them) → fail `hook_role_conflict` and list them. (If exactly one role-qualified exists on that rung but it is not `C_win`, step 5 already failed.)
-7. Resolve override **once** for `C_win` (`f_autoload_override` / `f_hook_resolve_source_path`, same as `hook_ms`). Store the final path in `CHAT_HOOK_SOURCE` or `DECIDE_HOOK_SOURCE`.
-8. **Opt-incs:** call `f_hook_source_opt_incs_for_path` on the lookup path **before** sourcing, matching `hook_ms` (so implementer `*.opt-inc.sh` files are not skipped).
-9. Source **only** that bound path. No second lookup.
+1. Factor candidate ranking into a core helper used by existing `hook_ms` (unconstrained callers keep today’s semantics).
+2. Add a documented selection mode (name locked at implementation, e.g. `hook_ms` flag or `f_hook_ms_pick`) that, when given required action + role token:
+   - enumerates candidates (not only the winner);
+   - requires the overall winner’s basename to match `^<action>\.<role>\.hook\.sh$`;
+   - fails `unqualified_hook_winner` if the overall winner is unqualified or another role (**no** fall-through to a lower-ranked role file);
+   - fails `hook_role_conflict` if two or more role-qualified files sit on the winning rung;
+   - seeds opt-incs, resolves override once, and sources that bound path.
+3. Abstract `chat/new`, `chat/reply`, and `decide/run` call that **extended** API — they do not reimplement `f_hook_ms_measure`.
+4. Keep the skill’s “harness → `hook_ms`” wording true after the extension; if the public entry name differs, update the skill in the same authorized change with one sentence naming the mode.
 
-**Tests:** missing; unqualified-only; writer is overall winner; extend beats contrib; two `.writer.` on same rung → conflict; **unqualified higher-sum + writer lower-sum on same rung → `unqualified_hook_winner` (not sourcing writer)**; reviewer never sources `.writer.`; opt-inc side effect observed when a colocated opt-inc exists; bound path equals sourced path.
+**Harness steps (using the extended API):**
+
+1. Require the role ∈ `{writer, reviewer}` (chat) or `{decider}` (decide).
+2. Invoke the extended pick with subject/action/role (and `-v` variants as needed).
+3. On missing / unqualified / conflict → JSON failure; non-zero exit.
+4. Bound source path does not change between validation and `.` (single pick).
+
+**Tests:** missing; unqualified-only; writer/decider overall winner; extend beats contrib; two role files on same rung → conflict; unqualified higher-sum + role lower-sum → `unqualified_hook_winner`; **parity** unconstrained `hook_ms` dry-run winner equals extended pick on the same fixtures; opt-inc seeded; hook-cache clear after hook/extension changes.
 
 ### 2. Chat turn I/O contract [P1]
 
@@ -187,12 +190,33 @@ Post-turn scans are **detection**, not prevention, unless a sandbox enforces the
 
 | Mode | When | Guarantee |
 |------|------|-----------|
-| `enforced` | Host sandbox (`bwrap` or recorded equivalent) available and profile verified in step 0 | Writer: RW only staging. Reviewer: project + staging **read-only**; no write binds. Symlink escapes denied by profile. |
-| `weakened` | Sandbox unavailable | **Explicitly allowed.** Omits `--force`/`--yolo`/auto-write for reviewer; writer may use force only inside staging cwd. Post-turn inventory (§4a) detects docroot differences. **Does not** prevent command-tool writes, ignored-channel writes, or restores-before-scan. Smoke must print `weakened`. |
+| `enforced` | Host sandbox + checked-in profiles verified in step 0 + Task 2b | **Writer:** RW staging (+ enumerated auth binds). **Reviewer:** RO docroot + RO staging contents; **no** write to those trees. Auth/session paths that must be RW are listed in the profile **and** the host note as **exceptions** to the “no reviewer writes” slogan. Symlink escapes into denied trees are blocked by the profile. The **chat harness process** is started *inside* the sandbox by the orchestrator (not merely `cd` to staging). |
+| `weakened` | Sandbox/profile unavailable | Allowed when step 0 records it. Omit reviewer `--force`/`--yolo`; inventory (§4a) detects docroot diffs. Does not prevent command-tool writes, ignored-channel writes, restores-before-scan, or writes via allowlisted auth paths. Smoke prints `weakened`. |
 
-Top-level “no reviewer writes” means: **required** under `enforced`; **best-effort detection only** under `weakened`. There is no third “prefer sandbox but claim no writes” state.
+**Handoff:** `f_plan_sandbox_run writer|reviewer -- <chat-new|chat-reply cmdline…>` wraps the entire harness subprocess so provider hooks inherit confinement without loading `plan_sandbox` themselves. Bare `make chat-new` outside that wrapper is **not** an `enforced` path.
 
-If step 0 cannot verify reviewer RO flags **and** cannot run `enforced`, the loop may still run in `weakened` after logging the weaker guarantee (host feasibility records the choice). If the operator requires enforcement, step 0 fails closed—that is a host policy flag for later, default v1 = allow weakened with loud logs.
+**ASC generated state (exception + trust boundary):**
+
+Inside the sandbox namespace, `$PROJECT_DOCROOT/data/asc/cache` (and any other listed cold-start write paths) is **RW** via a bind mount. That is an **intentional exception** to “docroot is not writable”: the path *looks like* docroot, but the **backing directory is under staging** (`$STAGING/asc-state/<role>/…`), not the live project tree on the host. The live `data/asc/cache` on disk is not what the sandboxed provider writes.
+
+| Rule | Requirement |
+|------|-------------|
+| Ownership | Orchestrator creates per-role backing dirs (`writer`, `reviewer`; orchestrator/decide uses a third `orchestrator` or host-native cache **outside** any provider bind). |
+| Lifetime | Fresh empty backing dir (or **orchestrator-prepared pristine seed**) at the start of each wrapped turn; discard or quarantine under staging after the turn; **never** promote provider-backed cache into the live docroot cache. |
+| Non-reuse | Writer-backed cache must not be mounted for reviewer or for a later trusted orchestrator/`decide-run` process. Warm starts use only orchestrator-controlled seeds, never the previous writer turn’s dirty cache. |
+| Tests | Cold empty bind; warm from pristine seed; writer double poisons its cache → reviewer/orchestrator turn must not observe that poison. |
+
+**Include-load failure (harness, not bootstrap):** ASC bootstrap sources `*.opt-inc.sh` without checking `$?` ([bootstrap](../../../asc/bootstrap.sh)). Opt-inc return status alone does **not** stop the action.
+
+| Rule | Requirement |
+|------|-------------|
+| Pre-bootstrap | Harness **unsets or zeros** `AGENT_HARNESS_INC_OK` (and clears `AGENT_HARNESS_INC_ERROR`) **before** `. asc/bootstrap.sh`, so an inherited env value cannot mask a missing/skipped opt-inc. |
+| Success sentinel | Opt-inc sets `AGENT_HARNESS_INC_OK=1` only after every required include succeeds (including `harness_result`). |
+| Abort path | If after bootstrap the sentinel is unset/≠1 → emit failure JSON and `exit 1` **before** any provider body. |
+| Emitter independence | That failure JSON **must not** call `harness_result` / its emitter: load of `source_manual`, `role_select`, or `harness_result` may already have failed. Use a **minimal inline** `printf` (or equivalent) of valid `ok:false` / `error=include_load_failed` (+ optional `detail` from `AGENT_HARNESS_INC_ERROR`). |
+| Tests | Fail each of the three load points separately; assert valid JSON on stdout, non-zero exit, and no provider-body execution. |
+
+**Enforced reviewer acceptance (minimum):** authenticated **create and resume** (Tasks 3–4); write to live docroot fails; write to staging plan path fails; cache exception + non-reuse rules above; every other RW bind listed; sockets out of filesystem claim. A `--help` probe alone is insufficient.
 
 #### 4a. Weakened inventory (precise)
 
@@ -408,13 +432,14 @@ make agent-plan plan:<path> prompt:<file>
 
 | Step | Work | Done when |
 |------|------|-----------|
-| 0 | Host feasibility: sandbox, provider flags, Ollaya model/fixtures, isolation mode choice | Recorded; weakened explicitly logged if used |
-| 1 | Chat harness §1–§2 + `CHAT_TYPE` on read/archive + drop pre/post | Ranking/opt-inc/JSON tests green |
-| 2 | Cursor writer + staging | Auto; promotion flock/recheck + isolation tests |
-| 3 | Codex reviewer | Terra 6.1 High; inlined bytes; enforced or weakened reviewer logged |
-| 4 | Abstract `decide/run` + `asc/ollaya` `run.decider.hook.sh` + fixtures | Corpus green; hook cache cleared after adds |
-| 5 | `agent-plan` orchestrator (calls chat + decide) | §3–§8 including live-edit-during-writer |
-| 6 | Instance smoke (`agent`, `asc/cursor`, `asc/codex`, `asc/ollaya` enabled on instance only) | Success + failure path; mother ignore list unchanged |
+| 0 | Host feasibility: providers, Ollaya, **sandbox profile draft** | Host note; enforced vs weakened chosen honestly |
+| 1 | Extend core `hook_ms` + chat harness + explicit manual-inc loads | Parity + role tests via `make test-core` (agent enabled) |
+| 2 | Staging / promotion / inventory | §3–§4a tests green |
+| 2b | Writer/reviewer bwrap profiles + runner | Prohibited-write tests; auth binds; no false `enforced` |
+| 3 | Cursor writer + Codex reviewer hooks (sandboxed) | Auto / Terra 6.1 High |
+| 4 | `decide/run` + `asc/ollaya` + **mother ignore `asc/ollaya`** | Corpus green; ignore hygiene |
+| 5 | `agent-plan` orchestrator | Loop §3–§8 |
+| 6 | Instance smoke; mother still lists `asc/ollaya` (and peers) as disabled | Success + failure; ignore grep passes |
 
 This note is not step 0–6.
 
@@ -435,4 +460,4 @@ This note is not step 0–6.
 - [ ] Pin Ollaya model id; confirm or revise 0.75 against fixtures (K=2 ⇒ p_max 0.875).
 - [ ] Record `writer_isolation` / `reviewer_isolation` (`enforced` / `weakened`) on the laptop.
 - [ ] Do not add a gates row from this note alone.
-- [ ] Do not enable `agent` / `asc/cursor` / `asc/codex` / `asc/ollaya` on the mother by default.
+- [ ] Keep `asc/ollaya` (and peers) on mother `.asc_extensions_ignore`; instance overrides may enable locally.

@@ -29,6 +29,7 @@ asc/moodle_d4php
 asc/mysql
 asc/node
 asc/ollama
+asc/ollaya
 asc/pgsql
 asc/remote_traefik
 asc/tesseract
