@@ -665,7 +665,7 @@ And if you need to always prompt for input during *instance init* (when the `-y`
 global MUST_INPUT_ON_INIT
 ```
 
-See `asc/utilities/global.sh` for details about the `global()` function, but we'll mention here one of its most commonly useful feature : the ability to append values on each call with the same var name, which will be separated by a space (and can be placed in different files because they will share the same namespace during *instance init*), e.g. :
+See `asc/core/global.manual-inc.sh` for details about the `global()` function, but we'll mention here one of its most commonly useful feature : the ability to append values on each call with the same var name, which will be separated by a space (and can be placed in different files because they will share the same namespace during *instance init*), e.g. :
 
 ```sh
 global VALUES_WILL_CONCAT "[append]=path/to/file-1.txt"

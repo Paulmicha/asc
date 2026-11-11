@@ -1,5 +1,4 @@
 agent
-apt
 compose
 crontab
 db
@@ -15,6 +14,7 @@ software
 ssh
 workflow
 asc/apache
+asc/apt
 asc/arcadedb
 asc/claude
 asc/codex
@@ -24,7 +24,6 @@ asc/docling
 asc/drupalwt
 asc/drupalwt_d4d
 asc/drush
-asc/gh
 asc/moodle_d4php
 asc/mysql
 asc/node

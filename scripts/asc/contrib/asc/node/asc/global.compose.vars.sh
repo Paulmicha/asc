@@ -10,7 +10,7 @@
 # variables specific to current project instance.
 #
 # @see f_instance_init() in asc/instance/instance.inc.sh
-# @see asc/utilities/global.sh
+# @see asc/core/global.manual-inc.sh
 # @see asc/bootstrap.sh
 #
 

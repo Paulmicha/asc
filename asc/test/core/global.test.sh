@@ -13,7 +13,7 @@
 # - nftascgevdehnc = name for testing ASC global env vars dummy extension hopefully not colliding
 #
 # TODO test the different globals keys.
-# @see global() in asc/utilities/global.sh
+# @see global() in asc/core/global.manual-inc.sh
 #
 # @example
 #   asc/test/asc/global.test.sh

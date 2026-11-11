@@ -52,7 +52,7 @@
 # loaded in current shell scope - because they are "readonly", which would be
 # incompatible with the globals aggregation and assignment process.
 # @see f_instance_init() in asc/instance/instance.inc.sh
-# @see global() + f_global_assign_value() in asc/utilities/global.sh
+# @see global() + f_global_assign_value() in asc/core/global.manual-inc.sh
 # Detect via a core readonly (ASC_MAKE_INC may be empty when no extension
 # ships a make.mk).
 if declare -p PROJECT_DOCROOT 2>/dev/null | grep -qE '^declare -[^ ]*r'; then

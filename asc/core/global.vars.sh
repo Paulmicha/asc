@@ -19,7 +19,7 @@
 # declarations explicitly providing a value.
 #
 # @see asc/instance/instance.inc.sh
-# @see asc/utilities/global.sh
+# @see asc/core/global.manual-inc.sh
 # @see asc/bootstrap.sh
 #
 
