@@ -150,6 +150,12 @@ if [[ ! -f 'AGENTS.md' ]]; then
   cp "$tmp_dir/AGENTS.md" 'AGENTS.md'
 fi
 
+# Same for the specs docs (referenced from skills).
+# TODO [evol] we'll need to think about merging upstream changes merging.
+if [[ ! -d 'docs/specs' ]]; then
+  cp -r "$tmp_dir/docs/specs" 'docs/specs'
+fi
+
 # Claude discovers and invokes project skills from .claude/skills/<name>/SKILL.md.
 # One directory symlink is that tree. It is not a second copy of the skill files.
 # TODO [wip] postponed, let's come back to it later on.

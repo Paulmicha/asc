@@ -11,6 +11,14 @@ owns ASC concepts and scope; report material inconsistencies instead of silently
 redefining concepts in another document. Label proposed behavior as proposed and
 verify paths before describing them as existing implementations.
 
+For ASC project documentation conventions, read and follow the mother
+[documentation specification](https://github.com/Paulmicha/asc/blob/main/docs/specs/documentation.md).
+In the mother checkout, read `docs/specs/documentation.md` locally instead.
+The specification defines document homes, lifecycle status, and authority across
+ASC projects; apply it without assuming that an instance has already migrated
+its existing files. If the specification is unavailable, report that limitation
+rather than assuming an instance-local file is the mother specification.
+
 ## README proposals
 
 Preserve human-written README text. Unless the user explicitly authorizes a
