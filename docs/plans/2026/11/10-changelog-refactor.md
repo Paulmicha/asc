@@ -4,7 +4,7 @@
 |-------|--------|
 | **Date** | 2026-11-10 |
 | **Status** | completed |
-| **Documentation convention** | [docs/specs/documentation.md](../../../specs/documentation.md) (supersedes the related docs-tree idea) |
+| **Documentation convention** | [docs/specs/asc/documentation.md](../../../specs/asc/documentation.md) (supersedes the related docs-tree idea) |
 | **Related idea (gates / next-steps)** | [docs/ideas/2026/11/10-gates-and-next-steps.md](../../../ideas/2026/11/10-gates-and-next-steps.md) |
 | **Scope** | Mother checkout. Preserve every dated `changelog/` note by moving it to `docs/plans/YYYY/MM/` with minimal edits. Maintain an old→new path map and use it to confirm each file arrived. Update affected references (consumers, links inside moved notes, retained `changelog/README.md`, README live paths, directory-level exclusions). Verify by reviewing the move list, changed paths, and resulting diff. |
 | **Out of this plan** | Decision extracts. Status remapping or abandon-by-age. Running or extending automated test suites / new test scripts. Redesigning or testing the next-steps scanner workflow; leave `asc/doc/next_steps.sh`’s `changelog/` default for the [gates/next-steps idea](../../../ideas/2026/11/10-gates-and-next-steps.md) (scanner not currently relied on). Multi-instance upgrade rollout. Broader README convention prose without proposal tags. Authoring `docs/specs/*` / living docs. Changing gate `go` values. Client-instance private trees. |
