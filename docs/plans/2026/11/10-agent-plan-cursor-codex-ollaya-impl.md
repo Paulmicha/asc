@@ -4,7 +4,7 @@
 
 **Goal:** Implement headless `make agent-plan` per the settled contracts in [10-agent-plan-cursor-codex-ollaya.md](10-agent-plan-cursor-codex-ollaya.md): Cursor writer, Codex reviewer, single public `plan-is 'ready'`, staging/promotion, JSON action I/O.
 
-**Architecture:** Plain `chat/new`, `chat/reply`, and `plan/is` call an **extended core `hook_ms` / role-pick API** directly and encode JSON locally. Contrib: `cursor` (writer), `codex` (reviewer); optional `ollaya` for `is.ready` only. `make agent-plan` owns staging, sandbox, promotion, **brief+needs reviewer assembly**, structured review parsing, and the loop. Defer `review/is` and `plan/needs`.
+**Architecture:** Plain `chat/new`, `chat/reply`, and `plan/is` call existing **`hook_ms` with variants** and encode JSON locally. Contrib: `cursor` (writer), `codex` (reviewer); optional `ollaya` for `is.ready` only. `make agent-plan` owns staging, sandbox, promotion, **brief+needs reviewer assembly**, structured review parsing, and the loop. Defer `review/is` and `plan/needs`.
 
 **Tech Stack:** Bash 4 / ASC bootstrap, Make pivots, Cursor Agent CLI, Codex CLI, Ollaya API via `asc/ollaya`, shunit2 via `make test-core` + agent `test/core.hook.sh`, optional `bwrap` profiles for `enforced` isolation.
 
@@ -17,7 +17,7 @@
 - **Headless only** — no desktop composer injection.
 - **Models** — Cursor **Auto**; Codex **GPT Terra 6.1 – High effort** (Task 0).
 - **Roles / predicates** — `CHAT_ROLE` writer/reviewer; only public predicate `plan-is 'ready'`; file placement; no provider env config.
-- **hook_ms contract** — extend core; plain actions call the extended pick **directly**; no duplicated `f_hook_ms_measure` in agent (design §1).
+- **hook_ms contract** — use existing `hook_ms` and variants, including normal fallback and ranking; do not modify core or duplicate ranking (design §1).
 - **Minimality (no loader tower)** — do **not** create harness `*.opt-inc.sh`, `f_agent_source_manual`, include success sentinels, or thin `f_agent_*` wrappers that only forward to core. Handle small I/O contracts **in the action**. Extract a `manual-inc` / function **only** when it encapsulates substantial behavior that would otherwise make the calling script hard to follow (staging/promotion and sandbox profiles are the expected cases). Do not expand the file map for hypothetical sharing—extract when duplication or opacity becomes real.
 - **Promotion race** — flock + recheck + rename is not kernel CAS; unlocked editors can still race.
 - **Weakened isolation** — scan-time docroot inventories only; temporary restores invisible; outside-docroot not claimed.
@@ -35,9 +35,7 @@
 
 | Path | Responsibility |
 |------|----------------|
-| `asc/core/hook.manual-inc.sh` (modify) | Shared ranking helper; extended role-qualified pick; keep unconstrained `hook_ms` semantics |
-| `asc/test/core/hook.test.sh` (modify) | Parity + role conflict / unqualified cases for the extended API |
-| `asc/extensions/agent/chat/new.sh`, `reply.sh` | Plain actions: bootstrap → require role → extended core pick (**sources hook**) → encode JSON locally |
+| `asc/extensions/agent/chat/new.sh`, `reply.sh` | Plain actions: bootstrap → require role → `hook_ms` with role variant (**sources hook**) → encode JSON locally |
 | `asc/extensions/agent/chat/read.sh`, `archive.sh` | `CHAT_TYPE` rename only |
 | `asc/extensions/agent/plan/is.sh` (new) | Plain action: require evidence package; pick `is.ready` |
 | `asc/extensions/agent/plan/is.ready.hook.sh` (new) | **Default** deterministic merge (schema, digest, prereqs) → yes/no/unknown + reason |
@@ -63,14 +61,14 @@
 # chat/new.sh (reply / plan-is analogous)
 . asc/bootstrap.sh || exit 1
 # require CHAT_ROLE ∈ writer|reviewer; on fail → JSON-encode failure + exit 1
-# call extended core pick (subject=chat action=new role="$CHAT_ROLE")
-#   → pick itself sources the bound hook once; do NOT `.` it again
-# on pick fail → JSON-encode failure (ok:false, error token) + exit 1
+# call hook_ms with subject=chat, action=new, -v CHAT_ROLE
+#   → hook_ms sources the selected hook once; do NOT `.` it again
+# if most_specific_match is empty → JSON-encode failure + exit 1
 # map provider outcome → one stdout JSON object via jq (or equivalent encoder)
 #   — never raw printf interpolation of prompt/reply_text
 ```
 
-**Single-source rule:** the extended pick owns `.` of the hook (design §1). A marker-hook test must assert **exactly one** invocation per successful action run.
+**Single-source rule:** `hook_ms` owns `.` of the hook (design §1). A marker-hook test must assert **exactly one** invocation per successful action run.
 
 **JSON encoding:** use `jq -n --arg …` (or another real encoder). Raw `printf '{"prompt":"%s"}'` is forbidden for string fields.
 
@@ -131,11 +129,9 @@ Hooks remain sandbox-unaware. Bare `make chat-new` without the wrapper is not `e
 - [ ] **Step 6: Stop** if Auto or Terra High is unreachable.
 ---
 
-### Task 1: Extend core `hook_ms` + plain chat actions + verified tests
+### Task 1: Plain chat actions using `hook_ms` variants + verified tests
 
 **Files:**
-- Modify: `asc/core/hook.manual-inc.sh`
-- Modify: `asc/test/core/hook.test.sh`
 - Modify: `chat/new.sh`, `reply.sh`, `read.sh`, `archive.sh`
 - Create (only if a real shared need appears later — **not** in this task): none of the removed loader files
 
@@ -161,11 +157,11 @@ make test-core
 
 Never: `make test-agent || asc/extensions/agent/test/core.sh` (unknown Make targets can succeed; that fallback path does not exist).
 
-- [ ] **Step 1: Failing tests** — core parity/role/conflict for the extended pick; chat action: missing role / pick failure → valid JSON + non-zero exit + no provider body; **marker hook count == 1** on success (fails if action re-sources); JSON with quotes/newlines in `prompt`/`reply_text` round-trips; cache stale/clear after hook/extension fixture changes.
+- [ ] **Step 1: Failing tests** — writer/reviewer variant selection, unqualified fallback, rung precedence and normal tie handling; chat action: missing role / missing hook → valid JSON + non-zero exit + no provider body; **marker hook count == 1** on success (fails if action re-sources); JSON with quotes/newlines in `prompt`/`reply_text` round-trips; cache stale/clear after hook/extension fixture changes.
 
 - [ ] **Step 2: `make test-core` with agent enabled — expect FAIL**; confirm intended test files appear in the run/summary.
 
-- [ ] **Step 3: Implement** core ranking helper + extended pick that **sources** the bound path; slim `new.sh` / `reply.sh` to plain actions (call pick only—no second `.`; encode JSON with `jq` or equivalent); `CHAT_TYPE` on read/archive.
+- [ ] **Step 3: Implement** `new.sh` / `reply.sh` as plain actions using `hook_ms` with `-v CHAT_ROLE` (no second `.`; detect an empty `most_specific_match`; encode JSON with `jq` or equivalent); `CHAT_TYPE` on read/archive. Keep core unchanged.
 
 - [ ] **Step 4: Refuse loader creep** — confirm no new harness `*.opt-inc.sh`, `source_manual`, `role_select`, `harness_result`, or sentinel landed in this task.
 
@@ -284,7 +280,7 @@ Never: `make test-agent || asc/extensions/agent/test/core.sh` (unknown Make targ
 
 - [ ] **Step 2: Failing tests** — evidence inputs; answer ∈ yes/no/unknown with reason; unknown≠yes.
 
-- [ ] **Step 3: Implement** `plan/is.sh` + deterministic `is.ready.hook.sh` per design §6. No LLM in this task.
+- [ ] **Step 3: Implement** `plan/is.sh` using `hook_ms` with a `ready` variant, plus deterministic `is.ready.hook.sh` per design §6. Test variant selection, normal fallback and missing hook. No LLM in this task.
 
 - [ ] **Step 4: `make test-core` PASS** with agent enabled; cases discovered.
 
@@ -347,7 +343,7 @@ test -d scripts/asc/contrib/asc/ollaya
 
 | Spec / gap | Task |
 |------------|------|
-| §1 extended `hook_ms` + parity | 1 |
+| §1 existing variants, fallback and ranking | 1, 5 |
 | §1 minimality / no loader tower | 1, 5, 6 |
 | Per-role ASC cache non-reuse / poison | 2b, 6 |
 | Verified `make test-core` + discovery assert | 1, 2, 2b, 5 |
@@ -362,9 +358,9 @@ test -d scripts/asc/contrib/asc/ollaya
 
 ## Self-review notes
 
-- Dropped the include-loader tower. Plain actions + local JSON via a real encoder; pick sources the hook once (marker test); no second `.` in the action.
+- Dropped the include-loader tower. Plain actions + local JSON via a real encoder; `hook_ms` sources the hook once (marker test); no second `.` in the action.
 - Nested Make quoting for `named_step`; `required_prerequisites` via CLI or plan marker block—unestablished → unknown; review step mismatch → unknown; gates still authorize.
-- Core hook extension and staging/sandbox stay only where behavior is substantial; extract late, not preemptively.
+- Existing hook variants handle selection; extract staging/sandbox helpers only where behavior is substantial.
 - Tasks 1 and 6 include an explicit **refuse loader creep** check.
 - P1 cache mount: staging-backed per-role exception; poison non-reuse; cold/warm pristine seeds only.
 - P1 sandbox visibility: wrap action cmdline; 2b = doubles; 3–4 = authenticated create **and** resume before profile verified.

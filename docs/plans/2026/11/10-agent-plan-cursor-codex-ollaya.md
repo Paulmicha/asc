@@ -42,7 +42,7 @@ v1 therefore accepts background conversations and a durable changelog file as th
 | Authorization | Separate: discussion in `NEXT_STEPS.core.md`; human go-ahead in `gates.core.yml`. `plan-is` does not authorize implementation |
 | Uncertainty / pause | Missing evidence or human decision → **pause** (`unknown` / `needs_human_review`); never coerce to ready |
 | Stalled draft | Blocking findings + unchanged staging digest after a writer turn → `stalled_draft` |
-| Role / predicate selection | **Extend core `hook_ms`** (§1). Chat: `writer` / `reviewer`. Predicate: `plan`/`is`/`ready` → `is.ready.hook.sh` only |
+| Role / predicate selection | **Existing `hook_ms` variants** (§1). Chat: `writer` / `reviewer`. Predicate: `plan`/`is`/`ready`. |
 | Cursor model | **Auto** |
 | Codex model | **GPT Terra 6.1 – High effort** |
 | Max rounds | **8** (§7) |
@@ -56,36 +56,49 @@ v1 therefore accepts background conversations and a durable changelog file as th
 
 Implementation follows these rules; it does not invent softer ones.
 
-### 1. Role hook selection, conflicts, and bound execution [P1]
+### 1. Role and predicate selection with existing variants [P1]
 
-`hook_ms` ranks by **rung first**, then dot/slash sum inside that rung, and sources nothing when there is no match ([`hook_ms`](../../../../asc/core/hook.manual-inc.sh)). Its dry-run keeps `hook_dry_run_matches` **local**. Before sourcing, normal `hook_ms` calls `f_hook_source_opt_incs_for_path` then applies override ([lines 829–836](../../../../asc/core/hook.manual-inc.sh)).
+Use the existing `hook_ms` and variant lookup in
+[`hook.manual-inc.sh`](../../../../asc/core/hook.manual-inc.sh). No core selection
+API or alternate ranking is needed. `CHAT_ROLE` selects `writer` or `reviewer`
+for `chat/new` and `chat/reply`; a variable holding `ready` selects the predicate
+variant for `plan/is`. Pass the variable name to `-v`. Include other existing
+variants only when needed by the action.
 
-The same role-qualified pick rules apply to **chat** (`CHAT_ROLE`, subject `chat`, actions `new`|`reply`) and to the public predicate **`plan-is`** (subject `plan`, action `is`, role token `ready`).
+Normal lookup considers the unqualified hook as well as variant combinations.
+`hook_ms` ranks by location rung first, then dot/slash sum, and resolves ties
+using the later candidate. Consequently an unqualified hook on a higher rung
+can win; normal fallback, combinations, overrides, and tie handling are
+intentional here. There is no role-conflict error or exact-basename requirement.
+Other roles are not requested by `CHAT_ROLE` alone. Overrides and opt-incs use
+normal `hook_ms` behavior.
 
-**Maintained-contract decision (do not silently fork ranking):**  
-The [asc-author-code](../../../../.agents/skills/asc-author-code/SKILL.md) harness law is “generic `$subject-$action` makes a **`hook_ms`** call.” Role qualification and same-rung conflict detection are **stricter** than today’s winner-only `hook_ms`. v1 therefore **extends the shared core** in `asc/core/hook.manual-inc.sh` rather than duplicating rank math in the agent extension:
+**Harness steps (plain action):**
 
-1. Factor candidate ranking into a core helper used by existing `hook_ms` (unconstrained callers keep today’s semantics).
-2. Add a documented selection mode (name locked at implementation, e.g. `hook_ms` flag or `f_hook_ms_pick`) that, when given required action + role token:
-   - enumerates candidates (not only the winner);
-   - requires the overall winner’s basename to match `^<action>\.<role>\.hook\.sh$`;
-   - fails `unqualified_hook_winner` if the overall winner is unqualified or another role (**no** fall-through to a lower-ranked role file);
-   - fails `hook_role_conflict` if two or more role-qualified files sit on the winning rung;
-   - seeds opt-incs, resolves override once, and sources that bound path.
-3. Abstract `chat/new`, `chat/reply`, and `plan/is` are **plain actions**: after bootstrap they call that **extended** API **directly** (no agent thin wrapper around the pick). They do not reimplement `f_hook_ms_measure`. Do **not** add `review/is` or `plan/needs` in v1.
-4. Keep the skill’s “harness → `hook_ms`” wording true after the extension; if the public entry name differs, update the skill in the same authorized change with one sentence naming the mode.
+1. Require the role/predicate token: chat ∈ `{writer, reviewer}`; `plan-is`
+   requires argument `ready` (v1). Reject other tokens with JSON failure.
+2. Call `hook_ms` once with subject, action, and the appropriate `-v` variable.
+   It sources the selected hook; the action must not source it again.
+3. Detect a missing match using the documented `most_specific_match` result;
+   emit local JSON failure and exit non-zero. Also handle provider failure.
+   Normal `hook_ms` does not itself report a missing match as an error.
+4. Map the provider outcome to one stdout JSON object using a proper encoder.
+5. For `plan-is`, return `yes` | `no` | `unknown` plus a reason. Missing,
+   uncertain, malformed, truncated, or unavailable evidence is `unknown`;
+   a bare Boolean or exit status is not readiness. Readiness does not authorize
+   execution.
 
-**Harness steps (plain action, using the extended API):**
+**Minimality:** Do not add a selection wrapper, duplicate ranking, or modify
+core hooks for this workflow. Do not add `*.opt-inc.sh` for these actions, a
+custom include loader, a success sentinel for bootstrap include status, or thin
+`f_agent_*` wrappers that only forward to core. Extract a `manual-inc` / function
+only when it encapsulates substantial behavior.
 
-1. Require the role/predicate token: chat ∈ `{writer, reviewer}`; `plan-is` requires argument `ready` (v1). Reject other tokens with JSON failure.
-2. Call the extended core pick with subject/action/role (and `-v` variants as needed). The pick **sources** the bound hook once (same as `hook_ms`: seed opt-incs, resolve override, `.` the path). The action must **not** source that path again.
-3. On missing / unqualified / conflict → local JSON failure on stdout; non-zero exit (no second source attempt).
-4. After a successful pick, map provider outcome → one stdout JSON object. Encode with a **proper JSON encoder**—**not** raw `printf` interpolation of string fields.
-5. For `plan-is`, the machine answer is **`yes` | `no` | `unknown`** plus a **`reason`** (and structured fields when useful). Uncertain, missing evidence, malformed, truncated, or unavailable results are **`unknown`**—never coerce them to **`yes`**. A bare Boolean/exit-0 is not readiness.
-
-**Minimality (no loader tower):** Do **not** add `*.opt-inc.sh` for these actions, a custom include loader, a success sentinel for bootstrap include status, or thin `f_agent_*` wrappers that only forward to core. Extract a `manual-inc` / function only when it encapsulates **substantial** behavior (e.g. staging/promotion or sandbox profiles) that would otherwise make `plan.sh` hard to follow. Expand the file map only when an actual need appears during implementation—not to preempt hypothetical sharing.
-
-**Tests:** missing; unqualified-only; writer/`ready` overall winner; extend beats contrib; two role files on same rung → conflict; unqualified higher-sum + role lower-sum → `unqualified_hook_winner`; **parity** unconstrained `hook_ms` dry-run winner equals extended pick on the same fixtures; hook opt-incs seeded by the **core** pick path; **marker hook invoked exactly once**; JSON round-trip for string fields; `plan-is` answer ∈ {yes,no,unknown} with reason; unknown≠yes; hook-cache clear after hook/extension changes.
+**Tests:** writer and reviewer variants select their implementations; `ready`
+selects its variant; missing match returns JSON failure; unqualified fallback,
+higher-rung precedence and ties follow normal `hook_ms` behavior; marker hook is
+invoked exactly once; JSON strings round-trip; clear hook cache after fixture
+changes. Test predicate evidence and unknown handling as specified in §6.
 
 ### 2. Chat turn I/O contract [P1]
 
@@ -459,7 +472,7 @@ If added later: truncation → `unknown`; confidence floor alone never yields `y
 
 ### 8. Acceptance matrix and compatibility [P2]
 
-Cover §1–§7 including: live edit during writer → no overwrite; promotion race documentation + flock test; unqualified-vs-role ranking; weakened inventory; path validation; reviewer message contains **brief + needs + bytes**; `required_prerequisites` vs empty `checks` (no false yes); `review.named_step` mismatch → unknown; `agent-plan` requires nested-quoted `named_step:"'…'"`; unestablished prereq list → unknown (no silent `[]`); `plan-is` yes/no/unknown+reason; promotion of each digest before review.
+Cover §1–§7 including: live edit during writer → no overwrite; promotion race documentation + flock test; normal variant fallback and ranking; weakened inventory; path validation; reviewer message contains **brief + needs + bytes**; `required_prerequisites` vs empty `checks` (no false yes); `review.named_step` mismatch → unknown; `agent-plan` requires nested-quoted `named_step:"'…'"`; unestablished prereq list → unknown (no silent `[]`); `plan-is` yes/no/unknown+reason; promotion of each digest before review.
 
 **Compatibility:** new/reply drop pre/post + JSON I/O; read/archive only `CHAT_TYPE` rename; document break for sourced `chat_id` parents.
 
@@ -471,7 +484,7 @@ Cover §1–§7 including: live edit during writer → no overwrite; promotion r
 
 | Path | Pivot | Role |
 |------|-------|------|
-| `asc/extensions/agent/chat/new.sh` | `make chat-new` | Plain action: §1 extended pick + local JSON |
+| `asc/extensions/agent/chat/new.sh` | `make chat-new` | Plain action: §1 `hook_ms` variants + local JSON |
 | `asc/extensions/agent/chat/reply.sh` | `make chat-reply` | Same |
 | `asc/extensions/agent/plan/is.sh` | `make plan-is 'ready'` | Pick default deterministic `is.ready` hook; evidence package → yes/no/unknown + reason |
 | Orchestrator | `make agent-plan` | Validate path, stage, isolate, promote (§3), loop; chat + review evidence + plan-is |
@@ -513,7 +526,7 @@ make agent-plan plan:<path> prompt:<file> named_step:"'Task 0'"
 | Situation | Behavior |
 |-----------|----------|
 | Path validation / `live_symlink` / `path_escape` / `missing_parent` | Fail before loop |
-| Hook missing / unqualified winner / conflict | Fail; list paths |
+| Hook missing | Fail with JSON error |
 | `missing_result_json` / chat failed / empty | Abort; no promotion |
 | `live_changed` | Abort; **do not** overwrite live; keep staging |
 | Promotion race (unlocked editor in check→rename gap) | Acknowledged residual risk (§3); not claimed solved |
@@ -528,7 +541,7 @@ make agent-plan plan:<path> prompt:<file> named_step:"'Task 0'"
 | Step | Work | Done when |
 |------|------|-----------|
 | 0 | Host feasibility: providers, optional Ollaya, **sandbox profile draft** | Host note; enforced vs weakened chosen honestly |
-| 1 | Extend core `hook_ms` + slim plain chat actions | Parity + role tests via `make test-core` (agent enabled) |
+| 1 | Use existing `hook_ms` variants in plain chat actions | Variant and fallback tests via `make test-core` (agent enabled) |
 | 2 | Staging / promotion / inventory | §3–§4a tests green |
 | 2b | Writer/reviewer bwrap profiles + runner | Prohibited-write tests; auth binds; no false `enforced` |
 | 3 | Cursor writer + Codex reviewer hooks (sandboxed) | Auto / Terra 6.1 High |

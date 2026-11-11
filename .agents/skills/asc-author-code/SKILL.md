@@ -60,6 +60,13 @@ Another vendor: `scripts/asc/contrib/$vendor/`. One project:
 `scripts/asc/extend/`. Rank is `f_hook_ms_measure` in
 `asc/core/hook.manual-inc.sh`.
 
+Before proposing selection logic or a core hook extension, check whether existing
+`hook_ms` variants already express the needed distinction. Pass variant variable
+names to `-v` and preserve normal unqualified fallback, combinations, ranking,
+and overrides unless the task explicitly requires different behavior. If normal
+behavior is insufficient, identify the concrete unmet requirement before proposing
+a change to core.
+
 ## Before writing code
 
 1. Read the relevant concepts, scope, and naming conventions in `README.md`,
