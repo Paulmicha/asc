@@ -215,5 +215,6 @@ Products keep their own plan files, for example Markdown with `todos` in front m
 
 ## Related
 
-- Plans: [agent-plan design](../../plans/2026/11/10-agent-plan-cursor-codex-ollaya.md), [its implementation plan](../../plans/2026/11/10-agent-plan-cursor-codex-ollaya-impl.md), [host needs and skill feedback](../../plans/2026/11/06-host-needs-and-skill-feedback.md), [workflow](../../plans/2026/09/22-workflow.md), [gates like env](../../plans/2026/09/22-gates-like-env.md), [gates prune approved work](../../plans/2026/09/22-gates-prune-approved-work.md), [gates registry alternative](../../plans/2026/09/22-gates-registry-alternative.md), [doc next steps](../../plans/2026/09/22-doc-next-steps.md), [backlog priority](../../plans/2026/09/27-backlog-priority.md).
+- Idea: [agent-plan design](../../ideas/2026/11/10-agent-plan-cursor-codex-ollaya.md).
+- Plans: [its implementation plan](../../plans/2026/11/10-agent-plan-cursor-codex-ollaya-impl.md), [host needs and skill feedback](../../plans/2026/11/06-host-needs-and-skill-feedback.md), [workflow](../../plans/2026/09/22-workflow.md), [gates like env](../../plans/2026/09/22-gates-like-env.md), [gates prune approved work](../../plans/2026/09/22-gates-prune-approved-work.md), [gates registry alternative](../../plans/2026/09/22-gates-registry-alternative.md), [doc next steps](../../plans/2026/09/22-doc-next-steps.md), [backlog priority](../../plans/2026/09/27-backlog-priority.md).
 - Files: `gates.core.yml`, `SPECIMEN.gates.yml`, `NEXT_STEPS.core.md`, `NEXT_STEPS.agent.core.md`, `asc/doc/next_steps.sh`.

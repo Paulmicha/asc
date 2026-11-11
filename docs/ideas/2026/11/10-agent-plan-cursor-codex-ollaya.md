@@ -3,10 +3,10 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-11-10 |
-| **Status** | **plan / review** — contracts settled; implementation planning in [10-agent-plan-cursor-codex-ollaya-impl.md](10-agent-plan-cursor-codex-ollaya-impl.md). Nothing here is an implementation go-ahead. |
+| **Status** | **idea / settled design** — contracts settled; implementation planning in [10-agent-plan-cursor-codex-ollaya-impl.md](../../../plans/2026/11/10-agent-plan-cursor-codex-ollaya-impl.md). Nothing here is an implementation go-ahead. |
 | **Goal** | One ASC action that drafts a changelog plan with Cursor, reviews it with Codex against the **original brief and declared needs**, and stops when that named next step is ready—preserving the distinction between “reviewer found no blockers” and “ready for the next step” **inside the result**, with one public predicate `plan-is 'ready'` for independent callers. |
 | **v1 products** | Cursor (writer), Codex (reviewer). Optional Ollaya hook behind `plan-is 'ready'` only when free-form interpretation earns its keep. Claude deferred. |
-| **Visibility** | Headless CLI / SDK sessions. Desktop-visible “type into the open composer” stays in [27-desktop-agent-terminal-reply.md](../09/27-desktop-agent-terminal-reply.md). |
+| **Visibility** | Headless CLI / SDK sessions. Desktop-visible “type into the open composer” stays in [27-desktop-agent-terminal-reply.md](../../../plans/2026/09/27-desktop-agent-terminal-reply.md). |
 | **Boundaries** | No project-level provider env vars. Live plan path updated only by the orchestrator after flock + recheck (§3 residual race acknowledged). **Enforced reviewer filesystem claim (narrow):** writes to live docroot paths and staging **plan** bytes are blocked, except (1) enumerated auth/session RW binds and (2) the **sandbox-only** mount of `data/asc/cache` whose **backing store is outside the live tree** and is **per-role / not shared** (§4). Network/socket side effects are out of claim. Weakened = detection only. Mother keeps `asc/ollaya` on `.asc_extensions_ignore`. No Claude. No gates row in this note. |
 | **Out of this plan** | Desktop UI injection. Shipping the scripts without a later go-ahead. A second make pivot per tool (`cursor-plan`, `codex-plan`). |
 
@@ -555,9 +555,9 @@ This note is not step 0–6.
 
 ## Related notes
 
-- [27-desktop-agent-terminal-reply.md](../09/27-desktop-agent-terminal-reply.md) — desktop reply client (out of v1).
-- [22-agent-llm-entry-point.md](../09/22-agent-llm-entry-point.md) — abstract pivot + contrib hook precedent.
-- [21-hook-specificity-rungs.md](../09/21-hook-specificity-rungs.md) — `hook_ms` rungs.
+- [27-desktop-agent-terminal-reply.md](../../../plans/2026/09/27-desktop-agent-terminal-reply.md) — desktop reply client (out of v1).
+- [22-agent-llm-entry-point.md](../../../plans/2026/09/22-agent-llm-entry-point.md) — abstract pivot + contrib hook precedent.
+- [21-hook-specificity-rungs.md](../../../plans/2026/09/21-hook-specificity-rungs.md) — `hook_ms` rungs.
 
 ---
 

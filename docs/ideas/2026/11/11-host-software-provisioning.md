@@ -34,7 +34,7 @@ A separately maintained home-directory ASC instance has a historical provisionin
 
 That material demonstrates an actual use case and existing implementation lineage, not a current cross-platform contract. Its README still contains historical CWT names and paths. At inspection time its root ignore file and cached active extension inventory excluded `software` and the Ollama extension, so the documentation alone does not establish that provisioning is active. This public idea intentionally keeps personal manifest contents and instance-specific paths in their owning instance.
 
-Relevant mother historical notes include [lazy includes and the provision hook](../../../../changelog/2026/09/11-lazy-opt-inc-and-entry-point-extraction.md), [software-related naming inventory](../../../../changelog/2026/07/31-array-dict-naming-plan.md), and the [agent plan's optional Ollaya integration](../../../../changelog/2026/11/10-agent-plan-cursor-codex-ollaya.md). That Ollaya plan discusses integration rather than host installation. Historical plans and completion statements must be compared with current code.
+Relevant mother historical notes include [lazy includes and the provision hook](../../../plans/2026/09/11-lazy-opt-inc-and-entry-point-extraction.md), [software-related naming inventory](../../../plans/2026/07/31-array-dict-naming-plan.md), and the [agent plan's optional Ollaya integration](10-agent-plan-cursor-codex-ollaya.md). That Ollaya design discusses integration rather than host installation. Historical plans and completion statements must be compared with current code.
 
 ## Research: small installers and providers
 

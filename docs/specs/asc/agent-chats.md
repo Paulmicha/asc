@@ -114,5 +114,6 @@ Check the exit code before parsing. Keep the identifier from the first turn.
 
 ## Related
 
-- Plans: [agent-plan design](../../plans/2026/11/10-agent-plan-cursor-codex-ollaya.md) §1, §2, §8; [its implementation plan](../../plans/2026/11/10-agent-plan-cursor-codex-ollaya-impl.md); [desktop agent terminal reply](../../plans/2026/09/27-desktop-agent-terminal-reply.md); [agent LLM entry point](../../plans/2026/09/22-agent-llm-entry-point.md).
+- Idea: [agent-plan design](../../ideas/2026/11/10-agent-plan-cursor-codex-ollaya.md) §1, §2, §8.
+- Plans: [its implementation plan](../../plans/2026/11/10-agent-plan-cursor-codex-ollaya-impl.md); [desktop agent terminal reply](../../plans/2026/09/27-desktop-agent-terminal-reply.md); [agent LLM entry point](../../plans/2026/09/22-agent-llm-entry-point.md).
 - Code: `asc/extensions/agent/chat/`.

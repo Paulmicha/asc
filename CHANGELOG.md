@@ -1,6 +1,6 @@
 # Changelog
 
-Dated notes for this ASC **core** repo. Dated notes now live under `docs/plans/YYYY/MM/`. The root [`README.md`](../README.md) is the **only** source of truth (human-written). These files do not override it.
+Dated notes for this ASC **core** repo. Dated notes now live under `docs/plans/YYYY/MM/`. The root [`README.md`](README.md) is the **only** source of truth (human-written). These files do not override it.
 
 Files: `docs/plans/YYYY/MM/DD-short-label.md`. The [migration map](docs/plans/2026/11/10-changelog-refactor.md#appendix-a--oldnew-map) records their old paths. Each file starts with a status table. `$` in these notes is an ASC placeholder (`$subject` / `$action` / …), not a shell variable.
 

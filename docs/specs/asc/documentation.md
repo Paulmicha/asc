@@ -64,7 +64,7 @@ instance already has every file or has migrated its history. The mother
 checkout's [completed migration plan](../plans/2026/11/10-changelog-refactor.md)
 records the move of dated legacy notes to `docs/plans/`; it did not migrate
 other instances or implement all categories. Its retained
-[legacy index](../../changelog/README.md) preserves historical context.
+[legacy index](../../../CHANGELOG.md) preserves historical context.
 
 The mother README still describes `changelog/` as a home for past or planned
 work. Its historical wording and this convention have not yet been reconciled.

@@ -42,7 +42,7 @@ The strongest conceptual fit is with your agentic review’s conclusion that **m
 
 ## Fit with `make agent-plan`
 
-Your [functional plan](changelog/2026/11/10-agent-plan-cursor-codex-ollaya.md) and [implementation plan](changelog/2026/11/10-agent-plan-cursor-codex-ollaya-impl.md) describe a specific headless workflow: Cursor writes a staged plan, Codex reviews the exact snapshot against the original brief and declared needs, and ASC decides whether the named next step is ready. The plan also separates readiness from human authorization and gives the orchestrator ownership of promotion.
+Your [functional design](10-agent-plan-cursor-codex-ollaya.md) and [implementation plan](../../../plans/2026/11/10-agent-plan-cursor-codex-ollaya-impl.md) describe a specific headless workflow: Cursor writes a staged plan, Codex reviews the exact snapshot against the original brief and declared needs, and ASC decides whether the named next step is ready. The plan also separates readiness from human authorization and gives the orchestrator ownership of promotion.
 
 LLM Space could help **prototype prompts or inspect representative runs**, but I would not assume it can transparently observe the actual Cursor and Codex sessions. Its documented traces describe runs in its own runtime, while its import formats do not establish support for the exact provider session formats or ASC’s proposed result schema. That integration would need a concrete adapter and a fidelity test.
 

@@ -2,13 +2,13 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Implement headless `make agent-plan` per the settled contracts in [10-agent-plan-cursor-codex-ollaya.md](10-agent-plan-cursor-codex-ollaya.md): Cursor writer, Codex reviewer, single public `plan-is 'ready'`, staging/promotion, JSON action I/O.
+**Goal:** Implement headless `make agent-plan` per the settled contracts in [10-agent-plan-cursor-codex-ollaya.md](../../../ideas/2026/11/10-agent-plan-cursor-codex-ollaya.md): Cursor writer, Codex reviewer, single public `plan-is 'ready'`, staging/promotion, JSON action I/O.
 
 **Architecture:** Plain `chat/new`, `chat/reply`, and `plan/is` call existing **`hook_ms` with variants** and encode JSON locally. Contrib: `cursor` (writer), `codex` (reviewer); optional `ollaya` for `is.ready` only. `make agent-plan` owns staging, sandbox, promotion, **brief+needs reviewer assembly**, structured review parsing, and the loop. Defer `review/is` and `plan/needs`.
 
 **Tech Stack:** Bash 4 / ASC bootstrap, Make pivots, Cursor Agent CLI, Codex CLI, Ollaya API via `asc/ollaya`, shunit2 via `make test-core` + agent `test/core.hook.sh`, optional `bwrap` profiles for `enforced` isolation.
 
-**Spec:** [10-agent-plan-cursor-codex-ollaya.md](10-agent-plan-cursor-codex-ollaya.md) — contracts §1–§8 are normative.
+**Spec:** [10-agent-plan-cursor-codex-ollaya.md](../../../ideas/2026/11/10-agent-plan-cursor-codex-ollaya.md) — contracts §1–§8 are normative.
 
 **Authorization:** Not an implementation go-ahead by itself. Do not enable `agent` / `asc/cursor` / `asc/codex` / `asc/ollaya` on the mother by default. Mother `.asc_extensions_ignore` **must** list `asc/ollaya` whenever that contrib exists (already added preemptively; keep it). No Claude. No gates row unless asked. Commit only when asked.
 
@@ -116,7 +116,7 @@ Hooks remain sandbox-unaware. Bare `make chat-new` without the wrapper is not `e
 
 **Produces:** Cursor Auto flags; Codex Terra 6.1 High flags; Ollaya model id; threshold keep/revise; isolation mode; **enumerated RW auth binds**; create/resume smoke notes under draft profile if attempted.
 
-- [ ] **Step 1: Cursor** — `command -v agent`; `agent about`; `agent create-chat`; one `-p` turn with **Auto** (no foreign `--model`); record resume flag and whether `--force` is required for writes ([design](10-agent-plan-cursor-codex-ollaya.md) Decisions / Cursor model).
+- [ ] **Step 1: Cursor** — `command -v agent`; `agent about`; `agent create-chat`; one `-p` turn with **Auto** (no foreign `--model`); record resume flag and whether `--force` is required for writes ([design](../../../ideas/2026/11/10-agent-plan-cursor-codex-ollaya.md) Decisions / Cursor model).
 
 - [ ] **Step 2: Codex** — install if needed; record create/resume and **GPT Terra 6.1 – High** selection; confirm how to omit auto-write/`--force`/`--yolo`.
 

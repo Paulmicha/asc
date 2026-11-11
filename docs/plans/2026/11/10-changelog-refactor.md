@@ -324,7 +324,7 @@ In the full staged and unstaged patches, spot-check: Appendix A arrivals/renames
 | `changelog/2026/11/06-host-needs-and-skill-feedback.md` | `docs/plans/2026/11/06-host-needs-and-skill-feedback.md` | moved |
 | `changelog/2026/11/06-simplify-disk-entities-contracts.md` | `docs/plans/2026/11/06-simplify-disk-entities-contracts.md` | moved |
 | `changelog/2026/11/10-agent-plan-cursor-codex-ollaya-impl.md` | `docs/plans/2026/11/10-agent-plan-cursor-codex-ollaya-impl.md` | moved |
-| `changelog/2026/11/10-agent-plan-cursor-codex-ollaya.md` | `docs/plans/2026/11/10-agent-plan-cursor-codex-ollaya.md` | moved |
+| `changelog/2026/11/10-agent-plan-cursor-codex-ollaya.md` | `docs/plans/2026/11/10-agent-plan-cursor-codex-ollaya.md` (later `docs/ideas/2026/11/10-agent-plan-cursor-codex-ollaya.md`) | moved |
 | `changelog/README.md` | `changelog/README.md` | retained; links retargeted |
 
 ---
