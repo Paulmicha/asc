@@ -518,7 +518,7 @@ An **extension point** (noted "ext.point" in the *File structure* section, or `$
 
 &lt;proposal-2026-09-22&gt;
 
-`.asc_subjects_ignore` = names that must **not** become subjects. Do **not** add `$subject/.asc_extensions` (positive nest list never loaded; superseded by `$subject/$object/$action`). See [22-deprecate-subject-asc-extensions.md](changelog/2026/09/22-deprecate-subject-asc-extensions.md).
+`.asc_subjects_ignore` = names that must **not** become subjects. Do **not** add `$subject/.asc_extensions` (positive nest list never loaded; superseded by `$subject/$object/$action`). See [22-deprecate-subject-asc-extensions.md](docs/plans/2026/09/22-deprecate-subject-asc-extensions.md).
 
 &lt;/proposal-2026-09-22&gt;
 
@@ -1619,7 +1619,7 @@ Hook cache keys come from **parsed** flags (not `"$@"`): `s`, `a`, `p`, `v`, `e`
 
 After `make cc`, the next bootstrap is a stamp miss: one `f_asc_extend`, then hook files refill on miss. Make targets and env remain.
 
-See `changelog/2026/09/11-bootstrap-cache-layout-and-invalidation.md`.
+See `docs/plans/2026/09/11-bootstrap-cache-layout-and-invalidation.md`.
 
 #### Default file-based entity storage : `data/entities`
 
@@ -1695,9 +1695,9 @@ Every local ASC project instance takes upstream updates from the ASC mother proj
 
 One host may hold two checkouts of the same repository. The buffer branch is the parent (`debian-<major>` in the home-directory example). A machine branch appends a suffix. Git commits move up through that buffer, then into the ASC mother when every instance should share them. A second pass mirrors named directories between the two work trees, both directions. That pass is not `make core-upgrade`, and it is not written yet.
 
-`asc/host/asc_core_sync.sh` is the entry point aimed at ASC core files (`asc/` and `scripts/asc/contrib/asc/`) between the mother work tree and each instance `asc/instance/discover.sh` lists. The script is still a stub. `changelog/2026/09/23-host-asc-core-sync.md` specifies a report and a forward mirror only, and its gates row is not a go. The bidirectional contract needs its own row. Discover is specified in `changelog/2026/09/20-host-scan-project-instances.md` and is not on disk. The catalog it will write uses the host registry path above.
+`asc/host/asc_core_sync.sh` is the entry point aimed at ASC core files (`asc/` and `scripts/asc/contrib/asc/`) between the mother work tree and each instance `asc/instance/discover.sh` lists. The script is still a stub. `docs/plans/2026/09/23-host-asc-core-sync.md` specifies a report and a forward mirror only, and its gates row is not a go. The bidirectional contract needs its own row. Discover is specified in `docs/plans/2026/09/20-host-scan-project-instances.md` and is not on disk. The catalog it will write uses the host registry path above.
 
-Storage is several mechanisms at once. A sidecar contract stores volatile instances as YAML under `data/entities/<type>/`. A store names a backend (directory, registry, or a database). The registry stays one string per key. Entity types, instances, and the planned rules extension share one YAML shape for DSL combinations. Secrets stay in `.env-local.yml` or git-crypt. `changelog/2026/09/10-begin-entity-system-with-remote-instances.md` is the entity vocabulary. `changelog/2026/09/22-xdg-state-store.md` records the accepted host registry path. Memory stays disabled.
+Storage is several mechanisms at once. A sidecar contract stores volatile instances as YAML under `data/entities/<type>/`. A store names a backend (directory, registry, or a database). The registry stays one string per key. Entity types, instances, and the planned rules extension share one YAML shape for DSL combinations. Secrets stay in `.env-local.yml` or git-crypt. `docs/plans/2026/09/10-begin-entity-system-with-remote-instances.md` is the entity vocabulary. `docs/plans/2026/09/22-xdg-state-store.md` records the accepted host registry path. Memory stays disabled.
 
 &lt;/proposal-2026-09-24&gt;
 

@@ -5,7 +5,7 @@
 #
 # @requires asc/vendor/shunit2
 # @see asc/host/shell/write_aliases.sh
-# @see changelog/2026/09/26-host-shell-aliases-asc.md
+# @see docs/plans/2026/09/26-host-shell-aliases-asc.md
 #
 # @example
 #   asc/test/core/host_shell_aliases.test.sh

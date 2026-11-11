@@ -6,7 +6,7 @@
 # Dummy extension: nftasoaep (name for testing ASC subject/object/action extra path).
 #
 # @requires asc/vendor/shunit2
-# @see changelog/2026/09/12-subject-object-action-entry-points.md
+# @see docs/plans/2026/09/12-subject-object-action-entry-points.md
 #
 # @example
 #   asc/test/core/primitives.test.sh
@@ -222,7 +222,7 @@ test_asc_bootstrap_opt_inc_three_level() {
 ##
 # Test helpers must not load from eager `test.inc.sh` (nested bootstrap).
 # Callers `.` `asc/test/test.opt-inc.sh`. `asc/test/` entry points seed it.
-# @see changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md
+# @see docs/plans/2026/09/19-lazy-opt-inc-remaining-core-waves.md
 #
 test_f_test_batch_exec_helpers_absent_from_kernel_bootstrap() {
   local out

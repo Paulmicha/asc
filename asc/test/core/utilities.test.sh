@@ -260,7 +260,7 @@ test_f_str_case_join_escape_append() {
 # Slug/snake/transliterate must not load from kernel `str.manual-inc.sh` (nested
 # bootstrap). Callers source `asc/core/utils/str_slug.manual-inc.sh`. `f_str_random` stays eager
 # (global.vars / drupalwt hash salt).
-# @see changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md
+# @see docs/plans/2026/09/19-lazy-opt-inc-remaining-core-waves.md
 #
 test_f_str_slug_helpers_absent_from_kernel_bootstrap() {
   local out
@@ -325,7 +325,7 @@ test_f_str_basic_auth_credentials() {
 
 ##
 # Output-var paths for waves 1–3 migrated scalars (no caller capture).
-# @see changelog/2026/07/31-subshell-printf-v-candidates.md
+# @see docs/plans/2026/07/31-subshell-printf-v-candidates.md
 #
 test_f_migrated_scalar_output_vars() {
   local software_scalar='' cron_scalar='' test_results_root='' out=''
@@ -358,7 +358,7 @@ test_f_migrated_scalar_output_vars() {
 
 ##
 # Wave 4: software status enums write via printf -v.
-# @see changelog/2026/07/31-subshell-printf-v-candidates.md
+# @see docs/plans/2026/07/31-subshell-printf-v-candidates.md
 #
 test_f_software_status_output_vars() {
   local st='' software_ensure_status='' dir
@@ -394,7 +394,7 @@ test_f_software_status_output_vars() {
 
 ##
 # Waves 7–8: git staged-files + test case helpers via printf -v.
-# @see changelog/2026/07/31-subshell-printf-v-candidates.md
+# @see docs/plans/2026/07/31-subshell-printf-v-candidates.md
 #
 test_f_git_and_test_helper_output_vars() {
   local staged='unset' suffix='' target='' runner='' batch_dir=''

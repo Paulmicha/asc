@@ -124,7 +124,7 @@ test_asc_cache_clear_keeps_globals_and_rebuilds_core() {
 
 ##
 # yml.inc.sh has one home: ASC_INC (active dir `yml`). Not the kernel block.
-# @see changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md
+# @see docs/plans/2026/09/19-lazy-opt-inc-remaining-core-waves.md
 #
 test_asc_yml_inc_not_in_kernel_includes() {
   local kernel

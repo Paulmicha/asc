@@ -4,7 +4,7 @@
 # DB dump/exec/restore/setup cluster — lazy, caller-dir.
 # Loaded by caller opt-inc from `db/db/*.sh`. Not `asc/extensions/db/db.opt-inc.sh`
 # (pick A: caller dir is `db/db/`).
-# @see changelog/2026/09/19-db-thin-inc-and-opt-inc.md
+# @see docs/plans/2026/09/19-db-thin-inc-and-opt-inc.md
 # @see asc/extensions/db/db.inc.sh (creds/flags stay eager)
 #
 

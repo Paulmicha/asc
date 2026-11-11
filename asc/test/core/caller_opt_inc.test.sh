@@ -10,7 +10,7 @@
 # Dummy extension: nftcoi (name for testing caller opt-inc).
 #
 # @requires asc/vendor/shunit2
-# @see changelog/2026/09/19-eager-vs-lazy-include-cases.md
+# @see docs/plans/2026/09/19-eager-vs-lazy-include-cases.md
 # @see asc/bootstrap.sh (caller opt-inc)
 #
 # @example

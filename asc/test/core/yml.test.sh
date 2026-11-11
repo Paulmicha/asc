@@ -123,7 +123,7 @@ test_f_yaml_write_roundtrip() {
 #
 test_f_yaml_parse_no_caller_capture_subshell() {
   local hits
-  hits="$(rg -n --glob '!**/changelog/**' --glob '!**/vendor/**' --glob '!**/data/**' \
+  hits="$(rg -n --glob '!**/changelog/**' --glob '!**/docs/plans/**' --glob '!**/vendor/**' --glob '!**/data/**' \
     --glob '!**/yml.test.sh' '\$\(f_yaml_parse|< <\(f_yaml_parse' . || true)"
   assertEquals 'callers must use printf -v output var, not $(f_yaml_parse)' '' "$hits"
 }

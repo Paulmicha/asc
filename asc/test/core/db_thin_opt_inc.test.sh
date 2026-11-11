@@ -8,7 +8,7 @@
 # directly.
 #
 # @requires asc/vendor/shunit2
-# @see changelog/2026/09/19-db-thin-inc-and-opt-inc.md
+# @see docs/plans/2026/09/19-db-thin-inc-and-opt-inc.md
 #
 # @example
 #   asc/test/core/db_thin_opt_inc.test.sh

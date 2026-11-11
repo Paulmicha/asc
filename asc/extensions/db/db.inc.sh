@@ -3,7 +3,7 @@
 ##
 # DB credentials, ids, and flags. Sourced on every bootstrap when db is enabled.
 # Dump/exec/restore/setup: `.` or caller opt-inc `db/db/db.opt-inc.sh`.
-# @see changelog/2026/09/19-db-thin-inc-and-opt-inc.md
+# @see docs/plans/2026/09/19-db-thin-inc-and-opt-inc.md
 # @see asc/bootstrap.sh
 #
 

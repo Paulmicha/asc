@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-11-10 |
-| **Status** | draft |
+| **Status** | completed |
 | **Related idea (docs tree)** | [docs/ideas/2026/11/10-changelog-refactor.md](../../../ideas/2026/11/10-changelog-refactor.md) |
 | **Related idea (gates / next-steps)** | [docs/ideas/2026/11/10-gates-and-next-steps.md](../../../ideas/2026/11/10-gates-and-next-steps.md) |
 | **Scope** | Mother checkout. Preserve every dated `changelog/` note by moving it to `docs/plans/YYYY/MM/` with minimal edits. Maintain an old→new path map and use it to confirm each file arrived. Update affected references (consumers, links inside moved notes, retained `changelog/README.md`, README live paths, directory-level exclusions). Verify by reviewing the move list, changed paths, and resulting diff. |
@@ -49,7 +49,7 @@
 **Files:**
 - Modify: this plan’s Appendix A
 
-- [ ] **Step 1: List every dated source (no `rg` required)**
+- [x] **Step 1: List every dated source (no `rg` required)**
 
 ```bash
 cd "$HOME/Documents/asc"
@@ -59,11 +59,11 @@ wc -l /tmp/asc-changelog-sources.txt
 
 Expected: 72 dated files (confirm).
 
-- [ ] **Step 2: Fill Appendix A**
+- [x] **Step 2: Fill Appendix A**
 
 One row per dated source: `old_path` → `docs/plans/YYYY/MM/<same-basename>.md`. Also note `changelog/README.md` as retain-in-place. This map is the checklist for Task 2 arrival and Task 6 review.
 
-- [ ] **Step 3: Consumer inventory without `rg`**
+- [x] **Step 3: Consumer inventory without `rg`**
 
 ```bash
 cd "$HOME/Documents/asc"
@@ -101,7 +101,7 @@ Explicitly include inspection of `asc/test/core/yml.test.sh` (`!**/changelog/**`
 **Files:**
 - `git mv` every Appendix A dated row
 
-- [ ] **Step 1: Move from the source list**
+- [x] **Step 1: Move from the source list**
 
 ```bash
 cd "$HOME/Documents/asc"
@@ -116,7 +116,7 @@ done < /tmp/asc-changelog-sources.txt
 
 Preserve every file; do not drop or merge notes.
 
-- [ ] **Step 2: Minimal edits inside moved notes**
+- [x] **Step 2: Minimal edits inside moved notes**
 
 Allowed:
 
@@ -125,7 +125,7 @@ Allowed:
 
 Not allowed: status vocabulary rewrite; decision extracts; abandon/supersede by age; large prose edits.
 
-- [ ] **Step 3: Inspect arrival with the path map**
+- [x] **Step 3: Inspect arrival with the path map**
 
 Walk Appendix A (or regenerate pairs from `/tmp/asc-changelog-sources.txt`): for each row, confirm `new_path` exists and `old_path` does not. Record any mismatch before continuing.
 
@@ -153,15 +153,15 @@ Expected: every dated note present at its destination; legacy dated count `0`.
 **Files:**
 - Modify: `changelog/README.md`
 
-- [ ] **Step 1: Keep useful historical context**
+- [x] **Step 1: Keep useful historical context**
 
 Do not replace the index with a stub that drops frontier notes, priority pointers, or shipped/live/later qualifications.
 
-- [ ] **Step 2: Update links inside the retained index**
+- [x] **Step 2: Update links inside the retained index**
 
 Rewrite pointers that targeted dated notes under `changelog/2026/...` to their Appendix A destinations. Add the old→new map (or a link to Appendix A). Point at root `README.md` as SoT; optionally mention a regenerable `docs/README.md` index.
 
-- [ ] **Step 3: Remove empty year/month dirs** under `changelog/2026/` once Task 2 arrival passed.
+- [x] **Step 3: Remove empty year/month dirs** under `changelog/2026/` once Task 2 arrival passed.
 
 ---
 
@@ -172,19 +172,19 @@ Rewrite pointers that targeted dated notes under `changelog/2026/...` to their A
 - Directory-level references such as `asc/test/core/yml.test.sh`
 - **Not** `asc/doc/next_steps.sh` (deferred)
 
-- [ ] **Step 1: Rewrite live path strings**
+- [x] **Step 1: Rewrite live path strings**
 
 Using Appendix A, update references that would break: gates rows, NEXT_STEPS lists, `@see` comments, and any other live pointers to moved notes.
 
-- [ ] **Step 2: Directory-level exclusions / globs**
+- [x] **Step 2: Directory-level exclusions / globs**
 
 Apply the maintenance choice for `yml.test.sh` (and any similar `changelog/**` directory scopes found in the inventory) so the move does not silently change what those searches cover. Note in the commit message or plan checkbox that the test was **not** executed here.
 
-- [ ] **Step 3: Same-wave discipline**
+- [x] **Step 3: Same-wave discipline**
 
 Prefer finishing Tasks 2–5 path edits before pausing, so the diff shows moves and retargets together.
 
-- [ ] **Step 4: Explicit deferral — next-steps scanner**
+- [x] **Step 4: Explicit deferral — next-steps scanner**
 
 Do not edit `asc/doc/next_steps.sh`. Add a one-line pointer in the [gates/next-steps idea](../../../ideas/2026/11/10-gates-and-next-steps.md) (if not already clear) that the default scan dir still names `changelog/` after this migration and needs a deliberate choice later.
 
@@ -195,7 +195,7 @@ Do not edit `asc/doc/next_steps.sh`. Add a one-line pointer in the [gates/next-s
 **Files:**
 - Modify: `README.md`
 
-- [ ] **Step 1: Fix broken live README path references in place**
+- [x] **Step 1: Fix broken live README path references in place**
 
 Retarget every **live** reference to a moved note, including:
 
@@ -204,23 +204,23 @@ Retarget every **live** reference to a moved note, including:
 
 Skip **illustrative** path-shape examples (especially inside fenced code blocks, and any deliberate “looks like `changelog/YYYY/MM/...`” examples that are not pointing at a specific note). Prefer retarget over delete when the note still exists.
 
-- [ ] **Step 2: Convention / explanatory prose (proposals only)**
+- [x] **Step 2: Convention / explanatory prose (proposals only)**
 
-File-structure or convention wording → adjacent escaped proposal blocks per asc-author-docs.
+No convention prose added; future changes use adjacent escaped proposal blocks per asc-author-docs.
 
-- [ ] **Step 3: Optional regenerable `docs/README.md` index**
+- [x] **Step 3: Optional regenerable `docs/README.md` index**
 
-Index only; no authority or status vocabulary.
+Not created; optional.
 
 ---
 
 ### Task 6: Verify by review (no test suite)
 
-- [ ] **Step 1: Re-walk Appendix A** — every dated source has a destination file; none left under `changelog/2026/`.
+- [x] **Step 1: Re-walk Appendix A** — every dated source has a destination file; none left under `changelog/2026/`.
 
-- [ ] **Step 2: Review changed paths** — skim `/tmp/asc-changelog-consumers.txt` against staged and unstaged diffs; confirm intended rewrites (including `changelog/README.md` links, in-note links to peers **and** root/code/skills, README Markdown links **and** live backticked paths, `yml.test.sh` exclusion) and the intentional non-edit of `next_steps.sh`.
+- [x] **Step 2: Review changed paths** — skim `/tmp/asc-changelog-consumers.txt` against staged and unstaged diffs; confirm intended rewrites (including `changelog/README.md` links, in-note links to peers **and** root/code/skills, README Markdown links **and** live backticked paths, `yml.test.sh` exclusion) and the intentional non-edit of `next_steps.sh`.
 
-- [ ] **Step 3: Review status, staged + unstaged diffs, and intended untracked files**
+- [x] **Step 3: Review status, staged + unstaged diffs, and intended untracked files**
 
 `git mv` stages renames; unstaged `git diff` alone **misses** the moved corpus and any already-staged content edits. Use `--stat` only as a map of what changed; **also open the full diffs** so link rewrites and note bodies can be checked (statistics alone cannot show whether a target was corrected or meaning drifted).
 
@@ -243,20 +243,89 @@ git status -u --short | grep '^??' || true
 
 In the full staged and unstaged patches, spot-check: Appendix A arrivals/renames; in-note and README path rewrites; `changelog/README.md` link updates; directory exclusions; no unintended status/prose rewrites. Read the full text of every intended untracked file this plan adds. Confirm every Appendix A destination appears in the rename/move set. Investigate any plain delete of a dated note.
 
-- [ ] **Step 4: Mother-guard skim** of the diff.
+- [x] **Step 4: Mother-guard skim** of the diff.
 
-- [ ] **Step 5: Mark this plan completed.** Follow-ups: gates/next-steps idea (including scanner path); optional README convention proposals; later status reassessment of older plans.
+- [x] **Step 5: Mark this plan completed.** Follow-ups: gates/next-steps idea (including scanner path); optional README convention proposals; later status reassessment of older plans.
 
 ---
 
-## Appendix A — Old→new map (fill in Task 1)
+## Appendix A — Old→new map
 
 | old_path | new_path | notes |
 |----------|----------|-------|
-| `changelog/2026/…/DD-name.md` | `docs/plans/2026/…/DD-name.md` | one row per dated file — use to confirm arrival |
-| `changelog/README.md` | `changelog/README.md` | retain; retarget links; add map |
-
-*(Populate all 72 dated rows at execution.)*
+| `changelog/2026/07/24-subject-asc-extensions.md` | `docs/plans/2026/07/24-subject-asc-extensions.md` | moved |
+| `changelog/2026/07/24-yml-structure.md` | `docs/plans/2026/07/24-yml-structure.md` | moved |
+| `changelog/2026/07/26-living-docs-readme-status.md` | `docs/plans/2026/07/26-living-docs-readme-status.md` | moved |
+| `changelog/2026/07/31-array-dict-naming-plan.md` | `docs/plans/2026/07/31-array-dict-naming-plan.md` | moved |
+| `changelog/2026/07/31-nameref-clarity-candidates.md` | `docs/plans/2026/07/31-nameref-clarity-candidates.md` | moved |
+| `changelog/2026/07/31-subshell-printf-v-candidates.md` | `docs/plans/2026/07/31-subshell-printf-v-candidates.md` | moved |
+| `changelog/2026/08/18-transcribe-mp4.md` | `docs/plans/2026/08/18-transcribe-mp4.md` | moved |
+| `changelog/2026/09/04-pdf-generation-improvements.md` | `docs/plans/2026/09/04-pdf-generation-improvements.md` | moved |
+| `changelog/2026/09/10-begin-entity-system-with-remote-instances.md` | `docs/plans/2026/09/10-begin-entity-system-with-remote-instances.md` | moved |
+| `changelog/2026/09/11-bootstrap-cache-layout-and-invalidation.md` | `docs/plans/2026/09/11-bootstrap-cache-layout-and-invalidation.md` | moved |
+| `changelog/2026/09/11-lazy-opt-inc-and-entry-point-extraction.md` | `docs/plans/2026/09/11-lazy-opt-inc-and-entry-point-extraction.md` | moved |
+| `changelog/2026/09/12-rename-generated-mk-to-pivots-mk.md` | `docs/plans/2026/09/12-rename-generated-mk-to-pivots-mk.md` | moved |
+| `changelog/2026/09/12-rename-test-case-run-to-single-case-make.md` | `docs/plans/2026/09/12-rename-test-case-run-to-single-case-make.md` | moved |
+| `changelog/2026/09/12-subject-object-action-entry-points.md` | `docs/plans/2026/09/12-subject-object-action-entry-points.md` | moved |
+| `changelog/2026/09/17-pdf-graphviz-edge-labels.md` | `docs/plans/2026/09/17-pdf-graphviz-edge-labels.md` | moved |
+| `changelog/2026/09/17-pdf-graphviz-support.md` | `docs/plans/2026/09/17-pdf-graphviz-support.md` | moved |
+| `changelog/2026/09/19-db-thin-inc-and-opt-inc.md` | `docs/plans/2026/09/19-db-thin-inc-and-opt-inc.md` | moved |
+| `changelog/2026/09/19-eager-vs-lazy-include-cases.md` | `docs/plans/2026/09/19-eager-vs-lazy-include-cases.md` | moved |
+| `changelog/2026/09/19-fs-archive-lazy-include.md` | `docs/plans/2026/09/19-fs-archive-lazy-include.md` | moved |
+| `changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md` | `docs/plans/2026/09/19-lazy-opt-inc-remaining-core-waves.md` | moved |
+| `changelog/2026/09/19-mysql-pgsql-hook-opt-inc.md` | `docs/plans/2026/09/19-mysql-pgsql-hook-opt-inc.md` | moved |
+| `changelog/2026/09/20-agent-review-feedback-home.md` | `docs/plans/2026/09/20-agent-review-feedback-home.md` | moved |
+| `changelog/2026/09/20-builder-kernel-subject.md` | `docs/plans/2026/09/20-builder-kernel-subject.md` | moved |
+| `changelog/2026/09/20-drop-empty-kernel-global-inc.md` | `docs/plans/2026/09/20-drop-empty-kernel-global-inc.md` | moved |
+| `changelog/2026/09/20-gap-entity-not-core.md` | `docs/plans/2026/09/20-gap-entity-not-core.md` | moved |
+| `changelog/2026/09/20-garage-lightweight-rule.md` | `docs/plans/2026/09/20-garage-lightweight-rule.md` | moved |
+| `changelog/2026/09/20-host-scan-project-instances.md` | `docs/plans/2026/09/20-host-scan-project-instances.md` | moved |
+| `changelog/2026/09/20-match-script-not-clone-includes.md` | `docs/plans/2026/09/20-match-script-not-clone-includes.md` | moved |
+| `changelog/2026/09/20-meadows-plan-review-feedback-loop.md` | `docs/plans/2026/09/20-meadows-plan-review-feedback-loop.md` | moved |
+| `changelog/2026/09/20-self-explainable-labels.md` | `docs/plans/2026/09/20-self-explainable-labels.md` | moved |
+| `changelog/2026/09/20-stub-gap-inventory.md` | `docs/plans/2026/09/20-stub-gap-inventory.md` | moved |
+| `changelog/2026/09/20-two-include-kinds.md` | `docs/plans/2026/09/20-two-include-kinds.md` | moved |
+| `changelog/2026/09/21-hook-specificity-rungs.md` | `docs/plans/2026/09/21-hook-specificity-rungs.md` | moved |
+| `changelog/2026/09/21-kernel-utils-inc.md` | `docs/plans/2026/09/21-kernel-utils-inc.md` | moved |
+| `changelog/2026/09/21-manual-inc.md` | `docs/plans/2026/09/21-manual-inc.md` | moved |
+| `changelog/2026/09/21-rename-asc-subject-to-core.md` | `docs/plans/2026/09/21-rename-asc-subject-to-core.md` | moved |
+| `changelog/2026/09/21-utils-under-core.md` | `docs/plans/2026/09/21-utils-under-core.md` | moved |
+| `changelog/2026/09/22-agent-llm-entry-point.md` | `docs/plans/2026/09/22-agent-llm-entry-point.md` | moved |
+| `changelog/2026/09/22-deprecate-subject-asc-extensions.md` | `docs/plans/2026/09/22-deprecate-subject-asc-extensions.md` | moved |
+| `changelog/2026/09/22-doc-next-steps.md` | `docs/plans/2026/09/22-doc-next-steps.md` | moved |
+| `changelog/2026/09/22-gates-like-env.md` | `docs/plans/2026/09/22-gates-like-env.md` | moved |
+| `changelog/2026/09/22-gates-prune-approved-work.md` | `docs/plans/2026/09/22-gates-prune-approved-work.md` | moved |
+| `changelog/2026/09/22-gates-registry-alternative.md` | `docs/plans/2026/09/22-gates-registry-alternative.md` | moved |
+| `changelog/2026/09/22-gitflow.md` | `docs/plans/2026/09/22-gitflow.md` | moved |
+| `changelog/2026/09/22-make-ds-literal.md` | `docs/plans/2026/09/22-make-ds-literal.md` | moved |
+| `changelog/2026/09/22-make-ds.md` | `docs/plans/2026/09/22-make-ds.md` | moved |
+| `changelog/2026/09/22-make-generate-string.md` | `docs/plans/2026/09/22-make-generate-string.md` | moved |
+| `changelog/2026/09/22-make-generate.md` | `docs/plans/2026/09/22-make-generate.md` | moved |
+| `changelog/2026/09/22-next-steps-like-env.md` | `docs/plans/2026/09/22-next-steps-like-env.md` | moved |
+| `changelog/2026/09/22-workflow.md` | `docs/plans/2026/09/22-workflow.md` | moved |
+| `changelog/2026/09/22-xdg-state-store.md` | `docs/plans/2026/09/22-xdg-state-store.md` | moved |
+| `changelog/2026/09/23-host-asc-core-sync.md` | `docs/plans/2026/09/23-host-asc-core-sync.md` | moved |
+| `changelog/2026/09/25-concert-order.md` | `docs/plans/2026/09/25-concert-order.md` | moved |
+| `changelog/2026/09/25-fs-file-list-append.md` | `docs/plans/2026/09/25-fs-file-list-append.md` | moved |
+| `changelog/2026/09/25-fs-list-arrays.md` | `docs/plans/2026/09/25-fs-list-arrays.md` | moved |
+| `changelog/2026/09/25-wired-init-lists.md` | `docs/plans/2026/09/25-wired-init-lists.md` | moved |
+| `changelog/2026/09/26-app-prefix-inventory.md` | `docs/plans/2026/09/26-app-prefix-inventory.md` | moved |
+| `changelog/2026/09/26-host-shell-aliases-asc.md` | `docs/plans/2026/09/26-host-shell-aliases-asc.md` | moved |
+| `changelog/2026/09/26-patterns-and-antipatterns.md` | `docs/plans/2026/09/26-patterns-and-antipatterns.md` | moved |
+| `changelog/2026/09/26-readme-toc-pre-commit.md` | `docs/plans/2026/09/26-readme-toc-pre-commit.md` | moved |
+| `changelog/2026/09/27-agent-guidance-from-antipatterns.md` | `docs/plans/2026/09/27-agent-guidance-from-antipatterns.md` | moved |
+| `changelog/2026/09/27-backlog-priority.md` | `docs/plans/2026/09/27-backlog-priority.md` | moved |
+| `changelog/2026/09/27-desktop-agent-terminal-reply.md` | `docs/plans/2026/09/27-desktop-agent-terminal-reply.md` | moved |
+| `changelog/2026/09/28-agent-instructions-travel.md` | `docs/plans/2026/09/28-agent-instructions-travel.md` | moved |
+| `changelog/2026/09/30-asc-guidance-as-project-skills.md` | `docs/plans/2026/09/30-asc-guidance-as-project-skills.md` | moved |
+| `changelog/2026/09/30-cursor-rules-home.md` | `docs/plans/2026/09/30-cursor-rules-home.md` | moved |
+| `changelog/2026/10/02-reinit-performance.md` | `docs/plans/2026/10/02-reinit-performance.md` | moved |
+| `changelog/2026/10/29-local-concurrent-stacks.md` | `docs/plans/2026/10/29-local-concurrent-stacks.md` | moved |
+| `changelog/2026/11/06-host-needs-and-skill-feedback.md` | `docs/plans/2026/11/06-host-needs-and-skill-feedback.md` | moved |
+| `changelog/2026/11/06-simplify-disk-entities-contracts.md` | `docs/plans/2026/11/06-simplify-disk-entities-contracts.md` | moved |
+| `changelog/2026/11/10-agent-plan-cursor-codex-ollaya-impl.md` | `docs/plans/2026/11/10-agent-plan-cursor-codex-ollaya-impl.md` | moved |
+| `changelog/2026/11/10-agent-plan-cursor-codex-ollaya.md` | `docs/plans/2026/11/10-agent-plan-cursor-codex-ollaya.md` | moved |
+| `changelog/README.md` | `changelog/README.md` | retained; links retargeted |
 
 ---
 

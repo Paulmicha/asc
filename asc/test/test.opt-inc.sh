@@ -5,7 +5,7 @@
 #
 # Callers must `.` this file. `asc/test/` entry points seed it (caller opt-inc /
 # colocated hook). Entity/builder/compose test hooks sit outside that dir.
-# @see changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md
+# @see docs/plans/2026/09/19-lazy-opt-inc-remaining-core-waves.md
 #
 # Convention : functions names are all prefixed by "f".
 #

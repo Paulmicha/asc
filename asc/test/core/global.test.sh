@@ -246,7 +246,7 @@ test_globals_debug_script_without_prior_aggregation() {
 ##
 # Init-only global helpers must not load from kernel bootstrap. Callers source
 # `asc/core/global.manual-inc.sh`. There is no kernel `global.inc.sh`.
-# @see changelog/2026/09/19-lazy-opt-inc-remaining-core-waves.md
+# @see docs/plans/2026/09/19-lazy-opt-inc-remaining-core-waves.md
 #
 test_f_global_aggregate_helpers_absent_from_kernel_bootstrap() {
   local out

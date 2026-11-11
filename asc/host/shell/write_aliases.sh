@@ -67,7 +67,7 @@ real_scripts_arr=()
 f_make_list_entry_points
 
 # One function, then one alias per instance script. The function walks at call time.
-# @see changelog/2026/09/26-host-shell-aliases-asc.md
+# @see docs/plans/2026/09/26-host-shell-aliases-asc.md
 aliases_sh_buf="$(cat <<'END_FN'
 closest_asc_docroot_exec() {
   local rel="$1"
