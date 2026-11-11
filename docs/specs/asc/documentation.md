@@ -20,6 +20,7 @@ project.
 | `docs/plans/YYYY/MM/DD-subject.md` | Task-specific work, progress, decisions, and verification. |
 | `docs/decisions/YYYY/MM/DD-subject.md` | Significant decisions, their context, rationale, and consequences. |
 | `docs/specs/subject.md` | Living specifications and technical reference for a subject. |
+| `docs/specs/asc/subject.md` | Living specifications and technical reference for conventions shared among all projects using ASC. |
 | `docs/guides/subject.md` | Optional task-oriented guidance; `how-to-subject.md` is also suitable. |
 
 Choose the home by the document's primary purpose. A plan can include

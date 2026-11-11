@@ -97,6 +97,7 @@ esac
 # Consolidated synchronizing of entire folders.
 dirs_swapped=()
 dirs_swapped+=('asc')
+dirs_swapped+=('docs/specs/asc')
 dirs_swapped+=('scripts/asc/contrib/asc')
 dirs_swapped+=('.agents/skills/asc-actions-priority')
 dirs_swapped+=('.agents/skills/asc-author-code')
@@ -104,6 +105,7 @@ dirs_swapped+=('.agents/skills/asc-author-docs')
 dirs_swapped+=('.agents/skills/asc-mother-guard')
 
 # Ensure the parent folders of every path that needs replacing already exists.
+mkdir -p 'docs/specs/asc'
 mkdir -p 'scripts/asc/contrib'
 mkdir -p '.agents/skills'
 
@@ -148,12 +150,6 @@ fi
 # For newly created project instances, we need an initial AGENTS.md.
 if [[ ! -f 'AGENTS.md' ]]; then
   cp "$tmp_dir/AGENTS.md" 'AGENTS.md'
-fi
-
-# Same for the specs docs (referenced from skills).
-# TODO [evol] we'll need to think about merging upstream changes merging.
-if [[ ! -d 'docs/specs' ]]; then
-  cp -r "$tmp_dir/docs/specs" 'docs/specs'
 fi
 
 # Claude discovers and invokes project skills from .claude/skills/<name>/SKILL.md.
