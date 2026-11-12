@@ -9,6 +9,98 @@ All functions, conditions and loops must not have their inner first and last lin
 
 # Anti-pattern example (don't)
 
+## Conditional blocks
+
+Any multiline conditional block cannot be left without surrounding line breaks.
+
+```sh
+local p_file="$1"
+local p_folder="$2"
+if [[ ! -f "$p_file" ]]; then
+  echo >&2
+  echo "Notice in f_fs_extract() - $BASH_SOURCE line $LINENO: file '$p_file' was not found." >&2
+  echo "Aborting (2)." >&2
+  echo >&2
+  return 2
+fi
+if [[ -n "$p_folder" ]] && [[ ! -d "$p_folder" ]]; then
+  echo >&2
+  echo "Notice in f_fs_extract() - $BASH_SOURCE line $LINENO: directory '$p_folder' was not found." >&2
+  echo "Aborting (3)." >&2
+  echo >&2
+  return 3
+fi
+```
+
+## Case and switch blocks
+
+Same as conditional blocks : surrounding line breaks must be placed befor and
+after the entire block. If any "case" nested block has more than one line, then
+a line break must also separate the next block after the end of the previous
+block.
+
+### Single line nested blocks
+
+```sh
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -o)
+      p_project_docroot="$2"; shift 2
+      ;;
+    -s)
+      p_stack_version="$2"; shift 2
+      ;;
+    -a)
+      p_apps="$2"; shift 2
+      ;;
+    -h)
+      p_host_type="$2"; shift 2
+      ;;
+    -t)
+      p_instance_type="$2"; shift 2
+      ;;
+    -p)
+      p_provision_using="$2"; shift 2
+      ;;
+    -y)
+      p_yes=1; shift 1
+      ;;
+    -r)
+      p_dry_run=1; shift 1
+      ;;
+    -*)
+      echo "Error in $BASH_SOURCE line $LINENO: unknown option: $1" >&2; return
+      ;;
+    *)
+      echo "Notice in $BASH_SOURCE line $LINENO: unsupported unnamed argument: $1" >&2; shift 1
+      ;;
+  esac
+done
+```
+
+### Multiline nested blocks
+
+```sh
+case "$p_file" in
+  *.7z|*.arj|*.cab|*.cb7|*.chm|*.deb|*.dmg|*.iso|*.lzh|*.msi|*.pkg|*.rpm|*.udf|*.wim|*.xar)
+    untouched=0
+    7z x "$p_file"
+    ;;
+  *.gz)
+    untouched=0
+    gunzip -k "$p_file"
+    ;;
+  *.cbz|*.epub|*.zip)
+    untouched=0
+    unzip "$p_file"
+    ;;
+esac
+```
+
+## Files and/or functions docblocks contents
+
+Line breaks help reading the dockblock contents faster.
+
 ```sh
 ##
 # Extracts given archive file(s). Supports various formats.
@@ -39,181 +131,20 @@ All functions, conditions and loops must not have their inner first and last lin
 #   f_fs_extract path/to/file.txt
 #   echo $? # Will print '1' (indicates that the file was untouched).
 f_fs_extract() {
+  # (snip)
+}
+```
+
+## Return statement
+
+Any return statement must be separated from the rest of the code by a line break
+unless the function contains less than 5 lines.
+
+```sh
+f_fs_extract() {
   local p_file="$1"
   local p_folder="$2"
-  if [[ ! -f "$p_file" ]]; then
-    echo >&2
-    echo "Notice in f_fs_extract() - $BASH_SOURCE line $LINENO: file '$p_file' was not found." >&2
-    echo "Aborting (2)." >&2
-    echo >&2
-    return 2
-  fi
-  if [[ -n "$p_folder" ]] && [[ ! -d "$p_folder" ]]; then
-    echo >&2
-    echo "Notice in f_fs_extract() - $BASH_SOURCE line $LINENO: directory '$p_folder' was not found." >&2
-    echo "Aborting (3)." >&2
-    echo >&2
-    return 3
-  fi
-  # Reset calling scope vars receiving the result.
-  extracted_file=''
-  extracted_files=''
-  # Debug.
-  if [[ -n "$ASC_DB_DEBUG" ]]; then
-    echo "u_fs_extract $p_file $p_folder"
-  fi
-  local untouched=1
-  local needs_copy='y'
-  local original_file="$p_file"
-  # If the uncompressed file already exists, consider it was uncompressed.
-  local uncompressed_file=''
-  f_fs_trim_compression_ext "$p_file"
-  if [[ -n "$uncompressed_file" && -f "$uncompressed_file" ]]; then
-    echo "Uncompressed file $uncompressed_file already exists."
-    echo "  -> Skip uncompress (but still produce the same result as if archive was successfully uncompressed)."
-    extracted_file="$uncompressed_file"
-    return
-  fi
-  # In order to correctly handle the 2nd parameter (destination folder), we
-  # process the 'tar' command separately.
-  case "$p_file" in *.cbt|*.tar.bz2|*.tar.gz|*.tar.xz|*.tbz2|*.tgz|*.txz|*.tar)
-    needs_copy='n'
-    uncompressed_file="${p_file%$ext}"
-    # Get archive contents.
-    # TODO Untested : *.tar.bz2 archives may need the '-j' flag.
-    # TODO Check relative paths are correct.
-    # TODO Too slow for big archives -> make optional ?
-    local contents_list_str=$(tar -tf "$p_file")
-    local contents_list_arr=($contents_list_str)
-    if [[ ${#contents_list_arr[@]} -gt 1 ]]; then
-      extracted_files="$contents_list_str"
-      if [[ -n "$p_folder" ]]; then
-        extracted_files=''
-        local i
-        for i in "${contents_list_arr[@]}"; do
-          extracted_files+="$p_folder/$i
-"
-        done
-      fi
-    else
-      extracted_file="$contents_list_str"
-      if [[ -n "$p_folder" ]]; then
-        extracted_file="$p_folder/$contents_list_str"
-      fi
-    fi
-    if [[ -n "$p_folder" ]]; then
-      # Debug.
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  tar -xf $p_file -C $p_folder"
-      fi
-      untouched=0
-      tar -xf "$p_file" -C "$p_folder"
-    else
-      # Debug.
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  tar -xf $p_file"
-      fi
-      untouched=0
-      tar -xf "$p_file"
-    fi
-    if [[ $? -ne 0 ]]; then
-      echo >&2
-      echo "Error in f_fs_extract() - $BASH_SOURCE line $LINENO: the tar command exited with non-zero code." >&2
-      echo "Aborting (4)." >&2
-      echo >&2
-      exit 4
-    fi
-    return $untouched
-  esac
-  untouched=1
-  # TODO [wip] not all formats and programs were tested from this list.
-  # See https://github.com/xvoland/Extract
-  case "$p_file" in
-    *.7z|*.arj|*.cab|*.cb7|*.chm|*.deb|*.dmg|*.iso|*.lzh|*.msi|*.pkg|*.rpm|*.udf|*.wim|*.xar)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  7z x $p_file"
-      fi
-      untouched=0
-      7z x "$p_file"
-      ;;
-    *.gz)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  gunzip -k $p_file"
-      fi
-      untouched=0
-      gunzip -k "$p_file"
-      ;;
-    *.cbz|*.epub|*.zip)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  unzip $p_file"
-      fi
-      untouched=0
-      unzip "$p_file"
-      ;;
-    *.bz2)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  bunzip2 $p_file"
-      fi
-      untouched=0
-      bunzip2 "$p_file"
-      ;;
-    *.cbr|*.rar)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  unrar $p_file"
-      fi
-      untouched=0
-      unrar x -ad "$p_file"
-      ;;
-    *.z)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  uncompress $p_file"
-      fi
-      untouched=0
-      uncompress "$p_file"
-      ;;
-    *.lzma)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  uncompress $p_file"
-      fi
-      untouched=0
-      unlzma "$p_file"
-      ;;
-    *.xz)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  unxz $p_file"
-      fi
-      untouched=0
-      unxz "$p_file"
-      ;;
-    *.exe)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  cabextract $p_file"
-      fi
-      untouched=0
-      cabextract "$p_file"
-      ;;
-    *.cpio)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  cpio $p_file"
-      fi
-      untouched=0
-      cpio -id < "$p_file"
-      ;;
-    *.cba|*.ace)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  unace $p_file"
-      fi
-      untouched=0
-      unace x "$p_file"
-      ;;
-  esac
-  if [[ $? -ne 0 ]]; then
-    echo >&2
-    echo "Error in f_fs_extract() - $BASH_SOURCE line $LINENO: the extract command exited with non-zero code." >&2
-    echo "Aborting (5)." >&2
-    echo >&2
-    exit 5
-  fi
+  # (snip)
   if [[ $untouched -eq 0 ]]; then
     f_fs_trim_compression_ext "$p_file"
     if [[ -n "$uncompressed_file" && -f "$uncompressed_file" ]]; then
@@ -226,7 +157,115 @@ f_fs_extract() {
 }
 ```
 
+## Code comments and docblocks
+
+When a portion of a function or script needs explanation, comments must be set
+apart from the preceding content with a line break. No line break must stand
+between the code they relate to and the comments themselves.
+
+This also applies to docblocks.
+
+```sh
+f_fs_extract() {
+  # (snip)
+  local untouched=1
+  local needs_copy='y'
+  local original_file="$p_file"
+  # If the uncompressed file already exists, consider it was uncompressed.
+
+  local uncompressed_file=''
+  f_fs_trim_compression_ext "$p_file"
+  if [[ -n "$uncompressed_file" && -f "$uncompressed_file" ]]; then
+    echo "Uncompressed file $uncompressed_file already exists."
+    echo "  -> Skip uncompress (but still produce the same result as if archive was successfully uncompressed)."
+    extracted_file="$uncompressed_file"
+    return
+  fi
+  # In order to correctly handle the 2nd parameter (destination folder), we
+  # process the 'tar' command separately.
+  case "$p_file" in *.cbt|*.tar.bz2|*.tar.gz|*.tar.xz|*.tbz2|*.tgz|*.txz|*.tar)
+    # (snip)
+  esac
+}
+```
+
 # Correct example (do)
+
+## Conditional blocks
+
+Any multiline conditional block cannot be left without surrounding line breaks.
+
+```sh
+local p_file="$1"
+local p_folder="$2"
+
+if [[ ! -f "$p_file" ]]; then
+  echo >&2
+  echo "Notice in f_fs_extract() - $BASH_SOURCE line $LINENO: file '$p_file' was not found." >&2
+  echo "Aborting (2)." >&2
+  echo >&2
+  return 2
+fi
+
+if [[ -n "$p_folder" ]] && [[ ! -d "$p_folder" ]]; then
+  echo >&2
+  echo "Notice in f_fs_extract() - $BASH_SOURCE line $LINENO: directory '$p_folder' was not found." >&2
+  echo "Aborting (3)." >&2
+  echo >&2
+  return 3
+fi
+```
+
+## Case and switch blocks
+
+Same as conditional blocks : surrounding line breaks must be placed befor and
+after the entire block. If any "case" nested block has more than one line, then
+a line break must also separate the next block after the end of the previous
+block.
+
+### Single line nested blocks
+
+```sh
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -o) p_project_docroot="$2"; shift 2;;
+    -s) p_stack_version="$2"; shift 2;;
+    -a) p_apps="$2"; shift 2;;
+    -h) p_host_type="$2"; shift 2;;
+    -t) p_instance_type="$2"; shift 2;;
+    -p) p_provision_using="$2"; shift 2;;
+    -y) p_yes=1; shift 1;;
+    -r) p_dry_run=1; shift 1;;
+    -*) echo "Error in $BASH_SOURCE line $LINENO: unknown option: $1" >&2; return;;
+    *) echo "Notice in $BASH_SOURCE line $LINENO: unsupported unnamed argument: $1" >&2; shift 1;;
+  esac
+done
+```
+
+### Multiline nested blocks
+
+```sh
+case "$p_file" in
+  *.7z|*.arj|*.cab|*.cb7|*.chm|*.deb|*.dmg|*.iso|*.lzh|*.msi|*.pkg|*.rpm|*.udf|*.wim|*.xar)
+    untouched=0
+    7z x "$p_file"
+    ;;
+
+  *.gz)
+    untouched=0
+    gunzip -k "$p_file"
+    ;;
+
+  *.cbz|*.epub|*.zip)
+    untouched=0
+    unzip "$p_file"
+    ;;
+esac
+```
+
+## Files and/or functions docblocks contents
+
+Line breaks help reading the dockblock contents faster.
 
 ```sh
 ##
@@ -269,34 +308,47 @@ f_fs_extract() {
 #   echo $? # Will print '1' (indicates that the file was untouched).
 #
 f_fs_extract() {
+  # (snip)
+}
+```
+
+## Return statement
+
+Any return statement must be separated from the rest of the code by a line break
+unless the function contains less than 5 lines.
+
+```sh
+f_fs_extract() {
   local p_file="$1"
   local p_folder="$2"
 
-  if [[ ! -f "$p_file" ]]; then
-    echo >&2
-    echo "Notice in f_fs_extract() - $BASH_SOURCE line $LINENO: file '$p_file' was not found." >&2
-    echo "Aborting (2)." >&2
-    echo >&2
-    return 2
+  # (snip)
+
+  if [[ $untouched -eq 0 ]]; then
+    f_fs_trim_compression_ext "$p_file"
+
+    if [[ -n "$uncompressed_file" && -f "$uncompressed_file" ]]; then
+      echo "File was uncompressed successfully to :"
+      echo "  $uncompressed_file"
+      extracted_file="$uncompressed_file"
+    fi
   fi
 
-  if [[ -n "$p_folder" ]] && [[ ! -d "$p_folder" ]]; then
-    echo >&2
-    echo "Notice in f_fs_extract() - $BASH_SOURCE line $LINENO: directory '$p_folder' was not found." >&2
-    echo "Aborting (3)." >&2
-    echo >&2
-    return 3
-  fi
+  return $untouched
+}
+```
 
-  # Reset calling scope vars receiving the result.
-  extracted_file=''
-  extracted_files=''
+## Code comments and docblocks
 
-  # Debug.
-  if [[ -n "$ASC_DB_DEBUG" ]]; then
-    echo "u_fs_extract $p_file $p_folder"
-  fi
+When a portion of a function or script needs explanation, comments must be set
+apart from the preceding content with a line break. No line break must stand
+between the code they relate to and the comments themselves.
 
+This also applies to docblocks.
+
+```sh
+f_fs_extract() {
+  # (snip)
   local untouched=1
   local needs_copy='y'
   local original_file="$p_file"
@@ -309,187 +361,14 @@ f_fs_extract() {
   if [[ -n "$uncompressed_file" && -f "$uncompressed_file" ]]; then
     echo "Uncompressed file $uncompressed_file already exists."
     echo "  -> Skip uncompress (but still produce the same result as if archive was successfully uncompressed)."
-
     extracted_file="$uncompressed_file"
-
     return
   fi
-
+  
   # In order to correctly handle the 2nd parameter (destination folder), we
   # process the 'tar' command separately.
   case "$p_file" in *.cbt|*.tar.bz2|*.tar.gz|*.tar.xz|*.tbz2|*.tgz|*.txz|*.tar)
-    needs_copy='n'
-    uncompressed_file="${p_file%$ext}"
-
-    # Get archive contents.
-    # TODO Untested : *.tar.bz2 archives may need the '-j' flag.
-    # TODO Check relative paths are correct.
-    # TODO Too slow for big archives -> make optional ?
-    local contents_list_str=$(tar -tf "$p_file")
-    local contents_list_arr=($contents_list_str)
-
-    if [[ ${#contents_list_arr[@]} -gt 1 ]]; then
-      extracted_files="$contents_list_str"
-
-      if [[ -n "$p_folder" ]]; then
-        extracted_files=''
-        local i
-
-        for i in "${contents_list_arr[@]}"; do
-          extracted_files+="$p_folder/$i
-"
-        done
-      fi
-    else
-      extracted_file="$contents_list_str"
-
-      if [[ -n "$p_folder" ]]; then
-        extracted_file="$p_folder/$contents_list_str"
-      fi
-    fi
-
-    if [[ -n "$p_folder" ]]; then
-      # Debug.
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  tar -xf $p_file -C $p_folder"
-      fi
-
-      untouched=0
-      tar -xf "$p_file" -C "$p_folder"
-    else
-      # Debug.
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  tar -xf $p_file"
-      fi
-
-      untouched=0
-      tar -xf "$p_file"
-    fi
-
-    if [[ $? -ne 0 ]]; then
-      echo >&2
-      echo "Error in f_fs_extract() - $BASH_SOURCE line $LINENO: the tar command exited with non-zero code." >&2
-      echo "Aborting (4)." >&2
-      echo >&2
-      exit 4
-    fi
-
-    return $untouched
+    # (snip)
   esac
-
-  untouched=1
-
-  # TODO [wip] not all formats and programs were tested from this list.
-  # See https://github.com/xvoland/Extract
-  case "$p_file" in
-    *.7z|*.arj|*.cab|*.cb7|*.chm|*.deb|*.dmg|*.iso|*.lzh|*.msi|*.pkg|*.rpm|*.udf|*.wim|*.xar)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  7z x $p_file"
-      fi
-      untouched=0
-      7z x "$p_file"
-      ;;
-
-    *.gz)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  gunzip -k $p_file"
-      fi
-      untouched=0
-      gunzip -k "$p_file"
-      ;;
-
-    *.cbz|*.epub|*.zip)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  unzip $p_file"
-      fi
-      untouched=0
-      unzip "$p_file"
-      ;;
-
-    *.bz2)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  bunzip2 $p_file"
-      fi
-      untouched=0
-      bunzip2 "$p_file"
-      ;;
-
-    *.cbr|*.rar)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  unrar $p_file"
-      fi
-      untouched=0
-      unrar x -ad "$p_file"
-      ;;
-
-    *.z)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  uncompress $p_file"
-      fi
-      untouched=0
-      uncompress "$p_file"
-      ;;
-
-    *.lzma)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  uncompress $p_file"
-      fi
-      untouched=0
-      unlzma "$p_file"
-      ;;
-
-    *.xz)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  unxz $p_file"
-      fi
-      untouched=0
-      unxz "$p_file"
-      ;;
-
-    *.exe)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  cabextract $p_file"
-      fi
-      untouched=0
-      cabextract "$p_file"
-      ;;
-
-    *.cpio)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  cpio $p_file"
-      fi
-      untouched=0
-      cpio -id < "$p_file"
-      ;;
-
-    *.cba|*.ace)
-      if [[ -n "$ASC_DB_DEBUG" ]]; then
-        echo "  unace $p_file"
-      fi
-      untouched=0
-      unace x "$p_file"
-      ;;
-  esac
-
-  if [[ $? -ne 0 ]]; then
-    echo >&2
-    echo "Error in f_fs_extract() - $BASH_SOURCE line $LINENO: the extract command exited with non-zero code." >&2
-    echo "Aborting (5)." >&2
-    echo >&2
-    exit 5
-  fi
-
-  if [[ $untouched -eq 0 ]]; then
-    f_fs_trim_compression_ext "$p_file"
-
-    if [[ -n "$uncompressed_file" && -f "$uncompressed_file" ]]; then
-      echo "File was uncompressed successfully to :"
-      echo "  $uncompressed_file"
-
-      extracted_file="$uncompressed_file"
-    fi
-  fi
-
-  return $untouched
 }
 ```
