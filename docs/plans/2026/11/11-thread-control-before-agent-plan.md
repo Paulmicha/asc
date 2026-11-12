@@ -49,8 +49,9 @@ The result also says the following, which this plan does not turn into stronger 
 
 - Completeness `unknown` or `degraded` is a finished result. It is not permission to operate the same unattended workload under a weaker supervisor.
 - `stop_requested: true` without `final: true` is an unfinished stop. It is not a delivered signal and not a stopped workload.
-- Liveness **blocked** (orphaned, unknown, report-only stale, or `final` with unknown/degraded completeness without `reuse_allowed`) refuses a new start (exit 4 on direct wrap). Status and monitor may report a dead supervisor; they do not authorize reuse. A dead supervisor pid is not proof the workload is gone.
-- `final` with completeness `unknown`/`degraded` is an audit result, not slot clearance. Clearance needs `thread-release` or a cgroup-complete final.
+- Liveness **blocked** (orphaned, unknown, report-only stale, or **stop**-written `final` with unknown/degraded completeness without `reuse_allowed`) refuses a new start (exit 4 on direct wrap). Status and monitor may report a dead supervisor; they do not authorize reuse. A dead supervisor pid is not proof the workload is gone.
+- A **normal return** (supervisor final, no stop request, `exit_code` 0, empty `stop_reason`) clears the slot without `thread-release`. Signal-like (`128`–`165`, including `137`) or other non-zero supervisor finals (`interrupted` / `uncertain`), and stop-uncertain finals, do not; those need `thread-release` or a cgroup-complete final.
+- New publish always sets `reuse_allowed: false` and `attempt_uncertain: false` for the new run. Retries must not turn an interrupted/uncertain attempt into a clearing normal return. Subshell retries of `1`–`127` may overlap leftover descendants; that is an accepted limitation, not silent clearance.
 - A child that has left the unit, a process started through another service, and a remote call are outside a cgroup stop. The probe describes them. It does not promise they stopped.
 - Stop does not delete a chat or a plan file. It can interrupt a write, and it leaves in place whatever those files already contain. Their state after stop is whatever a later read observes. Stop is not rollback. A local process stop is not a provider chat cancel.
 - A hold established under the lock does not cancel a start that has already committed. A hold file created without the lock can still appear inside a start's critical section; the next admission sees it. A `wait` caller is not admitted until publish; a hold taken while it waits still refuses that start.
@@ -98,11 +99,12 @@ Add these keys in `f_thread_yml_write`, with `ASC_THREAD_*` falling back to the 
 | `supervisor` | `subshell` for the executable path in this plan. `systemd-user` only after the occupy-handoff feasibility note and Task 4 unit step both pass. |
 | `unit`, `invocation_id` | Empty unless `supervisor` is `systemd-user`. |
 | `stop_requested` | `true` once stop has chosen this run under the record mutex. Otherwise `false`. Request only: not proof of signal delivery or of workload exit. |
-| `final` | `true` once a writer has committed the closing status. Later writers leave status, exit code, end time, reason, and completeness alone. Does not by itself clear the slot unless completeness is `cgroup` (see replaceability). |
+| `final` | `true` once a writer has committed the closing status. Later writers leave status, exit code, end time, reason, and completeness alone. Whether the slot clears depends on *how* it became final (see replaceability). |
 | `final_writer` | `supervisor` or `stop`. |
-| `stop_reason` | Empty when the run returns on its own. `stopped` when `stop_requested` was set. |
+| `stop_reason` | Empty only on a **normal return** (`exit_code` 0). `stopped` when `stop_requested` was set by `thread-stop`. `interrupted` when the exit looks signal-derived (below). `uncertain` when the exit is non-zero and not confidently classifiable as a clean entry failure vs a signal. |
 | `completeness` | `cgroup`, `degraded`, or `unknown`. |
-| `reuse_allowed` | `true` only after `thread-release` for this `run_id`, or implied by a `final` with completeness `cgroup`. Absent/false means admission stays blocked when the supervisor is gone or the final is uncertain. Status/monitor must not set this. |
+| `reuse_allowed` | Per-run flag. Every **new publish** writes `false`. `thread-release` may set `true` for that finished `run_id`. Never inherited from a previous record. Status/monitor must not set this. |
+| `attempt_uncertain` | Per-run sticky flag. Every **new publish** writes `false`. Set `true` on the first interrupted or uncertain attempt inside this `run_id`; never cleared by a later attempt in the same run. Blocks normal-return clearance while true. |
 
 `thread-list` and `thread-status` print `run_id`. List keeps skipping non-YAML names, so a hold file in `data/threads/` is not an entry.
 
@@ -111,8 +113,8 @@ Liveness / replaceability for the current record — **reporting** a dead superv
 | Outcome | When | Admission (`skip` or `wait`) |
 |---------|------|------------------------------|
 | live | Recorded supervisor pid exists and `/proc` start field still equals `pid_start` (or unit `invocation_id` still matches) | Refuse a new start: `skip` prints the skip line and exits 0. `wait` parks on occupancy (below). |
-| clear | No file, or the record carries an explicit reuse authorization for that finished identity (below) | May attempt a new publish, still only after acquiring occupy in lock order |
-| blocked | Supervisor gone or unreadable, or stop finished with uncertain descendants, and reuse is not yet authorized | **Fail-closed:** exit 4. Includes `orphaned`, `unknown`, reported-`stale` without reuse ack, and `final` with completeness `unknown`/`degraded` without reuse ack |
+| clear | No file, or the record is a **cleared** finished identity (below) | May attempt a new publish, still only after acquiring occupy in lock order |
+| blocked | Supervisor gone or unreadable without a normal-return final; interrupt/uncertain supervisor final; or stop finished with uncertain descendants — and reuse is not yet authorized | **Fail-closed:** exit 4. Includes `orphaned`, `unknown`, reported-`stale` without reuse ack, `stop_reason: interrupted` or `uncertain`, and **stop**-written `final` with completeness `unknown`/`degraded` without reuse ack. Does **not** include a normal return (`exit_code` 0, below). |
 | orphaned | Subcase of blocked: unfinished/`running` (or equivalent) while the recorded supervisor identity is gone or mismatched | Exit 4. A dead supervisor does **not** prove workload children are gone |
 | unknown | Subcase of blocked: empty `pid_start` (legacy), unreadable `/proc`, or identity check incomplete | Exit 4 |
 
@@ -125,19 +127,67 @@ A live pid with a different start field is a different process (orphaned former 
 | Evidence | Meaning |
 |----------|---------|
 | No YAML for the entry | Never started or removed by an explicit operator cleanup outside this plan's default path |
-| `final: true` and `completeness: cgroup` for the previous identity | Probe-backed unit path proved in-unit descendants stopped; reuse of the slot is allowed without a separate ack |
-| `reuse_allowed: true` for the recorded `run_id`, set only by `thread-release` (below) | Operator acknowledgment that uncertain descendants are accepted or cleaned up out of band |
+| **Normal return:** `final: true`, `final_writer: supervisor`, `stop_requested: false`, `stop_reason` empty, **`exit_code` exactly `0`** | The wrapped entry returned success to the supervisor, and the EXIT trap finalized that attempt while it still owned occupy — without `thread-stop`. **Clears the slot** so the same entry can run again and so a `wait` caller can proceed after that finish — **without** `thread-release`. Completeness may still be `unknown` on the subshell path; that residual is accepted only for this narrow class. |
+| `final: true` and `completeness: cgroup` for the previous identity | Probe-backed unit path proved in-unit descendants stopped; clears without a separate ack |
+| `reuse_allowed: true` for the recorded `run_id`, set only by `thread-release` (below) | Operator acknowledgment after orphan / interrupt / uncertain / stop-uncertain cases |
 
-**`final` with completeness `unknown` or `degraded`.** That is a finished stop/supervisor **record** for the run: useful audit, request-versus-observation closed for the supervisor identity. It does **not** by itself permit a new run. A following start stays exit 4 until `thread-release` authorizes reuse (or a later cgroup-complete final exists on a unit path). Unattended workloads that require tree-wide stop must not treat unknown/degraded final as clearance.
+**What counts as a normal return (evidence).** All of — fail-closed otherwise:
+
+1. `final_writer` is `supervisor` (EXIT trap ran and committed the final).
+2. `stop_requested` is still `false` (no `thread-stop` owned this run).
+3. `stop_reason` is empty.
+4. `exit_code` is exactly `0`.
+5. `attempt_uncertain` is absent or `false` (no earlier interrupted/uncertain attempt in this run).
+
+Shell wait statuses alone cannot prove “not a signal” for arbitrary non-zero codes: a program may `exit 137` deliberately, and `137` is also the usual encoding of `SIGKILL` (`128+9`). The plan therefore **does not** treat “not 130 and not 143” as a normal return. Only success (`0`) clears without release.
+
+**Exit classification when the supervisor trap finalizes without `thread-stop`.** Record the numeric `exit_code`, set completeness `unknown`, and choose `stop_reason` conservatively:
+
+| `exit_code` | `stop_reason` | Clears slot? | Meaning |
+|-------------|---------------|--------------|---------|
+| `0` | empty | **Yes** | Normal return |
+| `128`–`165` (inclusive), including `130`, `137`, `143` | `interrupted` | **No** | Signal-like class (`128+N`). Covers SIGINT/SIGTERM and SIGKILL-on-child (`137`) when the supervisor still finalizes |
+| Any other non-zero (e.g. `1`–`127`, or `>165`) | `uncertain` | **No** | Not proven clean; may be intentional failure or an encoding we will not guess. Preserve uncertainty rather than calling it a normal return |
+
+A deliberate `exit 137` from the entry will be classified `interrupted` and block until release — accepted tradeoff of the fail-closed rule.
+
+**Retries must not erase interrupt / uncertainty evidence.** Observed today, `ASC_WRAP_RETRY_MAX` can retry a `137` (it is not in the non-retry set `0`/`130`/`143`), then finish with `0` and look like a normal return while descendants from the killed attempt may remain. That is forbidden under this plan.
+
+Proposed coupling of retry policy to clearance:
+
+1. **Do not retry** an attempt whose wait status is in the signal-like class `128`–`165` (expand today’s non-retry set beyond `130`/`143`). Return that status to the supervisor finalizer.
+2. **Sticky flag on the run:** on the first interrupted or uncertain attempt within a `run_id`, set `attempt_uncertain: true` on the YAML (under the record mutex) **before** any retry sleep. The flag is never cleared by a later attempt in the same run.
+3. **Final clearance** requires a normal return **and** `attempt_uncertain` absent/false. A later `exit_code` `0` after an uncertain attempt still does not clear. Prefer recording the worst class seen: interrupted wins over uncertain wins over empty.
+4. **Retries of plain `1`–`127` may continue** for flaky tools. Sticky `attempt_uncertain` still blocks automatic clearance until `thread-release`.
+
+**Accepted limitation — overlapping attempts on retry.** Sticky uncertainty blocks the *next* wrap from clearing the slot; it does **not** prove that descendants of a failed attempt are gone before a retry of `1`–`127` starts. On the executable subshell path, this plan **accepts** that a retry may overlap in time with processes left by the previous attempt. It does **not** require a descendant-gone check before retry sleep, and it does **not** stop retries solely to avoid that overlap. Stronger “no overlap” behavior remains a unit/cgroup concern (handoff gate), not a subshell retry guarantee. The `1`-then-`0` test must record that chosen limitation (below), not imply cleanup happened.
+
+Add `attempt_uncertain` to the record-fields table (boolean; publish starts `false`; sticky true until the run’s final record; next publish resets to `false` like `reuse_allowed`).
+
+**External interruption and ambiguous ends (do not clear).**
+
+| Case | Record | Admission |
+|------|--------|-----------|
+| Signal-like wait status (`130`, `137`, `143`, other `128`–`165`), trap runs, `stop_requested` false | `final_writer: supervisor`, `stop_reason: interrupted`, `attempt_uncertain: true` | **Blocked** until `thread-release` (or cgroup-complete final) |
+| Other non-zero, trap runs, `stop_requested` false | `stop_reason: uncertain`, `attempt_uncertain: true` | **Blocked** until release |
+| Interrupted attempt then a retried `0` (must not happen for `128`–`165`; if sticky was set earlier) | Final must not clear: `attempt_uncertain: true` remains | **Blocked** |
+| Supervisor SIGKILL / no trap | Unfinished → orphaned / report path | **Blocked** until release after report/finalization rules |
+| `thread-stop` path | `stop_requested: true`, `final_writer: stop`, `stop_reason: stopped` | **Blocked** if completeness is `unknown`/`degraded` without reuse ack |
+
+Absence of `stop_requested` alone is **not** proof of a normal return. A final `exit_code` `0` alone is **not** proof if `attempt_uncertain` is true.
+
+**Operational consequence (subshell path).** Two sequential wraps of the same entry, where the first ends with a **normal return** (`exit_code` 0), must work with no intervening release — but the second wrap is invoked only after the first’s supervisor-written final and occupy release are observed. A `wait` starter blocked on occupy must be able to admit after the occupant’s normal return (`exit_code` 0) with no intervening release. Overlap while the first is still live remains the skip/`wait` tests, not the sequential-success test. A non-zero finish does **not** unlock the next start without release.
+
+**Stop-written `final` with completeness `unknown` or `degraded`, interrupt finals, and uncertain finals.** Finished audit for that attempt; they do **not** by themselves permit a new run. A following start stays exit 4 until `thread-release` (or a cgroup-complete final on a unit path). This paragraph does **not** apply to normal-return finals (`exit_code` 0) above.
 
 The host index gains `run_id`, `host`, `reuse_allowed`, and the offset on `mtime`. It stays latest-only.
 
-**Recovery when the old workload cannot be proven gone.**
+**Recovery when the old workload cannot be proven gone** (orphaned supervisor, interrupt/uncertain supervisor final, or stop with uncertain completeness):
 
-1. Operator may run `thread-stop` on the recorded `run_id` (or current-run form). Stop signals what it can and may write `final` with completeness `unknown` or `degraded`. Descendants are still unproven.
+1. Operator may run `thread-stop` on the recorded `run_id` (or current-run form) when the supervisor is still addressable. Stop signals what it can and may write `final` with completeness `unknown` or `degraded`. Descendants are still unproven. Slot stays blocked. An already-written `stop_reason: interrupted` final is already in the blocked class.
 2. Operator inspects (process list, unit cgroup, manual cleanup). This plan does not automate that inspection.
-3. Operator runs `thread-release e:$entry run:$run_id` (`asc/thread/release.sh`, pivot after `make make-generate`). Under the record mutex it re-loads, requires the same `run_id`, requires the supervisor identity to be gone or already `final` for that id, sets `reuse_allowed: true` (and may normalize status for readers), refreshes the index, releases. Exit 2 if the file is a different run. Exit 1 if the identity is still live.
-4. Only then may admission treat the slot as **clear**.
+3. Operator runs `thread-release e:$entry run:$run_id` (`asc/thread/release.sh`, pivot after `make make-generate`). Under the record mutex it re-loads, requires the same `run_id`, requires the supervisor identity to be gone or already `final` for that id, sets `reuse_allowed: true` (and may normalize status for readers), refreshes the index, releases. Exit 2 if the file is a different run. Exit 1 if the identity is still live. Do not use release after a **normal return**; that path is already clear.
+4. Only then may admission treat a previously interrupted, stop-uncertain, or orphaned slot as **clear**.
 
 `thread-status` / monitor are not a substitute for step 3.
 
@@ -192,7 +242,7 @@ Before the supervisor may do workload work:
 1. Take `admit.lock`. If `data/threads/hold` exists, release, print refusal on stderr, exit 3. Do not print `Thread started`.
 2. Take the record mutex. Classify the current record (table above).
 3. If **live**: release admit + record. In `skip`, print the skip line, exit 0. In `wait`, block on occupy, unlock occupy when acquired, go to step 1.
-4. If **blocked** (including orphaned, unknown, report-only stale/orphaned without reuse, or final with unknown/degraded completeness without reuse): release both, exit 4.
+4. If **blocked** (including orphaned, unknown, report-only stale/orphaned without reuse, `stop_reason: interrupted` or `uncertain`, or stop-written final with unknown/degraded completeness without reuse): release both, exit 4. A **normal-return** final (`exit_code` 0, empty `stop_reason`) is **clear**, not blocked.
 5. If **clear**: while still holding admit + record, `flock -n` on occupy.
    - Failure in `skip`: release both, print skip (slot busy in handshake or still occupied), exit 0.
    - Failure in `wait`: release both, block on occupy, unlock when acquired, go to step 1.
@@ -222,7 +272,7 @@ Proposed exchange:
 | Phase | Who | What becomes true |
 |-------|-----|-------------------|
 | Create | Foreground, holding admit + record + occupy | Fork or `systemd-run` the supervisor so its pid (and unit fields) are known. Child must not start the entry yet. |
-| Publish | Foreground | Atomically write the run identity and refresh the host index from those same bytes (see record writers). |
+| Publish | Foreground | Atomically write the run identity with **`reuse_allowed: false`** and **`attempt_uncertain: false`** (never copy the previous run’s flags), and refresh the host index from those same bytes (see record writers). |
 | Handoff | Foreground → child | Transfer occupy. Release record mutex and `admit.lock` only after handoff. |
 | Begin | Child | After observing publication (or an explicit parent signal), execute the entry while holding occupy. |
 | Announce | Foreground | Print `Thread started` only after publish and handoff succeeded. |
@@ -260,7 +310,7 @@ Proposed contract for every read-modify-write of `data/threads/$entry.yml`, for 
 
 Callers in scope: admission publish, supervisor final write, `thread-stop` final write, `thread-release`, report-only stale/orphaned rewrites from status/list/monitor, and every `f_thread_host_publish` path used by those writers. Pure readers may read without the mutex; any reader that then writes YAML or index must follow this path.
 
-Report-only stale/orphaned rewrites must **not** set `reuse_allowed`. They never clear the slot. `thread-release` is the only writer that sets `reuse_allowed: true` without a cgroup-complete final. Completeness `cgroup` on `final: true` is the only automatic clearance without release.
+Report-only stale/orphaned rewrites must **not** set `reuse_allowed`. They never clear the slot. Admission publish always writes `reuse_allowed: false` for the new `run_id`, even when replacing a record that had `reuse_allowed: true`. `thread-release` is the only writer that sets `reuse_allowed: true`. Automatic clearance without release is only: normal supervisor return, or `final` with completeness `cgroup`.
 
 #### Occupancy handoff gate (`systemd-user`)
 
@@ -276,8 +326,8 @@ The supervisor's `EXIT` trap cannot be the writer that survives a kill of the su
 
 Proposed writers:
 
-- The supervisor trap writes the final record only when it runs, `stop_requested` is still `false`, and `final` is still `false`. It sets `final_writer` to `supervisor`.
-- `thread-stop` is outside the unit. It is the writer for a run it marked `stop_requested`. After the signalled identity is gone, it takes the record mutex and, if `run_id` is still the one it signalled and `final` is still `false`, writes `status: exited`, the signal's exit code when it has one, `stop_reason: stopped`, `final_writer: stop`, and the completeness the decision task assigned.
+- The supervisor trap writes the final record only when it runs, `stop_requested` is still `false`, and `final` is still `false`. It sets `final_writer` to `supervisor`, records the wrapped command’s `exit_code`, sets completeness `unknown` on the subshell path, and applies the exit-classification table above (`stop_reason` empty / `interrupted` / `uncertain`). Only `exit_code` `0` with empty `stop_reason` clears the slot.
+- `thread-stop` is outside the unit. It is the writer for a run it marked `stop_requested`. After the signalled identity is gone, it takes the record mutex and, if `run_id` is still the one it signalled and `final` is still `false`, writes `status: exited`, the signal's exit code when it has one, `stop_reason: stopped`, `final_writer: stop`, and the completeness the decision task assigned. Slot clearance follows the stop-uncertain / cgroup / release rules, not the normal-return rule.
 - If `final` is already `true`, the second writer leaves the closing fields alone.
 - If stop is killed after it sets `stop_requested` and before it writes `final`, the record stays `running` with `stop_requested: true`. Readers report that as unfinished. They do not invent `exited`.
 
@@ -371,7 +421,7 @@ After any stop, a follow-up read of the plan path and of any chat pointer the ru
 | `asc/thread/thread.inc.sh` | New keys, pid identity / liveness classify, short record mutex, occupy lock, atomic YAML replace helper used by writers |
 | `asc/thread/thread.wrap.sh` | Foreground admission and start handshake with occupy handoff; child begins only after publish; never holds `admit.lock` while blocking on occupy; trap calls the function that exists |
 | `asc/yml/yml.inc.sh` | Only if the atomic temp+`mv` helper belongs on the shared YAML writer; otherwise keep the replace inside the thread helper and leave other YAML callers unchanged |
-| `asc/thread/probe_sleep.sh` | Test-only entry `thread-probe-sleep`. Exits 1 unless `ASC_THREAD_PROBE=1`. One integer argument, 1 through 30. |
+| `asc/thread/probe_sleep.sh` | Test-only entry `thread-probe-sleep`. Exits 1 unless `ASC_THREAD_PROBE=1`. One integer argument, 1 through 30. Optional `ASC_THREAD_PROBE_EXIT_SEQUENCE` for sticky-retry tests (`1,0`, …). |
 | `asc/thread/hold.sh` | `thread-hold on` / `off` under `admit.lock` only |
 | `asc/thread/release.sh` | `thread-release e:$entry run:$run_id` — operator ack that sets `reuse_allowed` for a blocked finished/orphaned identity |
 | `asc/thread/stop.sh` | The two stop forms, outside writer, unfinished-stop retry against the same `run_id` |
@@ -384,20 +434,43 @@ After any stop, a follow-up read of the plan path and of any chat pointer the ru
 
 ## Task 1: Normal exit and run identity
 
-**Files:** `asc/thread/thread.inc.sh`, `asc/thread/thread.wrap.sh`, `asc/thread/list.sh`, `asc/thread/status.sh`, `asc/test/core/thread_control.test.sh`
+**Files:** `asc/thread/thread.inc.sh`, `asc/thread/thread.wrap.sh`, `asc/thread/probe_sleep.sh`, `asc/thread/list.sh`, `asc/thread/status.sh`, `asc/test/core/thread_control.test.sh`
 
-**Produces:** a record that can be told from the next start of the same entry, and a normal-exit write that the test watched. No stop action yet.
+**Produces:** a record that can be told from the next start of the same **fixture** entry, and a normal-exit write that the test watched. No stop action yet.
 
-- [ ] **Step 1: Failing test** in `asc/test/core/thread_control.test.sh`, same harness style as `asc/test/core/wrap.test.sh`. Use entry `make-list-entry-points`. Delete its YAML first.
+**Isolated test state (required).** Do **not** use `make-list-entry-points` or any other real project entry. Do **not** `rm` a pre-existing `data/threads/$entry.yml` for a live or shared entry. Use only the dedicated probe entry (and, for status fixtures, a dedicated non-colliding name such as `zzthreadctlfixt`).
+
+**Project-wide state isolation (required).** `data/threads/hold` and `data/threads/admit.lock` are project-wide. Host-index rows are keyed by docroot. **Save/restore of the live project’s hold is not isolation:** while the suite runs, unrelated starts could be admitted despite a pre-existing hold; a concurrent operator hold change can be overwritten by teardown; an interrupted suite may never restore.
+
+**Required — isolated docroot for thread-control tests:** run every thread-control test that creates, removes, or depends on `data/threads/hold` (and the whole Task 1–2 suite) under an **isolated temporary project docroot** with its own `data/threads/` and its own `PROJECT_DOCROOT` / host-index identity. The live checkout’s `data/threads/hold` must never be created, deleted, or rewritten by these tests.
+
+**Required — whole `make test-core` batch must not mutate live thread/log state.** Observed today, `asc/test/core/wrap.test.sh` deletes the real `make-list-entry-points` thread YAML and related log files in teardown. Requiring `make test-core` on the live checkout while that remains true **violates** this plan’s isolation rule. Before any plan step that runs the full core batch:
+
+1. **Preferred:** run the **entire** required core test batch under the same class of isolated project docroot (harness sets docroot / `data/` so every core test, including `wrap.test.sh`, writes only there), **or**
+2. **Otherwise first:** make `wrap.test.sh` (and any other core test that mutates real `data/threads/` or `data/logs/` for shared entries) fixture-safe / isolated-docroot-safe, then run the batch.
+
+Acknowledging wrap’s current behavior is not permission to run it unsafely. If neither (1) nor (2) is done, **stop and revise** — do not run the required core batch against the live tree.
+
+Per-entry fixture rules (inside the isolated docroot used by thread-control tests):
+
+- Add and register `asc/thread/probe_sleep.sh` (`thread-probe-sleep`) **before** any failing wrap test that names it (see steps below). Support a test-only mode (e.g. env `ASC_THREAD_PROBE_EXIT_SEQUENCE=1,0`) so one wrap can return `1` on attempt 1 and `0` on attempt 2 when retries are enabled. For the overlap-limitation test, support leaving a background child across the failed attempt (e.g. spawn a short `sleep` before exiting `1`) so the suite can observe it still alive when attempt 2 starts.
+- Tests set `ASC_THREAD_PROBE=1` and wrap only `thread-probe-sleep` (short sleep, e.g. 1), unless a named probe mode is required.
+- Setup may remove **only** fixture YAML/lock/occupy paths for `thread-probe-sleep` and `zzthreadctlfixt` under the isolated tree. Before deleting, skip or abort if the YAML shows a live supervisor identity that this test did not start.
+- Teardown removes only those fixture paths under the isolated tree. Never touch the live project’s `data/threads/hold` or unrelated entry YAML.
+
+- [ ] **Step 1: Create and register the fixture entry first.** Add `asc/thread/probe_sleep.sh` (exits 1 unless `ASC_THREAD_PROBE=1`; one integer argument 1–30). Run `make make-generate`. Confirm `make thread-probe-sleep` / wrap of that entry is a recognized entry (invalid-entry exit must not be what Step 3 fails on).
+
+- [ ] **Step 2: Failing test** in `asc/test/core/thread_control.test.sh`, same harness style as `asc/test/core/wrap.test.sh`, on the fixture entry only. The wrap must succeed as an entry; assertions on `run_id` / offsets / trap fields are what fail until Step 4.
 
 ```bash
 test_thread_normal_exit_records_run_identity() {
-  local p_entry='make-list-entry-points'
+  local p_entry='thread-probe-sleep'
   local p_yml="data/threads/${p_entry}.yml"
   local i=0
 
-  rm -f "$p_yml"
-  asc/thread/thread.wrap.sh "$p_entry" >/dev/null
+  # Fixture-only cleanup — never make-list-entry-points or other real entries.
+  rm -f "$p_yml" "data/threads/${p_entry}.lock" "data/threads/${p_entry}.occupy.lock"
+  ASC_THREAD_PROBE=1 asc/thread/thread.wrap.sh "$p_entry" 1 >/dev/null
 
   for i in $(seq 1 50); do
     if [[ -f "$p_yml" ]]; then
@@ -411,6 +484,7 @@ test_thread_normal_exit_records_run_identity() {
   done
 
   assertEquals 'a process that returns becomes exited' 'exited' "$thread_status"
+  assertEquals 'normal return exit_code is 0' '0' "$thread_exit_code"
   assertTrue 'pid is recorded' "[[ -n '$thread_pid' ]]"
   assertTrue 'run_id is UTC compact time, a hyphen, and that pid' \
     "[[ '$thread_run_id' =~ ^[0-9]{8}T[0-9]{6}-${thread_pid}$ ]]"
@@ -421,13 +495,13 @@ test_thread_normal_exit_records_run_identity() {
 }
 ```
 
-Add a second test that loads a YAML fixture with `status: running`, a dead or reused pid story: write `pid_start` as `1`, point `pid` at `$$` only if `/proc/$$/stat` field 22 is not `1`, and assert `thread-status` **reports** the supervisor gone (prints `stale` or `orphaned`, exits 2) without setting `reuse_allowed`. Do not use `kill -0` success as "still this run." Admission clearance for that fixture is Task 2 (still blocked after status alone).
+Add a second test that writes a YAML fixture under **`zzthreadctlfixt`** (not a real workload entry) with `status: running`, a dead or reused pid story: write `pid_start` as `1`, point `pid` at `$$` only if `/proc/$$/stat` field 22 is not `1`, and assert `thread-status` **reports** the supervisor gone (prints `stale` or `orphaned`, exits 2) without setting `reuse_allowed`. Tear down only that fixture file. Do not use `kill -0` success as "still this run." Admission clearance for that fixture is Task 2 (still blocked after status alone).
 
-- [ ] **Step 2: Run** `. asc/bootstrap.sh` and `make test-core`. Expect the new test to fail. Confirm `asc/test/core/thread_control.test.sh` appears in the batch.
+- [ ] **Step 3: Run the failing identity test under isolation.** Prefer invoking only `asc/test/core/thread_control.test.sh` (or the core batch) with the isolated-docroot harness so live `data/threads/` is untouched. Expect the new identity assertions to fail. Confirm the failure is missing `run_id` / offset / trap behavior — not exit 1 invalid entry and not “probe script missing.” Confirm the file appears in the core batch list. Do **not** require a live-checkout `make test-core` until Step 5’s safety precondition holds.
 
-- [ ] **Step 3: Implement** the new keys and the `%:z` timestamps. `type -t u_thread_supervisor_exit` is not `function`; `type -t f_thread_supervisor_exit` is. Point the `EXIT` trap at `f_thread_supervisor_exit`. Keep that trap as the normal-return writer only.
+- [ ] **Step 4: Implement** the new keys (including `attempt_uncertain`), `%:z` timestamps, expanded non-retry for `128`–`165`, sticky uncertainty before retry sleep, and point the `EXIT` trap at `f_thread_supervisor_exit` (`type -t u_thread_supervisor_exit` is not `function`; `type -t f_thread_supervisor_exit` is). Supervisor final writer applies normal / interrupted / uncertain classification.
 
-- [ ] **Step 4: `make test-core` passes**, including `asc/test/core/wrap.test.sh`.
+- [ ] **Step 5: Full core batch, safely.** Satisfy the whole-batch isolation rule above (isolated docroot for the batch, **or** fixture-safe `wrap.test.sh` first). Then `make test-core` passes, including `wrap.test.sh`, without deleting live `make-list-entry-points` thread/log records.
 
 ## Task 2: Hold, foreground admission, lock split, and start handshake
 
@@ -437,9 +511,11 @@ Add a second test that loads a YAML fixture with `status: running`, a dead or re
 
 - [ ] **Step 1: Failing tests**
 
-1. `thread-hold on`, then `thread.wrap.sh` for an entry whose YAML was removed, exits 3, stderr says refused, stdout does not contain `Thread started`, and no background pid from that call is left running.
-2. `thread-hold off`, then wrap of a short entry, exits 0 and prints `Thread started`.
-3. Add `asc/thread/probe_sleep.sh` (`thread-probe-sleep`). It exits 1 unless `ASC_THREAD_PROBE=1`, and it accepts one integer from 1 through 30. Wrap it for 30 seconds, wait until the YAML `pid_start` matches `/proc/$pid/stat` field 22, then `thread-hold on`. The pid's start field still matches, and the process is still alive. Remove the hold file and the sleeper in teardown.
+0. **Isolated docroot harness (required):** create a temporary project docroot; all hold / wrap / index assertions in this task run there. Assert the live checkout’s `data/threads/hold` is byte-identical before and after the suite (untouched). If isolation is unavailable, fail the harness — do not mutate the live hold.
+1. In the isolated tree: `thread-hold on`, then `ASC_THREAD_PROBE=1` wrap of `thread-probe-sleep` (fixture YAML absent), exits 3, stderr says refused, stdout does not contain `Thread started`, and no background pid from that call is left running.
+2. In the isolated tree: `thread-hold off`, then wrap of `thread-probe-sleep` 1, exits 0 and prints `Thread started`.
+2b. **Two sequential successful runs:** wrap `thread-probe-sleep` 1 once; wait until its YAML shows a **normal return** (`final: true`, `final_writer: supervisor`, `exit_code` 0, empty `stop_reason`, `attempt_uncertain` false) and occupy is free; **then** wrap the same fixture entry again with no `thread-release`. Both calls that publish print `Thread started`; the second `run_id` differs; the second publish has `reuse_allowed: false` and `attempt_uncertain: false`. Do not fire the second wrap while the first still occupies — that overlap belongs to skip/`wait` tests; a skip here would be a false failure of the clearance rule.
+3. Wrap `thread-probe-sleep` for 30 seconds (`ASC_THREAD_PROBE=1`), wait until the YAML `pid_start` matches `/proc/$pid/stat` field 22, then `thread-hold on` **in the isolated tree only**. The pid's start field still matches, and the process is still alive. Teardown discards the temp docroot; never `rm` the live `data/threads/hold`.
 4. Two entries: hold refused for the second entry as well. Document in the test comment that this uses `admit.lock`, not the per-entry lock.
 5. **Hold while a competing start exists:** wrap a long sleeper so the entry is occupied. In parallel, start a second `thread.wrap.sh` of the same entry under `ASC_THREAD_LOCK_MODE=wait` (it must block on occupy, **not** on `admit.lock`). While that waiter is blocked, `thread-hold on` exits 0 promptly. Then unblock/kill the sleeper; the waiter must exit 3 and must not print `Thread started`. This fails today's design if admission can hold `admit.lock` across a long per-entry wait.
 6. **Mixed-mode lock order:** with one run holding occupy, start a `wait` wrap that is blocked on occupy. Concurrently start a `skip` wrap of the same entry. Neither call may hang until timeout: `skip` must exit 0 (skip/busy) without holding `admit.lock` while waiting for occupy; when the occupant later releases, `wait` unlocks and retries the shared loop (admit → record → non-blocking occupy) rather than holding occupy while taking `admit.lock`. Use a test timeout shorter than the sleeper to catch deadlock.
@@ -448,15 +524,19 @@ Add a second test that loads a YAML fixture with `status: running`, a dead or re
 9. **Failure before publication:** force the child to exit (or fail to start) before publish completes. The parent does not print `Thread started`, no `running` record for that attempt remains, occupy is not left held by a dead attempt, and no orphan supervisor from that attempt is left running.
 10. **Unknown liveness — legacy:** fixture `status: running` with a pid that still `kill -0`s but **no** `pid_start` field. Direct wrap exits 4, does not print `Thread started`, and leaves the fixture unchanged.
 11. **Orphaned supervisor — status/monitor do not clear:** fixture `status: running`, `final: false`, `reuse_allowed` absent/false, pid dead / not matching `pid_start`, occupy free. Direct wrap exits 4. Then run `thread-status` and the monitor hook path. Both may report the dead supervisor. Assert `reuse_allowed` is still false/absent. Direct wrap again exits 4 (neither status nor monitor silently authorized reuse).
-12. **Release ack clears; final+unknown alone does not:** from a fixture with `final: true`, `completeness: unknown`, `reuse_allowed` false, wrap exits 4. `thread-release e:$entry run:$run_id` sets `reuse_allowed: true` for that id; wrap may then publish. A second release against a different `run_id` exits 2 and does not clear a replacement. Document that release is operator acknowledgment, not proof descendants exited.
-13. **Unknown liveness — unreadable:** fixture `status: running` with `pid_start` set but the identity check forced unreadable. Direct wrap exits 4 and does not publish over it.
-14. **Logged-thread limit:** under the project's logged-thread / log-wrap path (or a minimal double of `storage.hook.sh`'s `nohup … &` + immediate success), a held project still yields an outer success / `Log started` style result while the inner refusal is only in the log file. The test's comment states that exit 3 is not claimed for this path.
+12. **Release ack clears stop-uncertain finals; those alone do not:** fixture `final: true`, `final_writer: stop`, `completeness: unknown`, `reuse_allowed` false → wrap exits 4. `thread-release e:$entry run:$run_id` sets `reuse_allowed: true` for that id; wrap may then publish a new run with `reuse_allowed: false`. A second release against a different `run_id` exits 2. Document that release is operator acknowledgment, not proof descendants exited.
+13. **New publish resets acknowledgment:** start from a record with `reuse_allowed: true` for run A (via release). Admit run B; assert B’s YAML has `reuse_allowed: false` and a new `run_id`. Force B into an orphaned supervisor state; wrap exits 4 (B does not inherit A’s ack). Release for B’s id is required before another start.
+14. **External interrupt outside `thread-stop` (beyond INT/TERM):** wrap `thread-probe-sleep` under `ASC_THREAD_PROBE=1` with **`ASC_WRAP_RETRY_MAX` ≥ 1** (and a short retry delay). After publish / begin, `SIGKILL` the **workload** child (supervisor can still see `137`) **without** `thread-stop`. Assert there is **no** retry after signal-like status, final has `stop_reason: interrupted` and `attempt_uncertain: true`, and a following direct wrap exits 4.
+15. **Sticky uncertainty on live `1` then `0` retry, with accepted overlap (required):** in the isolated tree, wrap the probe with `ASC_THREAD_PROBE=1`, `ASC_WRAP_RETRY_MAX` ≥ 1, short retry delay, and a fixture that on attempt 1 exits `1` **after** leaving a background child still running, then on attempt 2 returns `0` (e.g. `ASC_THREAD_PROBE_EXIT_SEQUENCE=1,0` plus a documented leftover-child mode). Assert: (a) attempt 2 **starts while that leftover child is still alive** (records the accepted overlap limitation — no descendant-gone barrier before retry); (b) the same `run_id` ends with `attempt_uncertain: true` (and `stop_reason: uncertain` or equivalent); (c) a following wrap **without** `thread-release` exits 4; (d) after `thread-release` for that id a new wrap may publish. Kill the leftover child in teardown. Do **not** satisfy this with only a double or only an interrupted-then-success story.
+16. **Unknown liveness — unreadable:** fixture `status: running` with `pid_start` set but the identity check forced unreadable. Direct wrap exits 4 and does not publish over it.
+17. **Logged-thread limit:** under the project's logged-thread / log-wrap path (or a minimal double of `storage.hook.sh`'s `nohup … &` + immediate success), a held project still yields an outer success / `Log started` style result while the inner refusal is only in the log file. The test's comment states that exit 3 is not claimed for this path.
+18. **Live hold untouched:** after the suite, the real checkout’s `data/threads/hold` is unchanged (byte-identical to pre-suite, including absence).
 
-- [ ] **Step 2: Implement** `hold.sh`, `release.sh`, `probe_sleep.sh`, the short record mutex, the occupy lock, the shared admission loop (lock order admit → record → non-blocking occupy; blocking occupy only after release + unlock-and-retry), blocked-slot rules including report-versus-reuse, the subshell start handshake with occupy handoff, and atomic YAML + host-index replace for thread record writes. Adjust status/monitor so report-only rewrites never set `reuse_allowed`. `thread-hold` must complete while a sleeper holds occupy and while a waiter is blocked on occupy.
+- [ ] **Step 2: Implement** `hold.sh`, `release.sh`, the short record mutex, the occupy lock, the shared admission loop (lock order admit → record → non-blocking occupy; blocking occupy only after release + unlock-and-retry), blocked-slot rules including report-versus-reuse, exit classification, non-retry of `128`–`165`, sticky `attempt_uncertain`, the subshell start handshake with occupy handoff, and atomic YAML + host-index replace for thread record writes. Adjust status/monitor so report-only rewrites never set `reuse_allowed`. `thread-hold` must complete while a sleeper holds occupy and while a waiter is blocked on occupy. (`probe_sleep.sh` already from Task 1.)
 
 - [ ] **Step 3: `make make-generate`**, then `make thread-hold` with no arguments prints usage and exits 1.
 
-- [ ] **Step 4: `make test-core` passes.**
+- [ ] **Step 4: Full core batch under the same safety rule as Task 1 Step 5** (`make test-core` only after isolated batch or fixture-safe wrap). Passes.
 
 ## Task 3: Probe the host
 
@@ -529,7 +609,7 @@ Read `/tmp/asc-probe-setsid-child.pids` (or the helper's output path). For **mai
 
 **Files:** `asc/thread/stop.sh`, `asc/thread/release.sh`, `asc/thread/thread.inc.sh`, `asc/thread/thread.wrap.sh`, `asc/thread/monitor.hook.sh`, `asc/test/core/thread_control.test.sh`
 
-**Produces:** the two stop forms, unfinished-stop retry against the same `run_id`, confirmation that `final`+unknown leaves the slot blocked until release, stale-report-versus-replacement safety, and confirmation that Task 2's `wait` / hold / occupy split still holds under stop. The executable supervisor remains `subshell` unless the unit occupy-handoff note passed. Completeness `cgroup` only when both the stop-scope probe and the handoff note accepted that path. An `unknown` completeness result is not a process-group tree claim, not slot clearance, and not permission to operate the real long-running loop.
+**Produces:** the two stop forms, unfinished-stop retry against the same `run_id`, confirmation that `final`+unknown leaves the slot blocked until release, stale-report-versus-replacement safety, and confirmation that Task 2's `wait` / hold / occupy split still holds under stop. The executable supervisor remains `subshell` unless the unit occupy-handoff note passed. Completeness `cgroup` only when both the stop-scope probe and the handoff note accepted that path. An `unknown` completeness on a **stop** final is not a process-group tree claim, not slot clearance, and not permission to operate the real long-running loop. An `unknown` completeness on a **normal supervisor return** still clears the slot for the next wrap (see clearance table).
 
 - [ ] **Step 1: Failing tests, with a sleeper and no requirement that user systemd exist in the test runner**
 
@@ -541,7 +621,7 @@ Read `/tmp/asc-probe-setsid-child.pids` (or the helper's output path). For **mai
 6. **Immediate stop on a published identity:** using the Task 2 publish-before-begin arrangement (or the first moments after begin while the record is still that `run_id`), `thread-stop e:$entry run:$run_id` addresses the published identity. Completeness remains whatever this task's supervisor path allows. Occupy ownership stays with the child until it exits.
 7. **Retry same identity:** from an unfinished `stop_requested` / not-`final` state, `thread-stop e:$entry run:$run_id` with the same recorded id either completes finalization for that id or again leaves a documented unfinished result. It must not exit 0 solely because the pid is missing from a partial check.
 8. **Retry must not hit a replacement:** after a new run has published a different `run_id`, `thread-stop e:$entry run:$old_run_id` exits 2 and leaves the replacement alive and unchanged.
-9. **`wait` recheck (regression on Task 2):** while a sleeper holds occupy, start a second wrap with `ASC_THREAD_LOCK_MODE=wait`. During the wait, `thread-hold on` succeeds promptly. When the sleeper ends, the waiter must exit 3 and must not print `Thread started`. A separate case without a hold: after the occupant finishes, the waiter rechecks identity, publishes its own `run_id` only after that recheck, and is not considered admitted while it was only waiting.
+9. **`wait` recheck (regression on Task 2):** while a sleeper holds occupy, start a second wrap with `ASC_THREAD_LOCK_MODE=wait`. During the wait, `thread-hold on` succeeds promptly. When the sleeper ends, the waiter must exit 3 and must not print `Thread started`. A separate case **without** a hold: after the occupant **returns normally** (`final_writer: supervisor`, no release), the waiter rechecks identity, publishes its own `run_id` with `reuse_allowed: false`, and is not considered admitted while it was only waiting.
 10. **Host-index / monitor compatibility:** with a fixture index row and YAML that omit the new keys (`run_id`, `host`, offset on `mtime`, `pid_start`), run the monitor hook path used by `f_thread_monitor_default`. It must not crash; for a still-`running` legacy row without `pid_start`, admission remains fail-closed (exit 4) and monitor/status must not invent a live successor by overwriting. After a new publish of a well-formed record, the monitor accepts the new keys. This keeps the existing consumer; it is not evidence for deleting the index.
 11. **Stale-check versus replacement:** load a fixture as if `thread-status` or the monitor had observed an old `running` identity (dead pid). Before the stale write, publish a replacement with a new `run_id`. The stale path, under the record mutex, must re-read, see the new `run_id`, and leave the replacement untouched (not rewritten as `stale`).
 12. **Monitor index refresh versus replacement:** let the monitor load observation A for an entry. Before it publishes the host index, admission publishes replacement B (new `run_id`) and updates the index. The monitor's refresh must re-read under the record mutex, see B, and either publish B's fields or skip — it must not write A's pid/status/run_id over B's index row.
@@ -552,7 +632,7 @@ The signal in these tests goes to `thread-probe-sleep` under `ASC_THREAD_PROBE=1
 
 - [ ] **Step 3: Unit path only if both Task 3 stop-scope and Task 3 step 7 handoff notes passed.** Then wrap one sleeper entry in a transient unit with the recorded `KillMode`, stop it with `thread-stop`, and assert completeness `cgroup` only when a **`setsid` child spawned by that unit's supervisor** is gone and a sleep outside the unit is still present. Otherwise leave `supervisor` as `subshell` and completeness `unknown` (slot still needs release before replacement unless a future cgroup final applies). Unit stop still does not claim work outside the unit.
 
-- [ ] **Step 4: `make make-generate` and `make test-core`.** The cgroup assertion runs only when Step 3 ran.
+- [ ] **Step 4: `make make-generate` and full core batch under Task 1 Step 5’s safety rule** (isolated batch or fixture-safe wrap first). The cgroup assertion runs only when Step 3 ran.
 
 ## Task 5: What may operate afterward
 
@@ -566,14 +646,22 @@ The signal in these tests goes to `thread-probe-sleep` under `ASC_THREAD_PROBE=1
 |------------|--------|
 | Run id is not liveness or a safe signal | Record fields; stop sequence steps 2–4; Task 1 stale test |
 | Optional run id has an explicit meaning | Two stop forms; Task 4 tests 1 and 2 |
-| Hold checks need a shared lock, and refusal must reach the direct wrap caller | Admission and hold; logged-thread limit; Task 2 tests 1–5, 14 |
+| Hold checks need a shared lock, and refusal must reach the direct wrap caller | Admission and hold; logged-thread limit; Task 2 tests 1–5, 16 |
 | One lock order: admit → record → non-blocking occupy; unlock-and-retry after blocking wait | Admission shared loop; Task 2 tests 5–6; Task 4 test 9 |
 | Mixed `skip`/`wait` must not deadlock | Task 2 test 6 |
 | Occupy handoff is explicit for subshell; occupy held before publish | Start handshake ownership table; Task 2 test 7; Task 4 test 6 |
 | Start handshake binds publish to a real child before work | Start handshake; observed baseline; Task 2 tests 7–9; Task 4 test 6 |
 | `wait` is occupancy, not admission | Shared admission loop; Task 2 test 5; Task 4 test 9 |
 | Report ≠ reuse; status/monitor do not clear blocked slots | Replaceability table; recovery; Task 1 stale report; Task 2 test 11 |
-| `final`+unknown/degraded does not clear; `thread-release` or cgroup final does | Replaceability; Task 2 test 12; Task 4 test 2 |
+| Normal return is only `exit_code` 0 with `attempt_uncertain` false; sequential runs wait for that final | Clearance evidence; Task 1; Task 2 test 2b; Task 4 test 9 |
+| Signal-like `128`–`165` → no retry + `interrupted`; sticky `attempt_uncertain` blocks later `0` | Retry coupling; Task 2 test 14 |
+| Live `1` then `0` retry leaves `attempt_uncertain`; overlap before retry is accepted and tested | Retry limitation; Task 2 test 15 |
+| Thread-control tests use fixture entries only; no deleting real entry YAML | Task 1 isolated test state; Task 2 fixture-only wraps |
+| Hold tests require isolated docroot; live hold never mutated | Task 1 project-wide isolation; Task 2 tests 0 and 18 |
+| Whole `make test-core` batch isolated or wrap made fixture-safe first | Task 1 Steps 3/5; Task 2 Step 4; Task 4 Step 4 |
+| Fixture entry registered before failing wrap assertions | Task 1 steps 1 then 2–3 |
+| Stop-written `final`+unknown/degraded does not clear; `thread-release` or cgroup final does | Replaceability; Task 2 test 12; Task 4 test 2 |
+| New publish always sets `reuse_allowed: false`; orphaned B does not inherit A’s ack | Publish handshake; writer contract; Task 2 test 13 |
 | Unit occupy handoff is a separate gate; cgroup probe ≠ handoff | Occupancy handoff gate; Task 3 step 7; Task 4 step 3 |
 | Every YAML and host-index RMW re-checks `run_id` under the record mutex; publish is atomic | Record writers and atomic publish; Task 4 tests 11–12 |
 | Probe middle row is supervisor-spawned `setsid` child | Supervisor probe; Task 3 steps 2–3, 6; Task 4 step 3 |
