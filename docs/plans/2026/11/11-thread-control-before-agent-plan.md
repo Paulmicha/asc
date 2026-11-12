@@ -13,7 +13,7 @@
 
 **Tech stack:** Bash, the existing thread YAML record, `flock`, and, if the host probe supports it, one transient `systemd-run --user` unit per run. No queue tool, no ledger, no listener.
 
-**Orientation:** [preliminary minimal agent control](../../../ideas/2026/11/11-preliminary-minimal-agent-control.md). Draft record of today's wrapper: [agent threads](../../../specs/asc/agent-threads.md). Sibling implementation plan: [agent-plan](10-agent-plan-cursor-codex-ollaya-impl.md).
+**Orientation:** [preliminary minimal agent control](../../../ideas/2026/11/11-preliminary-minimal-agent-control.md). Draft record of today's wrapper: [agent threads](../../../specs/asc/agent-threads.md). Sibling implementation plan: [agent-plan](10-agent-plan-cursor-codex-ollaya-impl.md). Clone clues that reinforce this plan without replacing its shape: [clone clues for open decisions](../../../ideas/2026/11/12-clone-clues-for-open-decisions.md). How the earlier drafts relate to this plan: [how the agent drafts were determined](../../../ideas/2026/11/12-how-the-agent-drafts-were-determined.md).
 
 ## Global constraints
 
@@ -22,7 +22,7 @@
 - Exit 0 from wrap, hold, or stop means the command finished the branch it documents. It does not mean a new run started, a tree exited, or a workload is authorized.
 - Each new action documents its own exit codes. The wider exit table in [record conventions](../../../ideas/2026/11/11-record-conventions.md) stays unadopted.
 - The model, the writer, and the reviewer do not stop or replace the supervising thread. Sandbox profiles do not grant that.
-- No queue, pause, resume, cross-host listing, central ledger, chat copy, `agent-*` rename, or gates change.
+- No queue, pause, resume, cross-host listing, central ledger, chat copy, `agent-*` rename, or gates change. No daemon. Clone examples that use random ids, leases, or HTTP cancel codes do not replace `$started_compact-$pid` plus `pid_start`, the two local stop forms, or the YAML final-record fields in this plan.
 - `data/asc/pivots.mk` is generated. Add action files, then `make make-generate`. Do not hand-edit the include. `make cc` keeps the previous include.
 - Commit only when asked. Do not enable `agent` on the mother as part of this plan.
 
@@ -43,14 +43,15 @@ An operator can, once the tasks that establish each claim have passed:
 1. Read a run id, a host, and a timestamp with a numeric UTC offset from `data/threads/$entry.yml`.
 2. Refuse a new start when the hold is established under the admission lock.
 3. Stop either the run id they pass, or whichever run is current at the moment stop resolves that choice under the record mutex.
-4. Read a final record that names the writer, the reason, and a completeness value.
+4. Read a final record that names the writer, the reason, and a completeness value, and tell an accepted stop request apart from a confirmed observation.
 
 The result also says the following, which this plan does not turn into stronger claims:
 
 - Completeness `unknown` or `degraded` is a finished result. It is not permission to operate the same unattended workload under a weaker supervisor.
+- `stop_requested: true` without `final: true` is an unfinished stop. It is not a delivered signal and not a stopped workload.
 - A child that has left the unit, a process started through another service, and a remote call are outside a cgroup stop. The probe describes them. It does not promise they stopped.
-- Stop does not delete a chat or a plan file. It can interrupt a write, and it leaves in place whatever those files already contain. Their state after stop is whatever a later read observes. Stop is not rollback.
-- A hold established under the lock does not cancel a start that has already committed. A hold file created without the lock can still appear inside a start's critical section; the next admission sees it.
+- Stop does not delete a chat or a plan file. It can interrupt a write, and it leaves in place whatever those files already contain. Their state after stop is whatever a later read observes. Stop is not rollback. A local process stop is not a provider chat cancel.
+- A hold established under the lock does not cancel a start that has already committed. A hold file created without the lock can still appear inside a start's critical section; the next admission sees it. A `wait` caller is not admitted until publish; a hold taken while it waits still refuses that start.
 - Logout survival of a user unit is unclaimed until a probe that actually ends the login session records it. This plan does not end that session and does not change lingering.
 
 ## Observed baseline
@@ -68,8 +69,12 @@ Read on 2026-11-11. Confirm again at the start of Task 1; line numbers can move.
 | Liveness is `kill -0` on the recorded pid | `f_thread_pileup_should_skip` and `asc/thread/status.sh` |
 | One YAML file per entry, replaced on the next write | `f_thread_yml_write` |
 | The host index repeats a latest-only subset | `f_thread_host_publish` |
+| The host index is read and healed by the monitor hook | `asc/thread/monitor.hook.sh` (`f_thread_monitor_default`): refreshes from `data/threads/*.yml`, drops ghosts for this docroot, republishes when a `running` index pid is dead |
+| Mother default path does not call that hook | `.asc_extensions_ignore` lists `crontab`; the crontab extension's `thread-monitor` caller is therefore not on the mother's default path. Other callers, including instance-only ones, were not surveyed |
 
 A lock refusal inside the background supervisor is not the foreground process's exit code. Hold refusal has to be decided before the `&` if the original caller is going to see it.
+
+Observed today, the foreground parent only learns `p_pid=$!` after backgrounding the supervisor (`asc/thread/thread.wrap.sh`). That is not a published run identity under the admission lock. Task 2 replaces that with the start handshake below.
 
 The trap name and the function name disagree. Task 1's normal-exit test records whether a process that returns on its own ends with `status: exited`. That test does not show what a killed supervisor writes.
 
@@ -89,7 +94,7 @@ Add these keys in `f_thread_yml_write`, with `ASC_THREAD_*` falling back to the 
 | `pid_start` | Field 22 of `/proc/$pid/stat` at publish time. Empty if `/proc` cannot be read, and then liveness is `unknown`. |
 | `supervisor` | `subshell` for today's wrapper. `systemd-user` only after Task 4 records a unit the wrapper started. |
 | `unit`, `invocation_id` | Empty unless `supervisor` is `systemd-user`. |
-| `stop_requested` | `true` once stop has chosen this run under the record mutex. Otherwise `false`. |
+| `stop_requested` | `true` once stop has chosen this run under the record mutex. Otherwise `false`. Request only: not proof of signal delivery or of workload exit. |
 | `final` | `true` once a writer has committed the closing status. Later writers leave status, exit code, end time, reason, and completeness alone. |
 | `final_writer` | `supervisor` or `stop`. |
 | `stop_reason` | Empty when the run returns on its own. `stopped` when `stop_requested` was set. |
@@ -135,17 +140,56 @@ The per-entry lock does not serialize a project hold against other entries. Hold
 
 `thread-hold on` and `thread-hold off` (`asc/thread/hold.sh`) take `admit.lock`, create or remove `data/threads/hold`, and release. Exit 0 when the file matches the request. The action prints that an already committed run keeps running.
 
-A start's foreground process, before `&`:
+#### `skip` mode (default)
+
+A start's foreground process, before the supervisor may do workload work:
 
 1. Take `admit.lock`.
 2. If `data/threads/hold` exists, release the lock, print a refusal on stderr, exit 3. Do not print `Thread started`.
 3. Take the per-entry lock long enough to read the current record.
 4. If that record is `running` and its pid identity is still live, release both locks and keep today's pile-up behavior: print the skip line, exit 0.
-5. Publish the new run's identity, set `final` to `false`, release both locks, then background the supervisor.
+5. Create the child under the handshake below, publish the new run's identity, set `final` to `false`, release both locks, then allow the child to begin work.
 
 A hold that arrives after step 5 does not cancel that run. A start that has not passed step 5 is refused when it reaches step 2. Creating `data/threads/hold` without `thread-hold` is still noticed at the next step 2, and it can still land inside an in-flight step 1–5. The closed boundary is the pair of actions that share `admit.lock`.
 
 Proposed exit 3 is hold refusal for `thread-wrap` only. Invalid entries stay exit 1. Pile-up skip stays exit 0, and exit 0 still does not mean a new run was started.
+
+#### `wait` mode
+
+`ASC_THREAD_LOCK_MODE=wait` keeps waiting for occupancy. It is not a durable queue and does not reserve a slot while waiting. Admission and occupancy stay distinct:
+
+1. Take `admit.lock`. If `data/threads/hold` exists, refuse with exit 3 exactly as in `skip`. The waiter is not admitted.
+2. Release `admit.lock` before blocking on occupancy. While blocked on `$entry.occupy.lock` (after Task 4 moves the long hold there; until then, on today's long `$entry.lock`), the caller is **not** admitted. A hold established during that wait must still refuse this start when the wait ends.
+3. When the occupy lock is acquired, take `admit.lock` again. Recheck `data/threads/hold`. If it is present, release both locks, exit 3, and do not print `Thread started`.
+4. Under the record mutex, recheck the current run identity. If a live `running` record for this entry still exists, release both locks and wait on occupancy again (or, if the implementation treats that as skip-after-wait, document that choice in the test; the contract forbids treating a wait that has not published as an admitted run).
+5. Only after those rechecks pass does the start enter the handshake and publish. Publication is admission for this run. Until then, `thread-stop` and pile-up readers must not treat the waiter as the current run.
+
+A hold that lands after publication still does not cancel that run. A hold that lands only while the caller was waiting must refuse that caller at step 3. Waiting does not bypass hold, and hold is not a cancel of an already published run.
+
+#### Start handshake
+
+Today the wrapper backgrounds first and only then has `p_pid=$!`. The proposed sequence binds admission to an actual child before that child may run the entry, and before `Thread started` is printed.
+
+Proposed exchange:
+
+| Phase | Who | What becomes true |
+|-------|-----|-------------------|
+| Create | Foreground, still holding `admit.lock` and the short record mutex | Fork or `systemd-run` the supervisor so its pid (and, for a unit, `unit` / `invocation_id`) is known to the parent. The child must not start the wrapped entry yet. |
+| Publish | Foreground | Write `run_id`, `pid`, `pid_start`, `host`, timestamps, `final: false`, and the supervisor fields. Publish is what makes the identity visible to `thread-status`, `thread-stop`, and the host index. |
+| Release | Foreground | Release the record mutex and `admit.lock`. |
+| Begin | Child | Only after it can observe that its identity was published (or after an explicit parent signal documented in the implementation) may it take the occupy lock for the run and execute the entry. |
+| Announce | Foreground | Print `Thread started` only after publish succeeded. |
+
+If either side dies during the exchange:
+
+| Failure | Proposed result |
+|---------|-----------------|
+| Child dies before publish | Parent does not print `Thread started`. No live `running` record for that attempt. Exit non-zero for the wrap call. |
+| Parent dies after create, before publish | Child must exit without starting the entry once it cannot confirm publication within a short bound. No published `run_id`. A leaked child without a record is a bug the tests must catch. |
+| Publish writes, then child dies before begin | Record may show `running` briefly; normal-exit or stale marking from Task 1 applies. Stop against that `run_id` is allowed and must not invent success without the stop sequence below. |
+| Parent dies after publish, child continues | The published identity is the run. Hold and stop refer to that record. The missing parent is not a rollback. |
+
+`run_id` remains `$started_compact-$pid` with a separate `pid_start` (or `invocation_id`) check. Clone evidence for timestamp-plus-random ids does not replace that shape in this plan.
 
 ### Final record
 
@@ -158,14 +202,37 @@ Proposed writers:
 - If `final` is already `true`, the second writer leaves the closing fields alone.
 - If stop is killed after it sets `stop_requested` and before it writes `final`, the record stays `running` with `stop_requested: true`. Readers report that as unfinished. They do not invent `exited`.
 
+**Request versus observation.** `stop_requested: true` means only that stop chose this `run_id` under the record mutex. It does not mean a signal was delivered, that the workload exited, or that `final` may be assumed. DeerFlow's split between an accepted cancel and a completed run is the prompt for keeping those separate; ASC keeps them as fields on one record rather than as HTTP status codes. A caller that needs a confirmed stop reads `final`, `final_writer`, `stop_reason`, and `completeness` together. `stop_requested` alone is never enough.
+
 Stop sequence, proposed:
 
-1. Take the record mutex. Load the record. Apply the run-id rule above. If signalling will proceed, set `stop_requested` for that `run_id` and copy `pid`, `pid_start`, `unit`, and `invocation_id`. Release the mutex.
+1. Take the record mutex. Load the record. Apply the run-id rule above. If signalling will proceed, set `stop_requested` for that `run_id` and copy `pid`, `pid_start`, `unit`, and `invocation_id`. Release the mutex. At this point the operator has an accepted request for that identity, not a confirmed stop.
 2. Immediately before the signal, check that copied identity again. For `subshell`, the pid's start field still matches `pid_start`. For `systemd-user`, `systemctl --user show -p InvocationID --value` on that unit still matches. If it does not, do not signal, and do not write a final record for a different run.
 3. Signal the copied identity. Wait until that identity is gone. Do not wait by re-reading the YAML pid, which may already be the next run.
-4. Take the record mutex. Write the final record only if the file is still that `run_id` and `final` is `false`. If the file is a newer run, report that the copied identity was the signal target and leave the new record untouched.
+4. Take the record mutex. Write the final record only if the file is still that `run_id` and `final` is still `false`. If the file is a newer run, report that the copied identity was the signal target and leave the new record untouched.
 
 A pid can still be recycled between the check in step 2 and the signal call. Copying the identity narrows the window. It does not erase it. `invocation_id` is the check to use when the supervisor is a unit. Completeness stays `unknown` when the signal target was only a pid.
+
+Proposed caller-visible outcomes when the happy path does not finish:
+
+| Case | What the caller sees | What must not be claimed |
+|------|----------------------|--------------------------|
+| Stop controller dies after `stop_requested`, before final write | Record remains `running` with `stop_requested: true`, `final: false`. Exit of that stop attempt is non-zero or the process is gone. Status readers report unfinished. | Not `exited`. Not completeness of a finished stop. |
+| Pre-signal identity check fails (pid reuse, wrong invocation) | No signal. No final write for another run. Exit 1 (or a documented non-zero for "identity lost before signal"). `stop_requested` may already be true for the id that was current at step 1; readers still treat it as unfinished until a later writer finishes that same id or a replacement run overwrites the file under admission. | Not "signal delivered." Not "workload stopped." |
+| Signal syscall / `systemctl` failure | `stop_requested` stays true. No confirmed observation that the target is gone. Exit non-zero. Completeness not written as a successful stop. | Not exit 0 with a quiet partial. |
+| Target exits on its own between check and wait | Wait observes the identity gone. Final write may proceed for that same `run_id` if `final` is still false. `stop_reason` stays `stopped` when `stop_requested` was set; the supervisor trap must not overwrite once stop owns finalization, and must not race a second `exited` with a conflicting reason. | Not a claim that the signal caused the exit unless completeness and the wait path recorded that. |
+| Wait cannot establish that the target is gone (timeout, unreadable `/proc`, unit state unknown) | Leave `final` false. Report incompleteness to the caller (non-zero or a written `completeness: unknown` only if the contract for that attempt documents an explicit unfinished write — default is: do not set `final`). | Not success inferred from "pid missing in a partial read." |
+| `run:` names an id that is no longer current | Exit 2. Signal nothing. Write nothing. | Not a stop of the replacement. |
+
+#### Retry after an unfinished stop
+
+Recovery stays a small explicit contract. It does not add Hermes's queue or lease system; it does reuse the fail-closed idea that a retry continues only against the same recorded run identity.
+
+- A later `thread-stop e:$entry run:$run_id` against the **same** recorded `run_id` that still has `stop_requested: true` and `final: false` is the recovery path. It repeats the identity check, may signal again if the identity is still live, waits again, and may write `final` for that id.
+- The same form against a **replacement** run (file `run_id` differs) exits 2, signals nothing, and leaves the new record alone.
+- `thread-stop e:$entry` without `run:` on an unfinished record means "stop whichever run is current now." If that current id is still the unfinished one, it is the same recovery. If a new run has already been published, it targets the new run under the current-run form, not the old unfinished id.
+- Missing or dead pid is not success. Retry must re-check `pid_start` or `invocation_id`. A gone identity with `final` still false may finalize that same `run_id` only after the wait path has confirmed the copied identity is gone; it must not treat "no pid in the file" or "kill -0 failed once" as proof without that check.
+- After `final: true` for that id, a repeated stop of the same id leaves `final_writer` and `stop_reason` alone (already in Task 4).
 
 The supervisor must not hold the record mutex for the whole run. If it did, stop would wait on a lock held by the process it needs to signal. Task 4 moves the long hold to the occupy lock and proves, with a sleeper, that stop can take the record mutex while the sleeper still holds the occupy lock.
 
@@ -200,7 +267,7 @@ loginctl show-user "$USER" -p Linger -p State -p Sessions
 
 It also records `systemctl --user is-system-running`. It does not log the operator out, and it does not run `loginctl enable-linger` or `disable-linger`. [loginctl](https://www.freedesktop.org/software/systemd/man/latest/loginctl.html) is the reference for the fields. What they mean for a unit after logout stays unclaimed.
 
-Write the note as `changelog/2026/11/11-thread-control-probe.md` when the probe is run, not before. Include the commands, the unit properties shown by `systemctl --user show`, and the process list before and after stop.
+Write the note as `docs/plans/2026/11/11-thread-control-probe.md` when the probe is run, not before. That path follows the shared documentation home for task verification and decisions ([documentation specification](../../../specs/asc/documentation.md)); do not place a new dated probe note under `changelog/`. Include the commands, the unit properties shown by `systemctl --user show`, and the process list before and after stop.
 
 ### Fallback
 
@@ -221,14 +288,15 @@ After any stop, a follow-up read of the plan path and of any chat pointer the ru
 | Path | Responsibility |
 |------|----------------|
 | `asc/thread/thread.inc.sh` | New keys, pid identity check, short record mutex, occupy lock |
-| `asc/thread/thread.wrap.sh` | Foreground admission; background only after commit; trap calls the function that exists |
+| `asc/thread/thread.wrap.sh` | Foreground admission and start handshake; child begins work only after publish; trap calls the function that exists |
 | `asc/thread/probe_sleep.sh` | Test-only entry `thread-probe-sleep`. Exits 1 unless `ASC_THREAD_PROBE=1`. One integer argument, 1 through 30. |
 | `asc/thread/hold.sh` | `thread-hold on` / `off` under `admit.lock` |
-| `asc/thread/stop.sh` | The two stop forms and the outside writer |
-| `asc/thread/list.sh`, `asc/thread/status.sh` | Print `run_id`; status uses pid identity |
+| `asc/thread/stop.sh` | The two stop forms, outside writer, and unfinished-stop retry against the same `run_id` |
+| `asc/thread/list.sh`, `asc/thread/status.sh` | Print `run_id`; status uses pid identity; unfinished `stop_requested` is not printed as `exited` |
+| `asc/thread/monitor.hook.sh` | Existing host-index consumer. Compatibility: new index fields, identity checks, and older records that lack the new keys |
 | `asc/test/core/thread_control.test.sh` | New core tests, batched by `asc/test/core.hook.sh` |
 | `asc/test/core/wrap.test.sh` | Existing smokes keep passing |
-| `changelog/2026/11/11-thread-control-probe.md` | Created by Task 3 when the probe runs |
+| `docs/plans/2026/11/11-thread-control-probe.md` | Created by Task 3 when the probe runs |
 
 ## Task 1: Normal exit and run identity
 
@@ -277,11 +345,11 @@ Add a second test that loads a YAML fixture with `status: running`, a dead or re
 
 - [ ] **Step 4: `make test-core` passes**, including `asc/test/core/wrap.test.sh`.
 
-## Task 2: Hold and foreground admission
+## Task 2: Hold, foreground admission, and start handshake
 
 **Files:** `asc/thread/hold.sh`, `asc/thread/probe_sleep.sh`, `asc/thread/thread.wrap.sh`, `asc/test/core/thread_control.test.sh`
 
-**Produces:** a hold the original caller can see. Does not stop a committed run.
+**Produces:** a hold the original caller can see, and a published run identity bound to a real child before that child begins the entry. Does not stop a committed run.
 
 - [ ] **Step 1: Failing tests**
 
@@ -289,8 +357,11 @@ Add a second test that loads a YAML fixture with `status: running`, a dead or re
 2. `thread-hold off`, then wrap of a short entry, exits 0 and prints `Thread started`.
 3. Add `asc/thread/probe_sleep.sh` (`thread-probe-sleep`). It exits 1 unless `ASC_THREAD_PROBE=1`, and it accepts one integer from 1 through 30. Wrap it for 30 seconds, wait until the YAML `pid_start` matches `/proc/$pid/stat` field 22, then `thread-hold on`. The pid's start field still matches, and the process is still alive. Remove the hold file and the sleeper in teardown.
 4. Two entries: hold refused for the second entry as well. Document in the test comment that this uses `admit.lock`, not the per-entry lock.
+5. **Immediate stop during handshake:** after publish of a sleeper and before the child is allowed to begin the entry (or in the first moments after begin, while the record is still the new `run_id`), `thread-stop e:$entry run:$run_id` addresses that published identity. The test fails the contract if stop can only see a pid that exists after today's post-`&` `p_pid=$!` path without a published `run_id`.
+6. **Concurrent start:** two wraps of the same entry race under `skip`; at most one publishes a new `run_id` and prints `Thread started`; the other skips or refuses without leaving a second live supervisor for that entry.
+7. **Failure before publication:** force the child to exit (or fail to start) before publish completes. The parent does not print `Thread started`, no `running` record for that attempt remains, and no orphan supervisor from that attempt is left running.
 
-- [ ] **Step 2: Implement** `hold.sh`, `probe_sleep.sh`, and the foreground sequence in the contract. Leave the long per-entry flock where it is until Task 4. `thread-hold` must be safe to run while that long lock is held.
+- [ ] **Step 2: Implement** `hold.sh`, `probe_sleep.sh`, the foreground admission sequence, and the start handshake in the contract. Leave the long per-entry flock where it is until Task 4. `thread-hold` must be safe to run while that long lock is held.
 
 - [ ] **Step 3: `make make-generate`**, then `make thread-hold` with no arguments prints usage and exits 1.
 
@@ -298,7 +369,7 @@ Add a second test that loads a YAML fixture with `status: running`, a dead or re
 
 ## Task 3: Probe the host
 
-**Files:** `changelog/2026/11/11-thread-control-probe.md` (only after the run)
+**Files:** `docs/plans/2026/11/11-thread-control-probe.md` (only after the run)
 
 **Produces:** a note of observed stop scope and of who wrote the final marker. No change to wrap's supervisor yet.
 
@@ -339,7 +410,7 @@ For each unit pid, record the process group from `ps -o pid,pgid,cmd` and whethe
 | Forced kill | `systemctl --user kill -s KILL` on that unit, if the user manager accepts it; if it does not, record the refusal and skip the guess |
 | Supervisor crash with a child | Main process `kill -9`s itself after forking a sleep; record whether the child is still in the cgroup and whether the trap line appeared |
 
-- [ ] **Step 5: Write the changelog note** with outputs, the three-pid table, the marker table, and a sentence for work outside the unit (another service, a remote API) that this probe did not run.
+- [ ] **Step 5: Write the probe note** at `docs/plans/2026/11/11-thread-control-probe.md` with outputs, the three-pid table, the marker table, and a sentence for work outside the unit (another service, a remote API) that this probe did not run.
 
 - [ ] **Step 6: Decision, in the same note**
 
@@ -353,9 +424,9 @@ For each unit pid, record the process group from `ps -o pid,pgid,cmd` and whethe
 
 **Depends on:** Task 1, Task 2, and the Task 3 note.
 
-**Files:** `asc/thread/stop.sh`, `asc/thread/thread.inc.sh`, `asc/thread/thread.wrap.sh`, `asc/test/core/thread_control.test.sh`
+**Files:** `asc/thread/stop.sh`, `asc/thread/thread.inc.sh`, `asc/thread/thread.wrap.sh`, `asc/thread/monitor.hook.sh`, `asc/test/core/thread_control.test.sh`
 
-**Produces:** the two stop forms. Completeness is `cgroup` only when the Task 3 note accepted that claim. Otherwise the supervisor stays `subshell` and completeness stays `unknown`. An `unknown` result is not a process-group tree claim, and it is not permission to operate the real long-running loop.
+**Produces:** the two stop forms, unfinished-stop retry against the same `run_id`, and `wait`-mode admission that rechecks hold after occupancy. Completeness is `cgroup` only when the Task 3 note accepted that claim. Otherwise the supervisor stays `subshell` and completeness stays `unknown`. An `unknown` result is not a process-group tree claim, and it is not permission to operate the real long-running loop.
 
 - [ ] **Step 1: Failing tests, with a sleeper and no requirement that user systemd exist in the test runner**
 
@@ -363,13 +434,17 @@ For each unit pid, record the process group from `ps -o pid,pgid,cmd` and whethe
 2. Omit `run:`. Under the mutex, stop copies the current id, sets `stop_requested`, and releases the mutex before signalling. While that sleeper is still alive, a second wrap in `skip` mode exits 0, prints the skip line, and leaves `run_id` unchanged. After stop has written `final`, a new wrap gets a different `run_id`. A fixture that changes `run_id` after `stop_requested` and before the final write is left unchanged by stop.
 3. The sleeper holds `data/threads/$entry.occupy.lock` for the whole sleep. `thread-stop` still acquires `data/threads/$entry.lock`, signals, and writes `final_writer: stop`. This is the deadlock test. If it cannot be written without holding the record mutex across the whole run, stop the task.
 4. After a final record exists, a second `thread-stop` of the same id does not change `final_writer` or `stop_reason`.
-5. Kill the test double that stands in for `thread-stop` after `stop_requested` is `true` and before `final` is `true`. `thread-status` does not print `exited`.
+5. Kill the test double that stands in for `thread-stop` after `stop_requested` is `true` and before `final` is `true`. `thread-status` does not print `exited`. Setting `stop_requested` alone must not be treated by the test harness as a delivered signal or a stopped workload.
+6. **Retry same identity:** from that unfinished state, `thread-stop e:$entry run:$run_id` with the same recorded id either completes finalization for that id or again leaves a documented unfinished result. It must not exit 0 solely because the pid is missing from a partial check.
+7. **Retry must not hit a replacement:** after a new run has published a different `run_id`, `thread-stop e:$entry run:$old_run_id` exits 2 and leaves the replacement alive and unchanged.
+8. **`wait` recheck:** while a sleeper holds the occupy lock, start a second wrap with `ASC_THREAD_LOCK_MODE=wait`. During the wait, `thread-hold on`. When the sleeper ends, the waiter must exit 3 (hold refusal) and must not print `Thread started`. A separate case without a hold: after the occupant finishes, the waiter rechecks identity, publishes its own `run_id` only after that recheck, and is not considered admitted while it was only waiting.
+9. **Host-index / monitor compatibility:** with a fixture index row and YAML that omit the new keys (`run_id`, `host`, offset on `mtime`, `pid_start`), run the monitor hook path used by `f_thread_monitor_default`. It must not crash, must still heal or refresh using today's readable fields, and after a new publish must accept records that include the new keys. This keeps the existing consumer in the migration analysis; it is not evidence for deleting the index.
 
 The signal in these tests goes to `thread-probe-sleep` under `ASC_THREAD_PROBE=1`. Completeness in the fixture is `unknown`.
 
-- [ ] **Step 2: Implement** the stop sequence from the contract, the occupy lock, and `wait` mode on that occupy lock. `skip` stays exit 0 when the live identity matches.
+- [ ] **Step 2: Implement** the stop sequence from the contract (including the outcome table and retry rules), the occupy lock, and `wait` mode on that occupy lock with the hold recheck after wait. `skip` stays exit 0 when the live identity matches. Adjust `monitor.hook.sh` only as needed for missing new fields and identity checks; do not remove the index.
 
-- [ ] **Step 3: If the probe decision allows `systemd-user`**, wrap one sleeper entry in a transient unit with the `KillMode` the note recorded, stop it with `thread-stop`, and assert completeness `cgroup` only when a `setsid` child started inside that unit is gone and a sleep outside the unit is still present. Otherwise leave `supervisor` as `subshell` and completeness `unknown`.
+- [ ] **Step 3: If the probe decision allows `systemd-user`**, wrap one sleeper entry in a transient unit with the `KillMode` the note recorded, stop it with `thread-stop`, and assert completeness `cgroup` only when a `setsid` child started inside that unit is gone and a sleep outside the unit is still present. Otherwise leave `supervisor` as `subshell` and completeness `unknown`. Unit stop still does not claim work outside the unit.
 
 - [ ] **Step 4: `make make-generate` and `make test-core`.** The cgroup assertion runs only when Step 3 ran.
 
@@ -386,10 +461,17 @@ The signal in these tests goes to `thread-probe-sleep` under `ASC_THREAD_PROBE=1
 | Run id is not liveness or a safe signal | Record fields; stop sequence steps 2–4; Task 1 stale test |
 | Optional run id has an explicit meaning | Two stop forms; Task 4 tests 1 and 2 |
 | Hold checks need a shared lock, and refusal must reach the caller | Admission and hold; observed baseline; Task 2 |
+| Start handshake binds publish to a real child before work | Start handshake; observed baseline; Task 2 tests 5–7 |
+| `wait` is occupancy, not admission | Admission `wait` mode; Task 4 test 8 |
+| `stop_requested` is not a confirmed stop | Final record outcome table; Task 4 tests 5–6 |
+| Unfinished stop retries the same `run_id` only | Retry after an unfinished stop; Task 4 tests 6–7 |
+| Host index still has a consumer | Observed baseline; file map; Task 4 test 9 |
 | Process group and cgroup are different | Task 3 steps 2–3 |
 | Final record has to survive the supervisor | Final record; Task 3 step 4; Task 4 test 5 |
 | Fallback is a decision | Task 3 step 6; Task 5 |
 | Stop is not rollback | Claims and non-claims |
 | Tasks 0, 3, 4, and 6 of the other plan | What can proceed beside this plan |
 | Lingering is observed, not assumed | Task 3 step 1 |
+| Probe note lives under `docs/plans/` | Supervisor probe; file map; Task 3 |
 | Small change is an aim | Status table |
+| Clone clues reinforce; they do not replace local IDs, add a daemon or ledger, or extend systemd past the unit | Orientation; start handshake; global constraints; Task 4 step 3 |
