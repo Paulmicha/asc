@@ -1,13 +1,7 @@
----
-name: Thread control prelude
-overview: "Explore the minimum process control needed before unattended or real long-running agent-plan operation, separately from chat and plan contracts."
-todos: []
-isProject: false
----
-
 # Thread control as a preliminary to agent-plan
 
-**Status:** Direction-setting idea. The outcome, its limits and the sequence below are proposed; no implementation or unattended operation is authorized by this document.
+**Status:** Direction-setting idea. The outcome, its limits and the sequence below are proposed; no implementation or unattended operation is authorized by this document.  
+**Updated:** 2026-11-11 (DeerFlow + DeepSeek Harness + Goose + Aider + OpenHands orientation)
 
 ## Initial prompt
 
@@ -31,6 +25,155 @@ The draft specs distinguish three things:
 
 The proposed [`agent-plan` loop](10-agent-plan-cursor-codex-ollaya.md) drives chats and may be long-running. Its design covers roles, staging, isolation and `plan-is 'ready'`, but does not establish how its running process is supervised or stopped. The thread spec records existing gaps including no stop action and pid-only liveness. Stopping a process does not itself end a product session; a chat may remain resumable.
 
+## External orientation: DeerFlow Harness vs App
+
+Read 2026-11-11 from DeerFlow’s published docs ([Harness vs App](https://deerflow.tech/en/docs/introduction/harness-vs-app), [Agents and Threads](https://deerflow.tech/en/docs/application/agents-and-threads), [Lead Agent](https://deerflow.tech/en/docs/harness/lead-agent)). External product docs; not an ASC contract and not a proposal to adopt DeerFlow.
+
+**Layering.** DeerFlow splits a reusable **Harness** (runtime: skills, tools, sandbox, memory, subagents, configurable execution) from an **App** (opinionated product that assembles those primitives into conversations, tasks, artifacts and operations). ASC already leans the same way: thread wrap / list / status are runtime machinery; `agent-plan`, gates and operator brief are an assembled workflow. Process control belongs with the runtime layer. It should not be redesigned inside the `agent-plan` chat and staging contracts, and it should not wait on an App-like UI or checkpoint database.
+
+**Conversation versus run (vocabulary clash).** In DeerFlow, a **thread** is the durable conversation (messages, artifacts, title, agent reference); each user message triggers a **run** that updates that state. Checkpointing makes the conversation survive process restarts. ASC uses the words differently: ASC **chat** ≈ DeerFlow thread; ASC **thread** ≈ DeerFlow run (the process tree for one entry). Keep ASC names. Orient identity and stop at the ASC thread (the run), not at the chat id or the plan path. Plan Markdown is closer to DeerFlow’s accumulated artifacts: durable work product, not the process to kill.
+
+**What this orients now (proposed decisions for this idea).**
+
+| Open question | Orientation from the split |
+|---|---|
+| What does identify / stop / hold address? | The ASC **thread** (process / run). Chat and plan bytes outlive stop. |
+| Where does control live? | Runtime / wrap layer. `agent-plan` consumes it; it does not own the supervisor design. |
+| Is a chat pointer or session store required for the minimum outcome? | No. DeerFlow keeps conversation state so *resume* survives restart; ASC already treats product chats as foreign stores. Pointers may help later; they are not the stop guarantee. |
+| Hold vs authorization? | Hold is runtime refuse-start. Authorization stays in the App/policy layer (gates / human instruction), as [agent plans](../../../specs/asc/agent-plans.md) already separates readiness from go-ahead. |
+| Rename ASC “thread” to match DeerFlow? | No. Document the mapping when comparing; do not rename. |
+
+**What DeerFlow does not settle.** Their App docs emphasize checkpointed conversation state and sandbox-mounted thread data. They do not establish, for ASC, how to terminate a provider harness process tree, what a stop result may claim, or how a hold file should be scoped. Whole-tree termination and host guarantees remain the investigation below. Checkpoint-style durability is also not a substitute for stop: surviving a restart is not the same as an operator ending a live run with a known result.
+
+## External orientation: DeepSeek Harness
+
+Read 2026-11-11 from [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness) (README, [architecture](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/architecture.md), [sandbox](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/subsystems/sandbox.md), [workflow](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/workflow/workflow/README.md), [SAFETY.md](https://github.com/deepseek-ai/deepseek-harness/blob/master/SAFETY.md), and published notes on worker-thread cancel/dispose). Developer-preview external software; not an ASC dependency and not a proposal to adopt it. Their [safety notice](https://github.com/deepseek-ai/deepseek-harness/blob/master/SAFETY.md) states sandboxing and approvals reduce risk but do not guarantee isolation.
+
+**Layering (complements DeerFlow).** DeepSeek Harness is a plugin-composed runtime (Cordis): profiles/bundles assemble web, headless, SDK, and ACP entry points on a shared base. That again separates runtime primitives (session log, agent loop, sandbox, tools) from product surfaces. ASC’s analogous split stays: wrap/control in the runtime layer; `agent-plan` as a consumer workflow.
+
+**Holder-owned run, cancel, dispose (stronger on control than DeerFlow’s App docs).** Their workflow contract is explicit about ownership and stop semantics:
+
+- A **run is holder-owned**: the caller that starts it must `dispose()`; unloading the engine **prevents new starts** but does **not** revoke accepted runs.
+- `cancel` records a reason and asks cooperative stop; after a grace window the host may force-terminate the worker and settle the run as cancelled.
+- The run **result does not reject**: settlement carries a known `stopReason` (for example error vs cancelled).
+- Observability after forced stop is limited: they document that termination can only report **host-observed** child starts; work still queued inside the worker may be unknowable.
+- A worker-thread (or `worker.terminate()`) stop is **containment of that thread**, not a security boundary and **not** a guarantee that OS processes the worker spawned are gone.
+
+That maps cleanly onto ASC’s proposed outcome: **hold ≈ refuse new starts**; **stop ≈ cancel/dispose of an accepted run**; **known result ≈ settled status with explicit non-claims**. It also matches the existing lean that a hold file is not a substitute for stopping work already running.
+
+**Sandbox honesty (aligns with ASC enforced / weakened).** Their process sandbox is a **file-effect** policy (`read-only` / `workspace-write` / `danger-full-access`) with reported `full` or `partial` enforcement. Confined policies **fail closed** (`SANDBOX_UNAVAILABLE`); silent unconfined passthrough is forbidden. Network and process visibility are **outside** that vocabulary. Consumers must distinguish runner failure (command never ran) from policy denial (confinement worked). ASC already needs the same discipline for `writer_isolation` / `reviewer_isolation` and for stop results: never advertise a stronger guarantee than the host proved.
+
+**What this orients now (proposed decisions for this idea).**
+
+| Open question | Orientation from DeepSeek Harness |
+|---|---|
+| Hold vs stop | Hold/unload blocks **future** starts only; accepted runs need an explicit stop/dispose path. |
+| Shape of a stop result | Prefer a **settled** record with a known reason (stopped/cancelled/exited/error), not a rejected/unknown void; list what was observed. |
+| Soft then hard stop | Cooperative cancel + grace + force is a candidate pattern; the grace and force boundaries must be stated. |
+| Who owns cleanup? | Whoever started the ASC thread owns stop/dispose for that run; do not assume a global service revokes live handles when disabled. |
+| What stop may claim | Claim only what the supervisor observed (recorded pid/unit/children at stop time). Do not imply escaped or never-started children exited. |
+| Sandbox vs process stop | File-effect sandbox and process-tree stop are separate guarantees; both need claims and non-claims. |
+| Adopt DeepSeek Harness? | No. Use the contracts as orientation; ASC stays on its wrap/Make/bash surface. |
+
+**What DeepSeek Harness does not settle.** It does not choose ASC’s supervisor (systemd user unit vs process group vs today’s subshell), hold-file location, or authorization policy. Their worker-thread engine is a different process model from Cursor/Codex harnesses ASC will wrap. Their security discussions also show that “terminate the worker” and “confine file effects” can diverge in practice—another reason ASC must keep stop claims narrow until host probes say otherwise.
+
+## External orientation: Goose
+
+Read 2026-11-11 from [goose guides](https://goose-docs.ai/docs/category/guides) and [aaif-goose/goose](https://github.com/aaif-goose/goose) (CLI commands, permissions, CLI/ACP providers, recipes, [roaming agents](https://goose-docs.ai/docs/guides/roaming-agents), ACP app notes). External product; not an ASC dependency and not a proposal to adopt Goose or ACP as ASC’s control plane.
+
+**Session, turn, and backend are three different stops.** Goose’s durable unit is a **session** (local conversation history; resume by session id). Interactive work interrupts with Ctrl+C on the **current request**; emptying the line and Ctrl+C exits the session. ACP clients are told a stop button should send `session/cancel` for the **active turn**, not kill the backend `goose serve` process. The prompt response reports a **`stopReason`**. That reinforces a three-way split ASC should keep explicit:
+
+| Layer | Goose analogue | ASC analogue | Control act |
+|---|---|---|---|
+| Durable conversation | session | chat (product store) / plan file | leave intact on stop |
+| In-flight work unit | turn / request | one `agent-plan` loop or one chat turn | cooperative cancel with a known reason |
+| Supervising process | Desktop-backed or remote `goose serve` | ASC **thread** (wrap / entry process tree) | identify, hold new starts, process stop |
+
+So the minimum ASC outcome (identify / hold / stop with a known result) targets the **thread**. A future cooperative cancel inside the orchestrator is useful but is not the same guarantee as stopping the process tree—and neither erases chats or plan bytes.
+
+**Permission mode is not sandbox is not process stop.** Goose separates [permission modes](https://goose-docs.ai/docs/guides/managing-tools/goose-permissions.md) (`auto` / `approve` / `smart_approve` / `chat`) from file/tool isolation (including CLI-provider sandbox flags and optional `--container` for extensions). ACP docs state plainly that permission callbacks are **not** a sandbox: tools still run with the backend’s machine access. That matches ASC’s readiness vs authorization vs isolation vs process-control axes: a hold or gate answer does not confine writes, and bwrap on a writer turn does not stop the outer `agent-plan` thread.
+
+**Forked OS children remain a documented residual.** Goose roaming notes that revoking a peer stops the agent and drops in-flight turns at the next step, but “an OS process a tool had already spawned … may run to completion — revocation stops the agent, not processes it already forked.” Same non-claim ASC must keep when stating stop results for Cursor/Codex harness children.
+
+**Recipes and headless run are assembled workflows, not the supervisor.** [Recipes](https://goose-docs.ai/docs/guides/recipes/) package extensions, prompts and settings; `goose run` executes instructions or a recipe, with `--interactive`, `--resume`, `--no-session`, `--max-turns`, and optional containers. That is closer to `agent-plan` as a packaged loop than to ASC thread wrap. Orientation: keep process control out of the recipe/plan contracts; loop bounds (`max-turns`) and “no session file” are orchestrator concerns, not substitutes for stop/hold.
+
+**Remote / roaming access is authorization of a control plane, not ASC’s first slice.** Roaming is framed as an authenticated ACP **transport** to a host that already runs the agent; acceptance is all-or-nothing and grants tool/shell reach. Cross-host listing and remote drive stay outside this idea’s scope (as already excluded). Useful only as a reminder that “who may start or steer” is policy, while “can this host’s operator stop what is running here” is the local runtime outcome.
+
+**What this orients now (proposed decisions for this idea).**
+
+| Open question | Orientation from Goose |
+|---|---|
+| What does stop address first? | The ASC **thread** (supervising process). Optionally later: cooperative cancel of the in-flight loop/turn. |
+| Must stop kill the chat backend’s notion of session? | No. Prefer turn/loop cancel semantics that leave durable conversation/plan intact when possible. |
+| Hold vs approve/mode vs sandbox? | Three different controls. Hold = refuse new ASC starts. Gates/modes = authorization. Sandbox/container = effect confinement. |
+| Stop result non-claim | Stopping the agent/thread does not imply already-forked tool processes exited. |
+| Recipes / `agent-plan` | Assembled workflow; consume thread control; do not redefine it. |
+| Adopt Goose or ACP for ASC control? | No. Keep Make/`thread-*` (and later stop) as ASC’s local verbs. |
+
+**What Goose does not settle.** It does not choose ASC’s systemd vs process-group supervisor, hold-file layout, or gates design. Desktop/CLI session storage and ACP transport are Goose-specific. Their permission and container features do not replace host probes for ASC wrap stop completeness.
+
+## External orientation: Aider
+
+Read 2026-11-11 from [aider docs](https://aider.chat/docs/) and [Aider-AI/aider](https://github.com/Aider-AI/aider) ([commands](https://aider.chat/docs/usage/commands.html), [chat modes](https://aider.chat/docs/usage/modes.html), [scripting](https://aider.chat/docs/scripting.html), [git](https://aider.chat/docs/git.html), [docker](https://aider.chat/docs/install/docker.html), [options](https://aider.chat/docs/config/options.html)). External product; not an ASC dependency and not a proposal to adopt Aider.
+
+**One process, durable chat file, git as recovery.** Aider is mostly a single terminal (or browser) process over a git working tree. Conversation durability is a **chat history file** (default `.aider.chat.history.md`), optionally restored on next launch—not a separate session server. [Ctrl-C](https://aider.chat/docs/usage/commands.html) interrupts the current LLM response; the **partial reply stays in the conversation**. `/exit` / `/quit` end the application. That is a simple form of the same split: interrupt in-flight work without erasing history; exiting the process is separate from keeping the history file.
+
+**Scripted one-shot runs are holder-owned processes.** [`--message` / `--message-file`](https://aider.chat/docs/scripting.html) send one instruction, apply edits, then exit (chat mode off). Shell loops and the Python `Coder.run()` API compose multiple such runs. Orientation for ASC: an unattended `agent-plan` is closer to a **long-lived holder-owned process** than to Aider’s default interactive REPL, but Aider’s scripting model still says the **OS process is the run**—stopping it is process control; the history file and git commits are leftover artifacts, not the thing to “cancel.”
+
+**Git undo is artifact recovery, not process stop.** Aider auto-commits edits, separates dirty-user commits from aider commits, and offers `/undo` to discard the last aider commit. That is a strong **work-product** recovery story. ASC already has related ideas for plan bytes (staging, promotion, digest). Orientation: do not confuse “revert what the agent wrote” with “stop the agent process.” Both matter; only the latter is this idea’s minimum outcome.
+
+**Modes and dry-run are capability / effect knobs.** [Chat modes](https://aider.chat/docs/usage/modes.html) (`code` / `ask` / `architect` / `help`) change whether and how files are edited (ask never edits; architect splits propose vs apply across models—loosely analogous to writer/reviewer roles). `--dry-run` proposes without modifying files; `--yes` skips confirmations. Docker runs aider with the repo bind-mounted and notes that `/run` executes **inside the container**, not on the host. Again: mode/autonomy ≠ file-effect confinement ≠ killing the aider process.
+
+**Architect dual-model is workflow, not supervision.** Architect + editor is a product pattern for better edits, similar in spirit to ASC’s writer/reviewer loop, not a process-control design.
+
+**What this orients now (proposed decisions for this idea).**
+
+| Open question | Orientation from Aider |
+|---|---|
+| Where is the run? | The aider (or ASC wrap) **process**. History files and git commits outlive it. |
+| Interrupt vs exit | Interrupt in-flight model work without discarding conversation; exit/kill ends the process. ASC should keep that distinction when stating stop claims. |
+| Scripted / unattended | One-shot `--message` then exit is the simple unattended shape; multi-message loops still need an owner who can stop the process. |
+| Undo / staging | Recover or reject **artifacts** (git, plan staging). Do not treat that as the stop guarantee. |
+| dry-run / ask / --yes | Effect and confirmation policy—not hold, not thread-stop. |
+| Adopt Aider? | No. Useful as a minimal reference for “pair-programming agent in one process,” not as ASC’s orchestrator. |
+
+**What Aider does not settle.** No formal cancel/dispose result vocabulary, no cgroup story, no hold-file for refusing new starts across a fleet of entries. Docker is optional whole-tool isolation, not ASC’s per-role bwrap profiles. Host probes for ASC wrap stop completeness remain open.
+
+## External orientation: OpenHands
+
+Read 2026-11-11 from [OpenHands introduction](https://docs.openhands.dev/overview/introduction) and related docs ([Agent Canvas architecture](https://docs.openhands.dev/openhands/usage/agent-canvas/architecture), [workspace](https://docs.openhands.dev/sdk/arch/workspace), [pause/resume](https://docs.openhands.dev/sdk/guides/convo-pause-and-resume), [persistence](https://docs.openhands.dev/sdk/guides/convo-persistence), [security & confirmation](https://docs.openhands.dev/sdk/guides/security), [docker sandbox](https://docs.openhands.dev/sdk/guides/agent-server/docker-sandbox), [archive sandbox](https://docs.openhands.dev/cookbook/archive-sandbox)), plus [OpenHands/OpenHands](https://github.com/OpenHands/OpenHands). External ecosystem; not an ASC dependency and not a proposal to adopt OpenHands, Agent Canvas, or their cloud control plane.
+
+**Component map (strongest layering statement in this survey).** The introduction separates:
+
+| Component | Owns |
+|---|---|
+| Agent Canvas | Browser client / control center — **not** the runtime or sandbox |
+| Agent Server / Software Agent SDK | Conversation execution, tools, workspaces (REST/WebSocket) |
+| Automation Server | Scheduled and event-driven run lifecycle |
+| Sandbox / workspace | Files, processes, credentials, network the agent may touch |
+| Sandbox Server (community) | Standalone API that creates/manages sandboxes hosting Agent Server |
+
+Canvas “presents backend state and sends requests”; Agent Server executes; the workspace/sandbox is the isolation boundary. That is DeerFlow’s harness/app split made more operational, and it matches ASC: Make/`thread-*` and wrap are runtime; `agent-plan` is a consumer workflow; bwrap/profiles are effect isolation; gates/automations-style enablement are policy—not one blob.
+
+**Pause, stop, and delete are different results with different resource claims.** SDK [`conversation.pause()`](https://docs.openhands.dev/sdk/guides/convo-pause-and-resume) requests pause between run-loop steps; an in-flight LLM call may finish first; `execution_status` is observable; `run()` resumes. Cloud/enterprise sandbox docs distinguish RUNNING / PAUSED (compute down, storage kept) / STOPPED (pod gone, PVC often kept for resume) / DELETED (storage released). Orientation for ASC: a stop result must say what stopped (loop vs process vs sandbox) and what was **not** claimed (workspace files, chats, already-running tool children). Pause is optional and out of this idea’s first slice; the honesty about **when** pause takes effect and what storage survives is the useful part.
+
+**Confirmation policy ≠ workspace isolation.** [Security & confirmation](https://docs.openhands.dev/sdk/guides/security) (`AlwaysConfirm` / `NeverConfirm` / `ConfirmRisky` + analyzer) gates whether actions execute. [Local vs Docker/remote workspace](https://docs.openhands.dev/sdk/arch/workspace) gates where commands run. Same three-axis lesson as Goose/Aider: authorization ≠ confinement ≠ process/thread stop.
+
+**Persistence outlives the process; automations are a separate lifecycle.** Conversation persistence restores history and `execution_status` across sessions. Automation Server enable/disable and schedules are closer to “may new unattended work start?” than to stopping one live ASC thread—useful analogy for **hold**, not for stop.
+
+**What this orients now (proposed decisions for this idea).**
+
+| Open question | Orientation from OpenHands |
+|---|---|
+| Where does control UI live vs execution? | Client/control center must not be confused with the supervising process. ASC’s stop targets the wrap/thread, not a doc or chat UI. |
+| Pause vs stop vs discard artifacts? | Separate verbs with separate claims (compute vs storage vs conversation). ASC minimum outcome is stop-with-known-result + hold; pause and full workspace teardown stay optional/out of slice. |
+| When does cooperative pause apply? | Between steps; not guaranteed mid-LLM or mid-tool. State that non-claim if ASC adds loop cancel later. |
+| Confirmation / gates | Policy for actions—not thread-stop, not sandbox completeness. |
+| Sandbox lifecycle | Useful vocabulary for *claims*; ASC’s first hosts may only have process-group/systemd, not K8s PVCs—do not import their resource model wholesale. |
+| Adopt OpenHands? | No. Use the component and lifecycle vocabulary; keep ASC Make/bash wrap. |
+
+**What OpenHands does not settle.** It does not choose ASC’s local supervisor (systemd vs process group), hold-file path, or gates design. Their Agent Server + sandbox stack is heavier than wrapping Cursor/Codex CLIs. Host probes for what ASC’s existing wrapper can actually stop remain open.
+
 ## Outcome and limits to establish
 
 The operator needs to know which run is being controlled, whether new starts are being prevented, and what happened when a stop was requested. The result must not imply that all relevant processes have exited unless that has been established. How to identify runs, represent a stop result, handle races and verify the outcome remains open.
@@ -39,16 +182,21 @@ Whole-tree termination is an unresolved boundary. [Control actions](11-agent-con
 
 A hold that refuses new starts is distinct from stopping work already running. Neither control grants permission to run unattended. The [agent plans spec](../../../specs/asc/agent-plans.md) likewise distinguishes readiness from authorization. [Run tracking](11-agent-run-tracking.md) reports that earlier reviews said unattended runs were not yet allowed; that report is not itself a new policy or authorization decision.
 
-Potential mechanisms include a `thread-stop` action, a hold, stronger run identity, and clearer provider lifecycle names. Their exact form, whether all are necessary for the outcome, and how a thread relates to a chat session remain open. Any eventual verification should exercise the stated guarantees and their failure cases on the intended hosts.
+Potential mechanisms include a `thread-stop` action, a hold, stronger run identity, and clearer provider lifecycle names. Their exact form, whether all are necessary for the outcome, and optional recording of chat identity on a thread remain open—except that the minimum outcome is framed on the **run**, not on chat or plan identity. Any eventual verification should exercise the stated guarantees and their failure cases on the intended hosts.
 
 ## Scope and sequencing
 
 The proposed prerequisite does not include a queue, priority, pause/resume, cross-host listing, a central ledger or full run history, OSC 7501, or a terminal runtime. A gates or next-steps redesign and a full chat pointer store are also outside this slice. Chat hooks, staging and sandbox profiles remain concerns of the existing `agent-plan` design rather than being folded into process control.
 
-Further work should establish the control outcome and host limitations, then decide what must exist before unattended or real long-running operation. Any later plan and dependency links should reflect that decision without blocking independent feasibility work and isolated tests.
+**Next useful steps (investigation, not yet a plan):**
+
+1. State the minimum identify / hold / stop claims in operator language, including explicit non-claims (escaped or never-started children, chat still live, plan file untouched, sandbox/permission/confirmation mode unrelated to stop completeness). Prefer a settled stop result with a reason over an empty failure. Distinguish process stop from any later cooperative loop/turn pause-or-cancel, and say what storage/artifacts survive.
+2. Probe the intended hosts: what the existing wrapper actually starts today; whether a transient systemd user unit is available for one long entry; what stop can prove afterward; whether a cancel-then-force pattern fits the wrap.
+3. Only then decide which mechanisms must exist before unattended or real long-running `agent-plan` operation—without blocking independent feasibility work and isolated tests.
 
 ## Related
 
 - Draft specs: [agent threads](../../../specs/asc/agent-threads.md), [agent chats](../../../specs/asc/agent-chats.md), [agent plans](../../../specs/asc/agent-plans.md).
-- Ideas: [agent-plan design](10-agent-plan-cursor-codex-ollaya.md), [control actions](11-agent-control-actions.md), [run tracking](11-agent-run-tracking.md), [session stores](11-agent-session-stores.md).
+- Ideas: [agent-plan design](10-agent-plan-cursor-codex-ollaya.md), [control actions](11-agent-control-actions.md), [run tracking](11-agent-run-tracking.md), [session stores](11-agent-session-stores.md), [LLM Space evaluation](11-llm-space-evaluation.md) (related DeerFlow-family tooling; separate from this control outcome).
 - Existing proposal: [agent-plan implementation plan](../../../plans/2026/11/10-agent-plan-cursor-codex-ollaya-impl.md).
+- External: [DeerFlow Harness vs App](https://deerflow.tech/en/docs/introduction/harness-vs-app), [Agents and Threads](https://deerflow.tech/en/docs/application/agents-and-threads), [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) ([architecture](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/architecture.md), [sandbox](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/subsystems/sandbox.md), [workflow](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/workflow/workflow/README.md), [SAFETY](https://github.com/deepseek-ai/deepseek-harness/blob/master/SAFETY.md)), [Goose guides](https://goose-docs.ai/docs/category/guides) / [aaif-goose/goose](https://github.com/aaif-goose/goose) ([permissions](https://goose-docs.ai/docs/guides/managing-tools/goose-permissions.md), [roaming](https://goose-docs.ai/docs/guides/roaming-agents), [CLI commands](https://goose-docs.ai/docs/guides/goose-cli-commands)), [Aider docs](https://aider.chat/docs/) / [Aider-AI/aider](https://github.com/Aider-AI/aider) ([commands](https://aider.chat/docs/usage/commands.html), [scripting](https://aider.chat/docs/scripting.html), [git](https://aider.chat/docs/git.html), [modes](https://aider.chat/docs/usage/modes.html)), [OpenHands introduction](https://docs.openhands.dev/overview/introduction) / [OpenHands/OpenHands](https://github.com/OpenHands/OpenHands) ([Canvas architecture](https://docs.openhands.dev/openhands/usage/agent-canvas/architecture), [pause/resume](https://docs.openhands.dev/sdk/guides/convo-pause-and-resume), [security](https://docs.openhands.dev/sdk/guides/security), [workspace](https://docs.openhands.dev/sdk/arch/workspace)).
