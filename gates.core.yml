@@ -45,14 +45,6 @@ gates:
     approved: "no"
     go: "no"
 
-  - changelog: docs/plans/2026/09/22-agent-llm-entry-point.md
-    lane: discuss
-    order: 2
-    task: "Plan review for make agent-llm (hook call in agent, hook implementation in cursor)."
-    summary: "Accept make agent-llm as one abstract pivot: agent core extension makes the hook call; cursor contrib supplies the hook implementation when enabled. Setting go authorizes that layout only; no second pivot and no implementation until then."
-    approved: "no"
-    go: "no"
-
   - changelog: docs/plans/2026/09/22-make-generate.md
     lane: discuss
     order: 3

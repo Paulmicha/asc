@@ -1,17 +1,19 @@
 # `make agent-llm` — abstract hook call, cursor hook implementation
 
+> **Superseded, 2026-11-13.** This historical proposal is withdrawn, including its tasks and gate. Do not implement this pivot. The current proposed agent entry points are described in the [agent-plan design](../../../ideas/2026/11/10-agent-plan-cursor-codex-ollaya.md).
+
 > **2026-09-25 concertation.** Order of work is [25-concert-order.md](25-concert-order.md). This pivot stays off the path to the host catalog.
 
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-22 |
-| **Status** | **proposal** — plan / review (not implemented). Docs only until `gates.yml` go. |
+| **Status** | **superseded** — historical proposal, not implemented. |
 | **Scope** | One new `$subject-$action` pivot: `agent-llm`. Hook call in the agent core extension. Hook implementation in the cursor ASC contrib extension. No second pivot (`cursor-llm`), no second entity/able per tool. |
 | **Out of this plan** | Writing the entry-point script, the hook call body, or any `*.hook.sh`. Ollama / Codex / Claude LLM bodies. Prompt sandwich variants. Builder / workflow. README rewrite. |
 
 `$` in this file is the ASC docs placeholder (`$subject` / `$action` / `$extension`), not a shell variable.
 
-Go-ahead is the `agent-llm` row in [`gates.yml`](../../../gates.yml). `go` stays `no` until that row is approved. Approving authorizes implementing this layout only.
+The former gate has been withdrawn; the remainder records the earlier proposal.
 
 **Git context:** mother tree was dirty (gates / make-ds changelogs) when this plan was written; no pull.
 
@@ -112,7 +114,7 @@ README Workflow still names `make agent-loop`, `make llm-call`, and an env-var p
 
 ## Safety notes
 
-- Do not implement until `gates.yml` sets `go: "yes"` for this row.
+- This proposal is withdrawn and must not be implemented from a gate.
 - Do not add `cursor-llm` or score entry points so one namespace drops the other ([21-hook-specificity-rungs.md](21-hook-specificity-rungs.md) follow-up: no entry-point score).
 - Do not place the first hook implementation under `asc/extensions/agent/` if cursor is meant to be the default concrete body — that would sit on rung 0 and lose to any contrib match, and would bake a tool into the abstract extension.
 - Leave the empty `llm.entity.yml` alone unless a separate entity plan owns it.
@@ -122,8 +124,4 @@ README Workflow still names `make agent-loop`, `make llm-call`, and an env-var p
 
 ## Open tasks
 
-- [ ] After gates go: add `asc/extensions/agent/agent/llm.sh` (hook call only).
-- [ ] After gates go: add `scripts/asc/contrib/asc/cursor/agent/llm.hook.sh` (hook implementation).
-- [ ] After gates go: enable `agent` and `asc/cursor` on a test instance; run `make agent-llm` / dry-run `hook_ms` and confirm the cursor path wins.
-- [ ] Optional: measure or document what the entry point should do when no hook implementation matches (today: no source).
-- [ ] Do not commit from this proposal note alone.
+The former implementation and validation tasks are withdrawn with this proposal.

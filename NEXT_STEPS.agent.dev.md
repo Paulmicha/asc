@@ -60,7 +60,6 @@ Open changelog notes that are not an implementation go-ahead. Discussion belongs
 - `docs/plans/2026/07/31-nameref-clarity-candidates.md` — inventory / plan (docs only — no code changes). Reviewed 2026-07-31: suffix renames already landed via array-dict plan; counts/caveats refreshed.
 - `docs/plans/2026/09/10-begin-entity-system-with-remote-instances.md` — plan (corrected: contracts vs types; discovery → cache → load). Tasks 1–7 done (`f_entity_load` cache path, discover, generate, `post_init.hook.sh`, type-aware...
 - `docs/plans/2026/09/20-builder-kernel-subject.md` — proposed, later. No code. Not in the 2026-09-19 lazy-include order. Not in the [meadows review loop](./20-meadows-plan-review-feedback-loop.md). Prefer after...
-- `docs/plans/2026/09/22-agent-llm-entry-point.md` — proposal — plan / review (not implemented). Docs only until `gates.yml` go.
 - `docs/plans/2026/09/22-gitflow.md` — plan / review (not an implementation go-ahead)
 - `docs/plans/2026/09/22-make-ds-literal.md` — plan / review (not an implementation go-ahead)
 - `docs/plans/2026/09/22-make-ds.md` — plan / review (not an implementation go-ahead)

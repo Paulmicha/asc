@@ -556,7 +556,6 @@ This note is not step 0–6.
 ## Related notes
 
 - [27-desktop-agent-terminal-reply.md](../../../plans/2026/09/27-desktop-agent-terminal-reply.md) — desktop reply client (out of v1).
-- [22-agent-llm-entry-point.md](../../../plans/2026/09/22-agent-llm-entry-point.md) — abstract pivot + contrib hook precedent.
 - [21-hook-specificity-rungs.md](../../../plans/2026/09/21-hook-specificity-rungs.md) — `hook_ms` rungs.
 
 ---

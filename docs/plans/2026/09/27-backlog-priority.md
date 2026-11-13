@@ -1,5 +1,7 @@
 # Changelog backlog priority
 
+> **2026-11-13 update:** The model-dispatch naming choice in this historical backlog is superseded; neither former name is an active proposal. See the [agent-plan design](../../../ideas/2026/11/10-agent-plan-cursor-codex-ollaya.md) for the current proposed entry points. Other topics retain their own status.
+
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-27 |

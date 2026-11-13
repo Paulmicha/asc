@@ -155,7 +155,7 @@ These are current sentences, not proposals.
 
 README remains the source of truth. This note does not edit it. These passages disagree with the tree, or with each other. A later proposal can shorten them. This file does not.
 
-- [Non-goals](../../../../README.md) says complex agent work belongs in a dedicated project instance. The [Workflow](../../../../README.md) section then specifies `make agent-loop`, provider hook implementations for `make llm-call`, and a core rules extension. The handwritten skills and rules are a third telling of that work, already in this repository.
+- Historical observation (2026-09-28): the README Workflow section described an older agent dispatch proposal. That dispatch naming is superseded; see the [agent-plan design](../../../ideas/2026/11/10-agent-plan-cursor-codex-ollaya.md). The handwritten skills and rules were another account of that work.
 - [Contracts (= capabilities = abilities = skills ~= SKILL.md blueprints)](../../../../README.md) uses one word for `*.able.yml` contracts and for `SKILL.md`. They are different objects. An ability is a YAML contract an entity includes (`sidecar.able`, `ssh.able`). An agent skill is a procedure a coding tool loads from `.agents/skills/<id>/SKILL.md`.
 - [Default file-based agent skills storage : `data/skills`](../../../../README.md) is `TODO`. Nothing reads that path. `data/skills/` is absent. The files tools load today are `.agents/skills/*/SKILL.md`. The 2026-09-27 note stores the unrendered procedure at `data/entities/skill/<id>.yml`, which is also absent. Do not create `data/skills/` to make the heading true.
 

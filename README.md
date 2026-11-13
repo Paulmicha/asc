@@ -1676,9 +1676,7 @@ Whenever a human pushes a change to that file, the "next step tasks list" may ne
 
 This is a job for any of those extension points :
 
-- ASC core "agent" extension : abstract hook calls in entry points like `make agent-loop`
-- ASC contrib "child" extensions like `cursor`, `codex`, `claude` : the place for concrete hook implementations of entry points like `make llm-call`, or why not `make slm call`, with some default `make agent-loop` hook implementations via env var that can select e.g. "cursor" as default provider for llm calls (with pre- and post- "sandwich" hook calls variants), like `mysql` can be set as the default db driver via `DB_DRIVER`)
-- ASC contrib "child" extensions like `ollama` : the place for concrete hook implementations of entry points like `make slm-call`
+- ASC core "agent" extension and contrib provider extensions: the proposed [agent-plan design](docs/ideas/2026/11/10-agent-plan-cursor-codex-ollaya.md) describes the planned chat, readiness, and orchestration entry points and their provider hooks.
 - ASC core "rules" extension : next step chains supporting DSL with constant readjustment updates for correct priority queuing based on gates.yml and the "next steps" storage system eventually chosen (either reg-set / reg-get or entities)
 
 TODO settle the "next step tasks list" storage.

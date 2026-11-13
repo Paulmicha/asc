@@ -1,5 +1,7 @@
 # Workflow extension — close the loop
 
+> **2026-11-13 update:** The model-dispatch naming choice described below is superseded. Neither former name is an active proposal; see the [agent-plan design](../../../ideas/2026/11/10-agent-plan-cursor-codex-ollaya.md) for the current proposed agent entry points. The rest of this workflow plan is not superseded by this notice.
+
 > **2026-09-25 concertation.** Order of work is [25-concert-order.md](25-concert-order.md). Gates are a later agent surface. This printer is not the current design queue. The catalog pivot is `host-instance-discover`.
 
 | Field | Value |
@@ -61,6 +63,8 @@ Enable `workflow` on an instance only after the file exists. This plan does not 
 
 ## Where the other dots attach
 
+The model-dispatch rows and discussion in this section are historical; their naming choice is superseded as noted above.
+
 They are later children. `workflow-next` does not call them.
 
 | Dot | What it is today | Later child |
@@ -103,6 +107,5 @@ One abstract model pivot, one abstract task pivot.
 ## Tasks
 
 - [ ] Confirm `workflow-next` only prints runnable gates rows.
-- [ ] Pick `llm-call` or `agent-llm` before any dispatch child is written.
 - [ ] Leave `cursor-task` as the cursor hook-implementation name, not a make pivot.
 - [ ] Leave git branches to [22-gitflow.md](22-gitflow.md).
