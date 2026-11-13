@@ -1,11 +1,11 @@
 # Thread control before `agent-plan`
 
-> **Related idea, 2026-11-13:** [Local action records](../../../ideas/2026/11/13-local-action-records.md) proposes dated wrapper logs and discusses concurrency. It does not change this plan's single-current-run contract or establish that its work is implemented.
+> **Revision required, 2026-11-13:** The newer [local action records direction](../../../ideas/2026/11/13-local-action-records.md) uses active claims removed after confirmed completion, rather than retained final thread records. An unusually old claim prompts investigation; age alone never clears it. This plan's retained-final-record, release, locking, single-current-run and stop-result contracts must be reconciled with that direction before its thread-control tasks are implemented. The detailed contract and tests below record the earlier proposal; they are not the current implementation specification. The operation and authorization limits still apply.
 
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-11-11 |
-| **Status** | Proposed. Not an implementation go-ahead. No unattended or real long-running `agent-plan` operation is authorized by this plan. |
+| **Status** | Draft; revision required for active-only claims. Not an implementation go-ahead. No unattended or real long-running `agent-plan` operation is authorized by this plan. |
 | **Aim** | A small change to the existing thread wrapper: name the run, refuse new starts, and stop a run with a result the operator can read. |
 | **Size** | The aim is small. Coordinating admission, run identity, stop, and a final record that survives the stop may be larger than a wrapper edit. If a task below needs a daemon, a run ledger, or a second supervisor, stop and revise this plan. |
 
@@ -42,7 +42,7 @@ From [the agent-plan implementation plan](10-agent-plan-cursor-codex-ollaya-impl
 
 An operator can, once the tasks that establish each claim have passed:
 
-1. Read a run id, a host, and a timestamp with a numeric UTC offset from `data/threads/$entry.yml`.
+1. Read a run id, a host, and a timestamp with a numeric UTC offset from `data/threads/$action.yml`.
 2. Refuse a new start when the hold is established under the admission lock (direct `thread-wrap` exit 3), or when the slot is **blocked** (direct exit 4), including after status/monitor have only reported a dead supervisor.
 3. Stop either the run id they pass, or whichever run is current at the moment stop resolves that choice under the record mutex.
 4. Read a final record that names the writer, the reason, and a completeness value, and tell an accepted stop request apart from a confirmed observation.
@@ -86,7 +86,7 @@ The trap name and the function name disagree. Task 1's normal-exit test records 
 
 ## Proposed contract
 
-`$entry` is a make entry point name. `$run_id` is the run id of one start of that entry.
+`$action` is a make entry point name. `$run_id` is the run id of one start of that entry.
 
 ### Record fields
 
@@ -188,7 +188,7 @@ The host index gains `run_id`, `host`, `reuse_allowed`, and the offset on `mtime
 
 1. Operator may run `thread-stop` on the recorded `run_id` (or current-run form) when the supervisor is still addressable. Stop signals what it can and may write `final` with completeness `unknown` or `degraded`. Descendants are still unproven. Slot stays blocked. An already-written `stop_reason: interrupted` final is already in the blocked class.
 2. Operator inspects (process list, unit cgroup, manual cleanup). This plan does not automate that inspection.
-3. Operator runs `thread-release e:$entry run:$run_id` (`asc/thread/release.sh`, pivot after `make make-generate`). Under the record mutex it re-loads, requires the same `run_id`, requires the supervisor identity to be gone or already `final` for that id, sets `reuse_allowed: true` (and may normalize status for readers), refreshes the index, releases. Exit 2 if the file is a different run. Exit 1 if the identity is still live. Do not use release after a **normal return**; that path is already clear.
+3. Operator runs `thread-release e:$action run:$run_id` (`asc/thread/release.sh`, pivot after `make make-generate`). Under the record mutex it re-loads, requires the same `run_id`, requires the supervisor identity to be gone or already `final` for that id, sets `reuse_allowed: true` (and may normalize status for readers), refreshes the index, releases. Exit 2 if the file is a different run. Exit 1 if the identity is still live. Do not use release after a **normal return**; that path is already clear.
 4. Only then may admission treat a previously interrupted, stop-uncertain, or orphaned slot as **clear**.
 
 `thread-status` / monitor are not a substitute for step 3.
@@ -199,8 +199,8 @@ Both are `asc/thread/stop.sh`, pivot `thread-stop` after `make make-generate`.
 
 | Form | Meaning |
 |------|---------|
-| `thread-stop e:$entry run:$run_id` | Under the record mutex, signal only if the file's `run_id` is still `$run_id`. If the file has another run, exit 2, signal nothing, write nothing. This is the form to use from a record the operator looked at earlier. |
-| `thread-stop e:$entry` | Under the record mutex, read the run id that is current, then signal that identity. This means "stop whichever run is current when stop resolves." It does not mean "stop a pid remembered from an earlier listing." |
+| `thread-stop e:$action run:$run_id` | Under the record mutex, signal only if the file's `run_id` is still `$run_id`. If the file has another run, exit 2, signal nothing, write nothing. This is the form to use from a record the operator looked at earlier. |
+| `thread-stop e:$action` | Under the record mutex, read the run id that is current, then signal that identity. This means "stop whichever run is current when stop resolves." It does not mean "stop a pid remembered from an earlier listing." |
 
 Exit codes for this action, proposed here only:
 
@@ -220,16 +220,16 @@ Paths, proposed — the short/occupancy split lands in **Task 2**, not deferred 
 |------|------|
 | `data/threads/admit.lock` | Project-wide lock for hold changes and for the short admission critical section. Never held while blocked on occupancy. |
 | `data/threads/hold` | Present means new starts are refused. |
-| `data/threads/$entry.lock` | Short **record mutex**. Taken only for load / identity check / publish / final / stale rewrite. Not held for the life of the run. |
-| `data/threads/$entry.occupy.lock` | **Occupancy** lock. Taken **last** in the admission critical section, then held by the run owner for the whole run after handoff. |
+| `data/threads/$action.lock` | Short **record mutex**. Taken only for load / identity check / publish / final / stale rewrite. Not held for the life of the run. |
+| `data/threads/$action.occupy.lock` | **Occupancy** lock. Taken **last** in the admission critical section, then held by the run owner for the whole run after handoff. |
 
 #### One lock order for every path
 
 Both `skip` and `wait` use the same acquisition order. The reverse is a deadlock (including the mixed-mode race where a waiter held occupy while re-taking `admit.lock` while a `skip` holder of `admit.lock` needed occupy):
 
 1. `admit.lock`
-2. `$entry.lock` (record mutex)
-3. `$entry.occupy.lock` (occupancy) — **only with a non-blocking acquire** while (1) and (2) are held
+2. `$action.lock` (record mutex)
+3. `$action.occupy.lock` (occupancy) — **only with a non-blocking acquire** while (1) and (2) are held
 
 Blocking waits on occupancy happen **only** after releasing (1) and (2). After a blocking wait returns, the waiter **must unlock occupy immediately** and retry from step 1. Occupy is never held while acquiring or holding `admit.lock`. Publish/handoff holds all three, acquired in that order, then hands occupy to the child and releases admit + record.
 
@@ -301,12 +301,12 @@ They are **not** claimed for `logged-thread` / `make lt`. Observed today, `asc/l
 
 Today `f_yaml_write_file` in `asc/yml/yml.inc.sh` writes with `printf … > "$p_yml_file"` (truncated in place). An interrupted write can leave a partial record. `f_thread_yml_mark_stale`, `thread-status`, `thread-list`, and the monitor can load a record and later rewrite it without holding the record mutex or re-checking `run_id`, so a replacement published in between can be overwritten as `stale`. The monitor also calls `f_thread_host_publish` from an earlier observation (`asc/thread/monitor.hook.sh`), which can push a stale index row after a newer YAML/index write.
 
-Proposed contract for every read-modify-write of `data/threads/$entry.yml`, for admission publish, and for host-index refresh of that entry:
+Proposed contract for every read-modify-write of `data/threads/$action.yml`, for admission publish, and for host-index refresh of that entry:
 
-1. Take the record mutex (`$entry.lock`).
+1. Take the record mutex (`$action.lock`).
 2. Re-load the file (or the bytes about to be replaced).
 3. If the write is about a specific `run_id` (stop finalization, supervisor exit, stale mark of a former identity, or a monitor refresh tied to an observed id), proceed only when the file's `run_id` still matches that id. Otherwise leave the YAML and the index alone and release.
-4. Build the new document, write it to a temp file on the same filesystem, then `mv -f` onto `data/threads/$entry.yml` (atomic replace).
+4. Build the new document, write it to a temp file on the same filesystem, then `mv -f` onto `data/threads/$action.yml` (atomic replace).
 5. While still holding the record mutex, refresh the host-index row from the **just-written** (or just re-read) fields for that same `run_id` — also via temp+`mv` if the index writer truncates in place today. Do not publish index bytes loaded before step 2.
 6. Release the record mutex.
 
@@ -359,9 +359,9 @@ Proposed caller-visible outcomes when the happy path does not finish:
 
 Recovery stays a small explicit contract. It does not add Hermes's queue or lease system; it does reuse the fail-closed idea that a retry continues only against the same recorded run identity.
 
-- A later `thread-stop e:$entry run:$run_id` against the **same** recorded `run_id` that still has `stop_requested: true` and `final: false` is the recovery path. It repeats the identity check, may signal again if the identity is still live, waits again, and may write `final` for that id.
+- A later `thread-stop e:$action run:$run_id` against the **same** recorded `run_id` that still has `stop_requested: true` and `final: false` is the recovery path. It repeats the identity check, may signal again if the identity is still live, waits again, and may write `final` for that id.
 - The same form against a **replacement** run (file `run_id` differs) exits 2, signals nothing, and leaves the new record alone.
-- `thread-stop e:$entry` without `run:` on an unfinished record means "stop whichever run is current now." If that current id is still the unfinished one, it is the same recovery. If a new run has already been published, it targets the new run under the current-run form, not the old unfinished id.
+- `thread-stop e:$action` without `run:` on an unfinished record means "stop whichever run is current now." If that current id is still the unfinished one, it is the same recovery. If a new run has already been published, it targets the new run under the current-run form, not the old unfinished id.
 - Missing or dead pid is not success. Retry must re-check `pid_start` or `invocation_id`. A gone identity with `final` still false may finalize that same `run_id` only after the wait path has confirmed the copied identity is gone; it must not treat "no pid in the file" or "kill -0 failed once" as proof without that check.
 - After `final: true` for that id, a repeated stop of the same id leaves `final_writer` and `stop_reason` alone (already in Task 4).
 
@@ -425,7 +425,7 @@ After any stop, a follow-up read of the plan path and of any chat pointer the ru
 | `asc/yml/yml.inc.sh` | Only if the atomic temp+`mv` helper belongs on the shared YAML writer; otherwise keep the replace inside the thread helper and leave other YAML callers unchanged |
 | `asc/thread/probe_sleep.sh` | Test-only entry `thread-probe-sleep`. Exits 1 unless `ASC_THREAD_PROBE=1`. One integer argument, 1 through 30. Optional `ASC_THREAD_PROBE_EXIT_SEQUENCE` for sticky-retry tests (`1,0`, …). |
 | `asc/thread/hold.sh` | `thread-hold on` / `off` under `admit.lock` only |
-| `asc/thread/release.sh` | `thread-release e:$entry run:$run_id` — operator ack that sets `reuse_allowed` for a blocked finished/orphaned identity |
+| `asc/thread/release.sh` | `thread-release e:$action run:$run_id` — operator ack that sets `reuse_allowed` for a blocked finished/orphaned identity |
 | `asc/thread/stop.sh` | The two stop forms, outside writer, unfinished-stop retry against the same `run_id` |
 | `asc/thread/list.sh`, `asc/thread/status.sh` | Print `run_id`; report dead supervisor without setting `reuse_allowed`; unfinished `stop_requested` is not printed as `exited` |
 | `asc/thread/monitor.hook.sh` | Existing host-index consumer. Report/heal under the writer contract; never sets `reuse_allowed` |
@@ -440,7 +440,7 @@ After any stop, a follow-up read of the plan path and of any chat pointer the ru
 
 **Produces:** a record that can be told from the next start of the same **fixture** entry, and a normal-exit write that the test watched. No stop action yet.
 
-**Isolated test state (required).** Do **not** use `make-list-entry-points` or any other real project entry. Do **not** `rm` a pre-existing `data/threads/$entry.yml` for a live or shared entry. Use only the dedicated probe entry (and, for status fixtures, a dedicated non-colliding name such as `zzthreadctlfixt`).
+**Isolated test state (required).** Do **not** use `make-list-entry-points` or any other real project entry. Do **not** `rm` a pre-existing `data/threads/$action.yml` for a live or shared entry. Use only the dedicated probe entry (and, for status fixtures, a dedicated non-colliding name such as `zzthreadctlfixt`).
 
 **Project-wide state isolation (required).** `data/threads/hold` and `data/threads/admit.lock` are project-wide. Host-index rows are keyed by docroot. **Save/restore of the live project’s hold is not isolation:** while the suite runs, unrelated starts could be admitted despite a pre-existing hold; a concurrent operator hold change can be overwritten by teardown; an interrupted suite may never restore.
 
@@ -526,7 +526,7 @@ Add a second test that writes a YAML fixture under **`zzthreadctlfixt`** (not a 
 9. **Failure before publication:** force the child to exit (or fail to start) before publish completes. The parent does not print `Thread started`, no `running` record for that attempt remains, occupy is not left held by a dead attempt, and no orphan supervisor from that attempt is left running.
 10. **Unknown liveness — legacy:** fixture `status: running` with a pid that still `kill -0`s but **no** `pid_start` field. Direct wrap exits 4, does not print `Thread started`, and leaves the fixture unchanged.
 11. **Orphaned supervisor — status/monitor do not clear:** fixture `status: running`, `final: false`, `reuse_allowed` absent/false, pid dead / not matching `pid_start`, occupy free. Direct wrap exits 4. Then run `thread-status` and the monitor hook path. Both may report the dead supervisor. Assert `reuse_allowed` is still false/absent. Direct wrap again exits 4 (neither status nor monitor silently authorized reuse).
-12. **Release ack clears stop-uncertain finals; those alone do not:** fixture `final: true`, `final_writer: stop`, `completeness: unknown`, `reuse_allowed` false → wrap exits 4. `thread-release e:$entry run:$run_id` sets `reuse_allowed: true` for that id; wrap may then publish a new run with `reuse_allowed: false`. A second release against a different `run_id` exits 2. Document that release is operator acknowledgment, not proof descendants exited.
+12. **Release ack clears stop-uncertain finals; those alone do not:** fixture `final: true`, `final_writer: stop`, `completeness: unknown`, `reuse_allowed` false → wrap exits 4. `thread-release e:$action run:$run_id` sets `reuse_allowed: true` for that id; wrap may then publish a new run with `reuse_allowed: false`. A second release against a different `run_id` exits 2. Document that release is operator acknowledgment, not proof descendants exited.
 13. **New publish resets acknowledgment:** start from a record with `reuse_allowed: true` for run A (via release). Admit run B; assert B’s YAML has `reuse_allowed: false` and a new `run_id`. Force B into an orphaned supervisor state; wrap exits 4 (B does not inherit A’s ack). Release for B’s id is required before another start.
 14. **External interrupt outside `thread-stop` (beyond INT/TERM):** wrap `thread-probe-sleep` under `ASC_THREAD_PROBE=1` with **`ASC_WRAP_RETRY_MAX` ≥ 1** (and a short retry delay). After publish / begin, `SIGKILL` the **workload** child (supervisor can still see `137`) **without** `thread-stop`. Assert there is **no** retry after signal-like status, final has `stop_reason: interrupted` and `attempt_uncertain: true`, and a following direct wrap exits 4.
 15. **Sticky uncertainty on live `1` then `0` retry, with accepted overlap (required):** in the isolated tree, wrap the probe with `ASC_THREAD_PROBE=1`, `ASC_WRAP_RETRY_MAX` ≥ 1, short retry delay, and a fixture that on attempt 1 exits `1` **after** leaving a background child still running, then on attempt 2 returns `0` (e.g. `ASC_THREAD_PROBE_EXIT_SEQUENCE=1,0` plus a documented leftover-child mode). Assert: (a) attempt 2 **starts while that leftover child is still alive** (records the accepted overlap limitation — no descendant-gone barrier before retry); (b) the same `run_id` ends with `attempt_uncertain: true` (and `stop_reason: uncertain` or equivalent); (c) a following wrap **without** `thread-release` exits 4; (d) after `thread-release` for that id a new wrap may publish. Kill the leftover child in teardown. Do **not** satisfy this with only a double or only an interrupted-then-success story.
@@ -617,12 +617,12 @@ Read `/tmp/asc-probe-setsid-child.pids` (or the helper's output path). For **mai
 
 1. Pass `run:` of an older id after the entry has been replaced. Exit 2. The replacement pid is still alive. The YAML `run_id` is still the replacement.
 2. Omit `run:`. Under the mutex, stop copies the current id, sets `stop_requested`, and releases the mutex before signalling. While that sleeper is still alive, a second wrap in `skip` mode exits 0, prints the skip line, and leaves `run_id` unchanged. After stop has written `final` with completeness `unknown`, a new wrap still exits 4 until `thread-release` for that id; after release, a new wrap gets a different `run_id`. A fixture that changes `run_id` after `stop_requested` and before the final write is left unchanged by stop.
-3. The sleeper holds `data/threads/$entry.occupy.lock` for the whole sleep. `thread-stop` still acquires `data/threads/$entry.lock`, signals, and writes `final_writer: stop`. This is the deadlock test. If it cannot be written without holding the record mutex across the whole run, stop the task.
+3. The sleeper holds `data/threads/$action.occupy.lock` for the whole sleep. `thread-stop` still acquires `data/threads/$action.lock`, signals, and writes `final_writer: stop`. This is the deadlock test. If it cannot be written without holding the record mutex across the whole run, stop the task.
 4. After a final record exists, a second `thread-stop` of the same id does not change `final_writer` or `stop_reason`.
 5. Kill the test double that stands in for `thread-stop` after `stop_requested` is `true` and before `final` is `true`. `thread-status` does not print `exited`. Setting `stop_requested` alone must not be treated by the test harness as a delivered signal or a stopped workload.
-6. **Immediate stop on a published identity:** using the Task 2 publish-before-begin arrangement (or the first moments after begin while the record is still that `run_id`), `thread-stop e:$entry run:$run_id` addresses the published identity. Completeness remains whatever this task's supervisor path allows. Occupy ownership stays with the child until it exits.
-7. **Retry same identity:** from an unfinished `stop_requested` / not-`final` state, `thread-stop e:$entry run:$run_id` with the same recorded id either completes finalization for that id or again leaves a documented unfinished result. It must not exit 0 solely because the pid is missing from a partial check.
-8. **Retry must not hit a replacement:** after a new run has published a different `run_id`, `thread-stop e:$entry run:$old_run_id` exits 2 and leaves the replacement alive and unchanged.
+6. **Immediate stop on a published identity:** using the Task 2 publish-before-begin arrangement (or the first moments after begin while the record is still that `run_id`), `thread-stop e:$action run:$run_id` addresses the published identity. Completeness remains whatever this task's supervisor path allows. Occupy ownership stays with the child until it exits.
+7. **Retry same identity:** from an unfinished `stop_requested` / not-`final` state, `thread-stop e:$action run:$run_id` with the same recorded id either completes finalization for that id or again leaves a documented unfinished result. It must not exit 0 solely because the pid is missing from a partial check.
+8. **Retry must not hit a replacement:** after a new run has published a different `run_id`, `thread-stop e:$action run:$old_run_id` exits 2 and leaves the replacement alive and unchanged.
 9. **`wait` recheck (regression on Task 2):** while a sleeper holds occupy, start a second wrap with `ASC_THREAD_LOCK_MODE=wait`. During the wait, `thread-hold on` succeeds promptly. When the sleeper ends, the waiter must exit 3 and must not print `Thread started`. A separate case **without** a hold: after the occupant **returns normally** (`final_writer: supervisor`, no release), the waiter rechecks identity, publishes its own `run_id` with `reuse_allowed: false`, and is not considered admitted while it was only waiting.
 10. **Host-index / monitor compatibility:** with a fixture index row and YAML that omit the new keys (`run_id`, `host`, offset on `mtime`, `pid_start`), run the monitor hook path used by `f_thread_monitor_default`. It must not crash; for a still-`running` legacy row without `pid_start`, admission remains fail-closed (exit 4) and monitor/status must not invent a live successor by overwriting. After a new publish of a well-formed record, the monitor accepts the new keys. This keeps the existing consumer; it is not evidence for deleting the index.
 11. **Stale-check versus replacement:** load a fixture as if `thread-status` or the monitor had observed an old `running` identity (dead pid). Before the stale write, publish a replacement with a new `run_id`. The stale path, under the record mutex, must re-read, see the new `run_id`, and leave the replacement untouched (not rewritten as `stale`).

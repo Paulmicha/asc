@@ -108,9 +108,9 @@ Paths are relative to `$PROJECT_DOCROOT` unless they start with `$HOME`. `make c
 |----------|------|--------|-------------|
 | Log body | `data/logs/$entrypoint.txt` | `asc/log/storage.hook.sh` via `asc/log/log.wrap.sh` | Keep. The entry name is the make pivot. |
 | Log sidecar | `data/logs/$entrypoint.sidecar.txt` | same hook | Keep. One line per run. |
-| Rotated logs | `data/logs/$entry.txt.1` and `.2` | `f_log_rotate_file` in `asc/log/rotate.sh` | Keep. Size rotation, on `make log-rotate`. |
-| Thread record | `data/threads/$entry.yml` | `f_thread_yml_write` in `asc/thread/thread.inc.sh` | Keep. |
-| Thread lock | `data/threads/$entry.lock` | `f_thread_lock_acquire` | Keep. |
+| Rotated logs | `data/logs/$action.txt.1` and `.2` | `f_log_rotate_file` in `asc/log/rotate.sh` | Keep. Size rotation, on `make log-rotate`. |
+| Thread record | `data/threads/$action.yml` | `f_thread_yml_write` in `asc/thread/thread.inc.sh` | Keep. |
+| Thread lock | `data/threads/$action.lock` | `f_thread_lock_acquire` | Keep. |
 | Host thread index | `$HOME/.local/share/asc/threads/$hash.yml` | `f_thread_host_publish` | Keep while thread monitoring stays. This is `$HOME/.local/share`, a different tree from the registry’s `$HOME/.local/state`. Off when `ASC_MONITORING` or `ASC_HOST_THREAD_MONITOR` is `0`, `false`, or `off`. |
 | Agent next-steps | `NEXT_STEPS.agent.md` or `NEXT_STEPS.agent.$INSTANCE_TYPE.md` | `f_doc_next_steps_write` in `asc/doc/next_steps.sh` | Keep. The script refuses to write the human `NEXT_STEPS*.md` file and refuses to write gates. |
 | Print HTML | `data/tmp/doc-print/$name.html` | `asc/doc/md2pdf_asc.py`, `asc/doc/html_preview.sh` | Keep with the print pipeline. |

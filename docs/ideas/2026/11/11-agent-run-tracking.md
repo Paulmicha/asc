@@ -1,5 +1,7 @@
 # Agent run tracking: what runs, where, and who records it
 
+> **2026-11-13 direction:** [Local action records](13-local-action-records.md) now proposes active thread claims removed after confirmed completion, with old or uncertain claims investigated before reuse. The retained-record and ledger options below are earlier exploration, not the current thread-history direction. ASC-handled chats also have a separate proposed Markdown archive.
+
 - **Date:** 2026-11-11
 - **Status:** open idea / comparison. Nothing here is decided or approved.
 - **Scope:** how ASC knows which agent work is running, on which host, and where that state is stored.
@@ -17,7 +19,7 @@ They need different answers. Mixing them is how a central state manager gets inv
 
 | Thing | What it is | Who already tracks it | What ASC needs |
 |---|---|---|---|
-| **Thread** | An OS process tree started from a make entry point on one host. | ASC: `data/threads/$entry.yml`. | A record. This is the only one ASC owns. |
+| **Thread** | An OS process tree started from a make entry point on one host. | ASC: `data/threads/$action.yml`. | A record. This is the only one ASC owns. |
 | **Session** | A conversation held by a product (Cursor, Codex, Claude Code). It outlives processes and may have none. | The product, in its own store. | A pointer (`provider_session_id`) in the thread or chat result. No copy. |
 | **Model server** | A long-lived service answering requests (Ollama, Ollaya, a LAN endpoint). | Its service manager and its own `ps` / `status` verb. | A status probe. No run record. |
 
@@ -61,7 +63,7 @@ Add `run_id` and `host` to the thread record and the host index. Write timestamp
 One JSON line when a thread starts, one when it ends. Never rewritten.
 
 - Where, two candidates:
-  - per instance, by making the existing launch line in `data/logs/$entry.sidecar.txt` structured and adding an end line. No new file. Cross-project view needs a walk over known instances.
+  - per instance, by making the existing launch line in `data/logs/$action.sidecar.txt` structured and adding an end line. No new file. Cross-project view needs a walk over known instances.
   - per host, `$XDG_STATE_HOME/asc/runs/YYYY/MM/DD.$host.jsonl`. One glob answers "what ran today". One more location to explain.
 - One file per day per writing host means no lock, no rotation job, and merging two machines is `cat`.
 - The host index YAML files become a derived view (last line per `docroot` + `entry`) and could be dropped.
@@ -73,8 +75,8 @@ One JSON line when a thread starts, one when it ends. Never rewritten.
 Start each thread as a transient unit. ASC names it and records the name.
 
 ```bash
-systemd-run --user --unit="asc-$slug-$entry" --collect \
-  -p LogExtraFields="ASC_ENTRY=$entry" -- make "$entry"
+systemd-run --user --unit="asc-$slug-$action" --collect \
+  -p LogExtraFields="ASC_ENTRY=$action" -- make "$action"
 ```
 
 Observed on this host (systemd 257) with a throwaway unit:

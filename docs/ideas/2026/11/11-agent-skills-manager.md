@@ -1,9 +1,9 @@
 # Agent skills manager
 
-- **Date:** 2026-11-11
+- **Date:** 2026-11-11 (adjacent tooling notes added 2026-11-13)
 - **Status:** research idea / comparison; not an approved design or implementation plan
-- **Scope:** ten public skill repositories and a proposed ASC skill-management capability
-- **Method:** repository documentation inspected on 2026-11-11. No skill was installed or run, no benchmark was performed, and this is not a security review of the repositories.
+- **Scope:** ten public skill repositories, one adjacent skill-discovery product, and a proposed ASC skill-management capability
+- **Method:** skill-repository documentation inspected on 2026-11-11. On 2026-11-13, [AI Engineer Coach](https://github.com/microsoft/ai-engineering-coach) documentation and selected source paths were inspected for install and discovery patterns. No skill or extension was installed or run, no benchmark was performed, and this is not a security review of the repositories.
 
 ## Decision in brief
 
@@ -29,6 +29,12 @@ This note considers how agent skills might support software development, researc
 | [Superpowers](https://github.com/obra/superpowers) | Development process skills | High; already available | Use selectively with existing project guidance. |
 | [Taste Skill](https://github.com/Leonxlnx/taste-skill) | Frontend art direction and review | Medium for websites | Compare with Impeccable on a concrete UI. |
 | [Hallmark](https://github.com/mHalo/hallmark-skill) | Themed interface design and critique | Low–medium at present | Defer until a specific design need. |
+
+### Adjacent tooling (not a skill package)
+
+| Product | Primary use | Fit for this note | Suggested action |
+|---|---|---|---|
+| [AI Engineer Coach](https://github.com/microsoft/ai-engineering-coach) | Local session analytics; skill discovery and install into the user profile | Medium for management design; low as a skill source | Reuse observed install and discovery patterns below. Do not treat the dashboard as a skill trial candidate unless session-log analysis is itself the goal. |
 
 ## Repository findings
 
@@ -102,6 +108,14 @@ The [repository](https://github.com/mattpocock/skills) presents small, editable 
 
 **Potential use:** explore a deliberate visual direction for a public page or prototype. **Priority:** lower than the other candidates while retrieval, storage and trust boundaries remain the immediate questions. Compare it against the other design skills on the same brief rather than enabling several overlapping instructions together.
 
+### Adjacent: AI Engineer Coach
+
+[AI Engineer Coach](https://github.com/microsoft/ai-engineering-coach) analyzes local AI coding-assistant session logs and can suggest reusable skills from repeated prompts. It also matches usage against a community catalog ([awesome-copilot](https://github.com/github/awesome-copilot)) and can install instruction markdown under `~/.agents/skills/`. Its own repo keeps a canonical `skills/` directory and exposes the same files to other harnesses via symlinks (for example `.claude/skills/` and `.github/instructions/`). Context-health checks look for `SKILL.md` under paths such as `.agents/skills`, `.claude/skills` and `.github/skills`.
+
+**Relevance to ASC:** useful as an observed external pattern for destinations, adapters and third-party acquisition—not as an eleventh skill package to trial alongside Graphify or Ponytail. Optional AI features depend on the host language-model API and network catalog access; the extension itself is not a substitute for ASC-maintained install/uninstall contracts.
+
+**Limits observed in its install path (from documentation and selected source):** catalog and generated installs write a single markdown file (typically `SKILL.md`), not a full package tree; the default target is the user home profile rather than a project instance; writes proceed without an ownership record or collision refusal. Those choices are reasonable for a coaching UI and are weaker than the ASC contract proposed below.
+
 ## Proposed experiments
 
 These are research options, not authorized implementation or installation decisions.
@@ -161,11 +175,11 @@ Enabling an ASC extension and installing an agent skill are separate operations.
 
 ### Source and destination
 
-Begin with a narrow use case: a known local skill package with a clear ASC-maintained source. Install the entire directory, including supporting references and scripts, into `.agents/skills/<name>/` relative to the current project instance docroot. Copying only `SKILL.md` can break a package that refers to other files. Whether an explicitly supplied local source is also needed should be decided from a concrete use case.
+Begin with a narrow use case: a known local skill package with a clear ASC-maintained source. Install the entire directory, including supporting references and scripts, into `.agents/skills/<name>/` relative to the current project instance docroot. Copying only `SKILL.md` can break a package that refers to other files. File-only third-party install is common (AI Engineer Coach catalog install is one example) and is insufficient for ASC packages that ship references or scripts. Whether an explicitly supplied local source is also needed should be decided from a concrete use case.
 
-Do not assume every agent or host discovers the same directory, or that installation forces invocation. Additional agent-specific destinations, links or adapters should be considered separately and tested with the relevant agent. The home directory can itself be an ASC instance; in that case its `.agents/skills` destination may also be user-wide for some agents. The action must show the resolved destination and scope rather than presenting all instances as project-only.
+Do not assume every agent or host discovers the same directory, or that installation forces invocation. Additional agent-specific destinations, links or adapters should be considered separately and tested with the relevant agent. A concrete external pattern is a single canonical package plus harness-specific symlinks or adapters, rather than duplicated copies. Discovery paths that appear in practice include project `.agents/skills`, `.claude/skills` and `.github/skills` (looking for `SKILL.md`), as well as user-profile locations such as `~/.agents/skills`. The home directory can itself be an ASC instance; in that case its `.agents/skills` destination may also be user-wide for some agents. Prefer project-instance install for ASC-managed packages unless the user explicitly chooses a home/user-wide scope. The action must show the resolved destination and scope rather than presenting all instances as project-only.
 
-Third-party acquisition adds provenance, version pinning, licensing, network access and trust concerns. It should be a separate future decision, preferably delegated to an appropriate existing installer rather than turning ASC into a general-purpose package manager. Installing a package that includes scripts also does not mean those scripts are safe or should be executed automatically.
+Third-party acquisition adds provenance, version pinning, licensing, network access and trust concerns. It should be a separate future decision, preferably delegated to an appropriate existing installer rather than turning ASC into a general-purpose package manager. An external catalog with pinned hosts, path allowlists, size limits and no follow-on redirects is one pattern for delegated acquisition; it still does not replace ownership and collision rules for the destination. Installing a package that includes scripts also does not mean those scripts are safe or should be executed automatically.
 
 ### Ownership, collisions and removal
 
@@ -178,7 +192,7 @@ The destination can contain human-authored skills, existing ASC-managed skills, 
 5. **Avoid partial installations.** Define staging, failure and cleanup behavior so a failed copy or interrupted operation does not appear to be a complete installation.
 6. **Keep updates separate.** A later update action must distinguish an unchanged installed copy from local customization. Re-running install must not silently overwrite a customized copy.
 
-These are proposed behavioral requirements, not claims that ASC currently enforces them. A useful implementation would also make repeated operations and missing sources predictable, and give clear messages about the destination and the reason for refusing an operation.
+These are proposed behavioral requirements, not claims that ASC currently enforces them. A useful implementation would also make repeated operations and missing sources predictable, and give clear messages about the destination and the reason for refusing an operation. Write-through install into an always-present user profile without ownership or collision checks (as in AI Engineer Coach) is a useful contrast: ASC should keep the stricter contract above rather than adopt that UI pattern.
 
 ### Interaction with core upgrade
 
@@ -198,6 +212,8 @@ Before any code is proposed or written, inspect current builder templates, relev
 - Is installation declared in versioned project configuration, recorded only in local state, or both? How are these reconciled on another machine?
 - What is the intended behavior for user edits, missing or altered ownership records, partial installs and symlinks?
 - How should the mechanism interact with core upgrade and its existing managed skills?
-- Is a local source sufficient, or is a separately delegated installer required? Which agent-specific discovery paths are actually needed?
+- Is a local source sufficient, or is a separately delegated installer required?
+- Which agent-specific discovery paths are actually needed among project `.agents/skills`, harness paths such as `.claude/skills` and `.github/skills`, and user-profile `~/.agents/skills`? When is a symlink or adapter justified versus a second copy?
+- When third-party acquisition is eventually considered, is file-only `SKILL.md` install ever acceptable, or must ASC always require a full package tree?
 
 A future implementation should exercise a successful install and uninstall, collisions with unmanaged files, modified installed files, invalid names, failure during installation, repeated actions, and the home-instance scope. It should also verify that enabling an extension alone does not install a skill. These tests are proposed validation, not tests run for this note.

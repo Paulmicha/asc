@@ -11,19 +11,19 @@ A **thread** is a process tree started from a make entry point on one host. An a
 
 Reasoning, comparisons and sources: [run tracking](../../ideas/2026/11/11-agent-run-tracking.md), [control actions](../../ideas/2026/11/11-agent-control-actions.md), [queue and priority](../../ideas/2026/11/11-agent-queue-and-priority.md), [record conventions](../../ideas/2026/11/11-record-conventions.md), [loose ends](../../ideas/2026/11/11-agent-tracking-loose-ends.md).
 
-The later [local action records idea](../../ideas/2026/11/13-local-action-records.md) discusses dated wrapper logs and the open distinction between thread tracking and concurrency. Observed paths below remain the current-code inventory.
+The later [local action records idea](../../ideas/2026/11/13-local-action-records.md) sets the direction for active-only thread files, with target paths for singleton, parallel, sequence and independent concurrent runs. Their existence means an attempt has claimed a slot, and confirmed completion removes them. An unusually old claim calls for investigation, not automatic deletion. The observed paths below remain the current-code inventory; the new layout and lifecycle are not implemented.
 
 ## Locations (observed)
 
 | Path | Content | Lifetime |
 |---|---|---|
-| `data/threads/$entry.yml` | thread record | overwritten each run |
-| `data/threads/$entry.lock` | `flock` lock file, fd 9 | permanent |
-| `data/logs/$entry.txt` | stdout and stderr | truncated each run; rotated to `.1`, `.2` by `log-rotate` above 1 MiB |
-| `data/logs/$entry.sidecar.txt` | one launch line per run | appended |
+| `data/threads/$action.yml` | thread record | overwritten each run |
+| `data/threads/$action.lock` | `flock` lock file, fd 9 | permanent |
+| `data/logs/$action.txt` | stdout and stderr | truncated each run; rotated to `.1`, `.2` by `log-rotate` above 1 MiB |
+| `data/logs/$action.sidecar.txt` | one launch line per run | appended |
 | `$HOME/.local/share/asc/threads/$hash.yml` | host index entry | overwritten; healed by the `thread` `monitor` hook |
 
-`$entry` is a make entry point name. Only valid entry points are accepted. `$hash` is the first 16 hex characters of the sha256 of `$docroot::$entry`. All of `data/threads/` and `data/logs/` is git-ignored.
+`$action` is a make entry point name. Only valid entry points are accepted. `$hash` is the first 16 hex characters of the sha256 of `$docroot::$action`. All of `data/threads/` and `data/logs/` is git-ignored.
 
 ## Thread record (observed)
 
@@ -65,7 +65,7 @@ $datestamp : $human_user (euid=$euid) : $script $args
 | `ASC_WRAP_RETRY_MAX` | `0` | extra attempts; none after exit 0, 130, 143 |
 | `ASC_WRAP_RETRY_DELAY` | `10s` | pause between attempts |
 | `ASC_THREAD_TRIGGER` | `manual` | recorded as `trigger` |
-| `ASC_WRAP_EMITTER`, `ASC_WRAP_RECEIVER`, `ASC_WRAP_KIND` | `manual`, `$entry`, `thread-wrap` | exported to the child |
+| `ASC_WRAP_EMITTER`, `ASC_WRAP_RECEIVER`, `ASC_WRAP_KIND` | `manual`, `$action`, `thread-wrap` | exported to the child |
 | `ASC_MONITORING`, `ASC_HOST_THREAD_MONITOR` | on | host index publish and sweep |
 
 A wrapped command runs with stdin from `/dev/null`, `ASC_WRAP_NONINTERACTIVE=1` and `GIT_TERMINAL_PROMPT=0`. Entry points marked `@requires interactive` are refused.
@@ -79,8 +79,8 @@ A wrapped command runs with stdin from `/dev/null`, `ASC_WRAP_NONINTERACTIVE=1` 
 | `logged-thread` (`lt`), `logged-batch` (`lb`), `logged-sequence` (`ls`), `logged-pipe` (`lp`) | log wrap around the thread action of the same name |
 | `logged-chain` (`lc`) | log wrap around `asc/instance/chain.sh` |
 | `thread-list` | table: entry, pid, owner, status, started, last update, output |
-| `thread-status e:$entry` | exit 0 running, 2 not running, 1 no record |
-| `thread-batch e:$entry a:$arg workers:$n` | waves of at most `$n`; worst exit code |
+| `thread-status e:$action` | exit 0 running, 2 not running, 1 no record |
+| `thread-batch e:$action a:$arg workers:$n` | waves of at most `$n`; worst exit code |
 | `thread-sequence`, `thread-pipe` | fixed lists |
 | `log-rotate` | size-based rotation |
 
@@ -103,10 +103,10 @@ Provider lifecycle pivots (`agent-list`, `agent-pull`, `agent-start`, `agent-sta
 | Run identifier | `$started_compact-$pid`; systemd invocation id; ULID or UUIDv7 | first |
 | Host field | short hostname; a name from the host registry | undecided; never in tracked files |
 | Timestamps | add the UTC offset | yes |
-| History | none; structured sidecar with an end line; host ledger `$XDG_STATE_HOME/asc/runs/YYYY/MM/DD.$host.jsonl`; the systemd journal | try the journal before writing a ledger |
+| History | Active thread files are removed after confirmed completion; a separate logged-wrapper output may remain | No retained completed thread record in the new direction; optional log completion metadata remains open |
 | Supervisor | background subshell (today); `systemd-run --user` transient unit; a queue daemon; a terminal runtime | try transient units on one long entry |
 | Host index location | `.local/share` (today); `.local/state` with the registry | undecided |
-| Stop | `thread-stop e:$entry`: process group signal, or unit stop | needed; cgroup is the reliable form |
+| Stop | `thread-stop e:$action`: process group signal, or unit stop | needed; cgroup is the reliable form |
 | Stop all | unit glob; a hold file the wrapper refuses to start under | undecided |
 | Queue | `flock` wait (today); a queue tool; a spool directory and timer | none until a waiting list exists |
 | Priority | resource weight (`nice`, slices); order in the backlog | weight first |

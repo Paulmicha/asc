@@ -6,7 +6,7 @@ Sources, all `status: draft`: [agent threads](../../../specs/asc/agent-threads.m
 
 This is the list of choices those texts leave open. A lean is a preference written in the source. It is not a decision, and this note does not approve one. Nothing here is an implementation go-ahead.
 
-The [thread-control plan](../../../plans/2026/11/11-thread-control-before-agent-plan.md) already proposes a contract for the run id, the host string, the offset, stop, and the hold file. Those rows stay open in the threads spec.
+The earlier [thread-control plan](../../../plans/2026/11/11-thread-control-before-agent-plan.md) needs revision for the newer [active-claim direction](13-local-action-records.md). Its run identity, stop and recovery details remain to be reconciled; its existing contract is not ready to implement.
 
 ## Threads
 
@@ -16,7 +16,7 @@ The [thread-control plan](../../../plans/2026/11/11-thread-control-before-agent-
 | Run id | `$started_compact-$pid`, systemd invocation id, or ULID/UUIDv7 | the first |
 | Host field | short hostname, or a name from the host registry | undecided; never in a tracked file |
 | Timestamps | add a numeric UTC offset | yes |
-| History | none, an end line on the sidecar, a host JSONL ledger, or the systemd journal | try the journal before writing a ledger |
+| Thread file lifetime | active claim removed after confirmed completion; uncertain or unusually old claim investigated | current direction; separate wrapper logs may remain; cleanup and recovery details are open |
 | Supervisor | today's background subshell, a `systemd-run --user` unit, a queue daemon, or a terminal runtime | try one transient unit on one long entry |
 | Host index location | `$HOME/.local/share` (today) or `$HOME/.local/state` beside the registry | undecided |
 | Stop | process-group signal, or stop the unit | needed; a cgroup is the reliable form |

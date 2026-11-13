@@ -1,5 +1,7 @@
 # Agent control actions: what exists, what is missing
 
+> **2026-11-13 direction:** [Local action records](13-local-action-records.md) proposes active-only thread claims and separate dated wrapper logs. The stop-result and retained-record questions below must be revisited against that lifecycle; old or uncertain claims need investigation, not age-based removal.
+
 - **Date:** 2026-11-11
 - **Status:** open idea / gap list. No action here is approved for implementation.
 - **Scope:** the verbs a human needs over running agent work: list, inspect, stop, queue, prioritise, pause, wait, limit.
@@ -15,14 +17,14 @@ A missing verb is first a question: which existing tool already does it? An ASC 
 
 | Verb | Today (observed) | Gap | Cheapest existing tool | Candidate |
 |---|---|---|---|---|
-| Start | `thread-wrap`, `log-wrap`, `make lt e:$entry` | — | — | — |
+| Start | `thread-wrap`, `log-wrap`, `make lt e:$action` | — | — | — |
 | Start many | `thread-batch` (`workers:N`), `thread-sequence`, `thread-pipe` | static lists only | — | — |
 | List, this project | `thread-list` | latest run per entry only | — | — |
 | List, this host | host index files exist; no action prints them | no reader | `systemctl --user list-units 'asc-*'` if runs are units | `host-thread-list` |
 | List, other host | none | — | `ssh $host make thread-list` | no new action |
-| Status | `thread-status e:$entry` (exit 0 running, 2 not running, 1 no record) | pid reuse | unit state | — |
-| Read output | `data/logs/$entry.txt` | truncated each run | `tail -f`; `journalctl --user -fu` | no new action |
-| **Stop** | none | whole verb | `systemctl --user stop`; else `kill` on a process group | `thread-stop e:$entry` |
+| Status | `thread-status e:$action` (exit 0 running, 2 not running, 1 no record) | pid reuse | unit state | — |
+| Read output | `data/logs/$action.txt` | truncated each run | `tail -f`; `journalctl --user -fu` | no new action |
+| **Stop** | none | whole verb | `systemctl --user stop`; else `kill` on a process group | `thread-stop e:$action` |
 | **Stop all** | none | whole verb | `systemctl --user stop 'asc-*'` | `thread-stop-all`, or a hold file |
 | Pause / resume | none | — | `systemctl --user freeze` / `thaw`; `kill -STOP` / `-CONT` | probably none |
 | Wait | poll `thread-status` | — | `systemd-run --wait`; `wait $pid` | none |

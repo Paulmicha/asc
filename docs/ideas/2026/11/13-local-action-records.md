@@ -3,10 +3,10 @@
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-11-13 |
-| **Status** | Idea in progress. Paths for wrapper logs and chat archives express the current direction; concurrency, migration, and implementation details remain open. This is not an implementation go-ahead. |
+| **Status** | Idea in progress. Dated wrapper logs, chat archives and active-only thread files express the current direction; concurrency, recovery, migration and implementation details remain open. This is not an implementation go-ahead. |
 | **Scope** | Local files produced around ASC actions: captured process output, ASC-handled agent conversations, and running thread state. Deprecate the old `data/changes/` layout. |
 
-`$action` means the wrapped ASC make entry point; `$entry` is the same kind of
+`$action` means the wrapped ASC make entry point; `$action` is the same kind of
 name in existing thread code. Paths are relative to the project docroot unless
 explicitly stated otherwise. A host is the machine running the work, such as a
 laptop or Raspberry Pi.
@@ -17,7 +17,7 @@ laptop or Raspberry Pi.
 |-------|---------|--------------------------|
 | Wrapper log | Combined stdout and stderr of one logged launch, for inspection and troubleshooting | Proposed dated file under `data/logs/` |
 | Chat archive | Prompts and replies handled by ASC, for a human to read as a conversation | Proposed Markdown under `data/agent/chats/` |
-| Thread state | Identify and control running thread-wrapped work on the host | Currently one YAML record and lock per project entry under `data/threads/`, plus a host index |
+| Thread state | Identify attempted or active thread-wrapped work on the host | Proposed active-only files under `data/threads/`; exact layout and coordination remain open |
 | Action work product | Whatever the action itself creates, such as a plan or an export | Owned by that action, not by the log wrapper |
 
 One launch can have all four. A wrapper log is an **additional file**; it does
@@ -51,8 +51,8 @@ change its own work products.
 
 **Current code:** the default [storage hook](../../../../asc/log/storage.hook.sh)
 backgrounds the wrapped call with `nohup`, redirects both streams to
-`data/logs/$entry.txt`, and appends a launch line to
-`data/logs/$entry.sidecar.txt`. A later launch normally truncates that output;
+`data/logs/$action.txt`, and appends a launch line to
+`data/logs/$action.sidecar.txt`. A later launch normally truncates that output;
 the log wrapper first skips a start it detects as already running. `make lt`
 returns after starting the background wrapper and does not return the eventual
 wrapped action's exit status. The existing
@@ -134,8 +134,8 @@ this mother note does not migrate them.
 
 ## Thread state and concurrency: advice
 
-**Current shape.** `data/threads/$entry.yml` is a latest-only record and
-`data/threads/$entry.lock` is an entry lock within one project instance. The
+**Current shape.** `data/threads/$action.yml` is a latest-only record and
+`data/threads/$action.lock` is an entry lock within one project instance. The
 wrapper uses PID-based checks. A host index under the user's home is keyed by
 project docroot and entry, but the mother configuration does not run its
 monitor automatically. The [thread spec](../../../specs/asc/agent-threads.md)
@@ -149,15 +149,65 @@ does not mean each child is independently `thread-wrap`-tracked. The current
 `skip` / `wait` entry lock controls repeated launches of an entry; it is not
 a durable, ordered queue or a general limit across unrelated entries.
 
-**Recommendation.** Keep the current small, single-run-per-entry thread
-control plan as a first step. Different entries can run concurrently, and a
-batch can run its children concurrently within its existing bound. Keep
-sequential composition explicit where ordering matters. Separate these
-questions before adding new storage:
+### Direction: active claims, not thread history
+
+A thread file is intended to exist while a start is claimed or being attempted
+and while the associated work may still be active. Its presence means **an
+attempt was made and the claim has not been cleared**. It does not prove that
+the workload is currently running, that it started successfully, or that its
+process tree has stopped. On confirmed completion, remove the active file
+promptly; do not retain a completed YAML record as thread history. If a history
+is wanted, the separately requested `logged-*` wrapper can provide output in
+its log. Unlogged calls need not leave a historical trace. Whether a wrapper
+log should also record completion or exit status remains a separate decision.
+
+If an existing file is older than the period reasonably expected for that
+work, it calls for investigation before establishing that another start is
+safe. Age is a **signal to investigate**, not proof of failure, permission to
+delete the file, or an automatic timeout. A file may survive a crash or reboot,
+and a long-running job may legitimately exceed an estimate. How expected
+duration is supplied, what to show when it is unknown, and how the operator
+investigates and clears a claim remain open. The same caution applies when the
+supervisor is missing or a stop outcome is uncertain, even if the file is not
+old. Do not assume a missing supervisor means all descendants or remote work
+have stopped.
+
+Predictable paths can indicate a singleton claim, but existence alone does not
+serialize two concurrent starters: claim creation needs an atomic mechanism.
+Atomic creation is a candidate, not a settled implementation or proof that
+all separate locks can be removed. Cleanup and recovery must identify the
+specific claim so an old process cannot remove a newer one. Preserve an
+uncertain claim for investigation until it is established safe to clear;
+the precise evidence and recovery interface remain to be designed.
+
+### Target layout
+
+The intended layout distinguishes singleton entries, composite work and
+independently concurrent runs:
+
+| Case | Target active files |
+|------|---------------------|
+| An entry that cannot have concurrent instances | `data/threads/singleton/$action.yml` |
+| Children of a parallel batch | `data/threads/parallel/$action/index.yml`, `data/threads/parallel/$action/thread-1.yml`, and further child files |
+| Steps of a sequence | `data/threads/sequence/$action/index.yml`, `data/threads/sequence/$action/step-1.yml`, and further step files |
+| Concurrent runs without a specific batch or sequence | `data/threads/$action-1.yml`, `data/threads/$action-2.yml`, and further run files |
+
+The numbered names illustrate separate active files. Their exact allocation,
+including multiple concurrent batches or sequences with the same `$action`, is
+not yet specified. An index and its child files must have clear owners and a
+cleanup and recovery lifecycle; a finished child must not erase evidence needed
+to investigate uncertain work. These paths do not themselves enforce
+singletons or provide synchronization. The separate `$action.lock` in today's
+layout is not a goal of this target, but whether another coordination mechanism
+or lock is needed remains open.
+
+Different entries may run concurrently, and a batch can run children within
+its bound. Keep sequential composition explicit where ordering matters.
+Separate these questions before implementing the layout:
 
 1. **Identity:** if two independent runs of the *same* entry must be tracked
    concurrently, each needs its own run identity and independently addressable
-   status. One `$entry.yml` cannot represent both. A run ID must be checked
+   status. One `$action.yml` cannot represent both. A run ID must be checked
    against process identity before signalling; a filename or PID alone does
    not establish it.
 2. **Admission:** decide which work conflicts based on what it actually
@@ -178,12 +228,13 @@ questions before adding new storage:
    to inspect, reorder, cancel, or survive a restart.
 
 The existing [thread-control plan](../../../plans/2026/11/11-thread-control-before-agent-plan.md)
-proposes a run ID, separate short record and long occupancy locks, hold, stop,
-and conservative recovery for one current run per entry. It is not an
-implementation or an authorization to run the agent loop. A same-entry
-concurrent-run design would change its single-current-run and stop semantics;
-revise that plan explicitly before trying to combine the two. A normal
-supervisor return and an uncertain stop have different slot-reuse rules there.
+proposed retained final YAML records, separate record and occupancy locks,
+hold, stop, and recovery for one current run per entry. Its lifecycle and
+single-current-run assumptions need revision for this direction before its
+thread-control tasks can be implemented. Preserve the distinction between an
+accepted stop request and observed completion, and do not clear uncertain work
+without investigation. The new direction does not authorize a real long-running
+`agent-plan` loop.
 
 ## Git and remaining decisions
 
@@ -198,9 +249,9 @@ supervisor return and an uncertain stop have different slot-reuse rules there.
 - `data/test-results/` contains tracked frozen fixtures and has a separate
   history. Do not apply a blanket `data/` ignore or change test-result policy
   as a side effect.
-- Decide separately whether `.txt` logs need metadata, how long local logs and
-  chat archives are kept, and whether any thread history beyond latest state is
-  needed. Logs, chat archives and thread state need not have the same lifetime.
+- Decide separately whether `.txt` logs need completion metadata and how long
+  local logs and chat archives are kept. Thread files are active claims, not
+  retained thread history; logs and chat archives need not share their lifetime.
 
 This note starts the design. Implementation, migration, tests, and any changes
 to the existing single-entry thread-control contract need their own concrete

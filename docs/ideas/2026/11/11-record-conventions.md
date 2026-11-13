@@ -1,5 +1,7 @@
 # Record conventions: ids, time, hosts, paths, status words
 
+> **2026-11-13 update:** The [active-claim direction](13-local-action-records.md) removes thread files after confirmed completion. Older proposals below about retained thread records are historical; identity, timestamps, investigation and recovery still need a concrete contract.
+
 - **Date:** 2026-11-11
 - **Status:** open idea / reconciliation list. Nothing here is decided.
 - **Scope:** the small conventions every agent-related record shares, and where the current docs and code disagree.
