@@ -12,9 +12,9 @@
 #
 # To list all the possible paths that can be used among which existing files_arr
 # will be sourced when the hook is triggered, run (in this order) :
-# $ make hook-debug s:chat p:pre a:read v:STACK_VERSION HOST_TYPE chat_TYPE
-# $ make hook-debug s:chat a:read v:STACK_VERSION HOST_TYPE chat_TYPE
-# $ make hook-debug s:chat p:post a:read v:STACK_VERSION HOST_TYPE chat_TYPE
+# $ make hook-debug s:chat p:pre a:read v:STACK_VERSION HOST_TYPE CHAT_PROVIDER
+# $ make hook-debug s:chat a:read v:STACK_VERSION HOST_TYPE CHAT_PROVIDER
+# $ make hook-debug s:chat p:post a:read v:STACK_VERSION HOST_TYPE CHAT_PROVIDER
 #
 # @example
 #   make chat-read
@@ -24,6 +24,10 @@
 
 . asc/bootstrap.sh
 
-hook -s 'chat' -p 'pre' -a 'read' -v 'STACK_VERSION HOST_TYPE chat_TYPE'
-hook -s 'chat' -a 'read' -v 'STACK_VERSION HOST_TYPE chat_TYPE'
-hook -s 'chat' -p 'post' -a 'read' -v 'STACK_VERSION HOST_TYPE chat_TYPE'
+if [[ -z "$CHAT_PROVIDER" ]]; then
+  CHAT_PROVIDER='dummy'
+fi
+
+hook -s 'chat' -p 'pre' -a 'read' -v 'STACK_VERSION HOST_TYPE CHAT_PROVIDER'
+hook -s 'chat' -a 'read' -v 'STACK_VERSION HOST_TYPE CHAT_PROVIDER'
+hook -s 'chat' -p 'post' -a 'read' -v 'STACK_VERSION HOST_TYPE CHAT_PROVIDER'

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ##
-# List usable agent models.
+# List usable agents.
 #
 # @example
 #   make agent-list
@@ -11,4 +11,4 @@
 
 . asc/bootstrap.sh
 
-hook_ms -s 'agent' -a 'list' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
+hook -s 'agent' -a 'list' -v 'HOST_OS HOST_TYPE INSTANCE_TYPE'
