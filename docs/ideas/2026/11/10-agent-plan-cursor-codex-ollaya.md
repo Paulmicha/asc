@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-11-10 |
-| **Status** | **idea / settled design** — contracts settled; implementation planning in [10-agent-plan-cursor-codex-ollaya-impl.md](../../../plans/2026/11/10-agent-plan-cursor-codex-ollaya-impl.md). Nothing here is an implementation go-ahead. |
+| **Status** | **idea / design** — the conversation archive addition has open contracts; implementation planning is in [10-agent-plan-cursor-codex-ollaya-impl.md](../../../plans/2026/11/10-agent-plan-cursor-codex-ollaya-impl.md). Nothing here is an implementation go-ahead. |
 | **Goal** | One ASC action that drafts a changelog plan with Cursor, reviews it with Codex against the **original brief and declared needs**, and stops when that named next step is ready—preserving the distinction between “reviewer found no blockers” and “ready for the next step” **inside the result**, with one public predicate `plan-is 'ready'` for independent callers. |
 | **v1 products** | Cursor (writer), Codex (reviewer). Optional Ollaya hook behind `plan-is 'ready'` only when free-form interpretation earns its keep. Claude deferred. |
 | **Visibility** | Headless CLI / SDK sessions. Desktop-visible “type into the open composer” stays in [27-desktop-agent-terminal-reply.md](../../../plans/2026/09/27-desktop-agent-terminal-reply.md). |
@@ -24,7 +24,7 @@ v1 therefore accepts background conversations and a durable changelog file as th
 
 ---
 
-## Decisions locked in review
+## Design decisions and open additions
 
 | Topic | Choice |
 |-------|--------|
@@ -47,6 +47,7 @@ v1 therefore accepts background conversations and a durable changelog file as th
 | Codex model | **GPT Terra 6.1 – High effort** |
 | Max rounds | **8** (§7) |
 | Prompt interface | File or stdin primary |
+| Conversation archive | Proposed human-readable Markdown per chat; see [agent chats](../../../specs/asc/agent-chats.md). The sandbox handoff and recovery contract remain to be designed. |
 | `chat/read` + `chat/archive` | Rename `chat_TYPE` → `CHAT_TYPE`; keep plain `hook`; no JSON I/O |
 | Claude | Deferred |
 
@@ -108,6 +109,11 @@ Make runs the target in a **subprocess** ([`call_wrap.make.sh`](../../../../asc/
 - Machine result → **exactly one JSON object on stdout**.
 - Encode string fields (`prompt`, `reply_text`, errors that may carry text) with a proper JSON encoder; do not interpolate unescaped shell strings into JSON via `printf`.
 - Optional `result:<path>` mirror; stdout authoritative.
+- `chat-new` and `chat-reply` are also to maintain the proposed human-readable
+  conversation archive in [agent chats](../../../specs/asc/agent-chats.md).
+  Its path must be available to callers without parsing Markdown. Association,
+  failure handling, and the sandbox-to-orchestrator handoff are open design
+  work; do not weaken §4 isolation to write the live archive.
 
 **Schema** (always attempt before exit; ids nullable when no session yet):
 
@@ -228,6 +234,11 @@ Post-turn scans are **detection**, not prevention, unless a sandbox enforces the
 | `weakened` | Sandbox/profile unavailable | Allowed when step 0 records it. Omit reviewer `--force`/`--yolo`; inventory (§4a) detects docroot diffs. Does not prevent command-tool writes, ignored-channel writes, restores-before-scan, or writes via allowlisted auth paths. Smoke prints `weakened`. |
 
 **Handoff:** `f_plan_sandbox_run writer|reviewer -- <chat-new|chat-reply cmdline…>` wraps the entire harness subprocess so provider hooks inherit confinement without loading `plan_sandbox` themselves. Bare `make chat-new` outside that wrapper is **not** an `enforced` path.
+
+**Archive handoff remains open:** the proposed ASC chat archive belongs in the
+live instance, but the sandboxed harness cannot write it there under this
+boundary. Specify and test how the outside orchestrator persists ASC-handled
+turns before implementing that path; do not add a live writable provider bind.
 
 **ASC generated state (exception + trust boundary):**
 

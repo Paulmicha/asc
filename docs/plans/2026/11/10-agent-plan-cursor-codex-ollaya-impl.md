@@ -12,6 +12,8 @@
 
 **Authorization:** Not an implementation go-ahead by itself. Do not enable `agent` / `asc/cursor` / `asc/codex` / `asc/ollaya` on the mother by default. Mother `.asc_extensions_ignore` **must** list `asc/ollaya` whenever that contrib exists (already added preemptively; keep it). No Claude. No gates row unless asked. Commit only when asked.
 
+**2026-11-13 archive addition:** The [chat spec](../../../specs/asc/agent-chats.md) proposes a human-readable Markdown archive for each ASC-handled conversation. Its association, failure and sandbox handoff contracts are not yet settled; resolve the archive design gate below before implementing the chat actions or the live archive path.
+
 ## Global Constraints
 
 - **Headless only** — no desktop composer injection.
@@ -129,6 +131,13 @@ Hooks remain sandbox-unaware. Bare `make chat-new` without the wrapper is not `e
 - [ ] **Step 6: Stop** if Auto or Terra High is unreachable.
 ---
 
+### Archive design gate (before Task 1 implementation)
+
+- [ ] Specify subject input, filename-safe naming, collision handling, archive path in the action result, and how a later `chat-reply` identifies the same archive and provider session.
+- [ ] Specify ordered prompt/reply recording, concurrent replies, partial provider or archive failures, and recovery without blindly re-sending a possibly delivered turn. Preserve JSON stdout and make archive failures visible.
+- [ ] Specify an outside-sandbox handoff for `agent-plan`, keeping the live archive unwritable by the sandboxed provider and preserving the reviewer isolation claim. Define how direct chat calls and orchestrated calls each produce one archive without duplication.
+- [ ] Plan instance-local exclusion from version control for `data/agent/chats/` and tests for distinct same-second chats, ordered create/reply across invocations, incomplete turns, write failure, and the sandbox boundary. Do not treat the archive as a complete product transcript.
+
 ### Task 1: Plain chat actions using `hook_ms` variants + verified tests
 
 **Files:**
@@ -161,7 +170,7 @@ Never: `make test-agent || asc/extensions/agent/test/core.sh` (unknown Make targ
 
 - [ ] **Step 2: `make test-core` with agent enabled — expect FAIL**; confirm intended test files appear in the run/summary.
 
-- [ ] **Step 3: Implement** `new.sh` / `reply.sh` as plain actions using `hook_ms` with `-v CHAT_ROLE` (no second `.`; detect an empty `most_specific_match`; encode JSON with `jq` or equivalent); `CHAT_TYPE` on read/archive. Keep core unchanged.
+- [ ] **Step 3: Implement** `new.sh` / `reply.sh` as plain actions using `hook_ms` with `-v CHAT_ROLE` (no second `.`; detect an empty `most_specific_match`; encode JSON with `jq` or equivalent); implement the archive contract once the design gate is resolved; `CHAT_TYPE` on read/archive. Keep core unchanged.
 
 - [ ] **Step 4: Refuse loader creep** — confirm no new harness `*.opt-inc.sh`, `source_manual`, `role_select`, `harness_result`, or sentinel landed in this task.
 

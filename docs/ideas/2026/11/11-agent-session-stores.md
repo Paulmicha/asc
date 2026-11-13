@@ -7,9 +7,16 @@
 - **Spec this feeds:** [agent-chats](../../../specs/asc/agent-chats.md)
 - **Siblings:** [run tracking](11-agent-run-tracking.md), [LLM Space evaluation](11-llm-space-evaluation.md)
 
+> **2026-11-13 update:** The earlier pointer-only position and storage options
+> below are historical. ASC is now proposed to maintain a separate,
+> human-readable archive of the prompts and replies it handles; see the
+> [chat spec](../../../specs/asc/agent-chats.md). Product stores remain foreign
+> and are not copied. The archive does not change the separate desktop-reply
+> plan's boundary.
+
 ## Position
 
-A transcript is a foreign artefact. The product owns it, changes its format when it likes, and already stores it. ASC keeps a **pointer** and the **turn result**, never a copy. The desktop-reply plan already says "do not write a session database or a transcript log"; this survey gives the reasons.
+The product owns its session artefacts and may change their format. The proposed ASC archive is written from ASC-handled turns, not by copying those artefacts. The desktop-reply plan remains a separate path and does not keep a transcript.
 
 ## What the products keep
 
@@ -47,7 +54,7 @@ These three interfaces differ in every detail and agree on the shape: a prompt i
 
 ## What ASC needs to keep
 
-Per turn, the proposed result object (`ok`, `action`, `role`, `chat_id`, `provider_session_id`, `prompt`, `reply_text`, `status`, `error`). Where it is kept is not settled. Candidates:
+The following were the original candidates for retaining the turn result. They predate the proposed Markdown archive; association and recovery are now open in the chat spec.
 
 1. **Nowhere.** stdout to the caller, which decides. The plan allows an optional `result:<path>` mirror.
 2. **In the thread record.** The run that drove the chat writes `provider_session_id` next to its pid. One file answers "which run, which chat".
