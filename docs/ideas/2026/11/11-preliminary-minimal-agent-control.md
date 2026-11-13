@@ -1,6 +1,6 @@
 # Thread control as a preliminary to agent-plan
 
-> **2026-11-13 update:** The [active-claim direction](13-local-action-records.md) replaces retained final thread records with files removed after confirmed completion. The linked thread-control plan requires revision before implementation; a real long-running `agent-plan` operation remains unauthorized. Earlier settled-record examples below are orientation, not the new file-lifecycle contract.
+> **2026-11-13 update:** The [active-claim direction](13-local-action-records.md) replaces retained final thread records with files removed after confirmed completion. The [thread-control plan](../../../plans/2026/11/11-thread-control-before-agent-plan.md) was rewritten for that lifecycle; it remains draft and does not authorize a real long-running `agent-plan` operation. Earlier settled-record examples below are orientation, not the new file-lifecycle contract.
 
 **Status:** Direction-setting idea. The outcome, its limits and the sequence below are proposed; no implementation or unattended operation is authorized by this document.  
 **Updated:** 2026-11-12 (added Microsoft AI Engineering Coach to the source list; prior orientation 2026-11-11)

@@ -6,7 +6,7 @@ Sources, all `status: draft`: [agent threads](../../../specs/asc/agent-threads.m
 
 This is the list of choices those texts leave open. A lean is a preference written in the source. It is not a decision, and this note does not approve one. Nothing here is an implementation go-ahead.
 
-The earlier [thread-control plan](../../../plans/2026/11/11-thread-control-before-agent-plan.md) needs revision for the newer [active-claim direction](13-local-action-records.md). Its run identity, stop and recovery details remain to be reconciled; its existing contract is not ready to implement.
+The [thread-control plan](../../../plans/2026/11/11-thread-control-before-agent-plan.md) was rewritten on 2026-11-13 for the [active-claim direction](13-local-action-records.md). It remains draft and not an implementation go-ahead; parallel, sequence, and numbered concurrent layouts stay open here.
 
 ## Threads
 

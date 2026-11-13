@@ -16,6 +16,15 @@
 
 The [local action records idea](../../../ideas/2026/11/13-local-action-records.md) places that archive alongside, but separate from, wrapper logs and thread state.
 
+**2026-11-13 reconciliation gate:** Commit `9d2f22e` introduces WIP stubs
+whose `chat/create`, `CHAT_PROVIDER`, `hook` calls and `plan/create` differ
+from the `chat/new`, `CHAT_ROLE`, `hook_ms` and `agent/plan` design below.
+The [stub and retrieval survey](../../../ideas/2026/11/13-agent-stubs-and-retrieval.md)
+compares the options. Reconcile naming, selection, role/provider mapping,
+the file map and tests before Tasks 1–4; do not silently restore deleted paths
+or treat empty stubs as implemented. The older contract remains a proposal,
+including readiness, isolation and archive gates, until explicitly revised.
+
 ## Global Constraints
 
 - **Headless only** — no desktop composer injection.
@@ -119,6 +128,36 @@ Hooks remain sandbox-unaware. Bare `make chat-new` without the wrapper is not `e
 - Draft: `asc/extensions/agent/agent/sandbox/writer.bwrap.conf`, `reviewer.bwrap.conf`
 
 **Produces:** Cursor Auto flags; Codex Terra 6.1 High flags; Ollaya model id; threshold keep/revise; isolation mode; **enumerated RW auth binds**; create/resume smoke notes under draft profile if attempted.
+
+**Additional host feasibility evidence, before implementation:**
+
+- [ ] Identify CLI versions, executable paths, authentication mode and intended
+  project/cwd without recording credentials. Test the same environment and
+  filesystem/network profile that an ASC-launched turn will use.
+- [ ] Record which project instructions, user/project settings, trust state,
+  MCP servers and needed tools actually load; distinguish a configured server
+  from a successful permitted tool call. Test per role, and record missing
+  auth, startup, connectivity or sandbox access as outcomes rather than silently
+  broadening permissions. Desktop-only integrations are not assumed available.
+- [ ] Establish effective CLI permission and approval rules, including one
+  allowlisted and one approval-requiring representative action. Cursor print
+  mode rejects actions needing approval; workspace edits may work without
+  `--force`. Determine whether an existing desktop approval is reusable rather
+  than assuming it. Do not use blanket `--force` or `--yolo` as a parity test.
+- [ ] Record created session ids, create/resume results and visibility in the
+  installed UI and CLI. Cursor editor and CLI stores are documented as
+  separate; verify Codex handoff and avoid simultaneous writers. Do not infer
+  a complete provider transcript from ASC's proposed prompt/reply archive.
+- [ ] Probe the actual isolated role profiles separately for available config,
+  credentials, skills, MCP, sessions, network and effective permissions.
+  Explicitly enumerate auth/session binds and whether a server runs inside or
+  outside the boundary; an outside server must not silently bypass the stated
+  reviewer filesystem claim. Failure means revise the profile or mark the
+  capability unavailable, not claim parity.
+- [ ] For a future local provider, evaluate a real harness and model pair on
+  structured results, tool use, context length, task quality, latency and
+  resource use; record data/network paths. Ollaya availability alone does not
+  prove it can replace the Cursor writer or Codex reviewer.
 
 - [ ] **Step 1: Cursor** — `command -v agent`; `agent about`; `agent create-chat`; one `-p` turn with **Auto** (no foreign `--model`); record resume flag and whether `--force` is required for writes ([design](../../../ideas/2026/11/10-agent-plan-cursor-codex-ollaya.md) Decisions / Cursor model).
 

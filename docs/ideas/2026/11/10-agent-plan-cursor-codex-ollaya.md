@@ -12,6 +12,48 @@
 
 `$` in this file is the ASC docs placeholder (`$subject` / `$action` / `$extension`), not a shell variable.
 
+> **2026-11-13: CLI reuse and new stubs.** The headless approach can reuse
+> substantial provider configuration; it does not require controlling a desktop
+> composer. The later [`agent` stub survey](13-agent-stubs-and-retrieval.md)
+> records naming and hook conflicts with this earlier design. Until they are
+> reconciled, the file names and selection contract below are an earlier
+> proposal, not an implementation instruction to overwrite the newer stubs.
+
+## Host configuration is useful, but not identical to a desktop session
+
+Codex's local app, IDE extension and CLI share configuration layers, including
+configured MCP servers; cached login can also be reused. Cursor's CLI reads the
+editor's `mcp.json` and supports project rules. This makes local CLI invocation
+a plausible thin-wrapper integration, not a request for ASC to replicate a
+desktop application. Sharing configuration does not prove a specific server,
+desktop-only tool, plugin, credential, past command approval or UI context is
+available in a particular headless run. Project trust, role, environment,
+version, network, sandbox, and server startup all matter. See [Codex developer
+settings](https://learn.chatgpt.com/docs/developer-settings), [Codex
+authentication](https://learn.chatgpt.com/docs/auth?surface=cli), and [Cursor
+CLI](https://cursor.com/docs/cli/using).
+
+Cursor documents separate CLI permission configuration and says print mode
+cannot ask for approval: permitted actions proceed; actions requiring approval
+are rejected. Workspace edits can proceed without `--force`; `--force` is not
+a necessary default. Codex's non-interactive mode likewise needs explicit
+effective sandbox and approval settings. Neither a previous desktop approval
+nor a shared MCP definition proves headless authorization. See [Cursor
+permissions](https://cursor.com/docs/cli/reference/permissions), [Cursor
+headless](https://cursor.com/docs/cli/headless), and [Codex
+non-interactive](https://developers.openai.com/codex/noninteractive/).
+
+Each product owns its conversation and supports CLI session continuation.
+Cursor staff report separate editor and CLI chat stores. Codex shares local
+state across supported clients, but visibility and resumption between the
+installed desktop and CLI versions, and interaction with an active thread,
+must be probed rather than assumed. ASC's proposed archive contains the prompts
+and replies ASC handles, not a complete provider transcript. A CLI-launched
+agent can use a local model only if that product actually supports the desired
+endpoint and the model meets the task's tool, context, output and quality needs;
+a model server alone is not an agent harness. A gradual local-first migration
+is an evaluation goal, not a promise of equivalent results or offline operation.
+
 ---
 
 ## Why headless

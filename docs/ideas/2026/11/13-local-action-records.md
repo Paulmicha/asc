@@ -227,14 +227,12 @@ Separate these questions before implementing the layout:
    durable queue, scheduling or priority mechanism if there is a concrete need
    to inspect, reorder, cancel, or survive a restart.
 
-The existing [thread-control plan](../../../plans/2026/11/11-thread-control-before-agent-plan.md)
-proposed retained final YAML records, separate record and occupancy locks,
-hold, stop, and recovery for one current run per entry. Its lifecycle and
-single-current-run assumptions need revision for this direction before its
-thread-control tasks can be implemented. Preserve the distinction between an
-accepted stop request and observed completion, and do not clear uncertain work
-without investigation. The new direction does not authorize a real long-running
-`agent-plan` loop.
+The [thread-control plan](../../../plans/2026/11/11-thread-control-before-agent-plan.md)
+was rewritten on 2026-11-13 for this direction: active singleton claims,
+remove on confirmed completion, operator `thread-clear` after investigation,
+and stop request distinct from observed completion. Parallel, sequence, and
+numbered concurrent layouts remain open here and out of that plan's first
+slice. The rewrite does not authorize a real long-running `agent-plan` loop.
 
 ## Git and remaining decisions
 
