@@ -11,6 +11,8 @@ A **chat** is a conversation held by an agent product. ASC starts turns and rece
 
 Reasoning and survey: [session stores](../../ideas/2026/11/11-agent-session-stores.md). Related evaluation: [LLM Space](../../ideas/2026/11/11-llm-space-evaluation.md).
 
+The broader [local action records idea](../../ideas/2026/11/13-local-action-records.md) distinguishes chat archives from wrapper logs, thread state and action work products.
+
 ## Entry points (observed)
 
 In the `agent` extension, ignored by default.

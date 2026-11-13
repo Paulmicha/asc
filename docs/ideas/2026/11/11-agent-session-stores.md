@@ -13,6 +13,8 @@
 > [chat spec](../../../specs/asc/agent-chats.md). Product stores remain foreign
 > and are not copied. The archive does not change the separate desktop-reply
 > plan's boundary.
+> The [local action records idea](13-local-action-records.md) sets this
+> archive alongside separate wrapper logs and thread state.
 
 ## Position
 

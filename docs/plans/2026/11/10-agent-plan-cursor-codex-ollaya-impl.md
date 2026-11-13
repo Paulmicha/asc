@@ -14,6 +14,8 @@
 
 **2026-11-13 archive addition:** The [chat spec](../../../specs/asc/agent-chats.md) proposes a human-readable Markdown archive for each ASC-handled conversation. Its association, failure and sandbox handoff contracts are not yet settled; resolve the archive design gate below before implementing the chat actions or the live archive path.
 
+The [local action records idea](../../../ideas/2026/11/13-local-action-records.md) places that archive alongside, but separate from, wrapper logs and thread state.
+
 ## Global Constraints
 
 - **Headless only** — no desktop composer injection.

@@ -566,6 +566,7 @@ This note is not step 0–6.
 
 ## Related notes
 
+- [Local action records](13-local-action-records.md) — proposed separate wrapper logs, chat archives and thread state.
 - [27-desktop-agent-terminal-reply.md](../../../plans/2026/09/27-desktop-agent-terminal-reply.md) — desktop reply client (out of v1).
 - [21-hook-specificity-rungs.md](../../../plans/2026/09/21-hook-specificity-rungs.md) — `hook_ms` rungs.
 

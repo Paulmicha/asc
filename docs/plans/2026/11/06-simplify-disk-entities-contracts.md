@@ -214,6 +214,8 @@ These are the collisions a simplification has to pick from. Each row is a fact i
 
 ### 4.3 Datestamp spellings
 
+**2026-11-13 direction:** The [local action records idea](../../../ideas/2026/11/13-local-action-records.md) proposes dated per-launch wrapper logs and separate chat archives, and deprecates `data/changes/`. The existing paths and proposed picks in this inventory remain historical observations, not evidence that the newer layout is implemented.
+
 These are different conventions. This note adds none.
 
 | Spelling | Where | Writer? |

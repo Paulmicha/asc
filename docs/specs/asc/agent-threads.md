@@ -11,6 +11,8 @@ A **thread** is a process tree started from a make entry point on one host. An a
 
 Reasoning, comparisons and sources: [run tracking](../../ideas/2026/11/11-agent-run-tracking.md), [control actions](../../ideas/2026/11/11-agent-control-actions.md), [queue and priority](../../ideas/2026/11/11-agent-queue-and-priority.md), [record conventions](../../ideas/2026/11/11-record-conventions.md), [loose ends](../../ideas/2026/11/11-agent-tracking-loose-ends.md).
 
+The later [local action records idea](../../ideas/2026/11/13-local-action-records.md) discusses dated wrapper logs and the open distinction between thread tracking and concurrency. Observed paths below remain the current-code inventory.
+
 ## Locations (observed)
 
 | Path | Content | Lifetime |

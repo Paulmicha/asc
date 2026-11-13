@@ -1,5 +1,7 @@
 # Thread control before `agent-plan`
 
+> **Related idea, 2026-11-13:** [Local action records](../../../ideas/2026/11/13-local-action-records.md) proposes dated wrapper logs and discusses concurrency. It does not change this plan's single-current-run contract or establish that its work is implemented.
+
 | Field | Value |
 |-------|-------|
 | **Date** | 2026-11-11 |

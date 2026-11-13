@@ -1,5 +1,7 @@
 # Living agent write-watcher notes vs runtime stdout
 
+> **2026-11-13 update:** The `data/changes/` location below is deprecated by the [local action records idea](../../../ideas/2026/11/13-local-action-records.md). A replacement location for watcher notes is not yet decided; this notice does not delete existing files.
+
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-09-20 |
