@@ -39,6 +39,10 @@ loop, retrieval engine, model server, provider's UI or session database.
 
 Commit `75a25a8` (2026-11-15) later put provider and model names in the model-action examples and added empty `agent/provider/` paths. [Agent models](../../../specs/asc/agent-models.md) records that. The `model-list` example shows one provider name. The load, unload, and pull examples show a provider name and a model name. The prompt example also shows a workspace placeholder and a `prompt-text` placeholder. The scripts do not read or forward those arguments; argument handling is still a TODO. Pull's comment says that action applies for some providers. The `hook_ms` lines pass variants `HOST_OS HOST_TYPE INSTANCE_TYPE`. The table above is the reading of commit `9d2f22e`.
 
+The [model prompting idea](15-model-prompt.md) explores `model-prompt` as the
+main LLM entry point for standalone answers and chat turns, with prose or DSL
+in the final argument.
+
 The `new-chat` synonym in `chat/global.vars.sh` points to `chat-create` in
 source; whether it is enabled and present in generated Make pivots depends on
 instance initialization. Likewise `new-plan` is the desired experience, not
