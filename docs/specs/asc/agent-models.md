@@ -5,13 +5,26 @@ updated: 2026-11-16
 
 # Agent models and providers
 
-Draft. **Stub direction** means read from the action files. Commit `75a25a8`
-set the first model and provider filenames. Commit `477106c` adds `select`
-and `review` in both groups. Argument handling in each model action is still
-a TODO, and the provider action files are empty. The mother ignores `agent`
-by default through `.asc_extensions_ignore`.
+The opt-in `agent` extension uses `model/` for model operations and
+`agent/provider/` for provider operations. The mother ignores the extension
+by default through `.asc_extensions_ignore`. Argument handling is a TODO
+in the model scripts, and the provider scripts are empty.
 
-A **model action** is a `model` hook call. The provider is a positional argument in the examples. A **provider action** is a path under `agent/provider/`. A [thread](agent-threads.md) is a process tree. A [chat](agent-chats.md) is a product conversation. Load, unload, and prompt stay in this spec.
+## Model prompting direction
+
+`model-prompt` is the proposed entry point for sending input to a model. The
+stub sketches provider, model, workspace, and prose or DSL as its four
+positional arguments in that order. The neighbouring `prompt-create`,
+`prompt-list`, `prompt-review`, and `prompt-delete` paths indicate a
+separate lifecycle for prompts. How a stored prompt can supply input to
+`model-prompt` remains open.
+
+A standalone call can produce a one-shot reply for the caller. The
+`agent-reply-*` stubs indicate a separate way to list, read, or review
+those replies. Continuing a conversation requires its provider session
+identity. Whether the chat actions delegate model invocation to
+`model-prompt` remains open. See
+[one-shot replies and conversation turns](agent-chats.md#one-shot-replies-and-conversation-turns).
 
 ## Model actions (stub direction)
 
@@ -42,9 +55,9 @@ and examples need correction before the targets become runnable.
 
 The revised `model-prompt` Make example preserves the prose as one argument
 through the Make wrapper in an isolated probe. The direct example has an
-extra single quote after the model name and fails shell parsing. The desired
-entry point for standalone answers and chat turns is described in the
-[model prompting idea](../../ideas/2026/11/15-model-prompt.md).
+extra single quote after the model name and fails shell parsing. The
+[model prompting idea](../../ideas/2026/11/15-model-prompt.md) sketches the
+prose and DSL inputs.
 
 ## Provider actions (stub direction)
 
@@ -64,10 +77,13 @@ direct execution, which returns 126 on a non-executable path. See the
 | `asc/extensions/agent/agent/provider/unload.sh` | `agent/provider/unload` | `agent-provider-unload` |
 | `asc/extensions/agent/agent/provider/update.sh` | `agent/provider/update` | `agent-provider-update` |
 
-The separate `select` stubs leave open whether selection returns a value for
-the caller or changes a default. If shared defaults are used, define their
-scope and precedence relative to the explicit provider and model arguments of
-`model-prompt`.
+Provider and model selection have separate stubs. A provider choice
+identifies the service or harness, and the model choice identifies a model
+available through it. A role such as writer or reviewer describes the job a
+caller wants done. Whether a role supplies defaults and whether either
+`select` action returns a value or changes a default remain open. Any
+default needs a defined scope and precedence when `model-prompt` receives
+explicit arguments.
 
 ## Prompt and workspace actions (stub direction)
 
@@ -80,9 +96,7 @@ The source drops `prompt-generate` and `prompt-refine`. `prompt-create` and
 `prompt-review` call `log` and `agent` hooks before and after attempting to
 source the absent `asc/extensions/agent/agent/wrap.sh`. Successful post hooks
 can mask that failure. `prompt-delete`, `prompt-list`, and all eight workspace
-files are empty. The names suggest a prompt lifecycle alongside model
-invocation. The prompt record format and the relationship to `model-prompt`
-are open.
+files are empty. The prompt record format and identifier are open.
 
 For workspaces, define the identifier used by `model-prompt`, what `scan`
 discovers, what `index` persists, and the direction and conflict policy of
@@ -114,11 +128,14 @@ The status, stop, and stop_all comments still say "Abstract local LLM bring-up".
 | `model-prompt` workspace | Which workspace identifier the third position accepts, and whether `workspace-list` supplies it, is open. |
 | `model-prompt` text and result | How to distinguish prose from DSL, how to pass DSL punctuation through Make, and what the action returns are open. |
 | Empty provider verbs | Arguments, results and state changes for all seven verbs are open. |
-| `agent-status`, `agent-stop`, `agent-stop_all` beside `model-load` and `model-unload` | Those three files were outside this commit. Accepting the stub filenames still needs an explicit decision that reconciles them. This spec is draft. |
 | Which endpoint a chat uses | Open in [agent chats](agent-chats.md). The model-action examples do not select the chat hook. |
-| Role, provider, and model mapping | Open in the stubs note. A role is not a model. |
+| Role, provider, and model mapping | Which caller resolves the role and where it gets its defaults. |
 
-Earlier notes leaned toward an `llm-*` rename, or toward folding the call into `run-agent`. The files from commit `75a25a8` use subject `model`, and subject `agent` with object `provider`. The mother tree has no `llm` subject directory. Those filenames are a draft record. They are not an accepted naming contract while `agent-status`, `agent-stop`, and `agent-stop_all` remain.
+The current naming direction comes from `model/` and `agent/provider/`
+in `75a25a8`. Earlier notes explored `llm-*` and a generic agent run action.
+Commit `d8df2b8` removed `agent/run.sh`. The remaining top-level agent status
+and stop actions still need reconciliation with the model lifecycle and
+[thread controls](agent-threads.md).
 
 ## Related
 

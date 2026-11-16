@@ -5,17 +5,42 @@ updated: 2026-11-16
 
 # Agent chats
 
-Draft. **Observed** means read in the mother code on the date given. **Proposed** means written in a plan and not implemented. **External** means taken from a product's documentation or seen in its files; products change these without notice. Nothing proposed here is approved.
+This draft records the direction of the action stubs and the proposed
+conversation contract. Product store and command details below come from
+the earlier session-store survey.
 
-A **chat** is a conversation held by an agent product. ASC starts turns and receives their results. The proposed ASC Markdown archive records the prompts and replies it handles; the product continues to own its session. A chat is not a [thread](agent-threads.md): a thread is the process that drives a turn.
+A **chat** is a conversation held by an agent product. The product owns the
+session. ASC actions start or continue turns, and the proposed Markdown
+archive records the turns ASC handles. An ASC [thread](agent-threads.md)
+tracks the process running an action. A conversation can span several
+thread runs.
 
 Reasoning and survey: [session stores](../../ideas/2026/11/11-agent-session-stores.md). Related evaluation: [LLM Space](../../ideas/2026/11/11-llm-space-evaluation.md).
 
 The broader [local action records idea](../../ideas/2026/11/13-local-action-records.md) distinguishes chat archives from wrapper logs, thread state and action work products.
 
+## One-shot replies and conversation turns
+
+Commit `7ecb4c4` introduces a separate `agent/reply/` object for one-shot
+answers.
+
+| What the caller works with | Proposed action responsibilities |
+|---|---|
+| A conversation in a provider session | `chat-create` starts the conversation and `chat-reply` continues it using its session identity. `chat-list`, `chat-read`, and `chat-review` enumerate, retrieve, or assess conversations. |
+| A reply from a standalone invocation | `agent-reply-list`, `agent-reply-read`, and `agent-reply-review` enumerate, retrieve, or assess one-shot results from [model prompting](agent-models.md#model-prompting-direction). |
+
+The three `agent/reply/*.sh` files are empty. The reply identifier, the
+scope of listing, where a reply can be retrieved from, and what review
+returns remain open. The proposed chat archive is tied to a conversation.
+Retention for standalone replies needs its own decision.
+
 ## Entry points (observed on 2026-11-16)
 
-In the `agent` extension, ignored by default.
+The mother ignores the `agent` extension by default. The source declares
+`new-chat/chat-create` in `ASC_SYNONYMS`. Make generation applies this
+substitution to discovered names. From `chat/create.sh` it produces
+`chat-create` alone, so the `new-chat` example in the stub needs a separate
+alias decision.
 
 | Action | Hook calls in the source |
 |---|---|
@@ -23,20 +48,19 @@ In the `agent` extension, ignored by default.
 | `chat-archive` | `pre`, main and `post` for `archive`, with variants `STACK_VERSION HOST_TYPE chat_TYPE`. |
 | `chat-list`, `chat-review` | Copies of `chat-reply` added in `477106c`. They call the three reply hooks. |
 
-In isolated calls through Bash, the new scripts reached the reply hook
-calls. Correct the routing before enabling these names. Define what list
-enumerates and whether review reads one chat, returns findings, or records
-them. The older proposals below refer to `chat-new`. The current creation
-path is `chat/create.sh`.
+In isolated calls through Bash, `chat-list` and `chat-review` reached the
+reply hooks. Their own routing and results need to be defined before callers
+can use them to inspect conversations.
 
 ## Selection (proposed)
 
-| Action | Variant variable | Values |
-|---|---|---|
-| `chat-new`, `chat-reply` | `CHAT_ROLE` | `writer`, `reviewer` |
-| `chat-read`, `chat-archive` | `CHAT_TYPE` (renamed from `chat_TYPE`) | product |
-
-Selection uses `hook_ms` as it is. One hook per product and role, for example `cursor/chat/new.writer.hook.sh`, `codex/chat/reply.reviewer.hook.sh`. No selection wrapper, no adapter layer. `chat-new` and `chat-reply` drop the `pre` and `post` hooks.
+Each `chat-create` or `chat-reply` turn should invoke one selected provider
+implementation once. The earlier plan proposed `hook_ms` with `CHAT_ROLE`
+(`writer` or `reviewer`) and a single main hook call. The stubs use
+`CHAT_PROVIDER` and the all-matching `hook`, with pre and post calls.
+Reconcile the selection variable, role-to-provider mapping, and hook
+phases before wiring the turn. Session-based operations also need a way to
+resolve the provider that owns the session.
 
 ## Turn result (proposed)
 
@@ -45,7 +69,7 @@ Diagnostics on stderr. Exactly one JSON object on stdout, built with a JSON enco
 ```json
 {
   "ok": false,
-  "action": "new",
+  "action": "create",
   "role": "writer",
   "chat_id": null,
   "provider_session_id": null,
@@ -59,7 +83,7 @@ Diagnostics on stderr. Exactly one JSON object on stdout, built with a JSON enco
 | Field | Rule |
 |---|---|
 | `ok` | boolean |
-| `action` | `new`, `reply` |
+| `action` | `create`, `reply` |
 | `role` | `writer`, `reviewer` |
 | `chat_id`, `provider_session_id` | string when known, else `null` |
 | `prompt`, `reply_text` | strings |
@@ -70,7 +94,7 @@ A caller that gets a crash, empty or malformed stdout records `missing_result_js
 
 ## Human-readable conversation archive (proposed)
 
-`chat-new` creates one Markdown file per conversation under
+`chat-create` creates one Markdown file per conversation under
 `data/agent/chats/YYYY/MM/DD/HHhMMmSS.$subject.md`, for example
 `data/agent/chats/2026/11/13/14h05m09.revise-agent-chat-actions.md`.
 The short subject describes the conversation; it is a filename-safe label,
@@ -91,8 +115,8 @@ archive path must be discoverable by a caller without parsing Markdown.
 An archive write failure must be visible as a failed or incomplete result;
 it must not silently claim that the conversation was archived or blindly
 retry a provider turn that may already have been sent. The implementation
-plan must settle failure and recovery details before coding. Archive files
-belong to the instance and must not be committed by default.
+plan must settle failure and recovery details before coding. Add an ignore
+rule for `data/agent/chats/` when implementing the local archive.
 
 `agent-plan` runs chat actions inside a sandbox that denies live docroot
 writes. Its implementation must design and test an archive handoff to the

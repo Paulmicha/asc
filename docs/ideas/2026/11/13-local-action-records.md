@@ -91,7 +91,7 @@ implement this log redesign.
 
 ## ASC-handled chats: a separate Markdown archive
 
-The direction is for `chat-new` to create a human-readable conversation file:
+The direction is for `chat-create` to create a human-readable conversation file:
 
 ```text
 data/agent/chats/YYYY/MM/DD/HHhMMmSS.$subject.md
@@ -108,6 +108,7 @@ stdout remains separate from the archive.
 
 The [chat spec](../../../specs/asc/agent-chats.md) and
 [agent-plan design](10-agent-plan-cursor-codex-ollaya.md) describe this proposal.
+The chat spec tracks one-shot reply stubs separately. Their retention is open.
 The [implementation plan](../../../plans/2026/11/10-agent-plan-cursor-codex-ollaya-impl.md)
 keeps a design gate for subject and collision handling, matching replies to the
 same archive and provider session across invocations, concurrency, failures,

@@ -25,6 +25,14 @@ the file map and tests before Tasks 1–4; do not silently restore deleted paths
 or treat empty stubs as implemented. The older contract remains a proposal,
 including readiness, isolation and archive gates, until explicitly revised.
 
+Use the [chat spec](../../../specs/asc/agent-chats.md) and
+[plan spec](../../../specs/asc/agent-plans.md) for the 2026-11-16 stub
+direction. The conversation creation stub is `chat-create`. Update the
+proposed `new` result token and caller tests together with the action name.
+The `agent-reply-*` stubs concern standalone results. Resolve where the
+writer and reviewer loop belongs alongside `plan-create`, `plan-review`,
+and `plan-execute` before creating an orchestrator.
+
 ## Global Constraints
 
 - **Headless only** — no desktop composer injection.

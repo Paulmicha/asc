@@ -25,14 +25,18 @@ Reasoning and alternatives: [queue and priority](../../ideas/2026/11/11-agent-qu
 
 Readiness never grants authorisation.
 
-### Plan and decision action stubs (2026-11-16)
+### Plan and decision actions (stub direction)
 
-The `agent` extension has empty `plan-create`, `plan-execute`, and
-`plan-review` stubs, alongside empty `decision-make`, `decision-update`, and
-`decision-review` stubs. Commit `477106c` adds both review paths and removes
-`decision-evaluate`. Whether `plan-review` produces the proposed [review
-result](#review-result-proposed), and what evidence a decision review uses,
-remain open.
+The empty `plan-create`, `plan-review`, and `plan-execute` stubs put plan
+creation, assessment, and execution under the `plan` subject. A review
+assesses a revision. An execution needs a selected step, evidence of
+readiness, and authorisation to start. The filenames leave it open whether
+`plan-review` produces the [proposed review result](#review-result-proposed)
+and whether `plan-create` owns the writer and reviewer loop described below.
+
+`decision-make`, `decision-update`, and `decision-review` form a separate
+subject with empty files. The decision record, evidence used for review, and
+effect of an update remain open.
 
 ## Plan file (observed)
 
@@ -67,6 +71,10 @@ A missing, duplicated or malformed block means the list is not established. An e
 
 ## `agent-plan` (proposed)
 
+This is the earlier loop design. Reconcile its entry point and action
+boundaries with the `plan/*` stubs before implementing the file map in the
+[implementation plan](../../plans/2026/11/10-agent-plan-cursor-codex-ollaya-impl.md).
+
 ```bash
 make agent-plan plan:$path prompt:$file named_step:"'Task 0'"
 ```
@@ -78,7 +86,8 @@ make agent-plan plan:$path prompt:$file named_step:"'Task 0'"
 | `named_step:` | yes | step assessed for start; nested quotes when it has spaces |
 | `required_prerequisites:` | no | path to a JSON array of ids; else read from the plan block |
 
-Roles: one writer and one reviewer, each a [chat](agent-chats.md) turn. At most 8 rounds.
+The earlier loop uses one writer and one reviewer, each with a
+[conversation](agent-chats.md), for at most eight rounds.
 
 ### Paths and bytes
 

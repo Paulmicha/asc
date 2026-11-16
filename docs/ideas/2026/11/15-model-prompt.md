@@ -4,10 +4,11 @@ Status: open idea
 Created: 2026-11-15
 
 Make `model-prompt` the principal ASC entry point for interacting with any LLM.
-The caller can ask a model for a standalone answer or use the reply as a turn
-in a conversation. How a call starts or continues a chat is an open question.
-[Agent chats](../../../specs/asc/agent-chats.md) describes the conversation
-and session questions separately.
+The one-shot reply stubs introduced by `7ecb4c4` give standalone answers their
+own list, read, and review actions. The chat actions handle conversation
+turns. Whether those actions call `model-prompt` remains open.
+[Agent chats](../../../specs/asc/agent-chats.md#one-shot-replies-and-conversation-turns)
+describes the two action groups.
 
 ## Prose or DSL in the last argument
 
@@ -33,8 +34,8 @@ grammar open.
   How can they pass prose that happens to look like a DSL expression?
 - What does the workspace argument identify? Would `workspace-list` supply
   that identifier?
-- How does the caller choose between a standalone answer and a chat turn?
-  How would it refer to an existing chat, and what would the action return?
+- What does `model-prompt` return, and how would a caller refer to the result
+  through `agent-reply-read` if standalone replies are retained?
 
 The draft [agent models spec](../../../specs/asc/agent-models.md) records the
 stub. The [agent stubs and retrieval note](13-agent-stubs-and-retrieval.md)

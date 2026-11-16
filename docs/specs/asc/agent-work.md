@@ -5,28 +5,10 @@ updated: 2026-11-16
 
 # Agent work, permissions, and sandboxes
 
-Commit `469ad37` placed `goal` in its own subject and put `task`, `memory`,
-and `knowledge` under the `agent` subject. Commit `08c8a51` adds `cognition`
-as another object under `agent`. It removes `agent/knowledge/memory.sh` and
-`agent/knowledge/task.sh`, and adds `create`, `delete`, and `update` under
-knowledge. `oriented` stays.
-
-Commit `e7cda9a` adds `permission` and `sandbox` as separate objects under
-`agent`. The filenames group permission queries and changes separately from
-sandbox management and loading.
-
-Commit `af6d125` drops `agent-task-clear` and adds separate `complete` and
-`delete` stubs under `agent/task/`. The `need` subject has its own action
-group. See the [needs inbox](agent-plans.md#needs-inbox-proposed).
-
-Commit `477106c` adds `review` across action groups, adds `agent-sandbox-update`,
-and removes the `goal-align` and `agent-task-prioritize` stubs. Git can pair
-unrelated additions and removals because they contain the same empty blob.
-
-Hook lookup walks `$subject/$action` paths. `f_hook_build_lookup_by_subject`
-in `asc/core/hook.manual-inc.sh` skips paths with two slashes. `goal/review`
-can be a hook target. An object action such as `agent/permission/check`
-can make a hook call by naming the subject and action for that lookup.
+The stubs put `goal` in its own subject, alongside
+[`plan` and `need`](agent-plans.md). Task, memory, knowledge, cognition,
+permission, sandbox, and one-shot reply actions are grouped under the
+`agent` subject. The directory layout determines the Make names.
 
 ## Action names (observed)
 
@@ -41,32 +23,32 @@ Make name prefix and the suffixes discovered from the files.
 | `agent/knowledge/` | object `knowledge` under `agent` | `agent-knowledge-*` with `create`, `delete`, `oriented`, `review`, `update` |
 | `agent/cognition/` | object `cognition` under `agent` | `agent-cognition-*` with `list`, `read`, `review`, `scan` |
 | `agent/permission/` | object `permission` under `agent` | `agent-permission-*` with `check`, `get`, `list`, `remove`, `review`, `set` |
+| `agent/reply/` | object `reply` under `agent` | `agent-reply-*` with `list`, `read`, `review` |
 | `agent/sandbox/` | object `sandbox` under `agent` | `agent-sandbox-*` with `create`, `delete`, `list`, `load`, `review`, `unload`, `update` |
 
-Git records the two removed knowledge files as renames:
-`knowledge/memory.sh` to `cognition/list.sh`, and `knowledge/task.sh` to
-`cognition/read.sh`. Both sides are the same empty blob, so the pairing is
-Git's similarity match. `cognition/scan.sh` and the new knowledge files are
-adds. What those pairs mean is open.
-
-All 42 files in the table are empty and have Git mode `100644`. The mother
+All files in the table are empty and have Git mode `100644`. The mother
 disables `agent` by default through `.asc_extensions_ignore`. With `agent`
-enabled, ASC discovers these names. The Make wrapper attempts to execute the
-files directly. In an isolated probe, the wrapper returned 126 for each of
-the 30 new paths across `477106c` and `93571e0`. Explicitly passing an empty
-file to Bash returns success with no result.
+enabled, ASC discovers these names. Its Make wrapper attempts to execute the
+files directly. An earlier isolated probe of the files added by `477106c`
+and `93571e0` returned 126 for non-executable paths. Explicitly passing an
+empty file to Bash returns success with no result.
 
 An unregistered target can match the catch-all rule in the root `Makefile`
 and exit 0 without running an action. Isolated probes reproduced this for
 `agent-permission-check`, `agent-sandbox-load`, and the removed
 `agent-task-clear`.
 
-## What the filenames decide
+## Subject and object placement
 
-- `goal` is a subject. Its `goal/$action` paths are eligible for hook lookup.
-- `agent-task-*`, `agent-memory-*`, `agent-knowledge-*`, and
-  `agent-cognition-*` group actions under objects. `agent-permission-*` and
-  `agent-sandbox-*` follow the same layout.
+Hook lookup uses `$subject/$action` paths, such as `goal/review`.
+`f_hook_build_lookup_by_subject` skips `$subject/$object/$action` paths.
+An object action can make its own hook call using a subject and action
+eligible for that lookup.
+
+The knowledge stubs include record creation, update, and deletion. The
+cognition stubs introduce scanning and reading. The data flow between
+the two objects remains open. The `reply` object concerns
+[one-shot results](agent-chats.md#one-shot-replies-and-conversation-turns).
 
 ## Review actions (proposed)
 
@@ -107,12 +89,12 @@ plan runner remains open. See [agent plans](agent-plans.md#four-separate-questio
   `delegate` hands off and whether task review includes a recommendation
   about priority are open. When a task runs a plan step, readiness
   and authorisation stay distinct. See [agent plans](agent-plans.md).
-- The separate `complete` and `delete` stubs suggest a task state transition
-  and a record removal operation. Define who can mark a task complete, what
-  evidence supports completion, and what deletion preserves when plans or
-  runs reference the task. A thread exit describes one execution attempt.
-  How that result contributes to task completion is open. See
-  [agent threads](agent-threads.md).
+- Commit `af6d125` replaced task `clear` with separate `complete` and
+  `delete` stubs. The direction is to distinguish recording completion
+  from removing a task record. Define who can mark a task complete, what
+  evidence supports it, and what deletion preserves when plans or runs
+  reference the task. How a thread exit contributes to completion is open.
+  See [agent threads](agent-threads.md).
 - Who owns a memory entry, which scope `search` covers, and whether these
   actions delegate storage to a provider or to the
   [`memory` extension](../../../asc/extensions/memory/). That extension's
