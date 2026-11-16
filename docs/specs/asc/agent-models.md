@@ -5,7 +5,7 @@ updated: 2026-11-15
 
 # Agent models and providers
 
-Draft. **Stub direction** means read from the action files in commit `75a25a8` (2026-11-15). Those files set entry-point names, the model hook calls, and the example arguments. Argument handling in each model action is still a TODO. The provider action files are empty. The mother has no `model` or `agent/provider` hook implementation. These actions were not run for this spec. The `agent` extension is listed in `.asc_extensions_ignore`, so a default init does not enable them.
+Draft. **Stub direction** means read from the action files. Commit `75a25a8` (2026-11-15) set the first model and provider filenames. The `model-prompt` example positions were read from the action file as of commit `164a642`. Argument handling in each model action is still a TODO. The provider action files are empty. The mother has no `model` or `agent/provider` hook implementation. These actions were not run for this spec. The `agent` extension is listed in `.asc_extensions_ignore`, so a default init does not enable them.
 
 A **model action** is a `model` hook call. The provider is a positional argument in the examples. A **provider action** is a path under `agent/provider/`. A [thread](agent-threads.md) is a process tree. A [chat](agent-chats.md) is a product conversation. Load, unload, and prompt stay in this spec.
 
@@ -20,7 +20,7 @@ Each file still has a TODO for the arguments docblock and for argument handling.
 | `model-list` | `model/list` | one provider name | List the models that provider can use. The comment text is "List usable model models." |
 | `model-load` | `model/load` | provider, then model name | Load that model through that provider. |
 | `model-unload` | `model/unload` | provider, then model name | Unload that model through that provider. |
-| `model-prompt` | `model/prompt` | provider, then model name | Prompt that model through that provider. The comment says "models"; the example names one. |
+| `model-prompt` | `model/prompt` | provider, model name, workspace, prompt text | Four draft positions in the example. `prompt-text` is a shell-safe placeholder. The script does not read them. |
 | `model-pull` | `model/pull` | provider, then model name | Pull that model when the provider has a pull. The comment says this applies for some providers and names local model servers as the examples. |
 
 Make names are `f_make_task_name` on the primitive pair: `/` and other non-alphanumeric characters become `-`.
@@ -66,7 +66,8 @@ The status, stop, and stop_all comments still say "Abstract local LLM bring-up".
 | How the selected hook receives the names | The action shows no variable and no forwarded argument list. |
 | Hook implementation home | No matching hook file in the mother. |
 | Stdout and exit status | No result contract. |
-| `model-prompt` text and result | The example gives a provider name and a model name. Where the prompt text comes from, and what the action returns, are unset. |
+| `model-prompt` workspace | The third example position is a workspace placeholder. Which identifier that position accepts, and whether `workspace-list` supplies it, is open. `workspace/list.sh` is empty and git mode `100644`. `workspace/.asc_actions_ignore` lists `list.sh`, so discovery does not register `workspace-list`. The file stays out of discovery until it lists workspaces or reports that the action is unavailable. Running the empty file through Bash exits 0 with no output, so the execute bit alone would hide the failure. The empty `workspace/index.sh` is still discovered as `workspace-index`. |
+| `model-prompt` text and result | The fourth example position is the placeholder `prompt-text`. Whether that text is an id, arguments, or a DSL expression is open. What the action returns is unset. |
 | Empty provider verbs | The paths exist. What list, models, load, unload, and update return is unset. |
 | `agent-status`, `agent-stop`, `agent-stop_all` beside `model-load` and `model-unload` | Those three files were outside this commit. Accepting the stub filenames still needs an explicit decision that reconciles them. This spec is draft. |
 | Which endpoint a chat uses | Open in [agent chats](agent-chats.md). The model-action examples do not select the chat hook. |
@@ -77,4 +78,4 @@ Earlier notes leaned toward an `llm-*` rename, or toward folding the call into `
 ## Related
 
 - Ideas: [agent stubs and retrieval](../../ideas/2026/11/13-agent-stubs-and-retrieval.md), [control actions](../../ideas/2026/11/11-agent-control-actions.md), [open decisions](../../ideas/2026/11/12-agent-spec-open-decisions.md).
-- Code: `asc/extensions/agent/model/`, `asc/extensions/agent/agent/provider/`.
+- Code: `asc/extensions/agent/model/`, `asc/extensions/agent/agent/provider/`, `asc/extensions/agent/workspace/`.
