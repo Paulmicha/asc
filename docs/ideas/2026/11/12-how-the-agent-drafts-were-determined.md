@@ -496,7 +496,7 @@ These are the session's judgements. They are written into the idea notes as lean
 9. Readiness, `yes`, and `go` stay three different answers. `unknown` is never coerced to `yes`.
 10. Stdout JSON is the turn contract. No transcript database. No adapter above `hook_ms`.
 11. One hook per product and role. `CHAT_ROLE` for `new` and `reply`. `CHAT_TYPE` for `read` and `archive`, renamed from `chat_TYPE` only when those actions are touched.
-12. Move provider lifecycle names toward `llm-*` when they are next edited. Leave `thread-*` for runs. Do not add `agent-run` beside `thread-wrap`.
+12. Move provider lifecycle names toward `llm-*` when they are next edited. Leave `thread-*` for runs. Do not add `agent-run` beside `thread-wrap`. The model stubs committed on 2026-11-15 (`75a25a8`) did not take the `llm-*` rename. Their names are in [agent models](../../../specs/asc/agent-models.md).
 13. A hold file that the wrapper refuses to start under is the smallest "stop all," and it does not stop work already running.
 14. Emit OSC 7501 only when something on the host reads it.
 15. Skills stay hand-written. Do not revive a renderer. Do not build `skill-install` until a specific skill needs it.
@@ -580,7 +580,7 @@ Rows still without a contract, after all three later documents:
 | One chat id or two; stdout versus a thread field versus a pointer file; fate of `read` and `archive` | Untouched. The preliminary idea says a chat pointer is not required for the minimum control outcome. |
 | Trace envelope versus a short JSONL line versus a database | Untouched. v6 keeps the contradiction visible. The drafts refused a trace store in this pass. |
 | Skill ownership record, extra front matter, Claude Code path, first `skill-install` candidate | Untouched. |
-| Provider pivot rename to `llm-*` | The control plan explicitly does not do it. |
+| Provider pivot rename to `llm-*` | The control plan explicitly does not do it. The 2026-11-15 stubs named `model-*` and `agent-provider-*` instead; see [agent models](../../../specs/asc/agent-models.md). |
 | Routing, embeddings, and the interpretive catalog in the revival note | Those are that project's. They were not inputs to the drafts. |
 
 ## 12. What would close a remaining decision
@@ -596,7 +596,7 @@ The drafts are not a menu to implement from top to bottom. Each open row has a d
 | Process queue | A real waiting list: more than one unattended run that must wait, on a host where the model server's own queue does not already serialize them | Installing `pueue` because the grid has an empty cell |
 | Backlog | A human choice among gates, next-steps, and a checklist, recorded as its own decision | A registry key added beside the gates file |
 | Chat pointer | The first caller that must resume a chat by an ASC name rather than by the provider id already on stdout | A `data/chats/` directory created with the turn JSON |
-| `llm-*` rename | The next edit that touches `agent-start` or `agent-stop`, with the old names left as synonyms until callers are gone | A rename inside the control-plan slice |
+| `llm-*` rename | Closed for the 2026-11-15 stubs by the names in [agent models](../../../specs/asc/agent-models.md): `model-*`, plus empty `agent-provider-*` paths. `agent-stop` remains on disk. | Treating that stub naming as a finished runtime, or renaming inside the control-plan slice |
 | Specs that survive upgrade | Either links that still mean something in an instance, or specs that do not need the mother plans | Copying `docs/plans/` into every instance |
 | Unattended operation | A human authorization that names the probe result | The existence of the probe |
 

@@ -35,7 +35,7 @@ A missing verb is first a question: which existing tool already does it? An ASC 
 | Time limit | none | — | `timeout(1)`; `RuntimeMaxSec=` | an env knob on the wrapper |
 | Token / cost limit | none | no counter exists | harness flags | later |
 | Needs a human | `needs_interactive: true` on exit 75, 126, 130 | nobody is told | `notify-send`; `OnFailure=`; OSC 7501 `blocked` | a `post` hook, not an action |
-| Model server up / down | `agent-start`, `agent-stop`, `agent-stop_all`, `agent-status`, `agent-list`, `agent-pull` (abstract pivots; extension off by default) | names read as run control | provider CLIs | rename, see below |
+| Model server up / down | On 2026-11-11 the names on disk were read as `agent-start`, `agent-stop`, `agent-stop_all`, `agent-status`, `agent-list`, `agent-pull` (abstract pivots; extension off by default). The 2026-11-15 stubs are in [agent models](../../../specs/asc/agent-models.md). | names read as run control | provider CLIs | the `model-*` and `agent-provider-*` names in that spec |
 
 ## Stop is the hard one
 
@@ -61,7 +61,9 @@ The reviews ask for a kill switch (`autonomy: manual`). The smallest form is a h
 2. Move provider lifecycle to `llm-*` (the `llm` subject directory already exists, empty). Runs stay `thread-*`. `agent-*` is then free or unused.
 3. Give `agent-*` to runs and add `agent-run`, `agent-inspect`, as Projet Complexe sketches. That duplicates `thread-*`.
 
-Lean: 2. A run is a thread; ASC already has the word.
+Lean on 2026-11-11: 2. A run is a thread; ASC already has the word.
+
+The stubs committed on 2026-11-15 took another naming. Model operations are `model-list`, `model-load`, `model-unload`, `model-prompt`, and `model-pull`, with the provider as an argument. Empty files under `agent/provider/` reserve `agent-provider-list`, `agent-provider-load`, `agent-provider-models`, `agent-provider-unload`, and `agent-provider-update`. [Agent models](../../../specs/asc/agent-models.md) records that direction. `agent-stop` is still on disk beside `model-unload`. The mother tree has no `llm` subject directory on that date.
 
 ## What should not become an action
 

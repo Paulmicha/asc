@@ -1,13 +1,13 @@
 ---
 status: draft
-updated: 2026-11-11
+updated: 2026-11-15
 ---
 
 # Agent threads
 
 Draft. It records what the code does, what earlier plans propose, and what is undecided about tracking and controlling running work. **Observed** means read in the mother code on 2026-11-11. **Proposed** means written in a plan or idea and not implemented. Nothing proposed here is approved.
 
-A **thread** is a process tree started from a make entry point on one host. An agent run is a thread. A product conversation is a [chat](agent-chats.md). A model server is neither.
+A **thread** is a process tree started from a make entry point on one host. An agent run is a thread. A product conversation is a [chat](agent-chats.md). A model server is neither. Model and provider entry points are in [agent models](agent-models.md).
 
 Reasoning, comparisons and sources: [run tracking](../../ideas/2026/11/11-agent-run-tracking.md), [control actions](../../ideas/2026/11/11-agent-control-actions.md), [queue and priority](../../ideas/2026/11/11-agent-queue-and-priority.md), [record conventions](../../ideas/2026/11/11-record-conventions.md), [loose ends](../../ideas/2026/11/11-agent-tracking-loose-ends.md).
 
@@ -84,7 +84,7 @@ A wrapped command runs with stdin from `/dev/null`, `ASC_WRAP_NONINTERACTIVE=1` 
 | `thread-sequence`, `thread-pipe` | fixed lists |
 | `log-rotate` | size-based rotation |
 
-Provider lifecycle pivots (`agent-list`, `agent-pull`, `agent-start`, `agent-status`, `agent-stop`, `agent-stop_all`) are abstract hook calls in the `agent` extension, which is ignored by default. They address model servers, not threads.
+The `agent` extension is ignored by default. Its model and provider entry points, as of the 2026-11-15 stubs, are in [agent models](agent-models.md), together with the `agent-status`, `agent-stop`, and `agent-stop_all` hook calls that remain beside them. Those entry points address models and providers, not threads. The thread rows above were read on 2026-11-11 and were not re-audited for this correction.
 
 ## Limitations (observed)
 
@@ -111,9 +111,8 @@ Provider lifecycle pivots (`agent-list`, `agent-pull`, `agent-start`, `agent-sta
 | Queue | `flock` wait (today); a queue tool; a spool directory and timer | none until a waiting list exists |
 | Priority | resource weight (`nice`, slices); order in the backlog | weight first |
 | Other hosts | pull over SSH; per-host files merged by the reader | pull; no listener |
-| LAN inference endpoint | a provider selected by hook variant or configuration; status probe only | not a tracked host |
+| LAN inference endpoint | model actions pass the provider as an argument ([agent models](agent-models.md)); a status probe for that endpoint is still unnamed | not a tracked host |
 | Status signal | OSC 7501 from the wrapper | only when something reads it |
-| Provider pivot names | keep `agent-*`; move to `llm-*` | move |
 
 Constraints carried from earlier reviews: the control host owns state; nothing listens for work; a timer may start work, no broker; a model never writes a record; unattended agent runs are not yet allowed.
 
