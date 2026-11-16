@@ -111,8 +111,9 @@ The `agent` extension is ignored by default. Its model and provider entry points
 | Queue | `flock` wait (today); a queue tool; a spool directory and timer | none until a waiting list exists |
 | Priority | resource weight (`nice`, slices); order in the backlog | weight first |
 | Other hosts | pull over SSH; per-host files merged by the reader | pull; no listener |
-| LAN inference endpoint | model actions pass the provider as an argument ([agent models](agent-models.md)); a status probe for that endpoint is still unnamed | not a tracked host |
+| LAN inference endpoint | model-action examples show a provider argument; the scripts do not read or forward it ([agent models](agent-models.md)); a status probe for that endpoint is still unnamed | not a tracked host |
 | Status signal | OSC 7501 from the wrapper | only when something reads it |
+| Provider pivot names | stub filenames `model-*` and empty `agent-provider-*`, recorded in [agent models](agent-models.md); `agent-status`, `agent-stop`, and `agent-stop_all` remain; earlier lean `llm-*` | filenames recorded; the naming contract stays open until those older actions are reconciled |
 
 Constraints carried from earlier reviews: the control host owns state; nothing listens for work; a timer may start work, no broker; a model never writes a record; unattended agent runs are not yet allowed.
 

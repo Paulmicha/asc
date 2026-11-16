@@ -145,7 +145,7 @@ Check the exit code before parsing. Keep the identifier from the first turn.
 | Archive association and recovery | how replies resolve the file and provider session, and how incomplete writes are reported and recovered |
 | Pointer file, if any | `data/chats/$chat_id.yml` with provider, role, session id, created, last status |
 | Meaning of `read` and `archive` actions | whether they use the ASC archive, operate on the product, or remain separate; creating a Markdown archive does not define those actions |
-| Endpoint dimension | for a chat: a hook variant, or instance configuration. Model actions use a separate rule in [agent models](agent-models.md). |
+| Endpoint dimension | for a chat: a hook variant, or instance configuration. Model-action examples are in [agent models](agent-models.md); those scripts do not read or forward a provider. |
 | Field names for export | OpenTelemetry GenAI names (`gen_ai.conversation.id`, `gen_ai.provider.name`) as a mapping only |
 | Claude Code | deferred |
 

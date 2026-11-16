@@ -4,7 +4,7 @@ Status: open idea
 Created: 2026-11-12
 Sources, all `status: draft`: [agent threads](../../../specs/asc/agent-threads.md), [agent chats](../../../specs/asc/agent-chats.md), [agent plans](../../../specs/asc/agent-plans.md), [agent skills](../../../specs/asc/agent-skills.md), [agent models](../../../specs/asc/agent-models.md). The later sections are the open choices in Projet Complexe 2026 Revival (v6), §19, read on 2026-11-12. That note lives in the Projet Complexe repository, not in this one.
 
-The provider-pivot row below was an open lean toward `llm-*` on 2026-11-12. The 2026-11-15 stubs settled the names the other way. [Agent models](../../../specs/asc/agent-models.md) is that record. The rest of this list is still open.
+The provider-pivot row below was an open lean toward `llm-*` on 2026-11-12. Commit `75a25a8` added `model-*` filenames and empty `agent-provider-*` paths. [Agent models](../../../specs/asc/agent-models.md) records those filenames and is still draft. `agent-status`, `agent-stop`, and `agent-stop_all` remain on disk. That is not an accepted naming contract. The rest of this list is still open.
 
 This is the list of choices those texts leave open. A lean is a preference written in the source. It is not a decision, and this note does not approve one. Nothing here is an implementation go-ahead.
 
@@ -26,9 +26,9 @@ The [thread-control plan](../../../plans/2026/11/11-thread-control-before-agent-
 | Queue | `flock` wait, a queue tool, or a spool directory plus a timer | none until a waiting list exists |
 | Priority | CPU/IO weight, or `order` in the backlog | weight first |
 | Other hosts | pull over SSH, with per-host files merged by the reader | pull; no listener |
-| LAN inference endpoint | model actions pass the provider as an argument; a status probe for that endpoint is still unnamed | not a tracked host; see [agent models](../../../specs/asc/agent-models.md) |
+| LAN inference endpoint | model-action examples show a provider argument; the scripts do not read or forward it; a status probe for that endpoint is still unnamed | not a tracked host; see [agent models](../../../specs/asc/agent-models.md) |
 | Status signal | OSC 7501 from the wrapper | only when something on the host reads it |
-| Provider pivot names | `model-*` with the provider as an argument; empty `agent-provider-*` paths for list, load, models, unload, and update | settled by the 2026-11-15 stubs; see [agent models](../../../specs/asc/agent-models.md) |
+| Provider pivot names | stub filenames `model-*` and empty `agent-provider-*`; `agent-status`, `agent-stop`, and `agent-stop_all` remain | draft record in [agent models](../../../specs/asc/agent-models.md); contract open until those older actions are reconciled |
 
 ## Chats
 
@@ -75,7 +75,7 @@ Gates and next-steps are marked under review in the plans spec as well as here.
 
 ## Revival note, not already in the tables above
 
-Same choices, not repeated: unit of record, run id, host string, offset, history, supervisor, stop mechanism, queue, priority, other hosts, LAN endpoint, one chat id or two, where a turn result is kept, whether `read` and `archive` stay, which endpoint a chat uses, Claude Code deferred, authorisation surface, next-steps generator, skill ownership record, extra front matter, Claude Code discovery path. Model action names are the 2026-11-15 stubs, recorded in [agent models](../../../specs/asc/agent-models.md).
+Same choices, not repeated: unit of record, run id, host string, offset, history, supervisor, stop mechanism, queue, priority, other hosts, LAN endpoint, one chat id or two, where a turn result is kept, whether `read` and `archive` stay, which endpoint a chat uses, Claude Code deferred, authorisation surface, next-steps generator, skill ownership record, extra front matter, Claude Code discovery path. Model-action filenames from the 2026-11-15 stubs are recorded in [agent models](../../../specs/asc/agent-models.md). They are not an accepted naming contract.
 
 v6 sharpens a few of those without closing them:
 
@@ -87,7 +87,7 @@ v6 sharpens a few of those without closing them:
 | What `thread-stop` names | the entry, or a run id | Stop |
 | Hold file scope | per project, per host, or both | Stop all |
 | What `order:` means | a dependency, or a priority | Backlog order |
-| Model-server pivot | `llm-*`, or the call folded inside `run-agent` | v6's candidates. The mother stubs later used `model-*` and `agent-provider-*`; see the threads row above. |
+| Model-server pivot | `llm-*`, or the call folded inside `run-agent` | v6's candidates. The mother stubs later added `model-*` and `agent-provider-*` filenames; the threads row above is still open. |
 | First skill that would justify `skill-install` | none yet; whichever concrete skill needs an install action | A skill for agent tracking |
 
 Open in v6 and absent from the four specs:

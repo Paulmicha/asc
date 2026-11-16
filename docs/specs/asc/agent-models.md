@@ -11,7 +11,7 @@ A **model action** is a `model` hook call. The provider is a positional argument
 
 ## Model actions (stub direction)
 
-Each file is `asc/extensions/agent/model/$action.sh`. After bootstrap it calls `hook_ms` with subject `model`, that action, and variant names `HOST_OS HOST_TYPE INSTANCE_TYPE`. One implementation is selected. The provider is an argument in the examples. It is not a name in `-v`.
+Each file is `asc/extensions/agent/model/$action.sh`. After bootstrap it calls `hook_ms` with subject `model`, that action, and variant names `HOST_OS HOST_TYPE INSTANCE_TYPE`. That call is how one implementation would be selected once the script runs. The provider appears in the examples. It is not a name in `-v`.
 
 Each file still has a TODO for the arguments docblock and for argument handling. The examples are the intended invocation. The scripts do not yet declare or handle those arguments, and this spec does not claim the hook sees them.
 
@@ -25,13 +25,15 @@ Each file still has a TODO for the arguments docblock and for argument handling.
 
 Make names are `f_make_task_name` on the primitive pair: `/` and other non-alphanumeric characters become `-`.
 
-The strings in the action examples show those positions. They stay in the action files. A provider argument can name a hosted agent product or a local runtime, and the choice is per call.
+The strings in the action examples show those positions. The scripts do not read or forward them. Both a hosted product name and a local runtime name appear in that example position. Those five files are git mode `100644`. The Make refusal is the same one stated for the empty provider files below.
 
 `model-prompt` is this hook call. `prompt-generate` and `prompt-refine` stay the actions under `prompt/`. A chat turn stays a `chat` action.
 
 ## Provider actions (stub direction)
 
-These files are empty. When the extension is enabled, discovery treats a `*.sh` file that is not a double-extension helper as an action, so the paths reserve entry points. An empty file chooses no hook call, no arguments, and no result.
+These files are empty. When the extension is enabled, discovery treats a `*.sh` file that is not a double-extension helper as an action, so an enabled extension would register the names. An empty file chooses no hook call, no arguments, and no result.
+
+The five files are git mode `100644`, and so are the five `model/*.sh` files. `asc/make/call_wrap.make.sh` runs the action path with `eval`. A path with no execute bit is permission denied, exit 126. That was checked with a disposable non-executable file, not by enabling the `agent` extension. Registering the names does not make the targets runnable. The execute bit belongs with an implementation of the action.
 
 | Path | Primitive pair | Make name |
 |---|---|---|
@@ -54,7 +56,7 @@ Commit `75a25a8` left these files as they were:
 | `agent/stop.sh` | `hook_ms` on subject `agent`, action `stop`, same variants | `make agent-stop` |
 | `agent/stop_all.sh` | `hook_ms` on subject `agent`, action `stop_all`, same variants | `make agent-stop-all` |
 
-The status, stop, and stop_all comments still say "Abstract local LLM bring-up". Their examples pass no provider and no model name.
+The status, stop, and stop_all comments still say "Abstract local LLM bring-up". Their examples include no provider and no model name.
 
 ## Not decided
 
@@ -64,12 +66,13 @@ The status, stop, and stop_all comments still say "Abstract local LLM bring-up".
 | How the selected hook receives the names | The action shows no variable and no forwarded argument list. |
 | Hook implementation home | No matching hook file in the mother. |
 | Stdout and exit status | No result contract. |
+| `model-prompt` text and result | The example gives a provider name and a model name. Where the prompt text comes from, and what the action returns, are unset. |
 | Empty provider verbs | The paths exist. What list, models, load, unload, and update return is unset. |
-| `agent-status`, `agent-stop`, `agent-stop_all` beside `model-load` and `model-unload` | Those three files were outside this commit. |
-| Which endpoint a chat uses | Open in [agent chats](agent-chats.md). A provider argument on `model-*` does not select the chat hook. |
+| `agent-status`, `agent-stop`, `agent-stop_all` beside `model-load` and `model-unload` | Those three files were outside this commit. Accepting the stub filenames still needs an explicit decision that reconciles them. This spec is draft. |
+| Which endpoint a chat uses | Open in [agent chats](agent-chats.md). The model-action examples do not select the chat hook. |
 | Role, provider, and model mapping | Open in the stubs note. A role is not a model. |
 
-Earlier notes leaned toward an `llm-*` rename, or toward folding the call into `run-agent`. These stubs put the model operations on subject `model`, and the empty provider files on subject `agent`, object `provider`. The mother tree has no `llm` subject directory.
+Earlier notes leaned toward an `llm-*` rename, or toward folding the call into `run-agent`. The files from commit `75a25a8` use subject `model`, and subject `agent` with object `provider`. The mother tree has no `llm` subject directory. Those filenames are a draft record. They are not an accepted naming contract while `agent-status`, `agent-stop`, and `agent-stop_all` remain.
 
 ## Related
 

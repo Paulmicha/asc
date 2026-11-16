@@ -63,7 +63,7 @@ The reviews ask for a kill switch (`autonomy: manual`). The smallest form is a h
 
 Lean on 2026-11-11: 2. A run is a thread; ASC already has the word.
 
-The stubs committed on 2026-11-15 took another naming. Model operations are `model-list`, `model-load`, `model-unload`, `model-prompt`, and `model-pull`, with the provider as an argument. Empty files under `agent/provider/` reserve `agent-provider-list`, `agent-provider-load`, `agent-provider-models`, `agent-provider-unload`, and `agent-provider-update`. [Agent models](../../../specs/asc/agent-models.md) records that direction. `agent-stop` is still on disk beside `model-unload`. The mother tree has no `llm` subject directory on that date.
+Commit `75a25a8` adds filenames the 2026-11-11 lean did not use: `model-list`, `model-load`, `model-unload`, `model-prompt`, and `model-pull`, whose examples show a provider argument the scripts do not read or forward, and empty `agent/provider/` files named `agent-provider-list`, `agent-provider-load`, `agent-provider-models`, `agent-provider-unload`, and `agent-provider-update`. [Agent models](../../../specs/asc/agent-models.md) records them as a draft. `agent-stop` remains beside `model-unload`. The mother tree has no `llm` subject directory on that date. Those filenames are not an accepted naming contract.
 
 ## What should not become an action
 

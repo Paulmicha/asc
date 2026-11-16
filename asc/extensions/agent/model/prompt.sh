@@ -6,9 +6,9 @@
 # TODO wip: Arguments docblock section.
 #
 # @example
-#   make model-prompt 'codex' 'gpt-6.1-terra-high'
+#   make model-prompt 'codex' 'gpt-6.1-terra-high' 'worspace-foobar' '(TODO prompt ID ? Args ? DSL ?)'
 #   # Or :
-#   asc/extensions/agent/model/prompt.sh 'codex' 'gpt-6.1-terra-high'
+#   asc/extensions/agent/model/prompt.sh 'codex' 'gpt-6.1-terra-high'' 'worspace-foobar' '(TODO prompt ID ? Args ? DSL ?)'
 #
 
 . asc/bootstrap.sh
