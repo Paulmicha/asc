@@ -20,14 +20,14 @@ Each file still has a TODO for the arguments docblock and for argument handling.
 | `model-list` | `model/list` | one provider name | List the models that provider can use. The comment text is "List usable model models." |
 | `model-load` | `model/load` | provider, then model name | Load that model through that provider. |
 | `model-unload` | `model/unload` | provider, then model name | Unload that model through that provider. |
-| `model-prompt` | `model/prompt` | provider, model name, workspace, prompt text | Four draft positions in the example. `prompt-text` is a shell-safe placeholder. The script does not read them. |
+| `model-prompt` | `model/prompt` | provider, model name, workspace, prompt input | Four draft positions. The fourth contains a TODO about a prompt ID, arguments, or DSL. The script does not read them. |
 | `model-pull` | `model/pull` | provider, then model name | Pull that model when the provider has a pull. The comment says this applies for some providers and names local model servers as the examples. |
 
 Make names are `f_make_task_name` on the primitive pair: `/` and other non-alphanumeric characters become `-`.
 
 The strings in the action examples show those positions. The scripts do not read or forward them. Both a hosted product name and a local runtime name appear in that example position. Those five files are git mode `100644`. The Make refusal is the same one stated for the empty provider files below.
 
-`model-prompt` is this hook call. `prompt-generate` and `prompt-refine` stay the actions under `prompt/`. A chat turn stays a `chat` action.
+`model-prompt` calls the `model` hook. `prompt-generate` and `prompt-refine` are separate actions under `prompt/`. The `chat` subject has its own action stubs. A shared entry point for standalone answers and chat turns is explored in the [model prompting idea](../../ideas/2026/11/15-model-prompt.md).
 
 ## Provider actions (stub direction)
 
@@ -66,8 +66,8 @@ The status, stop, and stop_all comments still say "Abstract local LLM bring-up".
 | How the selected hook receives the names | The action shows no variable and no forwarded argument list. |
 | Hook implementation home | No matching hook file in the mother. |
 | Stdout and exit status | No result contract. |
-| `model-prompt` workspace | The third example position is a workspace placeholder. Which identifier that position accepts, and whether `workspace-list` supplies it, is open. `workspace/list.sh` is empty and git mode `100644`. `workspace/.asc_actions_ignore` lists `list.sh`, so discovery does not register `workspace-list`. The file stays out of discovery until it lists workspaces or reports that the action is unavailable. Running the empty file through Bash exits 0 with no output, so the execute bit alone would hide the failure. The empty `workspace/index.sh` is still discovered as `workspace-index`. |
-| `model-prompt` text and result | The fourth example position is the placeholder `prompt-text`. Whether that text is an id, arguments, or a DSL expression is open. What the action returns is unset. |
+| `model-prompt` workspace | Which workspace identifier the third position accepts, and whether `workspace-list` supplies it, is open. Discovery finds `workspace-list` and `workspace-index` when `agent` is enabled. Both files are empty and have Git mode `100644`. |
+| `model-prompt` text and result | The fourth position is a placeholder. How to distinguish prose from DSL, how the argument survives Make, and what the action returns are open. |
 | Empty provider verbs | The paths exist. What list, models, load, unload, and update return is unset. |
 | `agent-status`, `agent-stop`, `agent-stop_all` beside `model-load` and `model-unload` | Those three files were outside this commit. Accepting the stub filenames still needs an explicit decision that reconciles them. This spec is draft. |
 | Which endpoint a chat uses | Open in [agent chats](agent-chats.md). The model-action examples do not select the chat hook. |

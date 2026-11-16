@@ -1,6 +1,6 @@
 ---
 status: draft
-updated: 2026-11-11
+updated: 2026-11-15
 ---
 
 # Agent plans
@@ -8,6 +8,9 @@ updated: 2026-11-11
 Draft. **Observed** means present in the mother tree on 2026-11-11. **Proposed** means written in a plan and not implemented. Nothing proposed here is approved. Gates, next-steps files and the needs inbox are themselves under review; their shapes are recorded as they stand.
 
 A **plan** is a dated Markdown document describing task-specific work. This spec covers the plan file, the evidence an agent loop produces about it, and the files that say whether work may start.
+
+The `agent-task-*` and `goal-*` stubs introduce separate action groups. How a
+task refers to a plan or named step is open. See [agent work](agent-work.md).
 
 Reasoning and alternatives: [queue and priority](../../ideas/2026/11/11-agent-queue-and-priority.md), [drift guardrails](../../ideas/2026/11/11-agent-drift-guardrails.md), [gates and next steps](../../ideas/2026/11/10-gates-and-next-steps.md), [record conventions](../../ideas/2026/11/11-record-conventions.md).
 
