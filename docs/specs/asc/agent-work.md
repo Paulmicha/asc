@@ -1,9 +1,9 @@
 ---
 status: draft
-updated: 2026-11-15
+updated: 2026-11-16
 ---
 
-# Agent goals, tasks, memory, knowledge, and cognition
+# Agent work, permissions, and sandboxes
 
 Commit `469ad37` placed `goal` in its own subject and put `task`, `memory`,
 and `knowledge` under the `agent` subject. Commit `08c8a51` adds `cognition`
@@ -11,11 +11,14 @@ as another object under `agent`. It removes `agent/knowledge/memory.sh` and
 `agent/knowledge/task.sh`, and adds `create`, `delete`, and `update` under
 knowledge. `oriented` stays.
 
+Commit `e7cda9a` adds `permission` and `sandbox` as separate objects under
+`agent`. The filenames group permission queries and changes separately from
+sandbox management and loading.
+
 Hook lookup walks `$subject/$action` paths. `f_hook_build_lookup_by_subject`
-in `asc/core/hook.manual-inc.sh` skips a path with two slashes, so an
-object-directory action is not a hook target. `goal/align` can be one.
-`agent/task/create` and the other object actions in the table below cannot,
-until a script names a subject and an action for its hook call.
+in `asc/core/hook.manual-inc.sh` skips paths with two slashes. `goal/align`
+can be a hook target. An object action such as `agent/permission/check`
+can make a hook call by naming the subject and action for that lookup.
 
 ## Action names (observed)
 
@@ -29,6 +32,8 @@ Make name prefix and the suffixes discovered from the files.
 | `agent/memory/` | object `memory` under `agent` | `agent-memory-*` with `create`, `delete`, `oriented`, `search`, `update` |
 | `agent/knowledge/` | object `knowledge` under `agent` | `agent-knowledge-*` with `create`, `delete`, `oriented`, `update` |
 | `agent/cognition/` | object `cognition` under `agent` | `agent-cognition-*` with `list`, `read`, `scan` |
+| `agent/permission/` | object `permission` under `agent` | `agent-permission-*` with `check`, `get`, `list`, `remove`, `set` |
+| `agent/sandbox/` | object `sandbox` under `agent` | `agent-sandbox-*` with `create`, `delete`, `list`, `load`, `unload` |
 
 Git records the two removed knowledge files as renames:
 `knowledge/memory.sh` to `cognition/list.sh`, and `knowledge/task.sh` to
@@ -36,26 +41,46 @@ Git records the two removed knowledge files as renames:
 Git's similarity match. `cognition/scan.sh` and the new knowledge files are
 adds. What those pairs mean is open.
 
-All 25 files in the table are empty and have Git mode `100644`. The mother
-disables `agent` by default through `.asc_extensions_ignore`. When the
-extension is enabled, discovery includes the files and the Make wrapper
-attempts to execute them directly. The wrapper exits 126 with permission
-denied. Invoking an empty file through Bash returns success with no result.
-The layout records candidate entry points. These directories contain no
-`.asc_actions_ignore`, so an enabled extension registers all 25 names.
-A discovery probe of `asc/extensions/agent` on 2026-11-15 listed those 25
-and did not list `agent/knowledge/memory` or `agent/knowledge/task`.
-Arguments, hook calls, and results are still open.
+All 35 files in the table are empty and have Git mode `100644`. The mother
+disables `agent` by default through `.asc_extensions_ignore`. A discovery
+probe with `agent` enabled listed all 35 names. The Make wrapper attempts to
+execute the files directly. In an isolated probe it exited 126 with
+permission denied for all ten additions in `e7cda9a`. Explicitly passing an
+empty file to Bash returns success with no result.
+
+An unregistered target can match the catch-all rule in the root `Makefile`
+and exit 0 without running an action. That happened in an isolated probe
+for both `agent-permission-check` and `agent-sandbox-load`.
 
 ## What the filenames decide
 
-- `goal-*` is a subject. Its verbs are `align`, `create`, `delete`, `list`,
-  and `update`. `goal/$action` is a hook-eligible path.
+- `goal` is a subject. Its `goal/$action` paths are eligible for hook lookup.
 - `agent-task-*`, `agent-memory-*`, `agent-knowledge-*`, and
-  `agent-cognition-*` group actions under objects. Those paths are not hook
-  targets.
+  `agent-cognition-*` group actions under objects. `agent-permission-*` and
+  `agent-sandbox-*` follow the same layout.
 - Knowledge's filenames are `create`, `delete`, `oriented`, and `update`.
 - Cognition's filenames are `list`, `read`, and `scan`.
+
+## Permissions and sandboxing (proposed)
+
+- **Permissions.** The names suggest using `get` and `list` to inspect
+  records, `set` and `remove` to change them, and `check` to evaluate the
+  effective permission for one operation. The rule format, scope, precedence,
+  and authority to change grants are open. A caller should proceed only on an
+  explicit allow for the requested operation. A denial, an unresolved check,
+  or a missing result should block the operation. Make's exit status alone
+  cannot supply that decision.
+- **Sandboxes.** The names suggest managing definitions with `create`,
+  `list`, and `delete`. Whether `load` and `unload` prepare a profile or manage
+  a running sandbox is open. Define how the launcher applies the selected
+  restrictions to the actual agent process, and how unload or delete affects
+  active runs. A run that requires isolation should stop if setup fails.
+  The proposed plan runner already distinguishes enforced and weakened modes.
+  See [plan isolation](agent-plans.md#isolation).
+
+Plan approval, permission to perform a specific operation, and runtime
+isolation answer separate questions. How these actions connect to the draft
+plan runner remains open. See [agent plans](agent-plans.md#four-separate-questions).
 
 ## Still open
 

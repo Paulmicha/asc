@@ -1,6 +1,6 @@
 ---
 status: draft
-updated: 2026-11-15
+updated: 2026-11-16
 ---
 
 # Agent plans
@@ -85,6 +85,10 @@ Roles: one writer and one reviewer, each a [chat](agent-chats.md) turn. At most 
 |---|---|---|
 | `enforced` | each turn runs in a `bwrap` profile; the reviewer cannot write the project or staging | `writer_isolation`, `reviewer_isolation` |
 | `weakened` | no sandbox; a before and after inventory (sha256 and size of every regular file) detects writes | same keys |
+
+How the plan runner would use the new permission and sandbox actions remains
+open. The action groups and their proposed boundaries are described in
+[agent work](agent-work.md#permissions-and-sandboxing-proposed).
 
 ### Outcomes
 
