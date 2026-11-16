@@ -200,7 +200,33 @@ Generated sections: Sequential, Parallel, Awaiting approval, Do not re-run. The 
 | Status | `new`, `reviewed`, `planned`, `addressed`, `deferred`, `duplicate`; a field, not a directory |
 | Time | ISO 8601 with offset, inside the record |
 
-It is an inbox. It promises no order, no consumer and no dispatch. A need may lead to a plan; the plan links back.
+A need records an observation for review. A need may lead to a plan, which
+links back to the record. The inbox's priority would guide review. Readiness
+and authorisation to start work follow the plan contract above.
+
+### Need action stubs (2026-11-16)
+
+`need` is a subject in the opt-in `agent` extension. Commit `3b0e4e8` adds
+`need-delete`, `need-evaluate`, and `need-prioritize` alongside `need-create`,
+`need-list`, and `need-status`. All six files under
+`asc/extensions/agent/need/` are empty and have Git mode `100644`.
+Discovery finds them when `agent` is enabled. The three new targets failed
+with wrapper exit 126 and Make exit 2 in an isolated probe.
+
+- `need-evaluate` suggests assessing a need. The criteria, output, and any
+  change to its review status are open.
+- `need-prioritize` suggests ordering needs for review. Whether it returns
+  a ranking or saves a priority on the record is open. Ordering tasks is a
+  separate question raised by `agent-task-prioritize`. See
+  [agent work](agent-work.md).
+- `need-delete` raises a record retention question because plans can link
+  to the relative path. Decide whether to archive the record, leave a marker
+  at the linked path, or remove the record. If deletion accepts a path,
+  reject identifiers that resolve outside the selected inbox root.
+
+How the opt-in actions connect to the host inbox remains open. The proposed
+first slice allows manual capture across ASC instances with `agent` disabled.
+See the [host needs plan](../../plans/2026/11/06-host-needs-and-skill-feedback.md).
 
 ## Product plan files (external)
 
