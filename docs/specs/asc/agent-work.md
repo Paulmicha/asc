@@ -19,8 +19,12 @@ Commit `af6d125` drops `agent-task-clear` and adds separate `complete` and
 `delete` stubs under `agent/task/`. The `need` subject has its own action
 group. See the [needs inbox](agent-plans.md#needs-inbox-proposed).
 
+Commit `477106c` adds `review` across action groups, adds `agent-sandbox-update`,
+and removes the `goal-align` and `agent-task-prioritize` stubs. Git can pair
+unrelated additions and removals because they contain the same empty blob.
+
 Hook lookup walks `$subject/$action` paths. `f_hook_build_lookup_by_subject`
-in `asc/core/hook.manual-inc.sh` skips paths with two slashes. `goal/align`
+in `asc/core/hook.manual-inc.sh` skips paths with two slashes. `goal/review`
 can be a hook target. An object action such as `agent/permission/check`
 can make a hook call by naming the subject and action for that lookup.
 
@@ -31,13 +35,13 @@ Make name prefix and the suffixes discovered from the files.
 
 | Path | Placement | Make names |
 |---|---|---|
-| `goal/` | subject `goal` | `goal-*` with `align`, `create`, `delete`, `list`, `update` |
-| `agent/task/` | object `task` under `agent` | `agent-task-*` with `complete`, `create`, `delegate`, `delete`, `execute`, `list`, `oriented`, `prioritize`, `update` |
-| `agent/memory/` | object `memory` under `agent` | `agent-memory-*` with `create`, `delete`, `oriented`, `search`, `update` |
-| `agent/knowledge/` | object `knowledge` under `agent` | `agent-knowledge-*` with `create`, `delete`, `oriented`, `update` |
-| `agent/cognition/` | object `cognition` under `agent` | `agent-cognition-*` with `list`, `read`, `scan` |
-| `agent/permission/` | object `permission` under `agent` | `agent-permission-*` with `check`, `get`, `list`, `remove`, `set` |
-| `agent/sandbox/` | object `sandbox` under `agent` | `agent-sandbox-*` with `create`, `delete`, `list`, `load`, `unload` |
+| `goal/` | subject `goal` | `goal-*` with `create`, `delete`, `list`, `review`, `update` |
+| `agent/task/` | object `task` under `agent` | `agent-task-*` with `complete`, `create`, `delegate`, `delete`, `execute`, `list`, `oriented`, `review`, `update` |
+| `agent/memory/` | object `memory` under `agent` | `agent-memory-*` with `create`, `delete`, `oriented`, `review`, `search`, `update` |
+| `agent/knowledge/` | object `knowledge` under `agent` | `agent-knowledge-*` with `create`, `delete`, `oriented`, `review`, `update` |
+| `agent/cognition/` | object `cognition` under `agent` | `agent-cognition-*` with `list`, `read`, `review`, `scan` |
+| `agent/permission/` | object `permission` under `agent` | `agent-permission-*` with `check`, `get`, `list`, `remove`, `review`, `set` |
+| `agent/sandbox/` | object `sandbox` under `agent` | `agent-sandbox-*` with `create`, `delete`, `list`, `load`, `review`, `unload`, `update` |
 
 Git records the two removed knowledge files as renames:
 `knowledge/memory.sh` to `cognition/list.sh`, and `knowledge/task.sh` to
@@ -45,12 +49,12 @@ Git records the two removed knowledge files as renames:
 Git's similarity match. `cognition/scan.sh` and the new knowledge files are
 adds. What those pairs mean is open.
 
-All 36 files in the table are empty and have Git mode `100644`. The mother
+All 42 files in the table are empty and have Git mode `100644`. The mother
 disables `agent` by default through `.asc_extensions_ignore`. With `agent`
 enabled, ASC discovers these names. The Make wrapper attempts to execute the
-files directly. In an isolated probe, `agent-task-complete` and
-`agent-task-delete` failed with wrapper exit 126 and Make exit 2. Explicitly
-passing an empty file to Bash returns success with no result.
+files directly. In an isolated probe, the wrapper returned 126 for each of
+the 30 new paths across `477106c` and `93571e0`. Explicitly passing an empty
+file to Bash returns success with no result.
 
 An unregistered target can match the catch-all rule in the root `Makefile`
 and exit 0 without running an action. Isolated probes reproduced this for
@@ -63,8 +67,15 @@ and exit 0 without running an action. Isolated probes reproduced this for
 - `agent-task-*`, `agent-memory-*`, `agent-knowledge-*`, and
   `agent-cognition-*` group actions under objects. `agent-permission-*` and
   `agent-sandbox-*` follow the same layout.
-- Knowledge's filenames are `create`, `delete`, `oriented`, and `update`.
-- Cognition's filenames are `list`, `read`, and `scan`.
+
+## Review actions (proposed)
+
+The shared verb suggests an assessment of the named subject or object. Each
+action still needs to define what is reviewed, which evidence it uses, and
+whether it returns findings or stores them. A review that can affect state
+needs to identify the record or revision it assessed. The existing draft
+plan review result ties findings to a plan digest and a named step. Its
+approval and execution boundaries are described in [agent plans](agent-plans.md#four-separate-questions).
 
 ## Permissions and sandboxing (proposed)
 
@@ -76,10 +87,11 @@ and exit 0 without running an action. Isolated probes reproduced this for
   or a missing result should block the operation. Make's exit status alone
   cannot supply that decision.
 - **Sandboxes.** The names suggest managing definitions with `create`,
-  `list`, and `delete`. Whether `load` and `unload` prepare a profile or manage
-  a running sandbox is open. Define how the launcher applies the selected
-  restrictions to the actual agent process, and how unload or delete affects
-  active runs. A run that requires isolation should stop if setup fails.
+  `list`, `update`, and `delete`. Whether `load` and `unload` prepare a
+  profile or manage a running sandbox is open. Define how the launcher
+  applies the selected restrictions to the agent process, and how update,
+  unload, or delete affects active runs. A run that requires isolation
+  should stop if setup fails.
   The proposed plan runner already distinguishes enforced and weakened modes.
   See [plan isolation](agent-plans.md#isolation).
 
@@ -89,11 +101,11 @@ plan runner remains open. See [agent plans](agent-plans.md#four-separate-questio
 
 ## Still open
 
-- Whether `goal-align` checks a relationship or changes one, and what
-  identifies a goal.
+- What identifies a goal and whether `goal-review` assesses alignment or
+  another property.
 - How a task refers to a plan, a named step, or an execution attempt. What
-  `delegate` hands off and whether `prioritize` changes the task backlog or
-  reports an assessment are open. When a task runs a plan step, readiness
+  `delegate` hands off and whether task review includes a recommendation
+  about priority are open. When a task runs a plan step, readiness
   and authorisation stay distinct. See [agent plans](agent-plans.md).
 - The separate `complete` and `delete` stubs suggest a task state transition
   and a record removal operation. Define who can mark a task complete, what

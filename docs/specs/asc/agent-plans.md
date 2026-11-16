@@ -25,6 +25,15 @@ Reasoning and alternatives: [queue and priority](../../ideas/2026/11/11-agent-qu
 
 Readiness never grants authorisation.
 
+### Plan and decision action stubs (2026-11-16)
+
+The `agent` extension has empty `plan-create`, `plan-execute`, and
+`plan-review` stubs, alongside empty `decision-make`, `decision-update`, and
+`decision-review` stubs. Commit `477106c` adds both review paths and removes
+`decision-evaluate`. Whether `plan-review` produces the proposed [review
+result](#review-result-proposed), and what evidence a decision review uses,
+remain open.
+
 ## Plan file (observed)
 
 | Item | Convention |
@@ -206,18 +215,18 @@ and authorisation to start work follow the plan contract above.
 
 ### Need action stubs (2026-11-16)
 
-`need` is a subject in the opt-in `agent` extension. Commit `3b0e4e8` adds
-`need-delete`, `need-evaluate`, and `need-prioritize` alongside `need-create`,
-`need-list`, and `need-status`. All six files under
+`need` is a subject in the opt-in `agent` extension. Its current actions are
+`need-create`, `need-delete`, `need-list`, `need-prioritize`, `need-review`,
+and `need-status`. Commit `477106c` adds `need-review` and removes
+`need-evaluate`. All six files under
 `asc/extensions/agent/need/` are empty and have Git mode `100644`.
-Discovery finds them when `agent` is enabled. The three new targets failed
-with wrapper exit 126 and Make exit 2 in an isolated probe.
+Discovery finds them when `agent` is enabled.
 
-- `need-evaluate` suggests assessing a need. The criteria, output, and any
+- `need-review` suggests assessing a need. The criteria, output, and any
   change to its review status are open.
 - `need-prioritize` suggests ordering needs for review. Whether it returns
-  a ranking or saves a priority on the record is open. Ordering tasks is a
-  separate question raised by `agent-task-prioritize`. See
+  a ranking or saves a priority on the record is open. Task ordering remains
+  a separate question after the removal of `agent-task-prioritize`. See
   [agent work](agent-work.md).
 - `need-delete` raises a record retention question because plans can link
   to the relative path. Decide whether to archive the record, leave a marker

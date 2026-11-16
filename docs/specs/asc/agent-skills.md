@@ -1,6 +1,6 @@
 ---
 status: draft
-updated: 2026-11-11
+updated: 2026-11-16
 ---
 
 # Agent skills
@@ -78,6 +78,17 @@ Taken from product documentation cited in the [guidance-as-skills plan](../../pl
 ## Needs feed skills (proposed)
 
 A reviewed need may end in a change to a skill. The mapping in the needs plan names what a skill is made of: trigger, procedure, resources, scripts, checks, guard, learning. The inbox itself is described in [agent-plans](agent-plans.md).
+
+## Skill action stubs (2026-11-16)
+
+The opt-in `agent` extension has empty `skill-activate`, `skill-disable`,
+`skill-list`, and `skill-review` stubs. Commit `477106c` added the last three
+and removed `skill-load`.
+
+The names suggest managing a skill's availability. Whether activation or
+disable applies to an invocation, a session, or a persistent product setting
+is open. Define which skills list discovers and what review assesses. The
+separate installation proposal below concerns copying and removing files.
 
 ## Install and uninstall (proposed)
 

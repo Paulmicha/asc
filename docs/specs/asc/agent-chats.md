@@ -1,11 +1,11 @@
 ---
 status: draft
-updated: 2026-11-15
+updated: 2026-11-16
 ---
 
 # Agent chats
 
-Draft. **Observed** means read in the mother code on 2026-11-11. **Proposed** means written in a plan and not implemented. **External** means taken from a product's documentation or seen in its files; products change these without notice. Nothing proposed here is approved.
+Draft. **Observed** means read in the mother code on the date given. **Proposed** means written in a plan and not implemented. **External** means taken from a product's documentation or seen in its files; products change these without notice. Nothing proposed here is approved.
 
 A **chat** is a conversation held by an agent product. ASC starts turns and receives their results. The proposed ASC Markdown archive records the prompts and replies it handles; the product continues to own its session. A chat is not a [thread](agent-threads.md): a thread is the process that drives a turn.
 
@@ -13,16 +13,21 @@ Reasoning and survey: [session stores](../../ideas/2026/11/11-agent-session-stor
 
 The broader [local action records idea](../../ideas/2026/11/13-local-action-records.md) distinguishes chat archives from wrapper logs, thread state and action work products.
 
-## Entry points (observed)
+## Entry points (observed on 2026-11-16)
 
 In the `agent` extension, ignored by default.
 
-| Action | Today |
+| Action | Hook calls in the source |
 |---|---|
-| `chat-new`, `chat-reply` | `pre`, main and `post` `chat` hooks; variants `STACK_VERSION HOST_TYPE chat_TYPE`; input `chat_id` |
-| `chat-read`, `chat-archive` | same shape |
+| `chat-create`, `chat-read`, `chat-reply` | `pre`, main and `post` for each verb, with variants `STACK_VERSION HOST_TYPE CHAT_PROVIDER`. `CHAT_PROVIDER` defaults to `dummy`. |
+| `chat-archive` | `pre`, main and `post` for `archive`, with variants `STACK_VERSION HOST_TYPE chat_TYPE`. |
+| `chat-list`, `chat-review` | Copies of `chat-reply` added in `477106c`. They call the three reply hooks. |
 
-No hook implementation exists in the mother. No file is written.
+In isolated calls through Bash, the new scripts reached the reply hook
+calls. Correct the routing before enabling these names. Define what list
+enumerates and whether review reads one chat, returns findings, or records
+them. The older proposals below refer to `chat-new`. The current creation
+path is `chat/create.sh`.
 
 ## Selection (proposed)
 
