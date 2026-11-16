@@ -7,9 +7,15 @@ updated: 2026-11-15
 
 Commit `469ad37` placed `goal` in its own subject and put `task`, `memory`,
 and `knowledge` under the `agent` subject. Commit `08c8a51` adds `cognition`
-as another object under `agent` and changes the knowledge verbs. ASC uses
-object directories to group actions. Hook lookup uses subjects, so any
-future hook calls need their own subject and action choices.
+as another object under `agent`. It removes `agent/knowledge/memory.sh` and
+`agent/knowledge/task.sh`, and adds `create`, `delete`, and `update` under
+knowledge. `oriented` stays.
+
+Hook lookup walks `$subject/$action` paths. `f_hook_build_lookup_by_subject`
+in `asc/core/hook.manual-inc.sh` skips a path with two slashes, so an
+object-directory action is not a hook target. `goal/align` can be one.
+`agent/task/create` and the other object actions in the table below cannot,
+until a script names a subject and an action for its hook call.
 
 ## Action names (observed)
 
@@ -24,51 +30,57 @@ Make name prefix and the suffixes discovered from the files.
 | `agent/knowledge/` | object `knowledge` under `agent` | `agent-knowledge-*` with `create`, `delete`, `oriented`, `update` |
 | `agent/cognition/` | object `cognition` under `agent` | `agent-cognition-*` with `list`, `read`, `scan` |
 
-The current tree drops `agent-knowledge-memory` and `agent-knowledge-task`.
-Git reports two renames to cognition paths because the files have identical
-empty contents. Any relationship between the old and new actions is open.
+Git records the two removed knowledge files as renames:
+`knowledge/memory.sh` to `cognition/list.sh`, and `knowledge/task.sh` to
+`cognition/read.sh`. Both sides are the same empty blob, so the pairing is
+Git's similarity match. `cognition/scan.sh` and the new knowledge files are
+adds. What those pairs mean is open.
 
 All 25 files in the table are empty and have Git mode `100644`. The mother
 disables `agent` by default through `.asc_extensions_ignore`. When the
 extension is enabled, discovery includes the files and the Make wrapper
 attempts to execute them directly. The wrapper exits 126 with permission
 denied. Invoking an empty file through Bash returns success with no result.
-The layout records candidate entry points. Arguments, hooks, and results
-are still open.
+The layout records candidate entry points. These directories contain no
+`.asc_actions_ignore`, so an enabled extension registers all 25 names.
+A discovery probe of `asc/extensions/agent` on 2026-11-15 listed those 25
+and did not list `agent/knowledge/memory` or `agent/knowledge/task`.
+Arguments, hook calls, and results are still open.
 
-## Implementation direction
+## What the filenames decide
 
-- `goal-*` gives goals a separate action prefix. The names distinguish
-  goal maintenance from alignment work. Whether `goal-align` checks a
-  relationship or changes one remains open, as do the scope and identity of a
-  goal.
-- `agent-task-*` groups work item management with delegation and execution.
-  Define how a task refers to a plan, a named step, or an execution attempt
-  before choosing a task record. Settle what `clear` affects, what `delegate`
-  hands off, and whether `prioritize` changes the backlog or reports an
-  assessment. When a task runs a plan step, the draft plan contract
-  still distinguishes readiness from authorisation. The thread spec covers
-  process tracking. See [agent plans](agent-plans.md) and
-  [agent threads](agent-threads.md).
-- `agent-memory-*` sketches operations on information available to an agent.
-  Decide who owns a memory entry, which scope search covers, and whether
-  actions delegate storage and search to a provider or an existing ASC store.
-  The separate [`memory` extension](../../../asc/extensions/memory/) already
-  has storage and store entry points, including a `store-search` stub. The
-  new filenames select no backend.
-- `agent-knowledge-*` groups create, update, and delete under knowledge.
-  The record type, identifier, and backing store are open. Define what
-  callers update or delete, and whether knowledge shares storage with agent
-  memory.
-- `agent-cognition-*` groups listing, reading, and scanning under cognition.
-  Decide what gets scanned, whether a scan returns findings or also writes
-  records, and what `list` and `read` identify. They could expose knowledge
-  entries maintained by `agent-knowledge-*` or findings produced by a scan.
-  If scans use workspaces, clarify how scanning relates to `workspace-index`.
-  See [agent models and providers](agent-models.md) for the workspace stubs.
-- The `oriented` stubs remain in task, memory, and knowledge. Their purpose
-  and caller are open. They could list agents by orientation, select an
-  orientation, or start work.
+- `goal-*` is a subject. Its verbs are `align`, `create`, `delete`, `list`,
+  and `update`. `goal/$action` is a hook-eligible path.
+- `agent-task-*`, `agent-memory-*`, `agent-knowledge-*`, and
+  `agent-cognition-*` group actions under objects. Those paths are not hook
+  targets.
+- Knowledge's filenames are `create`, `delete`, `oriented`, and `update`.
+- Cognition's filenames are `list`, `read`, and `scan`.
+
+## Still open
+
+- Whether `goal-align` checks a relationship or changes one, and what
+  identifies a goal.
+- How a task refers to a plan, a named step, or an execution attempt. What
+  `clear` affects, what `delegate` hands off, and whether `prioritize`
+  changes a backlog or reports an assessment. When a task runs a plan step,
+  readiness and authorisation stay distinct. Process tracking stays with
+  threads. See [agent plans](agent-plans.md) and [agent threads](agent-threads.md).
+- Who owns a memory entry, which scope `search` covers, and whether these
+  actions delegate storage to a provider or to the
+  [`memory` extension](../../../asc/extensions/memory/). That extension's
+  `storage/*` and `store/*` actions, including `store-search`, are TODO
+  stubs. These filenames select no backend.
+- What a knowledge record is, which identifier create, update, and delete
+  use, and whether that store is the same one agent memory would use.
+- What `agent-cognition-scan` reads, whether a scan returns findings or also
+  writes records, and what `list` and `read` identify. A scan might read
+  knowledge records or its own findings. `workspace-index` and
+  `workspace-list` are empty files with no behavior to call. See
+  [agent models and providers](agent-models.md).
+- What the `oriented` stubs under task, memory, and knowledge do, and which
+  caller needs them. A list of agents, a selected orientation, and the start
+  of work are separate possibilities.
 
 Tracked `.asc_actions_ignore` files in the action directories can keep empty
 placeholders out of the generated targets. Start with an action that has a
