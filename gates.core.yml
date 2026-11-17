@@ -40,8 +40,8 @@ gates:
   - changelog: docs/plans/2026/09/22-make-ds.md
     lane: discuss
     order: 1
-    task: "Plan review for make ds. First code slice is print-only."
-    summary: "Accept make ds as the short pivot for a core DSL entry point, and limit the first code slice to printing one literal call. Setting go authorizes that print slice only; combinators, calling-scope tokens, and execution stay unwritten."
+    task: "Plan review for make ds. Interpreter against docs/specs/asc/dsl.md."
+    summary: "Accept hardcoded make ds → asc/dsl.sh → f_asc_dsl as an interpreter for the README DSL (spec proposes resolutions). Setting go authorizes implementing that interpreter; print-only is abandoned. Coverage may land in waves."
     approved: "no"
     go: "no"
 
@@ -72,8 +72,8 @@ gates:
   - changelog: docs/plans/2026/09/22-make-ds-literal.md
     lane: discuss
     order: 6
-    task: "Print one literal DSL call. Covered by the make ds row."
-    summary: "This slice prints one literal DSL call and does not run it. It starts only when the make ds row is go yes. Setting go here is not a second authorization."
+    task: "Abandoned. Print-only slice cancelled; see make ds plan."
+    summary: "Historical print-only child. Abandoned 2026-11-17 when f_asc_dsl was framed as an interpreter. Setting go here authorizes nothing; use the make ds row."
     approved: "no"
     go: "no"
 

@@ -68,8 +68,8 @@ Live work is leftover core lazy waves after fs+db+yaml. Meadows loop **skipped**
 | [20-host-scan-project-instances.md](docs/plans/2026/09/20-host-scan-project-instances.md) | Catalog `$PROJECT_DOCROOT` trees on this host |
 | [22-gates-registry-alternative.md](docs/plans/2026/09/22-gates-registry-alternative.md) | Plan only. `gates.yml` is the registry. `reg-get` / `reg-set` YAML is not started |
 | [22-xdg-state-store.md](docs/plans/2026/09/22-xdg-state-store.md) | Path accepted 2026-09-24. Host registry is `$HOME/.local/state/asc/registry`. Memory stays off. |
-| [22-make-ds.md](docs/plans/2026/09/22-make-ds.md) | `make ds` contract. Plan only. Literal print is the child |
-| [22-make-ds-literal.md](docs/plans/2026/09/22-make-ds-literal.md) | First slice: print one literal DSL call. Plan only |
+| [22-make-ds.md](docs/plans/2026/09/22-make-ds.md) | `make ds` / `f_asc_dsl` interpreter contract. Plan only. Spec: `docs/specs/asc/dsl.md` |
+| [22-make-ds-literal.md](docs/plans/2026/09/22-make-ds-literal.md) | Abandoned. Print-only slice cancelled 2026-11-17 |
 | [22-make-generate.md](docs/plans/2026/09/22-make-generate.md) | `make generate` renders string, file, or dir templates. Plan only |
 | [22-make-generate-string.md](docs/plans/2026/09/22-make-generate-string.md) | First slice: print one `{{ name }}` substitution. Plan only |
 | [22-workflow.md](docs/plans/2026/09/22-workflow.md) | Workflow lap: changelog → gates → `workflow-next`. Plan only |

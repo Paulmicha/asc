@@ -49,8 +49,8 @@ Open changelog notes that are not an implementation go-ahead. Discussion belongs
 - `docs/plans/2026/09/20-builder-kernel-subject.md` — proposed, later. No code. Not in the 2026-09-19 lazy-include order. Not in the [meadows review loop](./20-meadows-plan-review-feedback-loop.md). Prefer after...
 - `docs/plans/2026/09/20-host-scan-project-instances.md` — proposed, later. No code. Not in the 2026-09-19 lazy-include order. Not in the [meadows review loop](./20-meadows-plan-review-feedback-loop.md). Prefer after...
 - `docs/plans/2026/09/22-gitflow.md` — plan / review (not an implementation go-ahead)
-- `docs/plans/2026/09/22-make-ds-literal.md` — plan / review (not an implementation go-ahead)
-- `docs/plans/2026/09/22-make-ds.md` — plan / review (not an implementation go-ahead)
+- `docs/plans/2026/09/22-make-ds.md` — plan / review (interpreter; not an implementation go-ahead). Spec: `docs/specs/asc/dsl.md`
+- `docs/plans/2026/09/22-make-ds-literal.md` — abandoned (print-only cancelled)
 - `docs/plans/2026/09/22-make-generate.md` — plan / review (not an implementation go-ahead)
 - `docs/plans/2026/09/22-make-generate-string.md` — plan / review (not an implementation go-ahead)
 - `docs/plans/2026/09/22-workflow.md` — plan / review (not an implementation go-ahead)

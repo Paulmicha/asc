@@ -895,6 +895,14 @@ make service-run 'bar' "$@"
 asc/extensions/compose/service/run.sh 'bar' "$@"
 ```
 
+&lt;proposal-2026-11-17&gt;
+
+`f_asc_dsl` runs the resolved script path form
+(`asc/extensions/compose/service/run.sh …`), not `make service-run`.
+See `docs/specs/asc/dsl.md`.
+
+&lt;/proposal-2026-11-17&gt;
+
 #### Definition and storage
 
 Entities are defined using a single Yaml file named like `$type.entity.yml` (e.g. the file `host.entity.yml` declares the `host` entity *type*). These declarations can reside in any ASC active dir following the double extension naming convention `*.entity.yml`. Their instances can be stored in file sidecars (placed in `data/entities`) or even use other storage types, like databases (sqlite, postgres, arcadedb, etc.)
@@ -1436,6 +1444,14 @@ As in `make`. Ex :
 - `service-rebuild` = `make service-rebuild` = `asc/extensions/compose/service/rebuild.sh`
 - etc.
 
+&lt;proposal-2026-11-17&gt;
+
+To interpret a DSL string: `make ds '…'` or `asc/dsl.sh '…'` → `f_asc_dsl`
+(`asc/core/dsl.manual-inc.sh`). Hardcoded make entry, not a discovered
+synonym. Contract: `docs/specs/asc/dsl.md`.
+
+&lt;/proposal-2026-11-17&gt;
+
 #### Arguments
 
 Arguments are specified using `()` and are separated by `,` :
@@ -1498,10 +1514,27 @@ The DSL uses subshells for nested cases like `[f_db_clear([slug(p1)])]` :
 f_db_clear "$(slug 'foobar')"
 ```
 
+&lt;proposal-2026-11-17&gt;
+
+Prefer `[f_db_clear(slug(p1))]` when `slug` is an ASC pivot: `[]` marks
+whitelisted bash functions only; nested pivots compile to
+`"$(asc/instance/slug.sh …)"`. Working grammar and defaults:
+`docs/specs/asc/dsl.md`.
+
+&lt;/proposal-2026-11-17&gt;
+
 #### Chaining
 
 - `[echo(v-baz)];echo(foobar)` = calls `echo "$baz" ; echo 'foobar'`
 - `[echo(v-baz)];;echo(foobar)` = calls `echo "$baz" && echo 'foobar'`
+
+&lt;proposal-2026-11-17&gt;
+
+`[]` applies per call when that call is a whitelisted function. Bare ASC
+pivots in a chain need no brackets. Same rule as nested calls in
+`docs/specs/asc/dsl.md`.
+
+&lt;/proposal-2026-11-17&gt;
 
 #### Parallel
 
@@ -1571,6 +1604,20 @@ That DSL syntax example translates to :
 [[ asc/test/in.sh 'foo-bar' "$(asc/instance/slug.sh 'foo-bar')" "$(asc/instance/snake.sh 'foo-bar')" ]] || exit 1
 # ... where 'foo-bar' would be the entity "toto" field value declared in its "*.entity.yml" specification file.
 ```
+
+&lt;proposal-2026-11-17&gt;
+
+That `[[ … ]]` form is invalid for running a command. Prefer:
+
+```sh
+asc/test/in.sh 'foo-bar' "$(asc/instance/slug.sh 'foo-bar')" "$(asc/instance/snake.sh 'foo-bar')" || exit 1
+```
+
+Any top-level DSL whose leading pivot matches `test-*` runs that script and
+exits `1` on failure. Interpreter entry: `make ds` / `asc/dsl.sh` /
+`f_asc_dsl` — see `docs/specs/asc/dsl.md`.
+
+&lt;/proposal-2026-11-17&gt;
 
 This is used during basic validations, such as tiny automated tests automatically executed upon initializing newly added entity declarations in a local project instance.
 
