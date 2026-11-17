@@ -24,6 +24,7 @@ if [[ $ASC_BS_FLAG -ne 1 ]]; then
   . asc/core/core.manual-inc.sh
   . asc/core/hook.manual-inc.sh
   . asc/core/autoload.manual-inc.sh
+  . asc/core/dsl.manual-inc.sh
 
   # If instance init was run at least once, automatically load locally generated
   # global env vars.
