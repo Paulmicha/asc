@@ -39,7 +39,7 @@
 #   make test-core
 #
 
-.PHONY: init init-debug setup hook hook-debug globals-lp debug
+.PHONY: init init-debug setup hook hook-debug globals-lp debug ds
 
 init:
 	@ asc/make/call_wrap.make.sh asc/instance/init.sh $(MAKECMDGOALS)
@@ -62,3 +62,6 @@ globals-lp:
 debug:
 	@ echo "debug MAKECMDGOALS (escaped) = $(MAKECMDGOALS)";
 	@ asc/make/call_wrap.make.sh asc/make/echo.make.sh $(MAKECMDGOALS)
+
+ds:
+	@ asc/make/call_wrap.make.sh asc/dsl.sh $(MAKECMDGOALS)
