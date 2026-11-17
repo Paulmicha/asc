@@ -18,4 +18,4 @@ Do **not** fill empty `asc/data/store.able.yml` / `asc/sidecar/sidecar.able.yml`
 
 Runtime stdout stays `echo` / `echo >&2` plus the existing `Error in $BASH_SOURCE line $LINENO` / `Aborting (1).` idiom. `printf -v` stays return-by-var. No `u_log` helper unless a named multi-file caller appears and someone asks.
 
-README still describes sidecar/store contracts that are empty on disk. A later `changelog/YYYY/MM/DD-readme-sidecar-store-stubs.md` is the human’s call, not this file.
+README still describes sidecar/store contracts that are empty on disk. A later `docs/plans/YYYY/MM/DD-readme-sidecar-store-stubs.md` is the human’s call, not this file.

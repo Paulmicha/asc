@@ -61,7 +61,7 @@ The registry stays one string per key. Host scope stays `$HOME/.local/state/asc/
 | Preset | When | Shape |
 |--------|------|--------|
 | Many files | Logs and other high-volume files | `data/foobar/YYYY/MM/DD/HH-II-SS-<file_name>.txt` |
-| Occasional files | Changelogs and similar | `changelog/YYYY/MM/DD-<file_name>.md` |
+| Occasional files | Changelogs and similar | `docs/plans/YYYY/MM/DD-<file_name>.md` |
 | Entity instance | One record per id | `data/entities/host/foobar.home.arpa.yml` |
 
 The entity-instance preset is what `host.entity.yml` already uses. It is not the only preset, and it is not where the host catalog goes. The catalog stays the registry key.

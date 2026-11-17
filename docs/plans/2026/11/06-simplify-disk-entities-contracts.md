@@ -193,7 +193,7 @@ There is no variable named `ASC_CACHE` and no generic `DATA_DIR`. Project paths 
 | `data/logs/`, `data/threads/` | Run records. | Keep. The README data-dir heading `data/entities/thread` and the file-tree comment that calls `data/entities/` the log place describe other paths. |
 | `data/db-dumps` | `ASC_DB_DUMPS_DIR`. | Keep the dump feature where `db` is enabled. Two subdirectory orders are written in comments and in code; see §4.2. |
 | `data/tmp/`, `data/tmp/upstream-asc`, `data/tmp/doc-print/` | Scratch, upgrade clone, print HTML. | Keep. |
-| `changelog/YYYY/MM/DD-$name.md` | This tree’s plan spelling. | Keep for changelogs. |
+| `docs/plans/YYYY/MM/DD-$name.md` | This tree’s plan spelling. | Keep for changelogs. |
 | `.agents/skills/$id/SKILL.md` | Procedures upgrade copies. | Keep. |
 | `.cursor/skills/`, `.codex/skills/`, `.claude/skills/` under `SKILL_RENDER_ROOT` or the docroot | Projections of a skill sidecar, written by ignored contrib hooks. | Idle here. The four maintained skills are the hand-written source. |
 | `scripts/asc/extend/custom.mk` | Optional Make include. | Hand-authored when present. |

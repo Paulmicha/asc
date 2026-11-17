@@ -94,7 +94,7 @@ Documentation and orientation:
 - `asc/core/upgrade.sh`. Swap list and the `AGENTS.md` / `AGENTS.asc.md` behavior. The `.claude/skills` link is present as comments.
 - `.asc_extensions_ignore`. `agent`, `crontab`, `workflow`, and others are ignored in the mother.
 - `.gitignore`, enough to confirm `data/threads/` and `data/logs/` are ignored.
-- `gates.core.yml`, `SPECIMEN.gates.yml`. The specimen is the shape quoted in the plans spec. `gates.core.yml` was read far enough to see that real rows already use `docs/plans/...` in the `changelog:` key, while the specimen still says `changelog/YYYY/MM/DD-example.md`. The spec quotes the specimen and then says the key still names a note path that now lives under `docs/plans/`. Both are true. The specimen was not "fixed" to match the live file.
+- `gates.core.yml`, `SPECIMEN.gates.yml`. The specimen is the shape quoted in the plans spec. `gates.core.yml` was read far enough to see that real rows already use `docs/plans/...` in the `changelog:` key, while the specimen still says `docs/plans/YYYY/MM/DD-example.md`. The spec quotes the specimen and then says the key still names a note path that now lives under `docs/plans/`. Both are true. The specimen was not "fixed" to match the live file.
 - `NEXT_STEPS.core.md`, `NEXT_STEPS.agent.core.md`, `NEXT_STEPS.agent.dev.md`. Presence and the generated-section names. Not every row.
 - `asc/doc/next_steps.sh`. Default scan directory `changelog`, taken from the variable default near the top of the file.
 

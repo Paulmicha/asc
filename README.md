@@ -1943,7 +1943,7 @@ Ex : `data/event/2026/07/17/11.06.55.1234.drush_cron.md`
 The `changelog/` dir tipically contains files like :
 
 ```txt
-changelog/YYYY/MM/DD-<file_name>.md
+docs/plans/YYYY/MM/DD-<file_name>.md
 ```
 
 Ex : `changelog/2026/07/17-implement-new-ollama-subject.md`

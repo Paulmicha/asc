@@ -185,7 +185,7 @@ hook_ms 'dry-run' -s 'doc' -a 'gates' -c 'yml' -v 'STACK_VERSION HOST_TYPE INSTA
 ```yaml
 source: NEXT_STEPS.agent.md
 gates:
-  - changelog: changelog/YYYY/MM/DD-example.md
+  - changelog: docs/plans/YYYY/MM/DD-example.md
     lane: discuss
     order: 1
     task: "…"
