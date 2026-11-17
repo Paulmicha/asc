@@ -219,7 +219,7 @@ f_instance_init() {
   # echo "  ASC_APPS = $ASC_APPS"
 
   # Normal process runs after YAML globals.
-  f_global_aggregate
+  f_global_aggregate 'skip-core'
 
   # Debug.
   # echo "step 3 (after f_global_aggregate()) :"

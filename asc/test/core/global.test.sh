@@ -271,6 +271,27 @@ printf " %s" "$(type -t global)"')"
 }
 
 ##
+# Core append declarations must be applied once, including on a repeated init.
+#
+test_instance_init_aggregates_core_appends_once() {
+  local output status iteration
+
+  for iteration in 1 2; do
+    output="$(env -i HOME="$HOME" PATH="$PATH" USER="$USER" \
+      ASC_GIT_HOOKS_WIRED='pre-commit pre-commit' \
+      bash asc/instance/init.sh -y -r 2>&1)"
+    status=$?
+    assertEquals "dry-run init $iteration succeeds" 0 "$status"
+    assertTrue "init $iteration contains one pre-commit hook" \
+      "[[ \"\$output\" == *\$'ASC_GIT_HOOKS_WIRED = pre-commit\\n'* ]]"
+    assertEquals "init $iteration has one core synonym" 1 \
+      "$(printf '%s\n' "$output" | sed -n '/^ASC_SYNONYMS = /p' | grep -o 'core-cache-clear/cc' | wc -l)"
+    assertTrue "init $iteration retains extension synonyms" \
+      "[[ \"\$output\" == *'anti-pattern/code-smell'* ]]"
+  done
+}
+
+##
 # Cleans up any leftovers from previous tests.
 #
 # (Internal shunit2 function called after all tests have run.)

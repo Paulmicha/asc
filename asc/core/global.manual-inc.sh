@@ -160,6 +160,9 @@ f_global_lookup_paths() {
 # @var yaml_parsed_globals
 # @var globals_skip_yaml
 #
+# @param 1 [optional] String : pass 'skip-core' when core globals were already
+#   loaded by the caller.
+#
 # @see f_instance_init()
 # @see f_global_list()
 # @see f_global_lookup_paths()
@@ -167,6 +170,7 @@ f_global_lookup_paths() {
 # @see f_instance_yaml_config_load()
 #
 f_global_aggregate() {
+  local p_skip_core="$1"
   local inc
   local global_lookup_paths=''
 
@@ -190,6 +194,10 @@ f_global_aggregate() {
     # Allow overrides for any "global.vars.sh" lookup path.
     f_autoload_override "$inc" 'continue'
     eval "$inc_override_evaled_code"
+
+    if [[ "$p_skip_core" == 'skip-core' && "$inc" == 'asc/core/global.vars.sh' ]]; then
+      continue
+    fi
 
     . "$inc"
   done
