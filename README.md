@@ -1530,8 +1530,9 @@ whitelisted bash functions only; nested pivots compile to
 
 &lt;proposal-2026-11-17&gt;
 
-`[]` applies per call when that call is a whitelisted function. Bare ASC
-pivots in a chain need no brackets. Same rule as nested calls in
+`[]` marks whitelisted functions or builtins only; bare names are ASC pivots.
+There is no bare-builtin rule. Prefer
+`[echo(v-baz)];[echo(foobar)]` so both calls are functions. See
 `docs/specs/asc/dsl.md`.
 
 &lt;/proposal-2026-11-17&gt;
@@ -1613,9 +1614,10 @@ That `[[ … ]]` form is invalid for running a command. Prefer:
 asc/test/in.sh 'foo-bar' "$(asc/instance/slug.sh 'foo-bar')" "$(asc/instance/snake.sh 'foo-bar')" || exit 1
 ```
 
-Any top-level DSL whose leading pivot matches `test-*` runs that script and
-exits `1` on failure. Interpreter entry: `make ds` / `asc/dsl.sh` /
-`f_asc_dsl` — see `docs/specs/asc/dsl.md`.
+`f_asc_dsl` returns non-zero on failure; it does not `exit` (hooks must keep
+cleanup). Process carriers may exit with that status; embeddings may use
+`|| exit 1`. Caller argv: `f_asc_dsl '…' -- "$@"`. See
+`docs/specs/asc/dsl.md`.
 
 &lt;/proposal-2026-11-17&gt;
 

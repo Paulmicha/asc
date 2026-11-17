@@ -41,7 +41,7 @@ gates:
     lane: discuss
     order: 1
     task: "Plan review for make ds. Interpreter against docs/specs/asc/dsl.md."
-    summary: "Accept hardcoded make ds → asc/dsl.sh → f_asc_dsl as an interpreter for the README DSL (spec proposes resolutions). Setting go authorizes implementing that interpreter; print-only is abandoned. Coverage may land in waves."
+    summary: "Accept entry shape (hardcoded make ds → asc/dsl.sh → f_asc_dsl) and the DSL spec’s proposed semantics as the implementation contract (binding, return-not-exit, resolver). Setting go authorizes that interpreter; print-only is abandoned. README prose merge stays separate."
     approved: "no"
     go: "no"
 
