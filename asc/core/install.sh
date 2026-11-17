@@ -177,6 +177,15 @@ else
   echo "  -> compare with upstream temporary copy : '$p_instance_path/.gitignore.asc-upstream-copy'."
 fi
 
+# Default Makefile too.
+if [[ ! -f "$p_instance_path/Makefile" ]]; then
+  cp "$tmp_dir/Makefile" "$p_instance_path/Makefile"
+else
+  cp -f "$tmp_dir/Makefile" "$p_instance_path/Makefile.asc-upstream-copy"
+  echo "TODO : '$p_instance_path/Makefile' needs manual review."
+  echo "  -> compare with upstream temporary copy : '$p_instance_path/Makefile.asc-upstream-copy'."
+fi
+
 # Clean up temporary folder, unless prevented in arg 2 (pass 'k').
 if [[ "$2" != 'k' ]]; then
   rm -rf "$tmp_dir"
