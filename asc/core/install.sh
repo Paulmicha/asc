@@ -13,6 +13,8 @@
 #   make core-install path/to/folder
 #
 
+. asc/bootstrap.sh
+
 p_instance_path="$1"
 
 if [[ -z "$p_instance_path" ]]; then
@@ -91,13 +93,13 @@ echo "Copy ASC core files ..."
 
 # Consolidated synchronizing of entire folders.
 dirs_swapped=()
-dirs_swapped+=("$p_instance_path/asc")
-dirs_swapped+=("$p_instance_path/docs/specs/asc")
-dirs_swapped+=("$p_instance_path/scripts/asc/contrib/asc")
-dirs_swapped+=("$p_instance_path/.agents/skills/asc-actions-priority")
-dirs_swapped+=("$p_instance_path/.agents/skills/asc-author-code")
-dirs_swapped+=("$p_instance_path/.agents/skills/asc-author-docs")
-dirs_swapped+=("$p_instance_path/.agents/skills/asc-mother-guard")
+dirs_swapped+=('asc')
+dirs_swapped+=('docs/specs/asc')
+dirs_swapped+=('scripts/asc/contrib/asc')
+dirs_swapped+=('.agents/skills/asc-actions-priority')
+dirs_swapped+=('.agents/skills/asc-author-code')
+dirs_swapped+=('.agents/skills/asc-author-docs')
+dirs_swapped+=('.agents/skills/asc-mother-guard')
 
 # Ensure the parent folders of every path that needs replacing already exists.
 mkdir -p "$p_instance_path/docs/specs/asc"
@@ -107,12 +109,14 @@ mkdir -p "$p_instance_path/.agents/skills"
 # Delete the paths whose contents are to be entirely replaced (= swapped), then
 # copy the new ones in their place.
 for dir_swapped in "${dirs_swapped[@]}"; do
-  if [[ -d "$dir_swapped" ]]; then
-    rm -rf "$dir_swapped"
+  target_dir="$p_instance_path/$dir_swapped"
+
+  if [[ -d "$target_dir" ]]; then
+    rm -rf "$target_dir"
 
     if [[ $? -ne 0 ]]; then
       echo >&2
-      echo "Error in $BASH_SOURCE line $LINENO: failed to remove ASC core dir '$dir_swapped'." >&2
+      echo "Error in $BASH_SOURCE line $LINENO: failed to remove ASC core dir '$target_dir'." >&2
       echo "-> Aborting (5)." >&2
       echo >&2
       exit 5
@@ -120,11 +124,11 @@ for dir_swapped in "${dirs_swapped[@]}"; do
   fi
 
   # Replace them with the new ones.
-  cp -r "$tmp_dir/$dir_swapped" "$dir_swapped"
+  cp -r "$tmp_dir/$dir_swapped" "$target_dir"
 
-  if [[ $? -ne 0 || ! -d "$dir_swapped" ]]; then
+  if [[ $? -ne 0 || ! -d "$target_dir" ]]; then
     echo >&2
-    echo "Error in $BASH_SOURCE line $LINENO: unable to copy the new sources from '$tmp_dir/$dir_swapped' to '$dir_swapped'." >&2
+    echo "Error in $BASH_SOURCE line $LINENO: unable to copy the new sources from '$tmp_dir/$dir_swapped' to '$target_dir'." >&2
     echo "-> Aborting (6)." >&2
     echo >&2
     exit 6
