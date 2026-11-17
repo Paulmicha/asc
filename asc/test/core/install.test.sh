@@ -26,9 +26,11 @@ test_install_copies_upstream_to_instance_paths() {
   done
 
   touch "$fixture/AGENTS.asc.md" "$fixture/AGENTS.md" "$fixture/.gitignore"
+  printf 'upstream defaults\n' > "$fixture/.asc_extensions_ignore"
   printf '#!/usr/bin/env bash\ncp -r "$INSTALL_TEST_FIXTURE" "${@: -1}"\n' > "$test_dir/bin/git"
   chmod +x "$test_dir/bin/git"
   relative_target="${test_dir#"$PWD/"}/relative target"
+  printf 'local settings\n' > "$relative_target/.asc_extensions_ignore"
 
   for target in "$test_dir/absolute target" "$relative_target"; do
     mkdir -p "$target/asc"
@@ -46,6 +48,12 @@ test_install_copies_upstream_to_instance_paths() {
 
     assertFalse 'old core is replaced' "[ -f '$target/asc/old' ]"
     assertEquals 'instance instructions are preserved' 'local' "$(cat "$target/AGENTS.md")"
+
+    if [[ "$target" == "$relative_target" ]]; then
+      assertEquals 'existing extension settings are preserved' 'local settings' "$(cat "$target/.asc_extensions_ignore")"
+    else
+      assertEquals 'default extension settings are installed' 'upstream defaults' "$(cat "$target/.asc_extensions_ignore" 2>/dev/null)"
+    fi
   done
 
   rm -rf "$test_dir"

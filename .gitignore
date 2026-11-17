@@ -19,6 +19,9 @@
 /docker-compose.yml
 /docker-compose.override.yml
 
+# ASC upgrades from upstream.
+*.asc-upstream-copy
+
 # Legacy local debug scripts path (TODO 2026-09 : deprecate ?)
 /scripts/asc/local/*
 !/scripts/asc/local/README.md

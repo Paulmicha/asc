@@ -151,13 +151,30 @@ if [[ ! -f "$p_instance_path/AGENTS.md" ]]; then
   cp "$tmp_dir/AGENTS.md" "$p_instance_path/AGENTS.md"
 fi
 
+# Initialize extension settings without replacing instance configuration.
+if [[ ! -f "$p_instance_path/.asc_extensions_ignore" ]]; then
+  cp "$tmp_dir/.asc_extensions_ignore" "$p_instance_path/.asc_extensions_ignore"
+
+  if [[ $? -ne 0 ]]; then
+    echo >&2
+    echo "Error in $BASH_SOURCE line $LINENO: unable to copy '$tmp_dir/.asc_extensions_ignore' to '$p_instance_path/.asc_extensions_ignore'." >&2
+    echo "-> Aborting (8)." >&2
+    echo >&2
+    exit 8
+  fi
+else
+  cp -f "$tmp_dir/.asc_extensions_ignore" "$p_instance_path/.asc_extensions_ignore.asc-upstream-copy"
+  echo "TODO : '$tmp_dir/.asc_extensions_ignore' needs manual review."
+  echo "  -> compare with upstream temporary copy : '$p_instance_path/.asc_extensions_ignore.asc-upstream-copy'."
+fi
+
 # Gitignore needs attention.
 if [[ ! -f "$p_instance_path/.gitignore" ]]; then
   cp "$tmp_dir/.gitignore" "$p_instance_path/.gitignore"
 else
-  cp -f "$tmp_dir/.gitignore" "$p_instance_path/.gitignore.asc"
+  cp -f "$tmp_dir/.gitignore" "$p_instance_path/.gitignore.asc-upstream-copy"
   echo "TODO : '$p_instance_path/.gitignore' needs manual review."
-  echo "  -> compare with upstream temporary copy : '$p_instance_path/.gitignore.asc'."
+  echo "  -> compare with upstream temporary copy : '$p_instance_path/.gitignore.asc-upstream-copy'."
 fi
 
 # Clean up temporary folder, unless prevented in arg 2 (pass 'k').
