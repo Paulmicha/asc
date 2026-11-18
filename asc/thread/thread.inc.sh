@@ -7,7 +7,7 @@
 # Used by thread actions and cross-subject callers (log/wrap pile-up, cron
 # hooks); *.opt-inc.sh would not load for those callers.
 # @see asc/bootstrap.sh
-# @see changelog/2026/07/16-asc-opt-inc-eager-audit.md
+# @see docs/plans/2026/07/16-asc-opt-inc-eager-audit.md
 #
 # Convention : functions names are all prefixed by "f".
 #

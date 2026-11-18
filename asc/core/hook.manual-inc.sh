@@ -909,7 +909,7 @@ f_hook_variant_values_add() {
 # @param 2 String : name of array in calling scope to append to
 #
 # @see hook()
-# @see changelog/2026/07/16-asc-include-splitting-hook-mapped-deps.md
+# @see docs/plans/2026/07/16-asc-include-splitting-hook-mapped-deps.md
 #
 f_hook_opt_inc_append_candidates() {
   local p_hook_path="$1"

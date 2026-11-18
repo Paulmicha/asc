@@ -8,7 +8,7 @@
 #
 # @see asc/extensions/software/host/provision.hook.sh
 # @see asc/utilities/hook.sh (f_hook_opt_inc_append_candidates)
-# @see changelog/2026/07/16-asc-include-splitting-hook-mapped-deps.md
+# @see docs/plans/2026/07/16-asc-include-splitting-hook-mapped-deps.md
 #
 # Convention : function names are prefixed by "u".
 #

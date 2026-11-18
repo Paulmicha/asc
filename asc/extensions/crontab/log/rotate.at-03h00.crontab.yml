@@ -1,6 +1,6 @@
 # Nightly size-based rotate of data/logs/*.txt via make log-rotate.
 # (Former preset-write dogfood path retired — see changelog/2026/07/16-asc-home-tip-drift.md)
-# @see changelog/2026/07/14-thread-log-wrap-retry-pileup-cron.md §3.5a
+# @see docs/plans/2026/07/14-thread-log-wrap-retry-pileup-cron.md §3.5a
 includes: crontab.defaults
 enabled: true
 wrap: direct
