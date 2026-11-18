@@ -22,9 +22,19 @@
 #   → inject CSS/boot → fonts → Mermaid → KaTeX flatten → emulate print
 #   → mark long paragraphs → paginate orphans/widows → page.pdf
 #
-# @param n [optional] String : any additional named option.
-#   --force (flag) : Force re-compiling already compiled pdfs. By default, only
-#   missing or outdated files are compiled.
+# Page size is chosen before that pipeline. --a3-l selects A3 landscape.
+# The default is A4 portrait. Page size is not a pipeline stage.
+#
+# @param n [optional] String : markdown file or directory to export.
+#   Defaults to every *.md under data/ideas and under docs.
+#
+# @param --force Boolean (flag) : rebuild each PDF even when it is newer than
+#   its markdown source.
+#   Defaults to compiling a missing PDF or a PDF older than the source.
+#
+# @param --a3-l Boolean (flag) : write A3 landscape (420 mm wide, 297 mm tall).
+#   Defaults to A4 portrait (210 mm wide, 297 mm tall).
+#   Also rebuilds when the PDF is already newer than the source.
 #
 # @example
 #   # All *.md files found in ./data/ideas and ./docs :
@@ -40,6 +50,18 @@
 #   # All *.md files under a folder (recursive) :
 #   asc/doc/pdf_export.sh 'data/ideas/2026/08'
 #   asc/doc/pdf_export.sh --force docs/asc
+#
+#   # A3 landscape for one file (rebuilds a current PDF too) :
+#   asc/doc/pdf_export.sh --a3-l 'docs/foobar.md'
+#
+#   # A3 landscape for every markdown file under a directory :
+#   asc/doc/pdf_export.sh --a3-l docs/asc
+#
+#   # A3 landscape for data/ideas and docs :
+#   asc/doc/pdf_export.sh --a3-l
+#
+#   # Write that one file back to A4 portrait :
+#   asc/doc/pdf_export.sh --force 'docs/foobar.md'
 #
 
 . asc/bootstrap.sh
@@ -64,6 +86,7 @@ pdf_playwright_prepare
 
 p_target=''
 p_all=0
+p_a3_l=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -71,10 +94,17 @@ while [[ $# -gt 0 ]]; do
       p_all=1
       shift
       ;;
+
+    --a3-l)
+      p_a3_l=1
+      shift
+      ;;
+
     -*)
       echo "Unknown option: $1"
       exit 1
       ;;
+
     *)
       if [[ -n "$p_target" ]]; then
         echo "Unexpected extra argument: $1"
@@ -147,30 +177,40 @@ doc_pdf_needs_export() {
 
 doc_pdf_export_one() {
   local p_md="$1"
-  local pdf
+  local pdf cmd
   pdf="$(doc_md_to_pdf "$p_md")"
-  if [[ "$p_all" -eq 0 ]] && ! doc_pdf_needs_export "$p_md"; then
+
+  # The sibling PDF does not record its paper, so --a3-l rebuilds a current file.
+  if [[ "$p_all" -eq 0 && "$p_a3_l" -eq 0 ]] && ! doc_pdf_needs_export "$p_md"; then
     echo "skip (up to date): $p_md"
     return 0
   fi
+
   mkdir -p "$(dirname "$pdf")"
   echo "$p_md -> $pdf"
-  "$PDF_MD2PDF_PY" "$PDF_ASC_WRAPPER" "$p_md" -o "$pdf"
+  cmd=("$PDF_MD2PDF_PY" "$PDF_ASC_WRAPPER" "$p_md" -o "$pdf")
+
+  if [[ "$p_a3_l" -eq 1 ]]; then
+    cmd+=(--a3-l)
+  fi
+
+  "${cmd[@]}"
 }
 
 doc_pdf_export_tree() {
   local root="$1"
   local found=0
+  local rc=0
   while IFS= read -r -d '' md; do
     md="${md#./}"
     found=1
-    doc_pdf_export_one "$md"
+    doc_pdf_export_one "$md" || rc=1
   done < <(find "$root" -type f -name '*.md' -print0 | sort -z)
   if [[ "$found" -eq 0 ]]; then
     echo "No *.md files under: $root"
     return 1
   fi
-  return 0
+  return "$rc"
 }
 
 if [[ -n "$p_target" ]]; then
@@ -190,22 +230,24 @@ if [[ -n "$p_target" ]]; then
   fi
 else
   local_found=0
+  rc=0
   if [[ -d data/ideas ]]; then
     while IFS= read -r -d '' md; do
       md="${md#./}"
       local_found=1
-      doc_pdf_export_one "$md"
+      doc_pdf_export_one "$md" || rc=1
     done < <(find data/ideas -type f -name '*.md' -print0 | sort -z)
   fi
   if [[ -d docs ]]; then
     while IFS= read -r -d '' md; do
       md="${md#./}"
       local_found=1
-      doc_pdf_export_one "$md"
+      doc_pdf_export_one "$md" || rc=1
     done < <(find docs -type f -name '*.md' -print0 | sort -z)
   fi
   if [[ "$local_found" -eq 0 ]]; then
     echo "No *.md files found under data/ideas or docs"
     exit 1
   fi
+  exit "$rc"
 fi

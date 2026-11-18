@@ -6,11 +6,13 @@ Pipeline (do not reorder; pagination is last):
   protect math → Graphviz fences→SVG → markdown → restore math → explode code lines
   → inject CSS/boot → write HTML → fonts → Mermaid → KaTeX → emulate print
   → mark long paras → paginate orphans/widows → page.pdf
-  Preview stops before paginate.
+  Page size is chosen before these stages and is not itself a stage.
+  Preview stops before paginate. Preview does not select a page.
 
 Usage:
   asc/doc/md2pdf_asc.py input.md -o output.pdf
   asc/doc/md2pdf_asc.py input.md -o output.pdf --no-paginate
+  asc/doc/md2pdf_asc.py input.md -o output.pdf --a3-l
 """
 from __future__ import annotations
 
@@ -43,6 +45,9 @@ from print_paginate import (
     apply_print_pushes,
     content_height_px,
     content_width_px,
+    css_with_page_size,
+    select_page,
+    selected_page,
 )
 
 FIT_DIAGRAMS_JS = """(pageHeight) => {
@@ -214,7 +219,10 @@ def font_face_css(html_path: Path) -> str:
 
 
 def build_style_block(html_path: Path) -> str:
-    css = STYLE_CSS.read_text(encoding="utf-8")
+    css = css_with_page_size(
+        STYLE_CSS.read_text(encoding="utf-8"),
+        selected_page(),
+    )
     return f"<style>\n{font_face_css(html_path)}\n\n{css}\n</style>"
 
 
@@ -438,10 +446,20 @@ def patch_html_renderer() -> None:
             html_path.parent.mkdir(parents=True, exist_ok=True)
             html_path.write_text(html_content, encoding="utf-8")
 
+            geom = selected_page()
+            wants_landscape = orientation.lower() == "landscape"
+            if page_size != geom.format or wants_landscape != (
+                geom.orientation == "landscape"
+            ):
+                raise RuntimeError(
+                    f"PDF page {page_size} {orientation} != selected "
+                    f"{geom.format} {geom.orientation}"
+                )
+
             pdf_options = {
                 "path": output_path,
-                "format": page_size,
-                "landscape": orientation.lower() == "landscape",
+                "format": geom.format,
+                "landscape": geom.orientation == "landscape",
                 "print_background": True,
                 "display_header_footer": True,
                 "header_template": "<div></div>",
@@ -554,6 +572,11 @@ def main() -> int:
         action="store_true",
         help="Skip heading/table <br> pagination (debug only)",
     )
+    parser.add_argument(
+        "--a3-l",
+        action="store_true",
+        help="A3 landscape (420 mm × 297 mm). Default is A4 portrait.",
+    )
     args = parser.parse_args()
 
     global _NO_PAGINATE
@@ -595,23 +618,26 @@ def main() -> int:
                 "(sudo apt install graphviz)"
             )
     print(f"Converting {input_path} to PDF...")
-    print(
-        f"  (ASC style: {FONT_FAMILY} + {MONO_FONT_FAMILY} + 9pt body; "
-        f"Mermaid local {display_path(MERMAID_VENDOR, _PROJECT_ROOT, PROJECT_ROOT_DEFAULT)}; "
-        f"KaTeX local {display_path(KATEX_VENDOR, _PROJECT_ROOT, PROJECT_ROOT_DEFAULT)}"
-        f"{gv_note}; "
-        "local images rewritten for print HTML)"
-    )
+    geom = select_page(bool(args.a3_l))
     try:
+        print(
+            f"  (ASC style: {FONT_FAMILY} + {MONO_FONT_FAMILY} + 9pt body; "
+            f"Mermaid local {display_path(MERMAID_VENDOR, _PROJECT_ROOT, PROJECT_ROOT_DEFAULT)}; "
+            f"KaTeX local {display_path(KATEX_VENDOR, _PROJECT_ROOT, PROJECT_ROOT_DEFAULT)}"
+            f"{gv_note}; "
+            f"page {geom.css_size}; "
+            "local images rewritten for print HTML)"
+        )
         result = convert_markdown_to_pdf_html(
             markdown_content,
             str(output_path),
             title=title,
-            page_size="A4",
-            orientation="portrait",
+            page_size=geom.format,
+            orientation=geom.orientation,
             enable_mermaid=not args.no_mermaid,
         )
     finally:
+        select_page(False)
         _CURRENT_SOURCE_MD = None
         _PROJECT_ROOT = None
         _PRINT_HTML_PATH = None

@@ -18,9 +18,6 @@ MIN_TABLE_ROWS = 3
 MAX_WIDOW_LINE_EQUIV = 4.0
 MAX_BR_PER_TARGET = 80
 BOTTOM_BAND_LINES = 12.0
-A4_WIDTH_PX = 210.0 * 96.0 / 25.4
-A4_HEIGHT_PX = 297.0 * 96.0 / 25.4
-A4_HEIGHT_PT = 297.0 * 72.0 / 25.4
 PT_TO_PX = 96.0 / 72.0
 MARGIN_TOP_CM = 0.6
 MARGIN_RIGHT_CM = 0.7
@@ -35,6 +32,66 @@ MERMAID_SKIP_RETRY_SCALE = 0.70
 MERMAID_NATIVE_FONT_PX = 16
 MERMAID_LABEL_WRAP_CHARS = 42
 MERMAID_TIE_EPS = 5.0
+
+
+@dataclass(frozen=True)
+class PageGeometry:
+    format: str
+    orientation: str
+    width_mm: float
+    height_mm: float
+
+    @property
+    def width_px(self) -> float:
+        return self.width_mm * 96.0 / 25.4
+
+    @property
+    def height_px(self) -> float:
+        return self.height_mm * 96.0 / 25.4
+
+    @property
+    def height_pt(self) -> float:
+        return self.height_mm * 72.0 / 25.4
+
+    @property
+    def css_size(self) -> str:
+        if self.orientation == "landscape":
+            return f"{self.format} landscape"
+        return self.format
+
+
+PAGE_A4 = PageGeometry("A4", "portrait", 210.0, 297.0)
+PAGE_A3_LANDSCAPE = PageGeometry("A3", "landscape", 420.0, 297.0)
+
+_SELECTED: PageGeometry = PAGE_A4
+
+
+def selected_page() -> PageGeometry:
+    return _SELECTED
+
+
+def select_page(a3_landscape: bool) -> PageGeometry:
+    global _SELECTED
+    _SELECTED = PAGE_A3_LANDSCAPE if a3_landscape else PAGE_A4
+    return _SELECTED
+
+
+A4_WIDTH_PX = PAGE_A4.width_px
+A4_HEIGHT_PX = PAGE_A4.height_px
+A4_HEIGHT_PT = PAGE_A4.height_pt
+
+_PAGE_SIZE_RE = re.compile(
+    r"(@page\s*\{[^}]*?\bsize:\s*)A4\b",
+)
+
+
+def css_with_page_size(css: str, page: PageGeometry) -> str:
+    if page.css_size == "A4":
+        return css
+    updated, n = _PAGE_SIZE_RE.subn(rf"\g<1>{page.css_size}", css, count=1)
+    if n != 1:
+        raise RuntimeError("pdf_styles.css is missing @page size: A4")
+    return updated
 
 
 def em_to_px(em: float) -> float:
@@ -62,16 +119,19 @@ def content_box(page_h: float, margin_top: float, margin_bottom: float) -> float
     return page_h - margin_top - margin_bottom
 
 
-def content_height_px() -> float:
-    """One layout-page height in CSS px (viewport / Y slice)."""
+def content_height_px(page: PageGeometry | None = None) -> float:
+    """One layout-page height in CSS px. No argument uses the selected page."""
+    page = selected_page() if page is None else page
     top = CSS_PAGE_MARGIN_CM * 96.0 / 2.54
     bottom = MARGIN_BOTTOM_CM * 96.0 / 2.54
-    return A4_HEIGHT_PX - top - bottom
+    return page.height_px - top - bottom
 
 
-def content_width_px() -> float:
-    css = CSS_PAGE_MARGIN_CM * 96.0 / 2.54
-    return A4_WIDTH_PX - 2 * css
+def content_width_px(page: PageGeometry | None = None) -> float:
+    """One layout-page width in CSS px. No argument uses the selected page."""
+    page = selected_page() if page is None else page
+    side = CSS_PAGE_MARGIN_CM * 96.0 / 2.54
+    return page.width_px - 2 * side
 
 
 _WORD_RE = re.compile(
@@ -107,7 +167,12 @@ def text_match(needle: str, haystack: str) -> bool:
     return False
 
 
-def parse_pdf_lines(path: str | Path) -> list[PdfLine]:
+def parse_pdf_lines(
+    path: str | Path,
+    page_height_pt: float | None = None,
+) -> list[PdfLine]:
+    if page_height_pt is None:
+        page_height_pt = selected_page().height_pt
     xml = subprocess.check_output(
         ["pdftotext", "-bbox-layout", str(path), "-"],
         text=True,
@@ -117,7 +182,7 @@ def parse_pdf_lines(path: str | Path) -> list[PdfLine]:
         by_y: dict[float, list[tuple[float, str]]] = {}
         for xmin, ymin, _xmax, _ymax, raw in _WORD_RE.findall(chunk):
             y = float(ymin)
-            if y > A4_HEIGHT_PT - 25:
+            if y > page_height_pt - 25:
                 continue
             by_y.setdefault(round(y, 1), []).append(
                 (float(xmin), html.unescape(raw))
