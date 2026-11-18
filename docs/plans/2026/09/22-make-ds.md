@@ -61,6 +61,29 @@ supported forms in the usage text.
   (`%`, `=`, `#`, `$`, quotes and whitespace), separator arguments and
   words that also name Make targets. For input outside the Make contract,
   document use of the direct script.
+- [ ] **Shell-syntax safety at both Make boundaries.** The recipe
+  interpolates `MAKECMDGOALS` into shell source before `asc/dsl.sh` runs,
+  and [the Make wrapper](../../../../asc/make/call_wrap.make.sh) later
+  builds a string for `eval`. A DSL operator such as `;` must not become
+  shell control syntax that runs an unintended command. Use a **harmless
+  execution marker** (for example a fixture that only creates or appends a
+  known temp path when it runs) and assert:
+  1. **Recipe boundary:** a Make invocation whose expression contains a
+     DSL combinator or other shell-significant character either delivers
+     that whole expression as one argv element to `asc/dsl.sh`, or fails
+     the recipe **with the marker absent** (no side command ran).
+  2. **Wrapper `eval` boundary:** the same class of input, once inside
+     `call_wrap.make.sh`, either reaches `f_asc_dsl` / `asc/dsl.sh` as
+     data or is rejected **with the marker absent**.
+  3. **Unsupported expressions:** while Make does not yet carry the full
+     combinator grammar (or when the expression is outside the documented
+     Make-supported set), those invocations still satisfy (1) and (2) —
+     reject or refuse before any unintended command, including in the
+     period before Make carrier support for that punctuation is complete.
+  4. Cover at least `;` and one other DSL operator from the combinator
+     set (for example `+` or `;;`), plus an unsupported Make-carrier case
+     that would be valid later as DSL. Direct `asc/dsl.sh` / `f_asc_dsl`
+     remain the path for general strings until Make support is verified.
 - [ ] Test the function, direct script and Make separately. For Make,
   verify the script's failure surfaces as a failed recipe. GNU Make owns
   the status returned to its caller.

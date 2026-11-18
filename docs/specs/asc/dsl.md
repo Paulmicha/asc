@@ -27,9 +27,16 @@ recipe, which fails shell parsing. Quoting the argument inside the recipe
 gets it to the wrapper. The wrapper still inserts a parentheses-only
 expression such as `slug(foobar)` unquoted into its final `eval`. GNU Make
 can also consume an argument containing `=` as a variable assignment.
-The function and direct script are the proposed interfaces for general DSL
-strings and exact argv. The plan tracks which inputs the Make carrier can
-support and how to pass them.
+DSL combinators such as `;` are intentional grammar; if they reach either
+boundary as unquoted shell source, the shell can run unintended commands
+before the interpreter sees the string. **Proposed:** every Make-carried
+expression either arrives as one data argument to `asc/dsl.sh`, or the
+recipe / wrapper rejects it with **no** side command executed. Marker-based
+acceptance for both boundaries (including unsupported expressions and the
+period before Make fully carries a given operator) lives in the
+[delivery plan](../../plans/2026/09/22-make-ds.md). The function and direct
+script remain the interfaces for general DSL strings and exact argv until
+that Make contract is verified.
 
 ## Invocation and status (proposed)
 
@@ -169,7 +176,7 @@ and failure behavior need review before loop support.
 | Functions | Name the initial list and document allowed side effects for each entry. |
 | Combinators | Define mixed-operator precedence and associativity, whitespace and token boundaries, pipeline status, and how parallel failures are reported. |
 | Loops | Specify producer syntax, line handling and iterator scope, and status on producer or body failure. |
-| Make | Decide and verify the supported carrier input, including punctuation, bound argv, and collisions with other goals. |
+| Make | Decide and verify the supported carrier input, including punctuation, bound argv, and collisions with other goals. Acceptance must prove DSL operators (for example `;`) do not run as shell syntax at the recipe or `call_wrap` `eval` boundary — see the plan's marker tests. |
 | Embeddings | Define how YAML validates a field and supplies `p1` and `dN`. Define a filename-safe subset and its hook integration separately. Prompt dispatch and replay require their own consumers. |
 
 The README's YAML example expresses the intent to test a value against its
