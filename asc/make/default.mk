@@ -50,6 +50,9 @@ init-debug:
 setup:
 	@ asc/make/call_wrap.make.sh asc/instance/setup.sh $(MAKECMDGOALS)
 
+ds:
+	@ asc/make/call_wrap.make.sh asc/dsl.sh $(MAKECMDGOALS)
+
 hook:
 	@ asc/make/call_wrap.make.sh asc/make/hook.make.sh $(MAKECMDGOALS)
 
@@ -62,6 +65,3 @@ globals-lp:
 debug:
 	@ echo "debug MAKECMDGOALS (escaped) = $(MAKECMDGOALS)";
 	@ asc/make/call_wrap.make.sh asc/make/echo.make.sh $(MAKECMDGOALS)
-
-ds:
-	@ asc/make/call_wrap.make.sh asc/dsl.sh $(MAKECMDGOALS)
