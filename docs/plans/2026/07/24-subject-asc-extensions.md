@@ -1,5 +1,9 @@
 # Plan: `$subject/.asc_extensions` declares nested ASC extensions
 
+> **2026-11-18 DSL update.** The filename-DSL note referenced below was
+> removed in `b3122f2`. The [draft DSL spec](../../../specs/asc/dsl.md)
+> leaves filename-hook integration open.
+
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-07-24 |

@@ -1,6 +1,6 @@
 ---
 status: draft
-updated: 2026-11-16
+updated: 2026-11-18
 ---
 
 # Agent models and providers
@@ -18,6 +18,10 @@ positional arguments in that order. The neighbouring `prompt-create`,
 `prompt-list`, `prompt-review`, and `prompt-delete` paths indicate a
 separate lifecycle for prompts. How a stored prompt can supply input to
 `model-prompt` remains open.
+
+The [draft ASC DSL spec](dsl.md) describes shell action interpretation.
+`model-prompt` would be a separate consumer. Its input mode and dispatch
+contract remain open.
 
 A standalone call can produce a one-shot reply for the caller. The
 `agent-reply-*` stubs indicate a separate way to list, read, or review
@@ -126,7 +130,7 @@ The status, stop, and stop_all comments still say "Abstract local LLM bring-up".
 | Hook implementation home | No matching hook file in the mother. |
 | Stdout and exit status | No result contract. |
 | `model-prompt` workspace | Which workspace identifier the third position accepts, and whether `workspace-list` supplies it, is open. |
-| `model-prompt` text and result | How to distinguish prose from DSL, how to pass DSL punctuation through Make, and what the action returns are open. |
+| `model-prompt` text and result | Decide how a caller explicitly selects prose or DSL, which operations DSL can select, how to preserve payloads through the chosen carrier, and what the action returns. |
 | Empty provider verbs | Arguments, results and state changes for all seven verbs are open. |
 | Which endpoint a chat uses | Open in [agent chats](agent-chats.md). The model-action examples do not select the chat hook. |
 | Role, provider, and model mapping | Which caller resolves the role and where it gets its defaults. |

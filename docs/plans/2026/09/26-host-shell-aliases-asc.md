@@ -51,7 +51,15 @@ It maps each whitelisted name through one function. The alias runs that script. 
 
 A name is wired only when its entry point is the `instance` subject: the script is `asc/instance/<name>.sh`. `f_make_list_entry_points` publishes those without the `instance-` prefix, so the alias is `gacp`, not `instance-gacp`.
 
-`ASC_HOST_SHELL_ALIASES` stays the opt-in list inside that subject. The default `ds gu gmp gacp ssk` already qualifies. A script that then sources another subject still qualifies: `asc/instance/gacp.sh` sources `asc/git/acp.sh`, and the alias stays `gacp`.
+`ASC_HOST_SHELL_ALIASES` stays the opt-in list inside that subject. A
+script that sources another subject still qualifies, as
+`asc/instance/gacp.sh` does for `asc/git/acp.sh`.
+
+**2026-11-18 update.** The default list still contains `ds`.
+Commit `65de058` removed `asc/instance/ds.sh` and wired the hardcoded
+Make target to `asc/dsl.sh`. The current writer skips `ds` under its
+instance-only rule. Existing generated maps can still refer to the
+removed path. See the [interpreter plan](22-make-ds.md#2-make-carrier-and-upgrade-compatibility).
 
 A name from any other subject is skipped (`core`, `git`, `host`, an extension). The list does not grow to every file under `asc/instance/`.
 

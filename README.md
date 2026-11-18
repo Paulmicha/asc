@@ -214,6 +214,14 @@ Implications : change ASC core current files discovery mechanisms to support bot
 1. [ ] Complete the baseline implementations
 1. [ ] Implement agents (for now : Cursor + Codex + Ollama, next : Claude Code)
 
+&lt;proposal-2026-11-18&gt;
+
+The DSL checklist records a design milestone. The entry points are wired
+to a TODO stub. The [draft DSL spec](docs/specs/asc/dsl.md) tracks the
+interpreter contract and remaining design decisions.
+
+&lt;/proposal-2026-11-18&gt;
+
 ## Documentation
 
 At the time of writing (mostly july to october 2026), there seems to be emerging open standards specifically built for AI context and standardized Markdown conventions aiming at constraining and structuring tasks.
@@ -895,13 +903,13 @@ make service-run 'bar' "$@"
 asc/extensions/compose/service/run.sh 'bar' "$@"
 ```
 
-&lt;proposal-2026-11-17&gt;
+&lt;proposal-2026-11-18&gt;
 
-`f_asc_dsl` runs the resolved script path form
-(`asc/extensions/compose/service/run.sh …`), not `make service-run`.
-See `docs/specs/asc/dsl.md`.
+The proposed YAML caller supplies `d1` as `bar` and binds its own argv for
+`a`. The interpreter would invoke the script resolved for `service-run`.
+The [DSL spec](docs/specs/asc/dsl.md#arguments-proposed) describes these bindings.
 
-&lt;/proposal-2026-11-17&gt;
+&lt;/proposal-2026-11-18&gt;
 
 #### Definition and storage
 
@@ -1444,13 +1452,14 @@ As in `make`. Ex :
 - `service-rebuild` = `make service-rebuild` = `asc/extensions/compose/service/rebuild.sh`
 - etc.
 
-&lt;proposal-2026-11-17&gt;
+&lt;proposal-2026-11-18&gt;
 
-To interpret a DSL string: `make ds '…'` or `asc/dsl.sh '…'` → `f_asc_dsl`
-(`asc/core/dsl.manual-inc.sh`). Hardcoded make entry, not a discovered
-synonym. Contract: `docs/specs/asc/dsl.md`.
+`asc/dsl.sh` and the hardcoded `make ds` target reach the `f_asc_dsl` stub.
+The proposed direct interface is `asc/dsl.sh '<expression>'`. Make expands
+its goals into a shell recipe, so the supported Make quoting and argument
+rules still need verification. See the [DSL spec](docs/specs/asc/dsl.md).
 
-&lt;/proposal-2026-11-17&gt;
+&lt;/proposal-2026-11-18&gt;
 
 #### Arguments
 
@@ -1471,6 +1480,14 @@ Special characters are usually forbidden, but the DSL supports the following cus
 - `p1` = `$1`
 - `p2` = `$2`
 - etc.
+
+&lt;proposal-2026-11-18&gt;
+
+The proposed caller binds its argv with
+`f_asc_dsl '<expression>' -- "$@"`. `slug(p1)` uses the first bound value
+and `slug('p1')` uses the literal string `p1`.
+
+&lt;/proposal-2026-11-18&gt;
 
 **Boolean options :** (shrink all `--` to `-` in prefixed syntax)
 
@@ -1514,28 +1531,25 @@ The DSL uses subshells for nested cases like `[f_db_clear([slug(p1)])]` :
 f_db_clear "$(slug 'foobar')"
 ```
 
-&lt;proposal-2026-11-17&gt;
+&lt;proposal-2026-11-18&gt;
 
-Prefer `[f_db_clear(slug(p1))]` when `slug` is an ASC pivot: `[]` marks
-whitelisted bash functions only; nested pivots compile to
-`"$(asc/instance/slug.sh …)"`. Working grammar and defaults:
-`docs/specs/asc/dsl.md`.
+`[f_db_clear(slug(p1))]` shows a listed function receiving stdout from
+the `slug` pivot as one argument. The [draft DSL spec](docs/specs/asc/dsl.md#nested-calls-proposed)
+covers nested failures and the open function list.
 
-&lt;/proposal-2026-11-17&gt;
+&lt;/proposal-2026-11-18&gt;
 
 #### Chaining
 
 - `[echo(v-baz)];echo(foobar)` = calls `echo "$baz" ; echo 'foobar'`
 - `[echo(v-baz)];;echo(foobar)` = calls `echo "$baz" && echo 'foobar'`
 
-&lt;proposal-2026-11-17&gt;
+&lt;proposal-2026-11-18&gt;
 
-`[]` marks whitelisted functions or builtins only; bare names are ASC pivots.
-There is no bare-builtin rule. Prefer
-`[echo(v-baz)];[echo(foobar)]` so both calls are functions. See
-`docs/specs/asc/dsl.md`.
+Each listed function or builtin call carries brackets, as in
+`[echo(v-baz)];[echo(foobar)]`. Bare call names resolve ASC pivots.
 
-&lt;/proposal-2026-11-17&gt;
+&lt;/proposal-2026-11-18&gt;
 
 #### Parallel
 
@@ -1548,6 +1562,14 @@ There is no bare-builtin rule. Prefer
 #### Conditional execution
 
 - `[echo(v-baz)]++[exit(1)]` = calls `echo "$baz" || exit 1`
+
+&lt;proposal-2026-11-18&gt;
+
+`++` runs a fallback on failure. Use a pivot or a listed function as the
+fallback. The interpreter returns status to the embedding, which can
+then exit or run cleanup.
+
+&lt;/proposal-2026-11-18&gt;
 
 #### Redirecting
 
@@ -1588,6 +1610,14 @@ triggers the following call :
 asc/extensions/transcription/transcribe/file.sh path/to/file.mp4
 ```
 
+&lt;proposal-2026-11-18&gt;
+
+`transcribe-file` is an example of a pivot supplied by an enabled
+extension. Its action is currently in the
+[transcription contrib extension](scripts/asc/contrib/asc/transcription/transcribe/file.sh).
+
+&lt;/proposal-2026-11-18&gt;
+
 #### DSL in Yaml
 
 In a Yaml file `foobar.entity.yml` specifying a `foobar` entity definition with a `toto` field, the "validate" entry specifies that the `toto` field value must respect either URL slug or snake case formats :
@@ -1606,30 +1636,32 @@ That DSL syntax example translates to :
 # ... where 'foo-bar' would be the entity "toto" field value declared in its "*.entity.yml" specification file.
 ```
 
-&lt;proposal-2026-11-17&gt;
-
-That `[[ … ]]` form is invalid for running a command. Prefer:
-
-```sh
-asc/test/in.sh 'foo-bar' "$(asc/instance/slug.sh 'foo-bar')" "$(asc/instance/snake.sh 'foo-bar')" || exit 1
-```
-
-`f_asc_dsl` returns non-zero on failure; it does not `exit` (hooks must keep
-cleanup). Process carriers may exit with that status; embeddings may use
-`|| exit 1`. Caller argv: `f_asc_dsl '…' -- "$@"`. See
-`docs/specs/asc/dsl.md`.
-
-&lt;/proposal-2026-11-17&gt;
-
 This is used during basic validations, such as tiny automated tests automatically executed upon initializing newly added entity declarations in a local project instance.
 
 NB : any DSL starting with `test-*` translates to e.g. `[[ */test/*.sh ]] || exit 1` for convenience.
+
+&lt;proposal-2026-11-18&gt;
+
+The YAML example describes planned validation. `asc/test/in.sh` is empty,
+and Bash `[[ … ]]` does not invoke a script. The proposed interpreter runs
+the resolved test action and returns the expression status. An embedding
+can use `|| exit 1` when it owns the process. See the
+[DSL spec](docs/specs/asc/dsl.md#invocation-and-status-proposed).
+
+&lt;/proposal-2026-11-18&gt;
 
 DSL syntax must remain filename-safe (Linux, Windows, IOS), so we could have files implementing hooks like :
 
 ```text
 */$subject/transcribe-file(v-input_file_path).pre-index.hook.sh
 ```
+
+&lt;proposal-2026-11-18&gt;
+
+The filename example is a proposed hook convention. Its supported grammar
+and discovery behavior remain open.
+
+&lt;/proposal-2026-11-18&gt;
 
 ### Data dirs
 

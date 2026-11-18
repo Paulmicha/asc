@@ -49,8 +49,7 @@ Open changelog notes that are not an implementation go-ahead. Discussion belongs
 - `docs/plans/2026/09/20-builder-kernel-subject.md` — proposed, later. No code. Not in the 2026-09-19 lazy-include order. Not in the [meadows review loop](./20-meadows-plan-review-feedback-loop.md). Prefer after...
 - `docs/plans/2026/09/20-host-scan-project-instances.md` — proposed, later. No code. Not in the 2026-09-19 lazy-include order. Not in the [meadows review loop](./20-meadows-plan-review-feedback-loop.md). Prefer after...
 - `docs/plans/2026/09/22-gitflow.md` — plan / review (not an implementation go-ahead)
-- `docs/plans/2026/09/22-make-ds.md` — plan / review (interpreter; not an implementation go-ahead). Spec: `docs/specs/asc/dsl.md`
-- `docs/plans/2026/09/22-make-ds-literal.md` — abandoned (print-only cancelled)
+- [DSL interpreter plan](docs/plans/2026/09/22-make-ds.md) — draft. Review the first executable slice and the [DSL spec](docs/specs/asc/dsl.md).
 - `docs/plans/2026/09/22-make-generate.md` — plan / review (not an implementation go-ahead)
 - `docs/plans/2026/09/22-make-generate-string.md` — plan / review (not an implementation go-ahead)
 - `docs/plans/2026/09/22-workflow.md` — plan / review (not an implementation go-ahead)
@@ -58,8 +57,9 @@ Open changelog notes that are not an implementation go-ahead. Discussion belongs
 
 ## Do not re-run
 
-Status is implemented, done, shipped, or skipped. Open checkboxes in these files are historical.
+Status is implemented, done, shipped, skipped, or abandoned. Open checkboxes in these files are historical.
 
+- [DSL print-only plan](docs/plans/2026/09/22-make-ds-literal.md) — abandoned.
 - `docs/plans/2026/07/24-subject-asc-extensions.md`
 - `docs/plans/2026/07/31-array-dict-naming-plan.md`
 - `docs/plans/2026/09/04-pdf-generation-improvements.md`

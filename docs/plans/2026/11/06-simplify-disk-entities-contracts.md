@@ -348,7 +348,7 @@ The changelog index’s frontier paragraph still says entity discovery is unstar
 |------|-----------------|----------------------------------|
 | `2026/09/10-begin-entity-system-with-remote-instances.md` | Continue from discovery into a fuller entity system. | History of the loader that shipped. No further schema tasks. |
 | `2026/07/24-yml-structure.md` | A possible `*.contract.yml` kind. | Closed by this note’s proposal: no new kind. |
-| `2026/09/22-make-ds.md` and `make-ds-literal.md` | DSL interpreter (`f_asc_dsl`); literal plan abandoned. Spec: `docs/specs/asc/dsl.md`. | Park until gates. Rows stay `go: no`. |
+| [DSL interpreter plan](../09/22-make-ds.md) | The [draft DSL spec](../../../specs/asc/dsl.md) leaves YAML validation as a separate consumer. The [print-only plan](../09/22-make-ds-literal.md) is abandoned. | The interpreter is gated separately from entity and contract work. |
 | `2026/09/22-make-generate.md` and `make-generate-string.md` | Render builder templates, starting from a string. | Park. Separate from deleting empty `template.entity.yml`. The `*.tpl.sh` sources stay. |
 | `2026/09/22-xdg-state-store.md` | Host registry path, plus a `store` vocabulary. | The registry path stays accepted. `store.entity.yml` / `store.able.yml` are empty removal candidates. Memory stays disabled. |
 | `2026/09/25-concert-order.md` | A dated sidecar path template. | Park until a writer exists. |

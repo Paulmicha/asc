@@ -41,7 +41,7 @@ Eighteen of the twenty-one open files fold into seven topics. The dated file sta
 | Topic | Maintained plan | Also read | Treatment |
 |-------|-----------------|-----------|-----------|
 | Template rendering | [22-make-generate.md](22-make-generate.md) | [22-make-generate-string.md](22-make-generate-string.md), [20-builder-kernel-subject.md](20-builder-kernel-subject.md) | Merge the string slice in as phase 1. The README places builder with the opt-in extensions. The kernel relocation stays deferred. |
-| DSL | [22-make-ds.md](22-make-ds.md) | [docs/specs/asc/dsl.md](../../../specs/asc/dsl.md), [22-make-ds-literal.md](22-make-ds-literal.md) (abandoned) | Interpreter via `asc/dsl.sh` / `f_asc_dsl`. Spec holds grammar + proposed resolutions (including `test-*` without invalid `[[ script ]]`). Gate `go` accepts those semantics for implementation. Print-only cancelled. |
+| DSL | [22-make-ds.md](22-make-ds.md) | [Draft spec](../../../specs/asc/dsl.md), [abandoned print-only plan](22-make-ds-literal.md) | The entry points reach a TODO stub. The interpreter plan defines the proposed first executable slice and its acceptance checks. |
 | Agent guidance and checking | [27-agent-guidance-from-antipatterns.md](27-agent-guidance-from-antipatterns.md) | [26-patterns-and-antipatterns.md](26-patterns-and-antipatterns.md) | Reconcile first. Keep Markdown records. Four objects: ability/contract, skill procedure, anti-pattern, template. Guidance may land before mechanical checking. Refresh the empty-tree assumption against `.agents/skills/` and `AGENTS.md`. |
 | Core loading and shell maintenance | Index candidate list (this note, below) | [11-lazy-opt-inc-and-entry-point-extraction.md](11-lazy-opt-inc-and-entry-point-extraction.md), [19-lazy-opt-inc-remaining-core-waves.md](19-lazy-opt-inc-remaining-core-waves.md), [31-nameref-clarity-candidates.md](../07/31-nameref-clarity-candidates.md), [31-subshell-printf-v-candidates.md](../07/31-subshell-printf-v-candidates.md) | One list of remaining candidates. The inventories stay references. They stay separate refactors. The status checklist’s “refactor core” mark does not close this list. |
 | Workflow and model dispatch | [22-workflow.md](22-workflow.md) | [22-agent-llm-entry-point.md](22-agent-llm-entry-point.md) | One design topic. The README name is `llm-call`. The `agent-llm` plan aligns with that name or proposes a change. Printing the queue and calling a model stay separate phases. Orchestration stays parked. |
@@ -124,9 +124,15 @@ Mark design and implementation separately. Both can be true. Design is **open**,
 [[ asc/test/in.sh 'foo-bar' "$(asc/instance/slug.sh 'foo-bar')" "$(asc/instance/snake.sh 'foo-bar')" ]] || exit 1
 ```
 
-`bash -n` rejects that line: `conditional binary operator expected`. `[[ … ]]` does not run a command and test its exit status. [docs/specs/asc/dsl.md](../../../specs/asc/dsl.md) proposes: `f_asc_dsl` **returns** status; embeddings may use `script … || exit 1`. README carries a dated proposal. Print-only [22-make-ds-literal.md](22-make-ds-literal.md) is abandoned.
+`bash -n` rejects that line. Bash `[[ … ]]` does not invoke a script, and
+`asc/test/in.sh` is empty. The [draft DSL spec](../../../specs/asc/dsl.md)
+proposes returning expression status to the caller. The dated README
+proposal records both issues.
 
-The same DSL section leaves more grammar open. Functions require `[]`, and the chaining examples drop the brackets on the later call. Nested `slug` is a shell function in one example and an ASC script in another. A function whitelist is named and never listed. Proposed defaults live in the DSL spec; [22-make-ds.md](22-make-ds.md) points there. Gate `go` on make-ds accepts those defaults for implementation.
+The spec proposes brackets for each listed function or builtin and bare
+names for ASC pivots, including nested `slug`. See its
+[open decisions](../../../specs/asc/dsl.md#open-decisions) for the function
+list, option forwarding, combinator behavior and embedding contracts.
 
 **YAML.** The status checklist marks YAML stabilized. The merging operator is introduced as `merge`. The reserved-key list and the worked examples use `alter`, with no statement that the two spellings are synonyms. Keep `alter`. That spelling is the one used in the reserved keys and the examples.
 
@@ -187,7 +193,11 @@ Also still open: the remaining DSL grammar, the meaning of “required” once d
 
 At most two implementation topics stay active beside a short decision list.
 
-The numbered list is a priority recommendation. A topic starts when its own dependency below is met. An open README question does not hold unrelated work. The invalid DSL example blocks a DSL compiler. Required-field semantics block validation. Neither blocks host discovery or the string-substitution slice. Sidecar scope blocks a path-template implementation. The host catalog uses the registry in [22-xdg-state-store.md](22-xdg-state-store.md), so discovery does not wait on that scope.
+The numbered list is a priority recommendation. A topic starts when its
+own dependency below is met. The DSL's first slice has a proposed return
+contract. YAML validation also needs required-field semantics and a
+validator. Sidecar scope blocks a path-template implementation. The host
+catalog uses the registry in [22-xdg-state-store.md](22-xdg-state-store.md).
 
 Three states, kept apart: **proposed** (written), **accepted** (the human agreed), **reflected** (the maintained plan, and the index when it is the map, state it). A proposal is not a resolved decision. Reflect only what is accepted. Work whose dependency is already met can proceed while another decision stays proposed.
 
@@ -195,7 +205,7 @@ Three states, kept apart: **proposed** (written), **accepted** (the human agreed
 
 | Topic | Starts when | Does not wait on |
 |-------|-------------|------------------|
-| DSL interpreter | The make-ds gate is `go: yes` (that accepts the DSL spec’s proposed semantics, including a valid-Bash `test-*` embedding form), and a real caller exists | Host discovery, string substitution |
+| DSL interpreter | Runnable approval of the reviewed slice in the [interpreter plan](22-make-ds.md). The first caller is the direct script. | YAML, hook filename and prompt consumers |
 | Validation | An **accepted** meaning of required-plus-default | Host discovery, string substitution |
 | Host discovery | The host-scan gate and the host-scan note agree on whether the stub may be filled | The rest of the README pass, sidecar scope, the DSL contract |
 | String substitution | The `make generate` gate is `go: yes` | The DSL example, required-field semantics, a kernel move |
@@ -217,7 +227,13 @@ Cover the DSL validation command, `alter` as the merging operator, the required-
 
 Update [`changelog/README.md`](../../../../changelog/README.md) into four sections: active work, decisions awaiting review, parked ideas, history. Each active topic gets one next action and one completion condition from this note, including the acceptance cases named below. Follow the consolidation rule above so a child plan is not still actionable.
 
-Reflect an item into a maintained plan only when it is **accepted**. Still **proposed**: leave it open. In particular, close only the `include` / `includes` distinction in the July note; scalar versus list `include`, and target resolution, stay open. The DSL `[[ script ]]` wrapper is replaced by the DSL spec’s return / embedding rules; make-ds gate `go` accepts that contract (print-only slice abandoned). Builder stays an extension. One model-call name, once that choice is accepted. Guidance uses the four objects once that split is accepted. Host discovery cites `asc/host/instance/discover.sh`.
+Reflect accepted items as decisions in their maintained plans. The
+`include` / `includes` distinction in the July note is settled. Scalar
+versus list `include` and target resolution stay open. The draft DSL spec
+and interpreter plan record the proposed return and embedding rules.
+Builder stays an extension. One model-call name, once that choice is
+accepted. Guidance uses the four objects once that split is accepted.
+Host discovery cites `asc/host/instance/discover.sh`.
 
 Reconcile the three `discuss` / `go: yes` rows (nameref inventory, host scan, XDG state path) as their own edit. Inconsistent fields do not say whether approval should be withdrawn or expanded. Keep the human decision those rows and their changelog notes already record. A consistent file may remove a completed row, correct a lane while keeping an approval, narrow what the row authorizes, set `go` back to `no` when the decision was not an approval, or state an exception in the header.
 
@@ -255,7 +271,7 @@ The guidance in the anti-pattern records stays useful. The generator in the Sept
 
 | Topic | Why it waits | What would pull it |
 |-------|----------------|--------------------|
-| DSL interpreter | Spec proposed; make-ds gate still `go: no`. Print-only slice abandoned. | make-ds gate `go: yes` (accepts [docs/specs/asc/dsl.md](../../../specs/asc/dsl.md) semantics), then a real in-process or carrier caller. |
+| DSL interpreter | Draft spec and `go: "no"`. | Runnable approval of the first executable slice in [22-make-ds.md](22-make-ds.md). |
 | Workflow dispatch | Non-goals leave orchestration to an instance. The documented pivot name is `llm-call`. | A consumer, and an **accepted** alignment with `llm-call` or an **accepted** rename. Queue printing and the model call stay separate phases. Empty `workflow` and `rules` stubs stay empty. |
 | Sidecar path template | The README sidecar is entity YAML. A template for logs and changelogs is a wider scope. | An **accepted** scope and timestamp spelling. Host discovery does not wait for it. |
 | Loading refactors | Performance items have no measurement. The nameref list still needs the re-audit. Category C stays deferred. | A measurement for a performance item, or a defect or repeated difficulty for a clarity or correctness item. |

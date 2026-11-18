@@ -9,7 +9,7 @@ Related migration: [docs/plans/2026/11/10-changelog-refactor.md](../../../plans/
 Are `gates*.yml` and the generated / human next-steps files still the right surfaces for authorizing and prioritizing agent work in ASC? What problem do they solve today, and how should that relate to:
 
 - mature `$subject` / `$object` / `$action` entry points and Make pivots
-- the DSL (`make ds` and related plans)
+- the [DSL interpreter plan](../../../plans/2026/09/22-make-ds.md)
 - agent tools (hooks, contrib implementations, desktop vs headless)
 
 This idea is **not** an implementation go-ahead. The changelog → `docs/plans/` migration only retargets broken paths; it does not assume the current scanner or gate model is the long-term design.

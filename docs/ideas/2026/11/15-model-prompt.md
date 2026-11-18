@@ -15,23 +15,23 @@ describes the two action groups.
 The current stub sketches four positions for provider, model, workspace, and
 prompt. The idea is to let the final argument carry plain prose, a DSL
 expression, or a combination such as a DSL operation with prose inside it.
-These examples sketch the desired invocation. The stub does not read the
-arguments, and ASC's Make recipe needs to preserve spaces and quotes in the
-fourth argument for these forms to work.
+These examples show possible values for the fourth position. The stub
+does not read its arguments.
 
 ```text
-make model-prompt 'codex' 'gpt-6.1-terra-high' 'workspace-foobar' 'Draft a plan from Foobar prose.'
-make model-prompt 'codex' 'gpt-6.1-terra-high' 'workspace-foobar' 'prompt-new-plan("Foobar prose")'
+Draft a plan from Foobar prose.
+prompt-new-plan('Foobar prose')
 ```
 
 In the second form, `prompt-new-plan` illustrates a named prompt operation and
-`"Foobar prose"` supplies its input. The example leaves the operation and DSL
-grammar open.
+`'Foobar prose'` uses the literal syntax proposed in the
+[ASC DSL draft](../../../specs/asc/dsl.md#arguments-proposed). The operation
+and the decision to use ASC DSL for this input remain open.
 
 ## Open questions
 
-- How does the caller indicate whether the last argument is prose or DSL?
-  How can they pass prose that happens to look like a DSL expression?
+- How does the caller explicitly select prose or DSL? How does the
+  supported carrier preserve the chosen payload as one argument?
 - What does the workspace argument identify? Would `workspace-list` supply
   that identifier?
 - What does `model-prompt` return, and how would a caller refer to the result

@@ -1,5 +1,11 @@
 # Workflow extension — close the loop
 
+> **2026-11-18 DSL update.** The [interpreter plan](22-make-ds.md) is a
+> case study for queue reporting. Its live row in
+> [`gates.core.yml`](../../../../gates.core.yml) is `discuss` with
+> `approved: "no"` and `go: "no"`, so the row is excluded from runnable
+> output. The lap below describes the September workflow proposal.
+
 > **2026-11-13 update:** The model-dispatch naming choice described below is superseded. Neither former name is an active proposal; see the [agent-plan design](../../../ideas/2026/11/10-agent-plan-cursor-codex-ollaya.md) for the current proposed agent entry points. The rest of this workflow plan is not superseded by this notice.
 
 > **2026-09-25 concertation.** Order of work is [25-concert-order.md](25-concert-order.md). Gates are a later agent surface. This printer is not the current design queue. The catalog pivot is `host-instance-discover`.
@@ -13,11 +19,12 @@
 
 `$` in this file is the ASC docs placeholder (`$subject` / `$action`), not a shell variable.
 
-Go-ahead is the workflow row in [`gates.yml`](../../../gates.yml). `go` stays `no` until that row is approved. Approving it authorizes the print-only `workflow-next` slice. It does not authorize gitflow, a model call, or a host copy.
+Go-ahead is the workflow row in [`gates.core.yml`](../../../../gates.core.yml).
+A runnable approval covers only the `workflow-next` queue printer.
 
 ---
 
-## The lap, using `make ds` as it stands today
+## The September lap, using the `make ds` plan
 
 That changelog is the case study because it already walked the manual lap:
 
@@ -48,12 +55,14 @@ Stdout, one runnable row per block, in file order:
 
 ```text
 docs/plans/2026/09/22-make-ds.md
-Accept make ds as the short pivot…
+Fixture task for the DSL interpreter
 ```
 
 No runnable row: exit 0 and print `none`. Missing gates file: non-zero. The script does not launch the changelog’s task, does not edit the changelog, and does not refresh `NEXT_STEPS.agent.md`.
 
-The live `make ds` row is `go: "no"`, so a run against this mother prints `none`. The test uses a temp gates file with one runnable row and one discuss row, and passes that path. Production with no argument uses the dry-run path.
+Use a temporary gates file for acceptance. Include one runnable fixture row
+and one discuss row, then a separate fixture with no runnable rows for the
+`none` case. The live DSL row is excluded regardless of other live rows.
 
 `change/review.sh`, `change/iterate.sh`, and the empty `*.able.yml` / `plan.entity.yml` stay as they are. `change.entity.yml` is a field sketch (`idea`, `tag`); it is not the task list. README still says the next-step store is unsettled (`reg-set` / `reg-get` or entities). The store this slice reads is `gates.yml`. [22-gates-registry-alternative.md](22-gates-registry-alternative.md) stays the unstarted alternative.
 

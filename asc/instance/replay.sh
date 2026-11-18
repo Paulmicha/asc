@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 ##
-# Replays any DSL record.
+# Stub for replaying a DSL record.
 #
-# TODO Duplicates the following entry point -> only keep 1 :
-# @see asc/instance/ds.sh
+# Record format and interpreter integration are open.
+# @see docs/specs/asc/dsl.md
 #
 # @example
 #   make replay path/to/foobar.dsl.txt

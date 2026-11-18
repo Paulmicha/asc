@@ -1,5 +1,11 @@
 # Living docs: absorb root README § Current status
 
+> **2026-11-18 update.** This is a snapshot of the July documentation pass.
+> The filename-DSL plan and the cited `docs/asc/shell-usage.md` are absent
+> from the current tree. Their vocabulary and parser prerequisites below
+> are historical. See the [draft DSL spec](../../../specs/asc/dsl.md) and
+> [interpreter plan](../09/22-make-ds.md).
+
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-07-26 |

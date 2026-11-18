@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 
 ##
-# Custom DSL interpreter.
-#
-# TODO [wip]
+# Command-line entry point for the ASC custom DSL.
 #
 # @example
 #   asc/dsl.sh '[echo(v-PROJECT_DOCROOT)]'

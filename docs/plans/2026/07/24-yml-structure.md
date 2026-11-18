@@ -1,5 +1,11 @@
 # Plan: Structuring ASC YAML files
 
+> **2026-11-18 DSL update.** The filename-DSL plan cited below was removed
+> in `b3122f2`. Its path mappings and the validation spellings below
+> record July drafts. The [draft DSL spec](../../../specs/asc/dsl.md)
+> tracks the interpreter. This YAML body plan still owns schema decisions,
+> including which fields can contain DSL and when to run validation.
+
 | Field | Value |
 |-------|--------|
 | **Date** | 2026-07-24 |
@@ -363,7 +369,8 @@ able.able.yml        → include contract.entity  (all *.able inherit)
 10. **Inheritance spine:** freeze `asc.yml` → `entity.entity` → `contract.entity` → `able.able` as the locked chain, or keep experimenting?
 11. **Where do contract `rules` live** now that `contract.entity.yml` is a TODO stub? Back into entity? Separate `*.contract.yml` kind?
 12. **Ability whitelist home:** keep under primordial `entity:` (HEAD), or return nearer to contract / able meta?
-13. **`validate:` DSL:** pick one spelling family before more drafts (`test-entity[type](a-1)` vs older `one.of[…]` / `at_least[…]` forms).
+13. **`validate:` DSL:** define when the YAML caller validates a field and how
+    it binds its value for the [proposed interpreter](../../../specs/asc/dsl.md#arguments-proposed).
 14. **`default.val` vs `default.value`:** unify under synonym table (`val` ↔ `value`), or pick one?
 15. **`*.yml.yml` file kind:** keep as meta registry only, or allow other double-suffix kinds?
 16. **Wrap body:** is `wrap.required` / `wrap.add` the locked wrap-able shape? How does nested `git/acp/wrap.able.yml` merge with core `asc/wrap.able.yml`?
