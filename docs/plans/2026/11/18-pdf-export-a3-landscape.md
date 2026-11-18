@@ -36,8 +36,9 @@ This file is a draft. It does not authorize the edit. Implementation is a separa
 - `html_preview.sh` gains no flag and no pagination. Its path allow-list stays `data/ideas/`, `docs/`, and `asc/doc/fixtures/`.
 - No new shell function in `pdf_export.sh`. No new Python dependency. No README edit.
 - These Python modules already use 4-space indents. New Python in them stays at 4 spaces so the blocks stay valid. Shell stays at 2 spaces.
-- Run `bash asc/doc/asc/pdf.test.sh` from the repository root. This suite is not wired into `make test-core`.
+- Run PDF tests from the repository root with `bash asc/doc/asc/pdf.test.sh` (full suite) or `PDF_TEST_FILTER='test_name …' bash asc/doc/asc/pdf.test.sh` (selected cases). This suite is not wired into `make test-core`. Passing a test name as a script argument fails: vendored shUnit2 treats `$1` as a standalone script path (`shunit2:FATAL unable to read from …`). Selection uses a `suite()` in `pdf.test.sh` that validates each whitespace-separated name in `PDF_TEST_FILTER` with `declare -F` before `suite_addTest`; an unknown name prints `PDF_TEST_FILTER: unknown test function: …` and exits non-zero. When the variable is unset or empty, discovery runs every `test_*` as today. Verified on this checkout: a valid filter runs one case and exits 0; a misspelled filter exits non-zero. shUnit2 counts assertion failures (`assert*`, `fail`), not the test function’s return status: a body that only `return 1` still reports `OK` and exits 0.
 - Do not run `asc/doc/pdf_export.sh --a3-l` with no target against the real `data/ideas` and `docs` trees. That invocation rewrites every PDF there.
+- Directory and no-target exports must not report success when any `doc_pdf_export_one` failed. See § Directory and no-target.
 - Do not commit unless the human asks.
 
 ---
@@ -129,6 +130,8 @@ A default export also rewrites A4 when the markdown is strictly newer than the P
 
 `pdf_export.sh --a3-l` with no path does that for every `*.md` under `data/ideas` and every `*.md` under `docs`. That is a bulk rewrite. The acceptance test does not do it. It checks that both loops call `doc_pdf_export_one` and that the flag is parsed before either branch.
 
+**Failure status (decision):** Today `doc_pdf_export_tree` ignores each `doc_pdf_export_one` status and returns 0 whenever it found at least one Markdown file; the no-target `data/ideas` and `docs` loops do the same. A single-file target already ends on `doc_pdf_export_one`, so that path already surfaces the converter’s exit code. With `--a3-l` able to rewrite a whole tree, a failed conversion that still exits 0 leaves a mix of old and new PDFs while reporting success. This plan changes that: each of those three loops records failures, continues the remaining files, then exits non-zero if any conversion failed. A skip stays success. Finding no Markdown still exits 1 as today. No new shell function; the loops keep a local status variable.
+
 ### One geometry for the existing stages
 
 A3 landscape is 420 mm × 297 mm. At 96 px per inch and 72 pt per inch:
@@ -165,13 +168,13 @@ The CSS file on disk stays `size: A4`. The export substitutes `A3 landscape` onl
 |---|---|
 | `asc/doc/print_paginate.py` | Add `PageGeometry`, `select_page`, `selected_page`, `css_with_page_size`. Zero-argument content box and the PDF footer cutoff follow the selection. Keep `A4_WIDTH_PX`, `A4_HEIGHT_PX`, `A4_HEIGHT_PT`. |
 | `asc/doc/md2pdf_asc.py` | `--a3-l` on the wrapper. Select the page before conversion. Substitute `@page` size. Playwright format and landscape come from the same object. |
-| `asc/doc/pdf_export.sh` | Document and parse `--a3-l`. Pass it through. Rebuild a current PDF when the flag is set. |
-| `asc/doc/asc/pdf.test.sh` | Geometry unit tests, flag tests, and one live `pdfinfo` acceptance test under `data/tmp/`. |
+| `asc/doc/pdf_export.sh` | Document and parse `--a3-l`. Pass it through. Rebuild a current PDF when the flag is set. Aggregate failure status in `doc_pdf_export_tree` and both no-target loops. |
+| `asc/doc/asc/pdf.test.sh` | Validating `PDF_TEST_FILTER` via `suite()`. Geometry unit tests, flag tests, directory failure-propagation test, aggregation source test, real no-target branch under an isolated temp project with a stub converter, isolate `test_graphviz_er_fixture_pdf` onto a temp copy with `print_html_path_for` and shUnit2 assertions, and one live `pdfinfo` acceptance test under `data/tmp/` (Mermaid, tables, and Graphviz). |
 | `asc/doc/pdf_styles.css` | Unchanged `size: A4`. |
 | `asc/doc/html_preview.sh` | Unchanged. |
 | `asc/doc/print_mermaid.py` | Unchanged. It already takes `page_w` and `page_h`. |
 
-Committed fixture PDFs under `asc/doc/fixtures/` stay on their current bytes. Live exports copy `mermaid-dense.md` and `widow-table.md` into a directory created with `tempfile.mkdtemp(prefix="a3-page-size-", dir="data/tmp")`. `.gitignore` already ignores `/data/tmp/*` and keeps `data/tmp/README.md`. The test deletes only that unique directory, the print-HTML files whose paths it computed, and one temporary markdown file it created under `asc/doc/fixtures/` for the preview check.
+Committed fixture PDFs under `asc/doc/fixtures/` stay on their current bytes for the whole suite. Live A3 exports copy `mermaid-dense.md`, `widow-table.md`, and `graphviz-er.md` into a directory created with `tempfile.mkdtemp(prefix="a3-page-size-", dir="data/tmp")`. The existing `test_graphviz_er_fixture_pdf` must stop force-exporting onto the tracked `asc/doc/fixtures/graphviz-er.pdf`; it copies that markdown into `data/tmp/`, exports the copy, and asserts on that PDF and its print HTML. `.gitignore` already ignores `/data/tmp/*` and keeps `data/tmp/README.md`. The A3 live test deletes only that unique directory, the print-HTML files whose paths it computed, and one temporary markdown file it created under `asc/doc/fixtures/` for the preview check. It does not read or write tracked fixture PDFs.
 
 ## Implementation checklist
 
@@ -180,13 +183,45 @@ Committed fixture PDFs under `asc/doc/fixtures/` stay on their current bytes. Li
 **Files:**
 
 - Modify: `asc/doc/print_paginate.py` (constants around lines 21–74, `parse_pdf_lines` around lines 110–120)
-- Test: `asc/doc/asc/pdf.test.sh` (`test_constants_and_content_box` and a new `test_page_geometry`)
+- Modify: `asc/doc/asc/pdf.test.sh` (add `suite()` before the final `. asc/vendor/shunit2/shunit2`; extend `test_constants_and_content_box`; add `test_page_geometry`)
 
 **Interfaces:**
 
 - Produces: `PageGeometry`, `PAGE_A4`, `PAGE_A3_LANDSCAPE`, `select_page(a3_landscape: bool) -> PageGeometry`, `selected_page() -> PageGeometry`, `css_with_page_size(css: str, page: PageGeometry) -> str`
 - `content_width_px(page: PageGeometry | None = None) -> float` and `content_height_px(...)` — no argument means `selected_page()`
 - `parse_pdf_lines(path, page_height_pt: float | None = None)` — no height means `selected_page().height_pt`
+
+- [ ] **Step 0: Add selectable cases via `suite()`.**
+
+Place this immediately above `. asc/vendor/shunit2/shunit2` in `pdf.test.sh`. Do not pass test names as script arguments. Reject unknown names before registering them; a misspelled filter must not report `OK`.
+
+```bash
+suite() {
+  if [ -n "${PDF_TEST_FILTER:-}" ]; then
+    for _pdf_test in $PDF_TEST_FILTER; do
+      if ! declare -F "$_pdf_test" >/dev/null 2>&1; then
+        echo "PDF_TEST_FILTER: unknown test function: $_pdf_test" >&2
+        exit 1
+      fi
+      suite_addTest "$_pdf_test"
+    done
+  fi
+}
+```
+
+When `PDF_TEST_FILTER` is unset or empty, `__shunit_suite` stays empty and shUnit2 discovers every `test_*` as today. Verify both paths from the repository root (capture the script exit code directly; do not pipe into `tail` before reading `$?`):
+
+```bash
+PDF_TEST_FILTER=test_constants_and_content_box bash asc/doc/asc/pdf.test.sh
+echo $?
+# Expected: Ran 1 test. / OK / exit 0
+
+PDF_TEST_FILTER=test_does_not_exist bash asc/doc/asc/pdf.test.sh
+echo $?
+# Expected: PDF_TEST_FILTER: unknown test function: test_does_not_exist / non-zero exit
+```
+
+A bare `bash asc/doc/asc/pdf.test.sh test_constants_and_content_box` must still be treated as unsupported (fatal unable to read). Without `declare -F`, a nonexistent selected name prints `command not found` and still exits 0 with `Ran 1 test. OK`.
 
 - [ ] **Step 1: Extend the constants test and add `test_page_geometry`.**
 
@@ -274,7 +309,7 @@ Leave `test_page_css_margins_match_pre_plan` asserting `size: A4` in the file on
 Run from the repository root:
 
 ```bash
-bash asc/doc/asc/pdf.test.sh test_page_geometry
+PDF_TEST_FILTER=test_page_geometry bash asc/doc/asc/pdf.test.sh
 ```
 
 Expected: FAIL while importing `PAGE_A4` or `css_with_page_size`.
@@ -386,11 +421,10 @@ def parse_pdf_lines(
 - [ ] **Step 4: Re-run the geometry tests.**
 
 ```bash
-bash asc/doc/asc/pdf.test.sh test_constants_and_content_box
-bash asc/doc/asc/pdf.test.sh test_page_geometry
+PDF_TEST_FILTER='test_constants_and_content_box test_page_geometry' bash asc/doc/asc/pdf.test.sh
 ```
 
-Expected: both print `ok` and shunit2 reports success.
+Expected: both print `ok` and shunit2 reports success (`Ran 2 tests`).
 
 ### Task 2: Feed the selection through the PDF driver
 
@@ -582,10 +616,7 @@ Until `main` selects A3 for `--a3-l`, passes that geometry into `convert_markdow
 - [ ] **Step 6: Run the driver tests.**
 
 ```bash
-bash asc/doc/asc/pdf.test.sh test_pipeline_order_in_driver
-bash asc/doc/asc/pdf.test.sh test_page_css_margins_match_pre_plan
-bash asc/doc/asc/pdf.test.sh test_page_geometry
-bash asc/doc/asc/pdf.test.sh test_render_html_same_process_resets_to_a4
+PDF_TEST_FILTER='test_pipeline_order_in_driver test_page_css_margins_match_pre_plan test_page_geometry test_render_html_same_process_resets_to_a4' bash asc/doc/asc/pdf.test.sh
 ```
 
 Expected: PASS. `test_pipeline_order_in_driver` still requires `__ascLayoutReady` before `emulate_media`, then `MARK_LONG_PARAS_JS`, then `apply_print_pushes`, then `page.pdf`, and preview source still has no `apply_print_pushes`.
@@ -653,12 +684,12 @@ PY
 }
 ```
 
-`doc_pdf_export_one ` with a trailing space counts the four call sites (tree, single file, `data/ideas`, `docs`) and not the definition. The definition line is `doc_pdf_export_one()`.
+`doc_pdf_export_one ` with a trailing space counts the four call sites (tree, single file, `data/ideas`, `docs`) and not the definition. The definition line is `doc_pdf_export_one()`. Failure-aggregation source checks live in `test_export_failure_aggregation_source` (Step 6), not here, so this case can go green after the flag wiring in Step 3–4.
 
 - [ ] **Step 2: Run it and confirm failure.**
 
 ```bash
-bash asc/doc/asc/pdf.test.sh test_a3_l_option
+PDF_TEST_FILTER=test_a3_l_option bash asc/doc/asc/pdf.test.sh
 ```
 
 Expected: the Python source assertions fail because `--a3-l)` is not in the parser yet. `--a3` already exits from the option loop. When `md2pdf` and both vendor files are present, `--a3-l` on the missing path still prints `Unknown option` rather than `Path not found`.
@@ -759,23 +790,281 @@ doc_pdf_export_one() {
 }
 ```
 
-`doc_md_to_pdf`, `doc_pdf_export_tree`, and both no-target loops stay callers of this function. They do not grow a page-size argument.
+`doc_md_to_pdf` stays a caller of this function and does not grow a page-size argument. `doc_pdf_export_tree` and both no-target loops stay callers too, but they gain failure aggregation in the next steps.
 
 - [ ] **Step 4: Re-run the flag test.**
 
 ```bash
-bash asc/doc/asc/pdf.test.sh test_a3_l_option
+PDF_TEST_FILTER=test_a3_l_option bash asc/doc/asc/pdf.test.sh
 ```
 
-Expected: PASS. The source assertions find `--a3-l)` inside the body that starts at `while [[ $# -gt 0 ]]; do` and ends at that loop's `done`. The `command -v md2pdf` after that `done` is before `Path not found:`. When `md2pdf`, `asc/vendor/mermaid.esm.min.mjs`, and `asc/vendor/katex/katex.min.js` are all present, `--a3-l` on the missing path prints `Path not found: docs/no-such-a3-flag.md` and does not print `Unknown option`. When any of those three is missing, that command is skipped and the source assertions still run.
+Expected: PASS. The source assertions find `--a3-l)` inside the body that starts at `while [[ $# -gt 0 ]]; do` and ends at that loop's `done`. The `command -v md2pdf` after that `done` is before `Path not found:`. When `md2pdf`, `asc/vendor/mermaid.esm.min.mjs`, and `asc/vendor/katex/katex.min.js` are all present, `--a3-l` on the missing path prints `Path not found: docs/no-such-a3-flag.md` and does not print `Unknown option`. When any of those three is missing, that command is skipped and the source assertions still run. This checkpoint does not require failure aggregation yet.
 
-### Task 4: Live page size, switch-back, diagram, and table
+- [ ] **Step 5: Add `test_export_tree_propagates_failure`.**
+
+Place it near `test_a3_l_option`. It must not depend on Chromium succeeding for every file. Under a unique `data/tmp` directory, write two exportable markdown files, make the sibling path of the lexicographically first one a directory so the converter cannot overwrite it, export that tree with `--force`, and assert a non-zero exit while the second file still produces a PDF. Use shUnit2 assertions only (not a bare `return 1`).
+
+```bash
+test_export_tree_propagates_failure() {
+  if ! command -v md2pdf >/dev/null 2>&1; then
+    echo "skip tree failure propagation (md2pdf not on PATH)"
+    return 0
+  fi
+  if [[ ! -f asc/vendor/mermaid.esm.min.mjs || ! -f asc/vendor/katex/katex.min.js ]]; then
+    echo "skip tree failure propagation (asc/vendor mermaid/katex missing)"
+    return 0
+  fi
+  local tmp status
+  tmp="$(mktemp -d --tmpdir="${PWD}/data/tmp" tree-fail-XXXXXX)"
+  trap 'rm -rf "$tmp"' RETURN
+  printf '# Bad\n\nHello.\n' >"$tmp/a-bad.md"
+  printf '# Ok\n\nHello.\n' >"$tmp/b-ok.md"
+  mkdir "$tmp/a-bad.pdf"
+  ./asc/doc/pdf_export.sh --force "$tmp" >/dev/null 2>&1
+  status=$?
+  assertNotEquals 'tree export must fail when one conversion fails' 0 "$status"
+  assertTrue 'successful sibling still exported' "[ -f \"$tmp/b-ok.pdf\" ]"
+}
+```
+
+Until the tree helper aggregates status, this fails: the script exits 0 after writing `b-ok.pdf` even though `a-bad.pdf` could not be written.
+
+- [ ] **Step 6: Add aggregation source checks and a real no-target branch test.**
+
+**6a. `test_export_failure_aggregation_source`** — source-only; can stay red until Step 7.
+
+```bash
+test_export_failure_aggregation_source() {
+  "$PDF_PY" - <<'PY'
+from pathlib import Path
+sh = Path("asc/doc/pdf_export.sh").read_text(encoding="utf-8")
+tree = sh.split("doc_pdf_export_tree()", 1)[1].split("\n}\n", 1)[0]
+assert 'doc_pdf_export_one "$md" || rc=1' in tree
+assert 'return "$rc"' in tree
+# Keep the delimiter in the extracted text; splitting it away drops local_found=0.
+marker = "else\n  local_found=0\n"
+assert marker in sh
+no_target = marker + sh.split(marker, 1)[1]
+assert no_target.count('doc_pdf_export_one "$md" || rc=1') == 2
+assert 'exit "$rc"' in no_target
+# One rc for the whole no-target branch: must not reset between the two trees.
+ideas, docs = no_target.split("if [[ -d docs ]];", 1)
+assert "rc=0" in ideas
+assert ideas.index("local_found=0") < ideas.index("rc=0")
+assert "rc=0" not in docs.split("done", 1)[0]
+print("ok")
+PY
+  assertEquals 'export failure aggregation source assertions failed' 0 $?
+}
+```
+
+Re-attaching `marker` keeps `local_found=0` in `no_target` / `ideas`. Checking `rc=0` in that already-extracted `ideas` portion (and its order relative to `local_found=0`) avoids a second split that would raise `IndexError`. The docs-side check still rejects a script that clears status between the trees while still containing two `|| rc=1` strings and an `exit "$rc"`.
+
+**6b. `test_no_target_loops_propagate_failure`** — runs the **real** no-target branch of a copied `pdf_export.sh` inside an isolated temporary project. Do not invoke no-target against this repository’s `data/ideas` or `docs`. Verified shape on this checkout: overlay `asc/` with symlinks, copy only `pdf_export.sh`, replace only `md2pdf_asc.py` with a controlled converter, put a fake `md2pdf` (and a `python` next to it) on `PATH`, `cd` into the temp project, and run `./asc/doc/pdf_export.sh --force` with no path argument.
+
+The decisive fixture fails only under `data/ideas` and lets every `docs` conversion succeed. A bug that resets `rc=0` before the docs loop would then exit 0 while still continuing; a fail-in-each-tree fixture would hide that by setting `rc` again from docs.
+
+```bash
+test_no_target_loops_propagate_failure() {
+  local root tmp item base status call_log
+  root="$(pwd -P)"
+  tmp="$(mktemp -d --tmpdir="${root}/data/tmp" no-target-fail-XXXXXX)"
+  call_log="$tmp/calls"
+  trap 'rm -rf "$tmp"' RETURN
+
+  mkdir -p "$tmp/data/ideas" "$tmp/docs" "$tmp/bin" "$tmp/asc/doc"
+  for item in "$root/asc"/*; do
+    base="$(basename "$item")"
+    [[ "$base" == doc ]] && continue
+    ln -s "$item" "$tmp/asc/$base"
+  done
+  for item in "$root/asc/doc"/*; do
+    base="$(basename "$item")"
+    [[ "$base" == md2pdf_asc.py || "$base" == pdf_export.sh ]] && continue
+    ln -s "$item" "$tmp/asc/doc/$base"
+  done
+  cp "$root/asc/doc/pdf_export.sh" "$tmp/asc/doc/pdf_export.sh"
+  cat >"$tmp/asc/doc/md2pdf_asc.py" <<'PY'
+import os
+import sys
+from pathlib import Path
+
+md = Path(sys.argv[1])
+out = Path(sys.argv[sys.argv.index("-o") + 1])
+with Path(os.environ["EXPORT_CALL_LOG"]).open("a", encoding="utf-8") as fh:
+    fh.write(f"{md.as_posix()}\n")
+if "fail" in md.name:
+    sys.exit(1)
+out.write_text("%PDF-stub\n", encoding="utf-8")
+PY
+  printf '#!/bin/bash\nexit 0\n' >"$tmp/bin/md2pdf"
+  chmod +x "$tmp/bin/md2pdf"
+  ln -s "$(command -v python3)" "$tmp/bin/python"
+
+  # ideas fails once then succeeds; every docs file succeeds.
+  printf '# fail\n' >"$tmp/data/ideas/a-fail.md"
+  printf '# ok\n' >"$tmp/data/ideas/b-ok.md"
+  printf '# ok\n' >"$tmp/docs/a-ok.md"
+  printf '# ok\n' >"$tmp/docs/b-ok.md"
+  : >"$call_log"
+
+  (
+    cd "$tmp" || exit 1
+    export EXPORT_CALL_LOG="$call_log"
+    export PATH="$tmp/bin:$PATH"
+    ./asc/doc/pdf_export.sh --force
+  )
+  status=$?
+
+  assertNotEquals 'ideas failure must keep no-target exit non-zero' 0 "$status"
+  assertTrue 'ideas failure attempted' "grep -qx 'data/ideas/a-fail.md' \"$call_log\""
+  assertTrue 'ideas success after failure' "grep -qx 'data/ideas/b-ok.md' \"$call_log\""
+  assertTrue 'docs first success ran' "grep -qx 'docs/a-ok.md' \"$call_log\""
+  assertTrue 'docs second success ran' "grep -qx 'docs/b-ok.md' \"$call_log\""
+  assertEquals 'four converter calls' 4 "$(wc -l <"$call_log")"
+  assertTrue 'ideas success PDF written' "[ -f \"$tmp/data/ideas/b-ok.pdf\" ]"
+  assertTrue 'docs a-ok PDF written' "[ -f \"$tmp/docs/a-ok.pdf\" ]"
+  assertTrue 'docs b-ok PDF written' "[ -f \"$tmp/docs/b-ok.pdf\" ]"
+  assertFalse 'ideas failure PDF must not appear' "[ -f \"$tmp/data/ideas/a-fail.pdf\" ]"
+}
+```
+
+`pdf_export.sh` must be a real copy under the temp tree so `BASH_SOURCE` resolves the stub wrapper there; a symlink would keep the real `md2pdf_asc.py`. Until Step 7 aggregates status, this case fails with exit 0 after four converter calls (observed on this checkout before the change). Continuation inside one tree remains covered by `test_export_tree_propagates_failure`.
+
+- [ ] **Step 7: Aggregate failures in the three multi-file loops.**
+
+In `doc_pdf_export_tree` and in each no-target loop, keep a local status (for example `rc=0`), run `doc_pdf_export_one "$md" || rc=1`, finish the find loop, then return or exit with that status after the existing “no markdown found” checks. Continue after a failure so later files still run. Do not wrap this in a new shell function. Spell the status return exactly as `return "$rc"` in the tree helper and `exit "$rc"` at the end of the no-target branch (the source test requires those quoted forms). Initialize `rc=0` once for the whole no-target branch before the `data/ideas` loop; do not set `rc=0` again before the `docs` loop.
+
+Example for the tree helper:
+
+```bash
+doc_pdf_export_tree() {
+  local root="$1"
+  local found=0
+  local rc=0
+  while IFS= read -r -d '' md; do
+    md="${md#./}"
+    found=1
+    doc_pdf_export_one "$md" || rc=1
+  done < <(find "$root" -type f -name '*.md' -print0 | sort -z)
+  if [[ "$found" -eq 0 ]]; then
+    echo "No *.md files under: $root"
+    return 1
+  fi
+  return "$rc"
+}
+```
+
+Example for the no-target branch (replace the current `else` … `fi` that ends the script):
+
+```bash
+else
+  local_found=0
+  rc=0
+  if [[ -d data/ideas ]]; then
+    while IFS= read -r -d '' md; do
+      md="${md#./}"
+      local_found=1
+      doc_pdf_export_one "$md" || rc=1
+    done < <(find data/ideas -type f -name '*.md' -print0 | sort -z)
+  fi
+  if [[ -d docs ]]; then
+    while IFS= read -r -d '' md; do
+      md="${md#./}"
+      local_found=1
+      doc_pdf_export_one "$md" || rc=1
+    done < <(find docs -type f -name '*.md' -print0 | sort -z)
+  fi
+  if [[ "$local_found" -eq 0 ]]; then
+    echo "No *.md files found under data/ideas or docs"
+    exit 1
+  fi
+  exit "$rc"
+fi
+```
+
+The single-file branch stays a direct `doc_pdf_export_one` call.
+
+- [ ] **Step 8: Green checkpoint for aggregation.**
+
+```bash
+PDF_TEST_FILTER='test_a3_l_option test_export_failure_aggregation_source test_export_tree_propagates_failure test_no_target_loops_propagate_failure' bash asc/doc/asc/pdf.test.sh
+```
+
+Expected: PASS when prerequisites for the live tree case are present. A skip of `test_export_tree_propagates_failure` is not a pass of directory aggregation. `test_export_failure_aggregation_source` and `test_no_target_loops_propagate_failure` do not need Chromium; the no-target case needs only `python3` on `PATH` for the fake `md2pdf` neighbor.
+
+### Task 4: Isolate the Graphviz fixture export
+
+**Files:**
+
+- Modify: `asc/doc/asc/pdf.test.sh` (`test_graphviz_er_fixture_pdf`)
+
+The current case runs `./asc/doc/pdf_export.sh --force 'asc/doc/fixtures/graphviz-er.md'`, which overwrites the tracked `asc/doc/fixtures/graphviz-er.pdf` whenever `dot` is on `PATH`. That conflicts with the fixture-byte preservation rule above. Move the export onto an isolated copy.
+
+- [ ] **Step 1: Rewrite the fixture case to use `data/tmp`.**
+
+Derive the print-HTML path with [`print_html_path_for`](../../../../asc/doc/md2pdf_asc.py) (lines 304–313) for the temp markdown and the project root. Do not `ls`/`head` a glob of `*graphviz-er.html`; that can match a stale file from another run. Clean up that exact HTML path in the same `trap` as the temp directory. Use shUnit2 `assertTrue` / `assertFalse` / `fail` on every error path: a lone `return 1` still reports `OK` and exits 0 under this runner.
+
+```bash
+test_graphviz_er_fixture_pdf() {
+  if ! command -v dot >/dev/null 2>&1; then
+    echo "skip graphviz fixture (dot not on PATH)"
+    return 0
+  fi
+  local tmp html text status
+  tmp="$(mktemp -d --tmpdir="${PWD}/data/tmp" graphviz-er-XXXXXX)"
+  html="$("$PDF_PY" - <<PY
+from pathlib import Path
+from md2pdf_asc import find_project_root, print_html_path_for
+md = Path("$tmp/graphviz-er.md")
+root = find_project_root(md.resolve())
+print(print_html_path_for(md, root))
+PY
+)"
+  trap 'rm -rf "$tmp"; rm -f "$html"' RETURN
+  cp asc/doc/fixtures/graphviz-er.md "$tmp/graphviz-er.md"
+  ./asc/doc/pdf_export.sh --force "$tmp/graphviz-er.md"
+  status=$?
+  assertEquals 'graphviz temp export failed' 0 "$status"
+  assertTrue "print HTML missing: $html" "[ -f \"$html\" ]"
+  assertTrue 'graphviz-wrap missing' "grep -q 'class=\"graphviz-wrap\"' \"$html\""
+  assertTrue 'svg missing' "grep -q '<svg' \"$html\""
+  grep -q 'fill="#ffffcc"' "$html" || true
+  assertFalse 'raw digraph in HTML' "grep -q 'digraph' \"$html\""
+  assertFalse 'raw fillcolor in HTML' "grep -q 'fillcolor' \"$html\""
+  assertFalse 'raw fence in HTML' "grep -q '\`\`\`dot' \"$html\""
+  text="$(pdftotext -layout "$tmp/graphviz-er.pdf" -)"
+  assertTrue 'Article label missing' "echo \"$text\" | grep -q 'Article'"
+  assertTrue 'Article category missing' "echo \"$text\" | grep -q 'Article category'"
+  assertTrue 'Author label missing' "echo \"$text\" | grep -q 'Author'"
+  assertFalse 'raw digraph in PDF text' "echo \"$text\" | grep -q 'digraph'"
+  assertFalse 'raw fillcolor in PDF text' "echo \"$text\" | grep -q 'fillcolor'"
+  assertFalse 'raw fence in PDF text' "echo \"$text\" | grep -q '\`\`\`dot'"
+}
+```
+
+Do not write under `asc/doc/fixtures/` in this case. After a green run, `git status --short asc/doc/fixtures/graphviz-er.pdf` must stay clean.
+
+- [ ] **Step 2: Prove a deliberate assertion failure exits non-zero, then run the isolated case.**
+
+Temporarily change one assertion to a guaranteed failure (for example `assertTrue 'deliberate' "false"`), run:
+
+```bash
+PDF_TEST_FILTER=test_graphviz_er_fixture_pdf bash asc/doc/asc/pdf.test.sh
+echo $?
+```
+
+Expected while the deliberate failure is present: `FAILED` and a non-zero exit. A body that only `return 1` is not enough. Restore the real assertion, then re-run the same filter command.
+
+Expected after restore: PASS when `dot` is present, otherwise the existing skip message. Tracked fixture PDF bytes unchanged. The print HTML for that temp markdown is removed by the trap.
+
+### Task 5: Live page size, switch-back, diagram, table, and Graphviz
 
 **Files:**
 
 - Test: `asc/doc/asc/pdf.test.sh` (new `test_a3_landscape_page_and_rebuild`, placed after `test_diagrams_fit_print_page`)
 
-Copies go to a unique directory from `tempfile.mkdtemp(prefix="a3-page-size-", dir=data/tmp)`. Cleanup is `shutil.rmtree` on that directory only, inside `finally`, including when an assertion fails. Print HTML is written under `data/tmp/doc-print/`, outside that directory. The test unlinks only the HTML paths it computed for this run. It does not remove `data/tmp/doc-print/` or any other temporary directory. Preview cannot read `data/tmp/`, so the test writes one markdown file under `asc/doc/fixtures/` whose name includes the unique directory name, previews that file, and unlinks that markdown file and its print HTML in the same `finally`. It does not read or write `asc/doc/fixtures/mermaid-dense.md` or that fixture's print HTML.
+Copies go to a unique directory from `tempfile.mkdtemp(prefix="a3-page-size-", dir=data/tmp)`. Cleanup is `shutil.rmtree` on that directory only, inside `finally`, including when an assertion fails. Print HTML is written under `data/tmp/doc-print/`, outside that directory. The test unlinks only the HTML paths it computed for this run. It does not remove `data/tmp/doc-print/` or any other temporary directory. Preview cannot read `data/tmp/`, so the test writes one markdown file under `asc/doc/fixtures/` whose name includes the unique directory name, previews that file, and unlinks that markdown file and its print HTML in the same `finally`. It does not read or write tracked fixture markdown or PDF under `asc/doc/fixtures/` except that one temporary preview markdown it creates and deletes.
 
 - [ ] **Step 1: Add the live test.**
 
@@ -789,7 +1078,7 @@ test_a3_landscape_page_and_rebuild() {
     echo "skip A3 page size (pdftotext not on PATH)"
     return 0
   fi
-  if ! command -v md2pdf >/dev/null 2>&1; then
+    if ! command -v md2pdf >/dev/null 2>&1; then
     echo "skip A3 page size (md2pdf not on PATH)"
     return 0
   fi
@@ -824,10 +1113,12 @@ try:
     (tmp / "dir").mkdir()
     (tmp / "wide").mkdir()
     (tmp / "flow").mkdir()
+    (tmp / "gv").mkdir()
     (tmp / "dir" / "one.md").write_text("# One\n\nHello one.\n", encoding="utf-8")
     (tmp / "dir" / "two.md").write_text("# Two\n\nHello two.\n", encoding="utf-8")
     shutil.copy("asc/doc/fixtures/mermaid-dense.md", tmp / "wide" / "diagram.md")
     shutil.copy("asc/doc/fixtures/widow-table.md", tmp / "flow" / "table.md")
+    shutil.copy("asc/doc/fixtures/graphviz-er.md", tmp / "gv" / "graphviz-er.md")
 
     def export(*args: str) -> str:
         proc = subprocess.run(
@@ -1051,6 +1342,33 @@ try:
         for line in table_lines
     ), r01
 
+    if shutil.which("dot") is None:
+        print("skip A3 Graphviz (dot not on PATH)")
+    else:
+        gv = tmp / "gv" / "graphviz-er.md"
+        gv_pdf = tmp / "gv" / "graphviz-er.pdf"
+        rel_gv = str(gv.relative_to(ROOT))
+        gv_html = print_html_for(gv)
+        gv_out = export("--a3-l", rel_gv)
+        assert page_mm(gv_pdf) == "420 x 297", gv_out
+        gv_body = gv_html.read_text(encoding="utf-8")
+        assert 'class="graphviz-wrap"' in gv_body
+        assert "<svg" in gv_body
+        assert "digraph" not in gv_body
+        assert "```dot" not in gv_body
+        gv_text = subprocess.check_output(
+            ["pdftotext", "-layout", str(gv_pdf), "-"],
+            text=True,
+        )
+        assert "Article" in gv_text
+        assert "Article category" in gv_text
+        assert "Author" in gv_text
+        folded_gv = gv_text.casefold()
+        assert "digraph" not in folded_gv, gv_text
+        assert "fillcolor" not in folded_gv, gv_text
+        assert "```dot" not in gv_text
+        assert_inside_media_box(gv_pdf)
+
     preview_md = ROOT / "asc" / "doc" / "fixtures" / f"a3-preview-{tmp.name}.md"
     extra_paths.append(preview_md)
     preview_md.write_text("# Preview probe\n\nOne paragraph.\n", encoding="utf-8")
@@ -1085,15 +1403,17 @@ A word-box loop cannot prove that clipped content survived, because `pdftotext` 
 
 The table fixture is [`asc/doc/fixtures/widow-table.md`](../../../../asc/doc/fixtures/widow-table.md): filler paragraphs, the five-row Alpha–Echo table, then one table whose rows run from R01 through R45. The A3 text must contain every `Observation for Alpha` … `Observation for Echo` and every `Observation for R01` … `Observation for R45`. Alpha through Echo share one page. The R table continues onto a later page, its first page holds at least `MIN_TABLE_ROWS` (3) of those rows, and `Source` sits on that page at or above R01. The media-box loop still checks extracted ink. It is not the row-survival check. A4 portrait height matches A3 landscape height, so `parse_pdf_lines` with the default selected page still drops the footer. Heading-orphan rules stay on `test_page_review_heading_orphan` and [`asc/doc/fixtures/orphan-heading.md`](../../../../asc/doc/fixtures/orphan-heading.md). `test_diagrams_fit_print_page` still passes a height into `FIT_DIAGRAMS_JS` and stays as it is.
 
+The Graphviz fixture is a temp copy of [`asc/doc/fixtures/graphviz-er.md`](../../../../asc/doc/fixtures/graphviz-er.md). Shared fitting already covers Mermaid and Graphviz wraps, but this live export proves an A3 landscape run renders the SVG and keeps the labels `Article`, `Article category`, and `Author` in the PDF text. Print HTML must contain `graphviz-wrap` and an `<svg>`, and must not retain `digraph` or a raw Graphviz fence. Tracked `graphviz-er.pdf` is not used. When `dot` is missing, the live test prints `skip A3 Graphviz` and still runs the Mermaid and table checks.
+
 - [ ] **Step 2: Run the full PDF suite from the repository root.**
 
 ```bash
 bash asc/doc/asc/pdf.test.sh
 ```
 
-Expected: existing cases pass, including `test_page_css_margins_match_pre_plan`, `test_constants_and_content_box`, `test_pipeline_order_in_driver`, and `test_diagrams_fit_print_page`. The new live test passes, or it prints `skip A3 page size` when `pdfinfo`, `pdftotext`, or `md2pdf` is absent. A skip is not a pass of the page-size check. On this host, poppler and `md2pdf` are required before calling the task done.
+Expected: existing cases pass, including `test_page_css_margins_match_pre_plan`, `test_constants_and_content_box`, `test_pipeline_order_in_driver`, `test_diagrams_fit_print_page`, the isolated `test_graphviz_er_fixture_pdf`, `test_export_failure_aggregation_source`, `test_export_tree_propagates_failure`, and `test_no_target_loops_propagate_failure`. The new live test passes, or it prints `skip A3 page size` when `pdfinfo`, `pdftotext`, or `md2pdf` is absent. A skip is not a pass of the page-size or Graphviz checks. On this host, poppler, `md2pdf`, and `dot` are required before calling the task done, so the Graphviz block must run rather than print `skip A3 Graphviz`. After the suite, `git status --short -- asc/doc/fixtures/*.pdf` stays clean.
 
-The live test launches Chromium several times (probe file, directory pair, diagram at both sizes, clip probe, table at both sizes). That runtime is the acceptance cost.
+The live test launches Chromium several times (probe file, directory pair, Mermaid at both sizes, clip probe, table at both sizes, Graphviz A3). That runtime is the acceptance cost.
 
 ## Acceptance checks
 
@@ -1108,9 +1428,13 @@ The live test launches Chromium several times (probe file, directory pair, diagr
 | Copied `mermaid-dense.md` | A4 export is `210 x 297`. Later `--a3-l` is `420 x 297`. The export log has no `left as source` warning. A3 PDF text contains `The house`, `extract-once`, and `the world`, and does not contain `flowchart` or `subgraph`. Ignoring the bottom 36 pt, the widest content word on the A3 PDF is to the right of both the A4 export’s widest content word and the A4 media width (`210 * 72 / 25.4` pt). Print HTML has `@page` size `A3 landscape` and Mermaid `pageW` / `pageH` equal to `content_width_px(PAGE_A3_LANDSCAPE)` and `content_height_px(PAGE_A3_LANDSCAPE)`. |
 | Clip probe | One `flowchart LR` with `CLIPLEFT` and `CLIPRIGHT`. Both words are in the A3 PDF, `CLIPRIGHT` is to the right of `CLIPLEFT`, and both boxes lie inside the A3 media box. The export log has no `left as source` warning. |
 | Copied `widow-table.md` | Both A4 and A3 exports report `Pages:` of at least 2. A3 is `420 x 297`. The A3 text contains `Observation for Alpha` through `Observation for Echo` and `Observation for R01` through `Observation for R45`. Alpha through Echo share one page. The R table continues onto a later page, its first page contains at least `MIN_TABLE_ROWS` (3) of those rows, and `Source` is on that page at or above R01. |
-| Preview | A new `asc/doc/fixtures/a3-preview-<unique>.md` is previewed and then deleted, along with its print HTML. That HTML `@page` block contains `size: A4` and does not contain `A3`. `mermaid-dense.md` and its print HTML are not used. The A3 diagram PDF from the temp copy is still `420 x 297`. |
+| Copied `graphviz-er.md` | `--a3-l` yields `420 x 297`. Print HTML has `graphviz-wrap` and `<svg>`, without `digraph` or a raw fence. PDF text contains `Article`, `Article category`, and `Author`, and does not contain `digraph` or `fillcolor`. Words lie inside the A3 media box. |
+| Directory with one blocked PDF path | `--force` on a temp tree exits non-zero; the sibling markdown still produces a PDF (`test_export_tree_propagates_failure`). |
+| No-target branch (isolated project) | Temp project with its own `data/ideas` and `docs`, copied `pdf_export.sh`, stub `md2pdf_asc.py`: ideas fails once then succeeds, every docs file succeeds; no-target `--force` still exits non-zero, records four converter calls including both docs successes, and writes only the success PDFs (`test_no_target_loops_propagate_failure`). That fixture detects an `rc` reset before `docs`. Source test requires `|| rc=1`, `return "$rc"` / `exit "$rc"`, and a single no-target `rc=0` after `local_found=0` before the ideas loop (`test_export_failure_aggregation_source`). |
+| Preview | A new `asc/doc/fixtures/a3-preview-<unique>.md` is previewed and then deleted, along with its print HTML. That HTML `@page` block contains `size: A4` and does not contain `A3`. Tracked fixture markdown/PDF under `asc/doc/fixtures/` are not used as export targets. The A3 Mermaid PDF from the temp copy is still `420 x 297`. |
 | `pdf_export.sh --a3-l` with no path | Not run. Source test shows both tree loops call `doc_pdf_export_one`. |
-| Full suite | `bash asc/doc/asc/pdf.test.sh` from the repository root. |
+| Fixture PDF bytes | Full suite leaves `asc/doc/fixtures/*.pdf` unchanged (`test_graphviz_er_fixture_pdf` exports a `data/tmp` copy). |
+| Full suite | `bash asc/doc/asc/pdf.test.sh` from the repository root. Targeted red/green uses `PDF_TEST_FILTER=… bash asc/doc/asc/pdf.test.sh`. |
 
 `pdfinfo` on this poppler build prints a dot decimal, for example `595.28 x 841.89 pts` for A4 and `1190.55 x 841.89 pts` for A3 landscape. Rounding each side with `pts * 25.4 / 72` yields the millimetre checks above. A parenthetical `(A3)` or `(landscape)` on that line does not change the field positions.
 
