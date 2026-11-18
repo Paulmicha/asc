@@ -264,6 +264,32 @@ f_make_list_entry_points() {
 }
 
 ##
+# True when name is a hardcoded Make entry point (reserved).
+#
+# @param 1 String : make entry point name.
+#
+# @return
+#   0 : reserved
+#   1 : not reserved
+#
+f_make_is_hardcoded_name() {
+  local p_name="$1"
+  local pivots_arr=()
+  local real_scripts_arr=()
+  local i
+
+  f_make_list_hardcoded
+
+  for i in "${!pivots_arr[@]}"; do
+    case "${pivots_arr[i]}" in "$p_name")
+      return 0
+    esac
+  done
+
+  return 1
+}
+
+##
 # Single source of truth for hardcoded Make entry points.
 #
 # Manually list our own hardcoded entries.
@@ -282,10 +308,12 @@ f_make_list_entry_points() {
 #   f_make_list_hardcoded
 #
 f_make_list_hardcoded() {
+  # Paths and recipe-specific arguments match asc/make/default.mk.
+  # DSL dispatch uses f_asc_dsl_list_hardcoded_eligible() (path-only subset).
   pivots_arr+=('init')
-  real_scripts_arr+=('asc/instance/init.make.sh')
+  real_scripts_arr+=('asc/instance/init.sh')
   pivots_arr+=('init-debug')
-  real_scripts_arr+=('asc/instance/init.make.sh -d -r')
+  real_scripts_arr+=('asc/instance/init.sh -d -r')
   pivots_arr+=('ds')
   real_scripts_arr+=('asc/dsl.sh')
   pivots_arr+=('setup')

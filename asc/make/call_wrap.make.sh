@@ -9,6 +9,12 @@
 # The default hardcoded Make entry points can be called before the local
 # instance is initialized and the generated cache file does not exist yet.
 #
+# For asc/dsl.sh, arguments are forwarded as an argv array (no eval) and without
+# f_make_unescape, so literal ∓ / = / \$ stay data. The preferred `make ds`
+# carrier is ASC_DS_EXPR via asc/make/ds.make.sh (expression is not a Make goal).
+# Other entry points keep the historical eval + single-quote rewrite used with
+# the "'spaced arg'" Make convention.
+#
 # @see asc/make/default.mk
 # @see data/asc/pivots.mk
 # @see data/asc/cache/pivots.sh
@@ -95,6 +101,7 @@ rest_of_args="$@"
 # args=()
 
 escaped_args=''
+args_arr=()
 
 while [ $# -gt 0 ]; do
   arg="$1"
@@ -103,8 +110,6 @@ while [ $# -gt 0 ]; do
   # echo
   # echo "processing arg :"
   # echo "  $arg"
-
-  # args+=("$arg")
 
   # First, make sure the rest of the args won't accidentally trigger another
   # entry point.
@@ -123,15 +128,22 @@ while [ $# -gt 0 ]; do
     esac
   done
 
-  # Revert the special characters swap to send correct script argument.
-  # @see asc/escape.sh
-  # @see asc/make/make.inc.sh
-  f_make_unescape "$arg" 'arg'
+  case "$p_real_script" in
+    */dsl.sh)
+      # DSL carrier : do not apply legacy Make ∓ / \$ decode.
+      args_arr+=("$arg")
+      ;;
 
-  # Any value which must be quoted is rewritten with single quotes.
-  f_str_escape_single_quotes "$arg"
-
-  escaped_args+="$escaped_arg "
+    *)
+      # Revert the special characters swap to send correct script argument.
+      # @see asc/escape.sh
+      # @see asc/make/make.inc.sh
+      f_make_unescape "$arg" 'arg'
+      args_arr+=("$arg")
+      f_str_escape_single_quotes "$arg"
+      escaped_args+="$escaped_arg "
+      ;;
+  esac
 
   shift
 done
@@ -139,8 +151,7 @@ done
 # Debug.
 # echo
 # echo "  array args :"
-# echo "    ${!args[@]}"
-# echo "    ${args[@]}"
+# echo "    ${args_arr[@]}"
 # echo
 # echo "escaped args :"
 # echo "  $escaped_args"
@@ -150,9 +161,15 @@ done
 # echo
 
 case "$p_real_script" in
+  */dsl.sh)
+    # Argv array : shell metacharacters in values stay data (no eval).
+    "$p_real_script" "${args_arr[@]}"
+    ;;
+
   */test/single_case.make.sh)
     eval "$p_real_script $(printf '%q' "$invoked_make_target") $escaped_args"
     ;;
+
   *)
     eval "$p_real_script $escaped_args"
     ;;

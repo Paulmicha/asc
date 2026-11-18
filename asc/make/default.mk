@@ -38,8 +38,25 @@
 #   # Run low-level ASC base-stack tests (core + enabled extensions) :
 #   make test-core
 #
+#   # DSL (expression is never a Make goal — see ASC_DS_EXPR) :
+#   ASC_DS_EXPR='slug(foobar)' make ds
+#
 
 .PHONY: init init-debug setup hook hook-debug globals-lp debug ds
+
+# Hardcoded goals allowed alongside `make ds`. Anything else is treated as a
+# stray DSL expression goal and refused at makefile parse time so colliding
+# recipes (for example `debug`) cannot interpolate it as unquoted shell.
+# @see docs/specs/asc/dsl.md
+# @see docs/plans/2026/09/22-make-ds.md
+asc_ds_goal_allowlist := init init-debug setup hook hook-debug globals-lp debug ds
+
+ifneq ($(filter ds,$(MAKECMDGOALS)),)
+  asc_ds_stray_goals := $(filter-out $(asc_ds_goal_allowlist),$(MAKECMDGOALS))
+  ifneq ($(asc_ds_stray_goals),)
+    $(error make ds: DSL expression must not be a Make goal (refusing: $(asc_ds_stray_goals)). Use: ASC_DS_EXPR='<expression>' make ds)
+  endif
+endif
 
 init:
 	@ asc/make/call_wrap.make.sh asc/instance/init.sh $(MAKECMDGOALS)
@@ -50,8 +67,9 @@ init-debug:
 setup:
 	@ asc/make/call_wrap.make.sh asc/instance/setup.sh $(MAKECMDGOALS)
 
+# Expression from ASC_DS_EXPR only (not MAKECMDGOALS). @see asc/make/ds.make.sh
 ds:
-	@ asc/make/call_wrap.make.sh asc/dsl.sh $(MAKECMDGOALS)
+	@ asc/make/ds.make.sh
 
 hook:
 	@ asc/make/call_wrap.make.sh asc/make/hook.make.sh $(MAKECMDGOALS)

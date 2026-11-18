@@ -6,9 +6,15 @@
 # When executed as a script, bootstraps ASC then generates.
 # When sourced, only defines f_make_generate() and f_make_generate_test_cases().
 #
+# Optional destinations (for disposable fixtures) :
+#   ASC_MAKE_GENERATE_PIVOTS_MK     (default data/asc/pivots.mk)
+#   ASC_MAKE_GENERATE_PIVOTS_SH     (default data/asc/cache/pivots.sh)
+#   ASC_MAKE_GENERATE_TEST_CASES   (default ASC_TEST_CASE_CACHE / data/asc/cache/test-cases.sh)
+#
 # Warm wrap still uses eager helpers in make.inc.sh (list / unescape / hardcoded).
 # @see f_instance_init() in asc/instance/instance.inc.sh
 # @see f_make_list_hardcoded() in asc/make/make.inc.sh
+# @see f_make_is_hardcoded_name() in asc/make/make.inc.sh
 #
 # @example
 #   # After bootstrap :
@@ -20,7 +26,9 @@
 # Writes make entrypoints to data/asc/pivots.mk
 #
 # Generates a Makefile include with tasks corresponding to every subject-action
-# in current instance.
+# in current instance. Discovered names that collide with hardcoded reserved
+# names (for example `ds`) are omitted from the generated recipes so
+# default.mk remains the single recipe.
 #
 # Also generates a script called before any make entry point to do the same as :
 # @see f_make_check_args()
@@ -29,22 +37,53 @@ f_make_generate() {
   local i
   local make_entry_point
   local real_script
+  local pivots_mk="${ASC_MAKE_GENERATE_PIVOTS_MK:-data/asc/pivots.mk}"
+  local pivots_sh="${ASC_MAKE_GENERATE_PIVOTS_SH:-data/asc/cache/pivots.sh}"
+  local pivots_mk_dir
+  local pivots_sh_dir
 
   local pivots_arr=()
   local real_scripts_arr=()
+  local discovered_pivots_arr=()
+  local discovered_scripts_arr=()
 
-  # All except the hardcoded ones.
+  # Discover, then drop names reserved by hardcoded default.mk entries.
   f_make_list_entry_points
+  discovered_pivots_arr=("${pivots_arr[@]}")
+  discovered_scripts_arr=("${real_scripts_arr[@]}")
+
+  pivots_arr=()
+  real_scripts_arr=()
+
+  for i in "${!discovered_pivots_arr[@]}"; do
+    make_entry_point="${discovered_pivots_arr[i]}"
+    real_script="${discovered_scripts_arr[i]}"
+
+    if f_make_is_hardcoded_name "$make_entry_point"; then
+      continue
+    fi
+
+    pivots_arr+=("$make_entry_point")
+    real_scripts_arr+=("$real_script")
+  done
 
   if [[ -z "$real_scripts_arr" ]]; then
     echo "Notice in f_make_generate() - $BASH_SOURCE line $LINENO: no Make entry points have been found."
     return
   fi
 
-  echo "Writing Makefile include data/asc/pivots.mk ..."
+  pivots_mk_dir="${pivots_mk%/*}"
+  if [[ "$pivots_mk_dir" != "$pivots_mk" && -n "$pivots_mk_dir" ]]; then
+    mkdir -p "$pivots_mk_dir"
+  fi
+
+  echo "Writing Makefile include ${pivots_mk} ..."
   rm -f data/asc/generated.mk
 
-  cat > data/asc/pivots.mk <<'EOF'
+  # Calling-scope path for f_make_generate_test_cases appends.
+  asc_make_generate_pivots_mk="$pivots_mk"
+
+  cat > "$pivots_mk" <<'EOF'
 
 ##
 # Current instance Makefile include.
@@ -67,27 +106,33 @@ EOF
     echo ".PHONY: $make_entry_point
 $make_entry_point:
 	@ asc/make/call_wrap.make.sh $real_script \$(MAKECMDGOALS)
-" >> data/asc/pivots.mk
+" >> "$pivots_mk"
 
   done
 
   f_make_generate_test_cases
 
-  echo "Writing Makefile include data/asc/pivots.mk : done."
+  echo "Writing Makefile include ${pivots_mk} : done."
   echo
 
   # We'll also need to generate a "normal" shell script (not bash) to check
   # that among all arguments sent to a Make entry point, none are "reserved"
   # values - i.e. that would trigger unwanted other targets.
-  echo "Creating cache file data/asc/cache/pivots.sh ..."
+  echo "Creating cache file ${pivots_sh} ..."
   rm -f data/asc/cache/make.sh
 
   # Including the hardcoded ones (this is only used for the safety check).
   f_make_list_hardcoded
 
-  local cache_file='data/asc/cache/pivots.sh'
+  local cache_file="$pivots_sh"
   local make_entries_code_gen=''
   local real_scripts_code_gen=''
+  local test_cases_file="${ASC_MAKE_GENERATE_TEST_CASES:-${ASC_TEST_CASE_CACHE:-data/asc/cache/test-cases.sh}}"
+
+  pivots_sh_dir="${cache_file%/*}"
+  if [[ "$pivots_sh_dir" != "$cache_file" && -n "$pivots_sh_dir" ]]; then
+    mkdir -p "$pivots_sh_dir"
+  fi
 
   # Replace contents in case cache file exists.
   cat > "$cache_file" <<'SHELL_SCRIPT_HEAD'
@@ -117,9 +162,9 @@ SHELL_SCRIPT_HEAD
 "
   done
 
-  if [[ -f data/asc/cache/test-cases.sh ]]; then
+  if [[ -f "$test_cases_file" ]]; then
     # shellcheck disable=SC1090
-    . data/asc/cache/test-cases.sh
+    . "$test_cases_file"
     for make_entry_point in "${test_case_registry_targets_arr[@]}"; do
       make_entries_code_gen+="pivots_arr+=('$make_entry_point')
 "
@@ -133,7 +178,7 @@ SHELL_SCRIPT_HEAD
   echo '' >> "$cache_file"
   echo "$real_scripts_code_gen" >> "$cache_file"
 
-  echo "Creating cache file data/asc/cache/pivots.sh : done."
+  echo "Creating cache file ${pivots_sh} : done."
   echo
 }
 
@@ -141,13 +186,15 @@ SHELL_SCRIPT_HEAD
 # Append per-case make targets and write test-case registry cache.
 #
 # Uses pivots_arr and real_scripts_arr arrays from calling scope (f_make_generate).
+# Appends to asc_make_generate_pivots_mk when set.
 #
 f_make_generate_test_cases() {
   local batch_task=''
   local batch_script=''
   local case_stem=''
   local case_target=''
-  local cache_file="${ASC_TEST_CASE_CACHE:-data/asc/cache/test-cases.sh}"
+  local cache_file="${ASC_MAKE_GENERATE_TEST_CASES:-${ASC_TEST_CASE_CACHE:-data/asc/cache/test-cases.sh}}"
+  local pivots_mk="${asc_make_generate_pivots_mk:-data/asc/pivots.mk}"
 
   if [[ "$(type -t f_test_batch_exec)" != function ]]; then
     # shellcheck disable=SC1091
@@ -198,7 +245,7 @@ f_make_generate_test_cases() {
       echo ".PHONY: $case_target
 $case_target:
 	@ asc/make/call_wrap.make.sh asc/test/single_case.make.sh \$(MAKECMDGOALS)
-" >> data/asc/pivots.mk
+" >> "$pivots_mk"
     done
   done
 

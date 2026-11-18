@@ -14,29 +14,56 @@ checks. The [make ds gate](../../../gates.core.yml) remains in discussion with
 
 ## Current implementation
 
+Status: **implemented in-tree, not gate-accepted** (`approved: "no"`, `go: "no"`).
+
 | Entry | Behavior in this checkout |
 |---|---|
-| [`f_asc_dsl`](../../../asc/core/dsl.manual-inc.sh) | Sourced from [bootstrap](../../../asc/bootstrap.sh). Prints a TODO and normally returns zero. |
-| [`asc/dsl.sh`](../../../asc/dsl.sh) | Bootstraps ASC and passes its argv to the stub. |
-| [`make ds`](../../../asc/make/default.mk) | Hardcoded Make target that calls `asc/dsl.sh` through [the Make wrapper](../../../asc/make/call_wrap.make.sh). |
-| Former `asc/instance/ds.sh` | Removed in `65de058`. Generated Make and host alias files from before the removal can still point to it. |
+| [`f_asc_dsl`](../../../asc/core/dsl.manual-inc.sh) | First slice: one pivot call, literals, exact `pN` / `a` / `sN` bindings, status return (never `exit` from the function). Requires a closing `)` before dispatch. |
+| [`asc/dsl.sh`](../../../asc/dsl.sh) | Bootstraps ASC and passes its argv to `f_asc_dsl`; process exit status is the function status. |
+| [`make ds`](../../../asc/make/default.mk) | Hardcoded target runs [`asc/make/ds.make.sh`](../../../asc/make/ds.make.sh). Expression comes from **`ASC_DS_EXPR`** (not Make goals). Stray goals with `ds` are refused at makefile parse time. |
+| Former `asc/instance/ds.sh` | Removed in `65de058`. `f_make_generate` skips hardcoded reserved names and drops cached paths to the removed script. |
+| Probe fixture | [`asc/test/dsl_probe.sh`](../../../asc/test/dsl_probe.sh) (`test-dsl-probe`) for argv / marker / status tests. |
 
-The current Make recipe substitutes `MAKECMDGOALS` into shell source. For
-example, `make ds 'slug(foobar)'` produces an unquoted `slug(foobar)` in that
-recipe, which fails shell parsing. Quoting the argument inside the recipe
-gets it to the wrapper. The wrapper still inserts a parentheses-only
-expression such as `slug(foobar)` unquoted into its final `eval`. GNU Make
-can also consume an argument containing `=` as a variable assignment.
-DSL combinators such as `;` are intentional grammar; if they reach either
-boundary as unquoted shell source, the shell can run unintended commands
-before the interpreter sees the string. **Proposed:** every Make-carried
-expression either arrives as one data argument to `asc/dsl.sh`, or the
-recipe / wrapper rejects it with **no** side command executed. Marker-based
-acceptance for both boundaries (including unsupported expressions and the
-period before Make fully carries a given operator) lives in the
-[delivery plan](../../plans/2026/09/22-make-ds.md). The function and direct
-script remain the interfaces for general DSL strings and exact argv until
-that Make contract is verified.
+### Observed Make carrier (first slice)
+
+Supported:
+
+```text
+ASC_DS_EXPR='slug(foobar)' make ds
+ASC_DS_EXPR="test-dsl-probe('a b')" make ds
+```
+
+The expression is **not** a Make goal, so colliding recipes such as `debug` cannot
+interpolate it as unquoted shell (`make -k ds 'true;touch …' debug` is refused).
+`ds.make.sh` calls `asc/dsl.sh` directly and does not run `f_make_unescape`, so
+literal `∓`, `=`, and `$` in the expression stay unchanged. Combinators in
+`ASC_DS_EXPR` are still **rejected by the interpreter** as unsupported grammar.
+
+Bound argv and general strings use the direct interfaces:
+
+```text
+asc/dsl.sh 'slug(p1)' -- 'Foo Bar'
+f_asc_dsl 'slug(a)' -- one 'two three'
+```
+
+Make notes:
+
+- Passing the expression as a Make goal is unsupported and refused when `ds` is
+  among the goals.
+- GNU Make’s process status on recipe failure is typically `2`, even when the
+  script exited with another nonzero code.
+- Host `ds` shell alias migration is still open.
+
+### Observed pivot resolution (first slice)
+
+- Discovered names come from `f_make_list_entry_points` (exact final-name match).
+- Hardcoded reserved names are checked first. DSL-eligible path-only set:
+  `init`, `setup`, `hook`, `globals-lp`. Rejected as ineligible: `ds`, `debug`,
+  `init-debug`, `hook-debug`.
+- `f_make_list_hardcoded` matches `default.mk` (`init` → `asc/instance/init.sh`,
+  debug variants keep recipe-specific arguments, `ds` → `asc/dsl.sh`).
+- `f_make_generate` omits discovered names that collide with hardcoded reserved
+  names so `default.mk` keeps the single `ds` recipe.
 
 ## Invocation and status (proposed)
 
@@ -176,7 +203,7 @@ and failure behavior need review before loop support.
 | Functions | Name the initial list and document allowed side effects for each entry. |
 | Combinators | Define mixed-operator precedence and associativity, whitespace and token boundaries, pipeline status, and how parallel failures are reported. |
 | Loops | Specify producer syntax, line handling and iterator scope, and status on producer or body failure. |
-| Make | Decide and verify the supported carrier input, including punctuation, bound argv, and collisions with other goals. Acceptance must prove DSL operators (for example `;`) do not run as shell syntax at the recipe or `call_wrap` `eval` boundary — see the plan's marker tests. |
+| Make | First-slice `ASC_DS_EXPR` carrier is observed above (expression not a Make goal). Still open: host `ds` alias migration; whether Make should carry bound argv; README proposal merge. |
 | Embeddings | Define how YAML validates a field and supplies `p1` and `dN`. Define a filename-safe subset and its hook integration separately. Prompt dispatch and replay require their own consumers. |
 
 The README's YAML example expresses the intent to test a value against its
