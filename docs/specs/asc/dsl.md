@@ -22,7 +22,7 @@ Status: **implemented in-tree, not gate-accepted** (`approved: "no"`, `go: "no"`
 | [`asc/dsl.sh`](../../../asc/dsl.sh) | Bootstraps ASC and passes its argv to `f_asc_dsl`; process exit status is the function status. |
 | [`make ds`](../../../asc/make/default.mk) | Hardcoded target runs [`asc/make/ds.make.sh`](../../../asc/make/ds.make.sh). Expression comes from **`ASC_DS_EXPR`** (not Make goals). Stray goals with `ds` are refused at makefile parse time. |
 | Former `asc/instance/ds.sh` | Removed in `65de058`. `f_make_generate` skips hardcoded reserved names and drops cached paths to the removed script. |
-| Probe fixture | [`asc/test/dsl_probe.sh`](../../../asc/test/dsl_probe.sh) (`test-dsl-probe`) for argv / marker / status tests. |
+| Probe fixture | [`asc/test/core/dsl_probe.fixture.sh`](../../../asc/test/core/dsl_probe.fixture.sh) (not a Make action). `dsl.test.sh` installs it inside a disposable project root as `instance/dsl_probe`. |
 
 ### Observed Make carrier (first slice)
 
@@ -30,14 +30,16 @@ Supported:
 
 ```text
 ASC_DS_EXPR='slug(foobar)' make ds
-ASC_DS_EXPR="test-dsl-probe('a b')" make ds
+ASC_DS_EXPR="slug('a b')" make ds
 ```
 
-The expression is **not** a Make goal, so colliding recipes such as `debug` cannot
-interpolate it as unquoted shell (`make -k ds 'true;touch …' debug` is refused).
+The expression is **not** a Make goal. `make ds` must be the only goal;
+companions such as `debug` and stray expression goals are refused at makefile
+parse time so they cannot be interpolated as unquoted shell.
 `ds.make.sh` calls `asc/dsl.sh` directly and does not run `f_make_unescape`, so
-literal `∓`, `=`, and `$` in the expression stay unchanged. Combinators in
-`ASC_DS_EXPR` are still **rejected by the interpreter** as unsupported grammar.
+literal `∓`, `=`, and `$` in the expression stay unchanged. Combinators and
+unimplemented reserved argument tokens in `ASC_DS_EXPR` are **rejected by the
+interpreter** as unsupported grammar.
 
 Bound argv and general strings use the direct interfaces:
 

@@ -15,7 +15,7 @@
 #
 # @example
 #   ASC_DS_EXPR='slug(foobar)' make ds
-#   ASC_DS_EXPR="test-dsl-probe('a b')" make ds
+#   ASC_DS_EXPR="slug('a b')" make ds
 #
 
 if [[ ! -v ASC_DS_EXPR ]]; then

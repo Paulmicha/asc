@@ -18,7 +18,9 @@ Merging README proposals is a separate editorial decision. This plan does
 
 Commit `65de058` removed `asc/instance/ds.sh` and made `ds` a hardcoded
 target that dispatches to `asc/dsl.sh`. Tests live in
-`asc/test/core/dsl.test.sh` with the harmless probe `asc/test/dsl_probe.sh`.
+`asc/test/core/dsl.test.sh` with the fixture
+`asc/test/core/dsl_probe.fixture.sh` installed as a disposable
+`instance/dsl_probe` action for the suite.
 
 The supported entry points, resolver, binding and status contract belong
 in the [DSL spec](../../../specs/asc/dsl.md). The direct script is the first

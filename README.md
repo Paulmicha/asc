@@ -222,6 +222,15 @@ interpreter contract and remaining design decisions.
 
 &lt;/proposal-2026-11-18&gt;
 
+&lt;proposal-2026-11-19&gt;
+
+The DSL checklist still records a design milestone. A first-slice
+interpreter is in-tree (`f_asc_dsl`, `asc/dsl.sh`, `ASC_DS_EXPR='…' make ds`)
+and is not gate-accepted yet. The [draft DSL spec](docs/specs/asc/dsl.md)
+tracks the contract and remaining design decisions.
+
+&lt;/proposal-2026-11-19&gt;
+
 ## Documentation
 
 At the time of writing (mostly july to october 2026), there seems to be emerging open standards specifically built for AI context and standardized Markdown conventions aiming at constraining and structuring tasks.
@@ -1460,6 +1469,14 @@ its goals into a shell recipe, so the supported Make quoting and argument
 rules still need verification. See the [DSL spec](docs/specs/asc/dsl.md).
 
 &lt;/proposal-2026-11-18&gt;
+
+&lt;proposal-2026-11-19&gt;
+
+Direct calls use `asc/dsl.sh '<expression>'` (and in-process `f_asc_dsl`).
+The Make carrier is `ASC_DS_EXPR='<expression>' make ds` — the expression is
+never a Make goal. See the [DSL spec](docs/specs/asc/dsl.md).
+
+&lt;/proposal-2026-11-19&gt;
 
 #### Arguments
 

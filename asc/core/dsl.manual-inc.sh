@@ -97,18 +97,19 @@ f_asc_dsl_resolve() {
 
   f_make_list_hardcoded
 
+  # Exact match : `case` and `[[ == ]]` honor nocasematch; POSIX `[` does not.
   for i in "${!pivots_arr[@]}"; do
-    case "${pivots_arr[i]}" in "$p_name")
+    if [ "${pivots_arr[i]}" = "$p_name" ]; then
       reserved=1
       break
-    esac
+    fi
   done
 
   if [[ "$reserved" -eq 1 ]]; then
     f_asc_dsl_list_hardcoded_eligible
 
     for i in "${!asc_dsl_hc_names_arr[@]}"; do
-      case "${asc_dsl_hc_names_arr[i]}" in "$p_name")
+      if [ "${asc_dsl_hc_names_arr[i]}" = "$p_name" ]; then
         asc_dsl_script="${asc_dsl_hc_paths_arr[i]}"
 
         if [[ -x "$asc_dsl_script" ]]; then
@@ -118,7 +119,7 @@ f_asc_dsl_resolve() {
         f_asc_dsl_err "hardcoded pivot '$p_name' script '$asc_dsl_script' is missing or not executable."
 
         return 1
-      esac
+      fi
     done
 
     f_asc_dsl_err "hardcoded Make name '$p_name' is reserved and not eligible for DSL dispatch."
@@ -131,7 +132,7 @@ f_asc_dsl_resolve() {
   f_make_list_entry_points
 
   for i in "${!pivots_arr[@]}"; do
-    case "${pivots_arr[i]}" in "$p_name")
+    if [ "${pivots_arr[i]}" = "$p_name" ]; then
       asc_dsl_script="${real_scripts_arr[i]}"
 
       if [[ -x "$asc_dsl_script" ]]; then
@@ -141,7 +142,7 @@ f_asc_dsl_resolve() {
       f_asc_dsl_err "pivot '$p_name' script '$asc_dsl_script' is missing or not executable."
 
       return 1
-    esac
+    fi
   done
 
   f_asc_dsl_err "unknown pivot '$p_name'."
@@ -168,6 +169,7 @@ f_asc_dsl_expand_token() {
   local p_kind="$2"
   local idx
   local drop
+  local bound_n
   local i
 
   case "$p_kind" in literal)
@@ -192,12 +194,16 @@ f_asc_dsl_expand_token() {
       ;;
   esac
 
-  # Entire token must be p<digits> or s<digits> (glob * is not a digit class).
-  if [[ "$p_token" =~ ^p[1-9][0-9]*$ ]]; then
-    idx="${p_token#p}"
+  # Entire token must be pN / sN without leading zeroes (except s0). Compare the
+  # decimal spelling to the bound length before any Bash arithmetic so oversized
+  # or octal-looking suffixes cannot wrap or emit arithmetic errors.
+  if [[ "$p_token" =~ ^p([1-9][0-9]*)$ ]]; then
+    idx="${BASH_REMATCH[1]}"
+    bound_n="${#asc_dsl_bound_arr[@]}"
 
-    if [[ "$idx" -gt "${#asc_dsl_bound_arr[@]}" ]]; then
-      f_asc_dsl_err "positional binding '$p_token' is out of range (${#asc_dsl_bound_arr[@]} bound)."
+    if [[ "${#idx}" -gt "${#bound_n}" ]] \
+      || { [[ "${#idx}" -eq "${#bound_n}" ]] && [[ "$idx" > "$bound_n" ]]; }; then
+      f_asc_dsl_err "positional binding '$p_token' is out of range (${bound_n} bound)."
 
       return 1
     fi
@@ -207,16 +213,18 @@ f_asc_dsl_expand_token() {
     return 0
   fi
 
-  if [[ "$p_token" =~ ^s[0-9]+$ ]]; then
-    drop="${p_token#s}"
+  if [[ "$p_token" =~ ^s(0|[1-9][0-9]*)$ ]]; then
+    drop="${BASH_REMATCH[1]}"
+    bound_n="${#asc_dsl_bound_arr[@]}"
 
-    if [[ "$drop" -gt "${#asc_dsl_bound_arr[@]}" ]]; then
-      f_asc_dsl_err "skip binding '$p_token' drops more than ${#asc_dsl_bound_arr[@]} bound argument(s)."
+    if [[ "${#drop}" -gt "${#bound_n}" ]] \
+      || { [[ "${#drop}" -eq "${#bound_n}" ]] && [[ "$drop" > "$bound_n" ]]; }; then
+      f_asc_dsl_err "skip binding '$p_token' drops more than ${bound_n} bound argument(s)."
 
       return 1
     fi
 
-    for ((i = drop; i < ${#asc_dsl_bound_arr[@]}; i++)); do
+    for ((i = drop; i < bound_n; i++)); do
       asc_dsl_argv_arr+=("${asc_dsl_bound_arr[i]}")
     done
 
@@ -255,6 +263,13 @@ f_asc_dsl_parse_call() {
   local kind=''
   local depth=0
   local saw_close=0
+
+  # Token classification uses [[ == ]] / =~ / case, which honor nocasematch.
+  # Keep parsing case-sensitive regardless of the caller's shell options.
+  if shopt -q nocasematch; then
+    shopt -u nocasematch
+    trap 'shopt -s nocasematch; trap - RETURN' RETURN
+  fi
 
   asc_dsl_call_name=''
   asc_dsl_argv_arr=()
@@ -421,8 +436,24 @@ f_asc_dsl_parse_call() {
 
         if [[ "$token" == 'a' ]] \
           || [[ "$token" =~ ^p[1-9][0-9]*$ ]] \
-          || [[ "$token" =~ ^s[0-9]+$ ]]; then
+          || [[ "$token" =~ ^s(0|[1-9][0-9]*)$ ]]; then
           kind='binding'
+        elif [[ "$token" =~ ^[ps][0-9]+$ ]]; then
+          # Binding-shaped but invalid (leading zeroes, etc.) — never a literal.
+          f_asc_dsl_err "unsupported binding token '$token' in: '$p_expr'."
+
+          return 1
+        elif [[ "$token" =~ ^v-[A-Za-z_][A-Za-z0-9_]*$ ]] \
+          || [[ "$token" =~ ^d[0-9]+$ ]] \
+          || [[ "$token" =~ ^bb?-[A-Za-z0-9][A-Za-z0-9_-]*$ ]] \
+          || [[ "$token" =~ ^ooe-[A-Za-z0-9][A-Za-z0-9_-]*$ ]] \
+          || [[ "$token" =~ ^oo-[A-Za-z0-9][A-Za-z0-9_-]*$ ]] \
+          || [[ "$token" =~ ^oe-[A-Za-z0-9][A-Za-z0-9_-]*$ ]] \
+          || [[ "$token" =~ ^o-[A-Za-z0-9][A-Za-z0-9_-]*$ ]] \
+          || [[ "$token" =~ ^(ba|bba|oa|ooa)$ ]]; then
+          f_asc_dsl_err "unsupported reserved argument token '$token' in this DSL slice: '$p_expr'."
+
+          return 1
         else
           # Unquoted literal : apply % / %% substitutions.
           lit=''

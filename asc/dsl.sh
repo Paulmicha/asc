@@ -6,7 +6,7 @@
 # @example
 #   asc/dsl.sh 'slug(foobar)'
 #   asc/dsl.sh 'slug(p1)' -- 'Foo Bar'
-#   make ds 'slug(foobar)'
+#   ASC_DS_EXPR='slug(foobar)' make ds
 #
 
 . asc/bootstrap.sh

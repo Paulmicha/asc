@@ -11,9 +11,12 @@
 #   ASC_DSL_PROBE_MARKER  : file path created/truncated when this script runs
 #   ASC_DSL_PROBE_STATUS  : exit status (default 0)
 #
+# Not a discoverable action (second extension). dsl.test.sh installs a copy under
+# a disposable instance path for the suite.
+#
 # @example
 #   ASC_DSL_PROBE_ARGV=/tmp/argv ASC_DSL_PROBE_MARKER=/tmp/m \
-#     ASC_DSL_PROBE_STATUS=3 asc/test/dsl_probe.sh one 'two three'
+#     ASC_DSL_PROBE_STATUS=3 asc/test/core/dsl_probe.fixture.sh one 'two three'
 #
 
 if [[ -n "${ASC_DSL_PROBE_MARKER:-}" ]]; then

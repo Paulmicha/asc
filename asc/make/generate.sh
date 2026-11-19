@@ -110,7 +110,7 @@ $make_entry_point:
 
   done
 
-  f_make_generate_test_cases
+  f_make_generate_test_cases || return $?
 
   echo "Writing Makefile include ${pivots_mk} : done."
   echo
@@ -131,11 +131,11 @@ $make_entry_point:
 
   pivots_sh_dir="${cache_file%/*}"
   if [[ "$pivots_sh_dir" != "$cache_file" && -n "$pivots_sh_dir" ]]; then
-    mkdir -p "$pivots_sh_dir"
+    mkdir -p "$pivots_sh_dir" || return $?
   fi
 
   # Replace contents in case cache file exists.
-  cat > "$cache_file" <<'SHELL_SCRIPT_HEAD'
+  cat > "$cache_file" <<'SHELL_SCRIPT_HEAD' || return $?
 #!/usr/bin/env bash
 
 ##
@@ -173,10 +173,12 @@ SHELL_SCRIPT_HEAD
     done
   fi
 
-  echo '' >> "$cache_file"
-  echo "$make_entries_code_gen" >> "$cache_file"
-  echo '' >> "$cache_file"
-  echo "$real_scripts_code_gen" >> "$cache_file"
+  {
+    echo ''
+    echo "$make_entries_code_gen"
+    echo ''
+    echo "$real_scripts_code_gen"
+  } >> "$cache_file" || return $?
 
   echo "Creating cache file ${pivots_sh} : done."
   echo
@@ -215,8 +217,12 @@ f_make_generate_test_cases() {
     cache_file='data/asc/cache/test-cases.sh'
   fi
 
+  # Filename-only destinations have no parent component; do not mkdir the file
+  # name itself (bash ${path%/*} returns the whole string when there is no /).
   cache_dir="${cache_file%/*}"
-  mkdir -p "$cache_dir"
+  if [[ "$cache_dir" != "$cache_file" && -n "$cache_dir" ]]; then
+    mkdir -p "$cache_dir" || return $?
+  fi
 
   for i in "${!pivots_arr[@]}"; do
     batch_task="${pivots_arr[i]}"
@@ -245,7 +251,7 @@ f_make_generate_test_cases() {
       echo ".PHONY: $case_target
 $case_target:
 	@ asc/make/call_wrap.make.sh asc/test/single_case.make.sh \$(MAKECMDGOALS)
-" >> "$pivots_mk"
+" >> "$pivots_mk" || return $?
     done
   done
 
@@ -256,7 +262,7 @@ $case_target:
 
   echo "Writing test-case registry ${cache_file} ..."
 
-  cat > "$cache_file" <<'EOF'
+  cat > "$cache_file" <<'EOF' || return $?
 #!/usr/bin/env bash
 
 ##
@@ -284,7 +290,7 @@ EOF
       echo "test_case_registry_batch_scripts_arr+=('${tc_batch_scripts_arr[i]}')"
       echo ''
     done
-  } >> "$cache_file"
+  } >> "$cache_file" || return $?
 
   echo "Writing test-case registry ${cache_file} : done."
   echo

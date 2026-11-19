@@ -44,17 +44,15 @@
 
 .PHONY: init init-debug setup hook hook-debug globals-lp debug ds
 
-# Hardcoded goals allowed alongside `make ds`. Anything else is treated as a
-# stray DSL expression goal and refused at makefile parse time so colliding
-# recipes (for example `debug`) cannot interpolate it as unquoted shell.
+# `make ds` must be the only goal. Companion goals (including `debug`) still run
+# their own recipes and would see `ds` as a reserved MAKECMDGOALS value. Stray
+# expression goals are refused here so they cannot be interpolated as shell.
 # @see docs/specs/asc/dsl.md
 # @see docs/plans/2026/09/22-make-ds.md
-asc_ds_goal_allowlist := init init-debug setup hook hook-debug globals-lp debug ds
-
 ifneq ($(filter ds,$(MAKECMDGOALS)),)
-  asc_ds_stray_goals := $(filter-out $(asc_ds_goal_allowlist),$(MAKECMDGOALS))
-  ifneq ($(asc_ds_stray_goals),)
-    $(error make ds: DSL expression must not be a Make goal (refusing: $(asc_ds_stray_goals)). Use: ASC_DS_EXPR='<expression>' make ds)
+  asc_ds_other_goals := $(filter-out ds,$(MAKECMDGOALS))
+  ifneq ($(asc_ds_other_goals),)
+    $(error make ds: do not combine with other Make goals (refusing: $(asc_ds_other_goals)). Use: ASC_DS_EXPR='<expression>' make ds)
   endif
 endif
 

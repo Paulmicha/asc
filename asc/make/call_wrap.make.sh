@@ -9,10 +9,9 @@
 # The default hardcoded Make entry points can be called before the local
 # instance is initialized and the generated cache file does not exist yet.
 #
-# For asc/dsl.sh, arguments are forwarded as an argv array (no eval) and without
-# f_make_unescape, so literal ∓ / = / \$ stay data. The preferred `make ds`
-# carrier is ASC_DS_EXPR via asc/make/ds.make.sh (expression is not a Make goal).
-# Other entry points keep the historical eval + single-quote rewrite used with
+# The preferred `make ds` carrier is ASC_DS_EXPR via asc/make/ds.make.sh
+# (expression is not a Make goal); that path does not use this wrapper.
+# Entry points here keep the historical eval + single-quote rewrite used with
 # the "'spaced arg'" Make convention.
 #
 # @see asc/make/default.mk
@@ -128,22 +127,13 @@ while [ $# -gt 0 ]; do
     esac
   done
 
-  case "$p_real_script" in
-    */dsl.sh)
-      # DSL carrier : do not apply legacy Make ∓ / \$ decode.
-      args_arr+=("$arg")
-      ;;
-
-    *)
-      # Revert the special characters swap to send correct script argument.
-      # @see asc/escape.sh
-      # @see asc/make/make.inc.sh
-      f_make_unescape "$arg" 'arg'
-      args_arr+=("$arg")
-      f_str_escape_single_quotes "$arg"
-      escaped_args+="$escaped_arg "
-      ;;
-  esac
+  # Revert the special characters swap to send correct script argument.
+  # @see asc/escape.sh
+  # @see asc/make/make.inc.sh
+  f_make_unescape "$arg" 'arg'
+  args_arr+=("$arg")
+  f_str_escape_single_quotes "$arg"
+  escaped_args+="$escaped_arg "
 
   shift
 done
@@ -161,11 +151,6 @@ done
 # echo
 
 case "$p_real_script" in
-  */dsl.sh)
-    # Argv array : shell metacharacters in values stay data (no eval).
-    "$p_real_script" "${args_arr[@]}"
-    ;;
-
   */test/single_case.make.sh)
     eval "$p_real_script $(printf '%q' "$invoked_make_target") $escaped_args"
     ;;
