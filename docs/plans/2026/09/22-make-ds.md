@@ -2,11 +2,12 @@
 
 | Field | Value |
 |---|---|
-| Date | 2026-09-22, revised 2026-11-18 |
+| Date | 2026-09-22, revised 2026-11-18 / 2026-11-19 (commas + `~`; raw `=` ban; newline-first child) |
 | Status | Draft (plan / review) — first slice in progress; **not accepted** |
 | Scope | Deliver an executable DSL interpreter through `f_asc_dsl` and `asc/dsl.sh`, and verify the supported `make ds` carrier. |
 | Contract | [ASC custom DSL](../../../specs/asc/dsl.md) |
 | Gate | [`gates.core.yml`](../../../../gates.core.yml), `make ds` row, currently `lane: discuss`, `approved: "no"`, `go: "no"`. |
+| Children / related | [19-dsl-line-breaks-and-dsl-txt.md](../11/19-dsl-line-breaks-and-dsl-txt.md) — multi-line programs, `*.dsl.txt`, **top-level newlines** (`;` later), file-or-inline `ASC_DS_EXPR` (draft; not go-ahead). **Argument separators / attached values (2026-11-19):** commas separate DSL argument expressions; required `~` for `oe-`/`ooe-`; program-text raw `=` ban after file-versus-inline — contract in [dsl.md](../../../specs/asc/dsl.md); smallest options slice can ship `~` + that ban without `ba`/`oa`; not the line-break child and not assumed done. |
 
 The gate's go-ahead accepts the reviewed contract for the implementation
 slice. Its lane and approval must satisfy the registry's rules. Items
@@ -91,11 +92,30 @@ supported forms in the usage text.
 
 ### 3. Broader grammar
 
-- [ ] Add nesting, variable and YAML depth bindings, functions, options,
-  combinators and loops in executable slices after resolving their open
-  decisions in the spec. Test nested failure before the outer action,
-  binding scope, function allowlisting, short-circuiting, and the status
-  of failed pipeline, parallel and loop components as each lands.
+- [ ] Line breaks / `*.dsl.txt` / file-or-inline carrier: see child plan
+  [19-dsl-line-breaks-and-dsl-txt.md](../11/19-dsl-line-breaks-and-dsl-txt.md)
+  (draft; **top-level newlines** in that slice, `;` token later). Do not
+  start under this parent checklist alone.
+- [ ] **Option tokens / attached values (dedicated small slice):** implement
+  the accepted commas-only + required `~` contract from
+  [dsl.md](../../../specs/asc/dsl.md) (`oe-name~value` / `ooe-…`, nonempty
+  name, first-`~` split, empty value, literal value part, filename-safe
+  name/value charset without `/`, `=` only in generated argv), plus the
+  **program-text raw `=` ban** after file-versus-inline (update today’s
+  quoted `'a=b'` carrier tests). Current parser still rejects `~`. The
+  **smallest** options slice can deliver `~` attached forms and that source
+  validation **independently of** selective forwarding (`ba` / `oa`), which
+  still needs source-command option definitions. Also finish remaining open
+  option items (`ba`/`oa` arity; `--` in bound argv; grouped shorts) in that
+  or a follow-on slice. **Not** part of the line-break child; do not treat
+  the decision as implemented until the `~` / `=` slice lands.
+  Space-separated argv (`-q file`) was **rejected**. Older hyphen-attached
+  sketches (`o-m-4`, `oo-max-4`, …) are historical.
+- [ ] Add nesting, variable and YAML depth bindings, functions, remaining
+  options surface, combinators and loops in executable slices after resolving
+  their open decisions in the spec. Test nested failure before the outer
+  action, binding scope, function allowlisting, short-circuiting, and the
+  status of failed pipeline, parallel and loop components as each lands.
 - [ ] Update the spec with the behavior demonstrated by the tests and
   keep dated README proposals aligned. Track a separate acceptance case
   for any consumer that embeds DSL.

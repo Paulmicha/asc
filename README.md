@@ -1522,6 +1522,25 @@ and `slug('p1')` uses the literal string `p1`.
 - `oa` = all named options prefixed by a single `-` are forwarded - and ONLY those named options
 - `ooa` = all named options prefixed by a double `--` are forwarded - and ONLY those named options
 
+&lt;proposal-2026-11-19&gt;
+
+**Supersedes** the hyphen-attached Named options sketches above (`o-m-4`,
+`oo-max-4`, `oe-max-4`, `ooe-max-4`). Prefer comma-separated literals already
+in the grammar, e.g. `pivot(-m,4)` → `-m` then `4`, and `pivot(--max,4)` →
+`--max` then `4`. For a single attached `name=value` argv entry, require
+`~`: `oe-max~4` → `-max=4`, `ooe-max~4` → `--max=4`, `ooe-output-file~` →
+`--output-file=`. Split on the first `~`; empty values and later tildes in
+the value are allowed; the value part is literal (`p1` / `%` not expanded
+there). Commas separate DSL argument expressions only; space-separated forms
+such as `pivot(-q file)` are not accepted. Program text must not contain raw
+`=` (including in quotes); pass `=` via bindings or via `~`-generated argv.
+Full contract:
+[Argument separators and attached option values](docs/specs/asc/dsl.md#argument-separators-and-attached-option-values-proposed-contract)
+and [Raw equals character ban](docs/specs/asc/dsl.md#raw-equals-character-ban-proposed-contract).
+The current parser still rejects `~` until an options slice lands.
+
+&lt;/proposal-2026-11-19&gt;
+
 #### Variables
 
 **Any bash var in (hook) calling scope :**
