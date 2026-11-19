@@ -16,17 +16,21 @@
 # @example
 #   ASC_DS_EXPR='slug(foobar)' make ds
 #   ASC_DS_EXPR="slug('a b')" make ds
+#   ASC_DS_EXPR='path/to/prog.dsl.txt' make ds
 #
 
 if [[ ! -v ASC_DS_EXPR ]]; then
   echo >&2
   echo "Error in $BASH_SOURCE line $LINENO: ASC_DS_EXPR is unset." >&2
-  echo "Pass the DSL expression through the environment, not as a Make goal :" >&2
+  echo "Pass the DSL expression or *.dsl.txt path through the environment," >&2
+  echo "not as a Make goal :" >&2
   echo >&2
   echo "  ASC_DS_EXPR='slug(foobar)' make ds" >&2
+  echo "  ASC_DS_EXPR='path/to/prog.dsl.txt' make ds" >&2
   echo >&2
   echo "For caller argv bindings, use the direct script :" >&2
   echo "  asc/dsl.sh 'slug(p1)' -- 'Foo Bar'" >&2
+  echo "  asc/dsl.sh path/to/prog.dsl.txt -- 'Foo Bar'" >&2
   echo "-> Aborting (1)." >&2
   echo >&2
   exit 1

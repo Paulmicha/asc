@@ -38,8 +38,9 @@
 #   # Run low-level ASC base-stack tests (core + enabled extensions) :
 #   make test-core
 #
-#   # DSL (expression is never a Make goal — see ASC_DS_EXPR) :
+#   # DSL (expression / *.dsl.txt path is never a Make goal — see ASC_DS_EXPR) :
 #   ASC_DS_EXPR='slug(foobar)' make ds
+#   ASC_DS_EXPR='path/to/prog.dsl.txt' make ds
 #
 
 .PHONY: init init-debug setup hook hook-debug globals-lp debug ds

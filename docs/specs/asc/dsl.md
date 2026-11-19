@@ -12,13 +12,14 @@ the proposed interpreter contract and the decisions still open. The
 checks. The [make ds gate](../../../gates.core.yml) remains in discussion with
 `approved: "no"` and `go: "no"`.
 
-**Proposed / deferred (child plan, not go-ahead):** top-level newline sequencing
-(continue-on-nonzero, last-status; the `;` token follows later), blank-line
-rules, whitespace-only empty lists as valid layout, `*.dsl.txt` whole-file
-load, and `ASC_DS_EXPR` as either inline DSL or a `.dsl.txt` path — see
+**Observed (line-break / `*.dsl.txt` slice, 2026-11-19):** top-level newline
+sequencing (continue-on-nonzero, last-status), blank-line ignore,
+whitespace-only empty lists as valid layout, `*.dsl.txt` whole-file load with
+NUL reject / CRLF rules, preparse-all (bindings + resolve before any dispatch),
+and `ASC_DS_EXPR` / first argv as either inline DSL or a `.dsl.txt` path — see
 [19-dsl-line-breaks-and-dsl-txt.md](../../plans/2026/11/19-dsl-line-breaks-and-dsl-txt.md).
-Line breaks between comma-separated arguments and newlines inside single quotes
-are already observed below; that plan locks tests and the empty-list layout fix.
+The **`;` token**, other combinators, options / `~`, and `make replay` remain
+deferred.
 
 ## Current implementation
 
@@ -26,46 +27,51 @@ Status: **implemented in-tree, not gate-accepted** (`approved: "no"`, `go: "no"`
 
 | Entry | Behavior in this checkout |
 |---|---|
-| [`f_asc_dsl`](../../../asc/core/dsl.manual-inc.sh) | First slice: one pivot call, literals, exact `pN` / `a` / `sN` bindings expanded before dispatch, status return (never `exit` from the function). Requires a closing `)` before dispatch. |
+| [`f_asc_dsl`](../../../asc/core/dsl.manual-inc.sh) | Program (inline or `*.dsl.txt`): top-level newline sequencing, literals, exact `pN` / `a` / `sN` bindings expanded and pivots resolved for **every** call before any dispatch, last-status return (never `exit` from the function). Requires a closing `)` before each call dispatches. |
 | [`asc/dsl.sh`](../../../asc/dsl.sh) | Bootstraps ASC and passes its argv to `f_asc_dsl`; process exit status is the function status. |
-| [`make ds`](../../../asc/make/default.mk) | Hardcoded target runs [`asc/make/ds.make.sh`](../../../asc/make/ds.make.sh). Expression comes from **`ASC_DS_EXPR`** (not Make goals). Stray goals with `ds` are refused at makefile parse time. |
+| [`make ds`](../../../asc/make/default.mk) | Hardcoded target runs [`asc/make/ds.make.sh`](../../../asc/make/ds.make.sh). Expression or `*.dsl.txt` path comes from **`ASC_DS_EXPR`** (not Make goals). Stray goals with `ds` are refused at makefile parse time. |
 | Former `asc/instance/ds.sh` | Removed in `65de058`. `f_make_generate` skips hardcoded reserved names and drops cached paths to the removed script. |
 | Probe fixture | [`asc/test/core/dsl_probe.fixture.sh`](../../../asc/test/core/dsl_probe.fixture.sh) (not a Make action). `dsl.test.sh` installs it as `asc/instance/dsl_probe.sh`; discovered pivot name is **`dsl-probe`**. Argv capture is NUL-delimited. |
 
-### Observed parser whitespace and quotes (first slice)
+### Observed parser whitespace, quotes, and programs
 
 - Inside `(...)`, `[[:space:]]` (including newline) is skipped between
-  comma-separated arguments, so wrapped argument lists with real tokens already
-  parse.
-- Single-quoted arguments preserve embedded newlines (every character until the
-  closing `'`).
-- All-whitespace / empty input after trim is rejected (`expression is empty`).
-- An empty argument list written `name()` is valid. A newline (or other
-  whitespace) as the **only** content between `(` and `)` is **rejected** today:
-  after skipping that whitespace the parser treats `)` as an empty-argument
-  error, not as close-of-empty-list.
+  comma-separated arguments, so wrapped argument lists with real tokens parse.
+- Single-quoted arguments preserve embedded newlines and CR byte for byte
+  (every character until the closing `'`).
+- All-whitespace / empty program after split is rejected (`expression is empty`).
+- An empty argument list written `name()` is valid. Whitespace-only content
+  between `(` and `)` (including layout newlines) is a valid empty list.
+- Top-level **LF** sequences calls (continue-on-nonzero; last status). CRLF
+  works via trailing-CR trim; **bare CR does not sequence** (fails closed).
+  Blank lines are ignored. The `;` token is not implemented yet.
+- A program argument ending in exact `.dsl.txt` (case-sensitive; independent of
+  `nocasematch`) enters file mode: record source size, copy one snapshot, then
+  validate that buffer (NUL via checked `tr`+`stat`, loaded length via checked
+  write+`stat`). Snapshot size must match the pre-copy size (in-place
+  truncate/extend during capture → file error). Validation tool failure is a
+  file error (not empty-equal success). Prefer atomic rename for writers;
+  missing / non-regular / unreadable / incomplete → file error. Otherwise the
+  argument is inline DSL. Path may contain `=`; that character is not treated
+  as program text for file-mode open.
 
-**Proposed (child plan):** treat whitespace-only content between `(` and `)` as
-a valid empty list (same as `name()`), so layout newlines work for empty calls
-too. Top-level newline sequencing and `*.dsl.txt` loading remain proposed there,
-not observed here.
-
-### Observed Make carrier (first slice)
+### Observed Make carrier
 
 Supported:
 
 ```text
 ASC_DS_EXPR='slug(foobar)' make ds
 ASC_DS_EXPR="slug('a b')" make ds
+ASC_DS_EXPR='path/to/prog.dsl.txt' make ds
 ```
 
-The expression is **not** a Make goal. `make ds` must be the only goal;
-companions such as `debug` and stray expression goals are refused at makefile
-parse time so they cannot be interpolated as unquoted shell.
-`ds.make.sh` calls `asc/dsl.sh` directly and does not run `f_make_unescape`, so
-characters that reach the interpreter are not rewritten by Make unescape.
-Combinators and unimplemented reserved argument tokens in `ASC_DS_EXPR` are
-**rejected by the interpreter** as unsupported grammar.
+The expression or `*.dsl.txt` path is **not** a Make goal. `make ds` must be
+the only goal; companions such as `debug` and stray expression goals are
+refused at makefile parse time so they cannot be interpolated as unquoted
+shell. `ds.make.sh` calls `asc/dsl.sh` directly and does not run
+`f_make_unescape`, so characters that reach the interpreter are not rewritten
+by Make unescape. Unimplemented combinators (including `;`) and reserved
+argument tokens in program text are **rejected by the interpreter**.
 
 **Carrier regression note (proposed `=` ban):** today’s suite still asserts that
 quoted `'a=b'` survives Make and direct carriers unchanged. Under the
@@ -377,14 +383,12 @@ path and fails if that path cannot be opened. The chain examples use
 `[echo(v-baz)];[echo(foobar)]` when both calls name the listed builtin.
 The README's `grep(foobar)` requires an actual ASC pivot named `grep`.
 
-**Proposed / deferred:** top-level newline sequencing (continue-on-nonzero,
-last-status), blank-line rules, whitespace-only empty lists as valid layout,
-and multi-line `*.dsl.txt` programs — tracked in
-[19-dsl-line-breaks-and-dsl-txt.md](../../plans/2026/11/19-dsl-line-breaks-and-dsl-txt.md),
-not implemented in the first slice. That child slice accepts **top-level
-newlines**; the **`;` token follows later** (same sequencing intent when it
-lands). For an unconditional sequence, binding errors on a later call must
-fail before any earlier dispatch (same fail-closed family as unknown pivots).
+**Observed:** top-level newline sequencing (continue-on-nonzero, last-status),
+blank-line rules, whitespace-only empty lists, multi-line `*.dsl.txt` programs,
+and preparse-all (including later binding errors failing before any dispatch) —
+delivered under
+[19-dsl-line-breaks-and-dsl-txt.md](../../plans/2026/11/19-dsl-line-breaks-and-dsl-txt.md).
+The **`;` token follows later** as an exact synonym of that sequencing.
 
 The README sketches array iteration as `[[echo(v-item)]v-foobar_arr]`
 and output-line iteration as `[[echo(v-item)]myfunc]`. These are DSL
@@ -400,8 +404,8 @@ and failure behavior need review before loop support.
 | Functions | Name the initial list and document allowed side effects for each entry. |
 | Combinators | Define mixed-operator precedence and associativity, whitespace and token boundaries, pipeline status, and how parallel failures are reported. Line-break ≈ `;` defaults live in the child plan above. |
 | Loops | Specify producer syntax, line handling and iterator scope, and status on producer or body failure. |
-| Make | First-slice `ASC_DS_EXPR` carrier is observed above (expression not a Make goal). Still open: host `ds` alias migration; whether Make should carry bound argv; README proposal merge. File-or-inline `.dsl.txt` via `ASC_DS_EXPR` is proposed in the child plan. |
-| Embeddings | Define how YAML validates a field and supplies `p1` and `dN`. Define a filename-safe subset and its hook integration separately. Prompt dispatch and replay require their own consumers. Replay Make wiring is deferred past the line-break / `*.dsl.txt` interpreter slice. |
+| Make | `ASC_DS_EXPR` carrier is observed above (inline expression or `.dsl.txt` path; not a Make goal). Still open: host `ds` alias migration; whether Make should carry bound argv; README proposal merge. |
+| Embeddings | Define how YAML validates a field and supplies `p1` and `dN`. Define a filename-safe subset and its hook integration separately. Prompt dispatch and replay require their own consumers. Replay Make wiring remains deferred. |
 
 The README's YAML example expresses the intent to test a value against its
 slug and snake forms. [`asc/test/in.sh`](../../../asc/test/in.sh) is empty, so

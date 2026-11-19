@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 
 ##
-# First-slice ASC DSL interpreter and make ds carrier tests.
+# ASC DSL interpreter and make ds carrier tests.
 #
 # @requires asc/vendor/shunit2
 # @see docs/specs/asc/dsl.md
 # @see docs/plans/2026/09/22-make-ds.md
+# @see docs/plans/2026/11/19-dsl-line-breaks-and-dsl-txt.md
 #
 # @example
 #   asc/test/core/dsl.test.sh
@@ -637,6 +638,364 @@ EOF
   assertEquals 'discovered ds collision: exactly one cached ds' 1 "$ds_count"
   assertTrue 'discovered ds collision: cached path is hardcoded dsl.sh' \
     "grep -q \"real_scripts_arr+=('asc/dsl.sh')\" '$gen_sh'"
+}
+
+##
+# Line-break / *.dsl.txt slice — sequencing (append-only log + statuses).
+#
+test_dsl_newline_sequencing_log_and_status() {
+  local log rc=0 err='' prog
+
+  log="$DSL_TEST_TMP/seq_log"
+  prog="$DSL_TEST_TMP/seq_inline.dsl.txt"
+
+  # 7 → 0 : both IDs in order; status 0.
+  rm -f "$log"
+  rc=0
+  ASC_DSL_PROBE_LOG="$log" ASC_DSL_PROBE_STATUS_ARGV=2 \
+    f_asc_dsl "${DSL_PROBE_PIVOT}('call-a','7')
+${DSL_PROBE_PIVOT}('call-b','0')" 2>/dev/null || rc=$?
+  assertEquals '7→0 status is 0' 0 "$rc"
+  assertEquals '7→0 exact log' $'call-a\ncall-b' "$(cat "$log")"
+
+  # 0 → 7 : both IDs; status 7.
+  rm -f "$log"
+  rc=0
+  ASC_DSL_PROBE_LOG="$log" ASC_DSL_PROBE_STATUS_ARGV=2 \
+    f_asc_dsl "${DSL_PROBE_PIVOT}('call-a','0')
+${DSL_PROBE_PIVOT}('call-b','7')" 2>/dev/null || rc=$?
+  assertEquals '0→7 status is 7' 7 "$rc"
+  assertEquals '0→7 exact log' $'call-a\ncall-b' "$(cat "$log")"
+
+  # Intervening blank line : same as two-call sequence.
+  rm -f "$log"
+  rc=0
+  ASC_DSL_PROBE_LOG="$log" ASC_DSL_PROBE_STATUS_ARGV=2 \
+    f_asc_dsl "${DSL_PROBE_PIVOT}('call-a','0')
+
+${DSL_PROBE_PIVOT}('call-b','0')" 2>/dev/null || rc=$?
+  assertEquals 'blank line status 0' 0 "$rc"
+  assertEquals 'blank line exact log' $'call-a\ncall-b' "$(cat "$log")"
+
+  # bash -e child runs the interpreter (shebang ignored when bash runs the file).
+  rm -f "$log"
+  printf '%s\n' \
+    "${DSL_PROBE_PIVOT}('call-a','7')" \
+    "${DSL_PROBE_PIVOT}('call-b','0')" > "$prog"
+  rc=0
+  ASC_DSL_PROBE_LOG="$log" ASC_DSL_PROBE_STATUS_ARGV=2 \
+    bash -e asc/dsl.sh "$prog" 2>/dev/null || rc=$?
+  assertEquals 'bash -e 7→0 child status 0' 0 "$rc"
+  assertEquals 'bash -e 7→0 exact log' $'call-a\ncall-b' "$(cat "$log")"
+}
+
+##
+# Line-break slice — layout newlines, empty list, quoted newline, unclosed quote.
+#
+test_dsl_layout_quotes_and_empty_list() {
+  local argv_file log rc=0 err=''
+
+  argv_file="$DSL_TEST_TMP/layout_argv"
+  rm -f "$argv_file"
+  rc=0
+  ASC_DSL_PROBE_ARGV="$argv_file" f_asc_dsl "${DSL_PROBE_PIVOT}(
+  'a',
+  'b'
+)" 2>/dev/null || rc=$?
+  assertEquals 'wrapped arg list exits 0' 0 "$rc"
+  printf 'a\0b\0' > "$DSL_TEST_TMP/layout_expected"
+  assertTrue 'wrapped arg list NUL argv' \
+    "cmp -s '$argv_file' '$DSL_TEST_TMP/layout_expected'"
+
+  # Whitespace-only empty list is valid (same as name()).
+  log="$DSL_TEST_TMP/empty_list_log"
+  rm -f "$log"
+  rc=0
+  ASC_DSL_PROBE_LOG="$log" f_asc_dsl "${DSL_PROBE_PIVOT}(
+)" 2>/dev/null || rc=$?
+  assertEquals 'empty list with newline exits 0' 0 "$rc"
+  assertEquals 'empty list log' 'ran' "$(cat "$log")"
+
+  # Quoted newline : one argv field containing LF.
+  argv_file="$DSL_TEST_TMP/quoted_nl_argv"
+  rm -f "$argv_file"
+  rc=0
+  ASC_DSL_PROBE_ARGV="$argv_file" \
+    f_asc_dsl "${DSL_PROBE_PIVOT}('line1
+line2')" 2>/dev/null || rc=$?
+  assertEquals 'quoted newline exits 0' 0 "$rc"
+  printf 'line1\nline2\0' > "$DSL_TEST_TMP/quoted_nl_expected"
+  assertTrue 'quoted newline single NUL field' \
+    "cmp -s '$argv_file' '$DSL_TEST_TMP/quoted_nl_expected'"
+
+  # Unclosed quote spanning a newline : no dispatch.
+  log="$DSL_TEST_TMP/unclosed_quote_log"
+  rm -f "$log"
+  rc=0
+  err="$(ASC_DSL_PROBE_LOG="$log" f_asc_dsl "${DSL_PROBE_PIVOT}('open
+" 2>&1 >/dev/null)" || rc=$?
+  assertEquals 'unclosed quote nonzero' 1 "$rc"
+  assertTrue 'unclosed quote diagnostic' "[[ \"$err\" == *'unclosed'* ]]"
+  assertEquals 'unclosed quote empty log' '' "$(cat "$log" 2>/dev/null || true)"
+}
+
+##
+# Line-break slice — preparse-all (syntax, resolve, bindings fail before dispatch).
+#
+test_dsl_preparse_all_no_dispatch() {
+  local log rc=0 err=''
+
+  log="$DSL_TEST_TMP/preparse_log"
+
+  rm -f "$log"
+  rc=0
+  err="$(ASC_DSL_PROBE_LOG="$log" f_asc_dsl "${DSL_PROBE_PIVOT}('call-a')
+not-a-real-pivot-zz()" 2>&1 >/dev/null)" || rc=$?
+  assertEquals 'unknown second pivot nonzero' 1 "$rc"
+  assertTrue 'unknown second pivot diagnostic' "[[ \"$err\" == *'unknown pivot'* ]]"
+  assertEquals 'unknown second pivot empty log' '' "$(cat "$log" 2>/dev/null || true)"
+
+  rm -f "$log"
+  rc=0
+  err="$(ASC_DSL_PROBE_LOG="$log" f_asc_dsl "${DSL_PROBE_PIVOT}('call-a')
+${DSL_PROBE_PIVOT}(foo" 2>&1 >/dev/null)" || rc=$?
+  assertEquals 'truncated second call nonzero' 1 "$rc"
+  assertTrue 'truncated second call diagnostic' "[[ \"$err\" == *'unclosed'* ]]"
+  assertEquals 'truncated second call empty log' '' "$(cat "$log" 2>/dev/null || true)"
+
+  rm -f "$log"
+  rc=0
+  err="$(ASC_DSL_PROBE_LOG="$log" f_asc_dsl "${DSL_PROBE_PIVOT}('call-a')
+${DSL_PROBE_PIVOT}(p2)" -- only-one 2>&1 >/dev/null)" || rc=$?
+  assertEquals 'binding error on second call nonzero' 1 "$rc"
+  assertTrue 'binding error diagnostic' "[[ \"$err\" == *'out of range'* ]]"
+  assertEquals 'binding error empty log' '' "$(cat "$log" 2>/dev/null || true)"
+}
+
+##
+# Line-break slice — *.dsl.txt file mode, Make carrier, NUL/CRLF, bound argv.
+#
+test_dsl_file_mode_and_make_carrier() {
+  local log argv_file rc=0 err='' prog out=''
+  local missing nonreg unread nul_prog crlf_prog eq_prog
+
+  log="$DSL_TEST_TMP/file_seq_log"
+  prog="$DSL_TEST_TMP/multi.dsl.txt"
+  printf '%s\n' \
+    "${DSL_PROBE_PIVOT}('call-a','0')" \
+    "${DSL_PROBE_PIVOT}('call-b','0')" > "$prog"
+
+  rm -f "$log"
+  rc=0
+  ASC_DSL_PROBE_LOG="$log" ASC_DSL_PROBE_STATUS_ARGV=2 \
+    asc/dsl.sh "$prog" 2>/dev/null || rc=$?
+  assertEquals 'dsl.sh file program exits 0' 0 "$rc"
+  assertEquals 'dsl.sh file exact log' $'call-a\ncall-b' "$(cat "$log")"
+
+  rm -f "$log"
+  rc=0
+  ASC_DSL_PROBE_LOG="$log" ASC_DSL_PROBE_STATUS_ARGV=2 \
+    ASC_DS_EXPR="$prog" "${DSL_MAKE[@]}" ds 2>/dev/null || rc=$?
+  assertEquals 'make ds file program exits 0' 0 "$rc"
+  assertEquals 'make ds file exact log' $'call-a\ncall-b' "$(cat "$log")"
+
+  # Inline regression via Make still works.
+  rc=0
+  out="$(ASC_DS_EXPR='slug(foobar)' "${DSL_MAKE[@]}" ds 2>/dev/null)" || rc=$?
+  assertEquals 'ASC_DS_EXPR inline slug exits 0' 0 "$rc"
+  assertEquals 'ASC_DS_EXPR inline slug stdout' 'foobar' "$out"
+
+  # Missing ASC_DS_EXPR still fails closed.
+  rc=0
+  err="$(env -u ASC_DS_EXPR -u MAKEFLAGS make --no-print-directory ds 2>&1 >/dev/null)" || rc=$?
+  assertFalse 'make ds without ASC_DS_EXPR fails' "[[ $rc -eq 0 ]]"
+  assertTrue 'missing ASC_DS_EXPR diagnostic' "[[ \"$err\" == *'ASC_DS_EXPR'* ]]"
+
+  # File errors : missing / non-regular / unreadable.
+  missing="$DSL_TEST_TMP/missing-no-such.dsl.txt"
+  rm -f "$missing" "$log"
+  rc=0
+  err="$(ASC_DSL_PROBE_LOG="$log" f_asc_dsl "$missing" 2>&1 >/dev/null)" || rc=$?
+  assertEquals 'missing .dsl.txt nonzero' 1 "$rc"
+  assertTrue 'missing .dsl.txt diagnostic' "[[ \"$err\" == *'not found'* ]]"
+  assertEquals 'missing .dsl.txt empty log' '' "$(cat "$log" 2>/dev/null || true)"
+
+  nonreg="$DSL_TEST_TMP/dir.dsl.txt"
+  rm -rf "$nonreg" "$log"
+  mkdir -p "$nonreg"
+  rc=0
+  err="$(ASC_DSL_PROBE_LOG="$log" f_asc_dsl "$nonreg" 2>&1 >/dev/null)" || rc=$?
+  assertEquals 'non-regular .dsl.txt nonzero' 1 "$rc"
+  assertTrue 'non-regular diagnostic' "[[ \"$err\" == *'not a regular file'* ]]"
+  assertEquals 'non-regular empty log' '' "$(cat "$log" 2>/dev/null || true)"
+  rmdir "$nonreg"
+
+  unread="$DSL_TEST_TMP/unreadable.dsl.txt"
+  printf '%s\n' "${DSL_PROBE_PIVOT}()" > "$unread"
+  chmod a-r "$unread"
+  rm -f "$log"
+  rc=0
+  err="$(ASC_DSL_PROBE_LOG="$log" f_asc_dsl "$unread" 2>&1 >/dev/null)" || rc=$?
+  chmod u+r "$unread"
+  assertEquals 'unreadable .dsl.txt nonzero' 1 "$rc"
+  assertTrue 'unreadable diagnostic' "[[ \"$err\" == *'not readable'* ]]"
+  assertEquals 'unreadable empty log' '' "$(cat "$log" 2>/dev/null || true)"
+
+  # Embedded NUL rejected before parse/dispatch.
+  nul_prog="$DSL_TEST_TMP/nul.dsl.txt"
+  printf '%s\0%s\n' "${DSL_PROBE_PIVOT}('call-a')" "${DSL_PROBE_PIVOT}('call-b')" \
+    > "$nul_prog"
+  rm -f "$log"
+  rc=0
+  err="$(ASC_DSL_PROBE_LOG="$log" f_asc_dsl "$nul_prog" 2>&1 >/dev/null)" || rc=$?
+  assertEquals 'embedded NUL nonzero' 1 "$rc"
+  assertTrue 'embedded NUL diagnostic' "[[ \"$err\" == *'NUL'* ]]"
+  assertEquals 'embedded NUL empty log' '' "$(cat "$log" 2>/dev/null || true)"
+
+  # CRLF between top-level calls; quoted CR+LF preserved in argv.
+  crlf_prog="$DSL_TEST_TMP/crlf.dsl.txt"
+  printf "%s\r\n%s\r\n" \
+    "${DSL_PROBE_PIVOT}('call-a','0')" \
+    "${DSL_PROBE_PIVOT}('call-b','0')" > "$crlf_prog"
+  rm -f "$log"
+  rc=0
+  ASC_DSL_PROBE_LOG="$log" ASC_DSL_PROBE_STATUS_ARGV=2 \
+    f_asc_dsl "$crlf_prog" 2>/dev/null || rc=$?
+  assertEquals 'CRLF sequencing exits 0' 0 "$rc"
+  assertEquals 'CRLF sequencing exact log' $'call-a\ncall-b' "$(cat "$log")"
+
+  argv_file="$DSL_TEST_TMP/crlf_quoted_argv"
+  printf "%s\n" "${DSL_PROBE_PIVOT}('x"$'\r\n'"y')" > "$crlf_prog"
+  rm -f "$argv_file"
+  rc=0
+  ASC_DSL_PROBE_ARGV="$argv_file" f_asc_dsl "$crlf_prog" 2>/dev/null || rc=$?
+  assertEquals 'quoted CRLF exits 0' 0 "$rc"
+  # Avoid $(...) NUL stripping : compare files with cmp.
+  printf 'x\r\ny\0' > "$DSL_TEST_TMP/crlf_quoted_expected"
+  assertTrue 'quoted CRLF preserved byte-for-byte' \
+    "cmp -s '$argv_file' '$DSL_TEST_TMP/crlf_quoted_expected'"
+
+  # Bound argv with file form.
+  eq_prog="$DSL_TEST_TMP/bound.dsl.txt"
+  printf '%s\n' "${DSL_PROBE_PIVOT}(p1)" > "$eq_prog"
+  argv_file="$DSL_TEST_TMP/bound_file_argv"
+  rm -f "$argv_file"
+  rc=0
+  ASC_DSL_PROBE_ARGV="$argv_file" \
+    asc/dsl.sh "$eq_prog" -- 'bound' 2>/dev/null || rc=$?
+  assertEquals 'file + bound argv exits 0' 0 "$rc"
+  printf 'bound\0' > "$DSL_TEST_TMP/bound_expected"
+  assertTrue 'file expands p1' "cmp -s '$argv_file' '$DSL_TEST_TMP/bound_expected'"
+
+  # Path may contain '=' (file mode by suffix; not parsed as inline).
+  eq_prog="$DSL_TEST_TMP/release=2.dsl.txt"
+  printf '%s\n' \
+    "${DSL_PROBE_PIVOT}('call-a','0')" \
+    "${DSL_PROBE_PIVOT}('call-b','0')" > "$eq_prog"
+  rm -f "$log"
+  rc=0
+  ASC_DSL_PROBE_LOG="$log" ASC_DSL_PROBE_STATUS_ARGV=2 \
+    f_asc_dsl "$eq_prog" 2>/dev/null || rc=$?
+  assertEquals 'path with = exits 0' 0 "$rc"
+  assertEquals 'path with = exact log' $'call-a\ncall-b' "$(cat "$log")"
+}
+
+##
+# Gap fixes — single-snapshot load, bare CR, exact .dsl.txt suffix.
+#
+test_dsl_load_snapshot_bare_cr_suffix() {
+  local log rc=0 err='' prog loaded size
+  local upper_path
+
+  log="$DSL_TEST_TMP/gap_log"
+
+  # Happy path : loaded byte length matches pre-copy file size.
+  prog="$DSL_TEST_TMP/snap_ok.dsl.txt"
+  printf '%s\n' "${DSL_PROBE_PIVOT}('call-a')" "${DSL_PROBE_PIVOT}('call-b')" > "$prog"
+  size=$(stat -c '%s' -- "$prog")
+  rc=0
+  f_asc_dsl_load_file "$prog" || rc=$?
+  assertEquals 'snapshot load exits 0' 0 "$rc"
+  loaded=$(printf '%s' "$asc_dsl_program" | wc -c)
+  loaded="${loaded#"${loaded%%[![:space:]]*}"}"
+  assertEquals 'snapshot loaded length matches file size' "$size" "$loaded"
+
+  # Concurrent truncate during capture : mutate the snapshot between copy and
+  # validation (test hook). Old loaders that only inspected the snap would
+  # accept the shortened buffer and dispatch; size mismatch must fail closed.
+  prog="$DSL_TEST_TMP/snap_race.dsl.txt"
+  printf '%s\n' \
+    "${DSL_PROBE_PIVOT}('call-a')" \
+    "${DSL_PROBE_PIVOT}('call-b')" > "$prog"
+  rm -f "$log"
+
+  f_asc_dsl_test_after_snap_copy() {
+    local p_snap="$1"
+    local partial="$DSL_TEST_TMP/snap_race.partial"
+
+    # Keep only the first call — same shape as truncate-during-cat.
+    head -n 1 "$p_snap" > "$partial" || return 1
+    mv -f "$partial" "$p_snap" || return 1
+  }
+
+  rc=0
+  err="$(ASC_DSL_PROBE_LOG="$log" f_asc_dsl "$prog" 2>&1 >/dev/null)" || rc=$?
+  unset -f f_asc_dsl_test_after_snap_copy
+  assertEquals 'mid-capture truncate nonzero' 1 "$rc"
+  assertTrue 'mid-capture truncate diagnostic' \
+    "[[ \"$err\" == *'changed during read'* || \"$err\" == *'mismatch'* ]]"
+  assertEquals 'mid-capture truncate empty log' '' "$(cat "$log" 2>/dev/null || true)"
+
+  # Validation command failure must not compare empty-equal as success.
+  prog="$DSL_TEST_TMP/snap_unreadable_snap.dsl.txt"
+  printf '%s\n' "${DSL_PROBE_PIVOT}('call-a')" > "$prog"
+  rm -f "$log"
+
+  f_asc_dsl_test_after_snap_copy() {
+    chmod a-r "$1" || return 1
+  }
+
+  rc=0
+  err="$(ASC_DSL_PROBE_LOG="$log" f_asc_dsl "$prog" 2>&1 >/dev/null)" || rc=$?
+  unset -f f_asc_dsl_test_after_snap_copy
+  # Restore in case the snap path leaked; temp files are under DSL_TEST_TMP.
+  assertEquals 'validation cmd failure nonzero' 1 "$rc"
+  assertTrue 'validation cmd failure diagnostic' \
+    "[[ \"$err\" == *'could not be validated'* || \"$err\" == *'snapshot'* ]]"
+  assertEquals 'validation cmd failure empty log' '' "$(cat "$log" 2>/dev/null || true)"
+
+  # NUL after a valid call : fail closed, no partial dispatch of the prefix.
+  prog="$DSL_TEST_TMP/snap_nul.dsl.txt"
+  printf '%s\0%s\n' "${DSL_PROBE_PIVOT}('call-a')" "${DSL_PROBE_PIVOT}('call-b')" \
+    > "$prog"
+  rm -f "$log"
+  rc=0
+  err="$(ASC_DSL_PROBE_LOG="$log" f_asc_dsl "$prog" 2>&1 >/dev/null)" || rc=$?
+  assertEquals 'snapshot NUL nonzero' 1 "$rc"
+  assertTrue 'snapshot NUL diagnostic' "[[ \"$err\" == *'NUL'* ]]"
+  assertEquals 'snapshot NUL empty log' '' "$(cat "$log" 2>/dev/null || true)"
+
+  # Bare CR between calls must not sequence : fail closed, no dispatch.
+  rm -f "$log"
+  rc=0
+  err="$(ASC_DSL_PROBE_LOG="$log" ASC_DSL_PROBE_STATUS_ARGV=2 \
+    f_asc_dsl "${DSL_PROBE_PIVOT}('call-a','0')"$'\r'"${DSL_PROBE_PIVOT}('call-b','0')" \
+    2>&1 >/dev/null)" || rc=$?
+  assertFalse 'bare CR does not succeed' "[[ $rc -eq 0 ]]"
+  assertEquals 'bare CR empty log' '' "$(cat "$log" 2>/dev/null || true)"
+
+  # Exact suffix : .DSL.TXT is not file mode even under nocasematch.
+  upper_path="$DSL_TEST_TMP/upper.DSL.TXT"
+  printf '%s\n' "${DSL_PROBE_PIVOT}()" > "$upper_path"
+  rm -f "$log"
+  shopt -s nocasematch
+  rc=0
+  err="$(ASC_DSL_PROBE_LOG="$log" f_asc_dsl "$upper_path" 2>&1 >/dev/null)" || rc=$?
+  shopt -u nocasematch
+  assertEquals 'nocasematch .DSL.TXT not file mode (nonzero)' 1 "$rc"
+  assertTrue 'nocasematch .DSL.TXT treated as inline' \
+    "[[ \"$err\" == *'unsupported'* || \"$err\" == *'pivot'* || \"$err\" == *'expected'* || \"$err\" == *'syntax'* ]]"
+  assertEquals 'nocasematch .DSL.TXT empty log' '' "$(cat "$log" 2>/dev/null || true)"
 }
 
 . asc/vendor/shunit2/shunit2

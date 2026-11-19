@@ -37,23 +37,28 @@ f_asc_dsl_list_hardcoded_eligible() {
 }
 
 ##
-# Print first-slice DSL usage to stderr.
+# Print DSL usage to stderr.
 #
 f_asc_dsl_usage() {
   echo >&2
-  echo "ASC DSL (first slice) :" >&2
-  echo "  f_asc_dsl <expression> [-- <caller-arg>...]" >&2
-  echo "  asc/dsl.sh <expression> [-- <caller-arg>...]" >&2
+  echo "ASC DSL :" >&2
+  echo "  f_asc_dsl <expression|*.dsl.txt> [-- <caller-arg>...]" >&2
+  echo "  asc/dsl.sh <expression|*.dsl.txt> [-- <caller-arg>...]" >&2
+  echo "  ASC_DS_EXPR='<expression|*.dsl.txt>' make ds" >&2
   echo >&2
-  echo "Supported expression : one pivot call with literal or argv-bound args." >&2
+  echo "Program : one or more pivot calls. A top-level newline sequences calls" >&2
+  echo "(continue on nonzero; status is the last call). Blank lines are ignored." >&2
+  echo "If the program argument ends with .dsl.txt, it is loaded as a file." >&2
+  echo >&2
+  echo "Call forms :" >&2
   echo "  name" >&2
   echo "  name()" >&2
   echo "  name(arg[, arg...])" >&2
   echo >&2
   echo "Argument tokens : unquoted literals, 'quoted literals', pN, a, sN." >&2
   echo "Unquoted '%' becomes '*', '%%' becomes '**'." >&2
-  echo "Unsupported in this slice : combinators, nesting, [functions], options," >&2
-  echo "variable / YAML bindings, and loops." >&2
+  echo "Unsupported in this slice : ';' and other combinators, nesting," >&2
+  echo "[functions], options, variable / YAML bindings, and loops." >&2
   echo >&2
 }
 
@@ -326,7 +331,22 @@ f_asc_dsl_parse_call() {
 
   i=$((i + 1))
 
-  # Empty argument list.
+  # Optional whitespace / layout newlines before the first token or ')'.
+  while [[ "$i" -lt "$len" ]]; do
+    c="${expr:i:1}"
+
+    case "$c" in
+      [[:space:]])
+        i=$((i + 1))
+        ;;
+
+      *)
+        break
+        ;;
+    esac
+  done
+
+  # Empty argument list (including whitespace-only layout inside parentheses).
   if [[ "$i" -lt "$len" && "${expr:i:1}" == ')' ]]; then
     i=$((i + 1))
     saw_close=1
@@ -557,32 +577,320 @@ f_asc_dsl_parse_call() {
 }
 
 ##
-# Interpret one ASC DSL expression (first slice).
+# Load a *.dsl.txt program from disk into calling-scope asc_dsl_program.
 #
-# Parses and resolves before running. Returns the call status to the caller;
-# never exits the shell on DSL or dispatched-script failure.
+# Records the source byte size, copies one snapshot, then validates only that
+# buffer (NUL strip, loaded length). Validation command failures are file
+# errors — empty-equal counts are not success when wc/tr failed. If the
+# snapshot byte size differs from the pre-copy source size, treat it as a
+# concurrent in-place modification during capture (fail closed). Preferred
+# writers replace via atomic rename; in-place truncate during read is not
+# supported and is rejected when it shortens (or lengthens) the capture.
 #
-# @param 1 String : DSL expression.
+# Optional test hook: if f_asc_dsl_test_after_snap_copy is defined, it runs
+# after the copy with (snap_path, source_path) before validation.
+#
+# @param 1 String : filesystem path ending in .dsl.txt.
+#
+# @var asc_dsl_program
+#
+# @return
+#   0 : loaded
+#   1 : file error, embedded NUL, incomplete load, or concurrent modification
+#
+f_asc_dsl_load_file() {
+  local p_path="$1"
+  local snap=''
+  local before_size=''
+  local snap_size=''
+  local stripped_size=''
+  local loaded_size=''
+  local stripped_file=''
+
+  asc_dsl_program=''
+
+  if [[ ! -e "$p_path" ]]; then
+    f_asc_dsl_err "DSL file not found: '$p_path'."
+
+    return 1
+  fi
+
+  if [[ ! -f "$p_path" ]]; then
+    f_asc_dsl_err "DSL path is not a regular file: '$p_path'."
+
+    return 1
+  fi
+
+  if [[ ! -r "$p_path" ]]; then
+    f_asc_dsl_err "DSL file is not readable: '$p_path'."
+
+    return 1
+  fi
+
+  if ! before_size="$(stat -c '%s' -- "$p_path")"; then
+    f_asc_dsl_err "DSL file size could not be read: '$p_path'."
+
+    return 1
+  fi
+
+  # One snapshot of source bytes. Compare its size to before_size so an
+  # in-place truncate/extend during cat cannot yield a partial program.
+  snap="$(mktemp "${TMPDIR:-/tmp}/asc-dsl.XXXXXX")" || {
+    f_asc_dsl_err "DSL file snapshot could not be created for: '$p_path'."
+
+    return 1
+  }
+
+  if ! cat -- "$p_path" > "$snap"; then
+    rm -f "$snap"
+    f_asc_dsl_err "DSL file could not be read completely: '$p_path'."
+
+    return 1
+  fi
+
+  # Test-only injection point (undefined in production).
+  if declare -F f_asc_dsl_test_after_snap_copy >/dev/null 2>&1; then
+    if ! f_asc_dsl_test_after_snap_copy "$snap" "$p_path"; then
+      rm -f "$snap"
+      f_asc_dsl_err "DSL file snapshot test hook failed: '$p_path'."
+
+      return 1
+    fi
+  fi
+
+  if ! snap_size="$(stat -c '%s' -- "$snap")"; then
+    rm -f "$snap"
+    f_asc_dsl_err "DSL file snapshot size could not be read: '$p_path'."
+
+    return 1
+  fi
+
+  if [[ "$snap_size" != "$before_size" ]]; then
+    rm -f "$snap"
+    f_asc_dsl_err "DSL file changed during read (snapshot size mismatch): '$p_path'."
+
+    return 1
+  fi
+
+  if [[ ! -r "$snap" ]]; then
+    rm -f "$snap"
+    f_asc_dsl_err "DSL file snapshot could not be validated: '$p_path'."
+
+    return 1
+  fi
+
+  # NUL check without pipelines: each command status is checked alone. A failed
+  # tr/stat must not be treated as success via empty-equal size comparison.
+  stripped_file="$(mktemp "${TMPDIR:-/tmp}/asc-dsl-strip.XXXXXX")" || {
+    rm -f "$snap"
+    f_asc_dsl_err "DSL file snapshot could not be validated: '$p_path'."
+
+    return 1
+  }
+
+  if ! tr -d '\0' < "$snap" > "$stripped_file"; then
+    rm -f "$snap" "$stripped_file"
+    f_asc_dsl_err "DSL file snapshot could not be validated: '$p_path'."
+
+    return 1
+  fi
+
+  if ! stripped_size="$(stat -c '%s' -- "$stripped_file")"; then
+    rm -f "$snap" "$stripped_file"
+    f_asc_dsl_err "DSL file snapshot could not be validated: '$p_path'."
+
+    return 1
+  fi
+
+  rm -f "$stripped_file"
+
+  if [[ "$snap_size" != "$stripped_size" ]]; then
+    rm -f "$snap"
+    f_asc_dsl_err "DSL file contains embedded NUL: '$p_path'."
+
+    return 1
+  fi
+
+  # No NUL in the snapshot : read -d '' takes the full buffer (EOF, no delim).
+  IFS= read -r -d '' asc_dsl_program < "$snap" || true
+  rm -f "$snap"
+
+  # Measure loaded bytes via a checked write + stat (no wc pipeline).
+  stripped_file="$(mktemp "${TMPDIR:-/tmp}/asc-dsl-strip.XXXXXX")" || {
+    asc_dsl_program=''
+    f_asc_dsl_err "DSL file snapshot could not be measured after load: '$p_path'."
+
+    return 1
+  }
+
+  if ! printf '%s' "$asc_dsl_program" > "$stripped_file"; then
+    rm -f "$stripped_file"
+    asc_dsl_program=''
+    f_asc_dsl_err "DSL file snapshot could not be measured after load: '$p_path'."
+
+    return 1
+  fi
+
+  if ! loaded_size="$(stat -c '%s' -- "$stripped_file")"; then
+    rm -f "$stripped_file"
+    asc_dsl_program=''
+    f_asc_dsl_err "DSL file snapshot could not be measured after load: '$p_path'."
+
+    return 1
+  fi
+
+  rm -f "$stripped_file"
+
+  if [[ "$loaded_size" != "$snap_size" ]]; then
+    asc_dsl_program=''
+    f_asc_dsl_err "DSL file could not be loaded completely: '$p_path'."
+
+    return 1
+  fi
+
+  return 0
+}
+
+##
+# Split a DSL program string into top-level call expressions.
+#
+# Top-level LF sequences calls (CRLF works because the CR is trimmed as
+# trailing whitespace from the preceding expression). Bare CR does not
+# sequence. Blank lines are ignored. Newlines inside '(...)' are layout.
+# Newlines and CR inside single quotes are literal data.
+#
+# @param 1 String : full DSL program (inline or file contents).
+#
+# @var asc_dsl_exprs_arr
+#
+# @return 0
+#
+f_asc_dsl_split_program() {
+  local p_program="$1"
+  local len="${#p_program}"
+  local i=0
+  local c
+  local depth=0
+  local in_quote=0
+  local cur=''
+  local trimmed=''
+
+  asc_dsl_exprs_arr=()
+
+  while [[ "$i" -lt "$len" ]]; do
+    c="${p_program:i:1}"
+
+    if [[ "$in_quote" -eq 1 ]]; then
+      cur+="$c"
+
+      if [[ "$c" == "'" ]]; then
+        in_quote=0
+      fi
+
+      i=$((i + 1))
+      continue
+    fi
+
+    case "$c" in
+      "'")
+        in_quote=1
+        cur+="$c"
+        i=$((i + 1))
+        ;;
+
+      '(')
+        depth=$((depth + 1))
+        cur+="$c"
+        i=$((i + 1))
+        ;;
+
+      ')')
+        if [[ "$depth" -gt 0 ]]; then
+          depth=$((depth - 1))
+        fi
+
+        cur+="$c"
+        i=$((i + 1))
+        ;;
+
+      $'\n')
+        if [[ "$depth" -eq 0 ]]; then
+          i=$((i + 1))
+          trimmed="${cur#"${cur%%[![:space:]]*}"}"
+          trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
+
+          if [[ -n "$trimmed" ]]; then
+            asc_dsl_exprs_arr+=("$trimmed")
+          fi
+
+          cur=''
+        else
+          cur+="$c"
+          i=$((i + 1))
+        fi
+        ;;
+
+      *)
+        # Bare CR is ordinary data here (not a sequence operator). At top level
+        # between calls it stays in the expression and fails closed at parse.
+        cur+="$c"
+        i=$((i + 1))
+        ;;
+    esac
+  done
+
+  trimmed="${cur#"${cur%%[![:space:]]*}"}"
+  trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
+
+  if [[ -n "$trimmed" ]]; then
+    asc_dsl_exprs_arr+=("$trimmed")
+  fi
+
+  return 0
+}
+
+##
+# Interpret an ASC DSL program (inline expression or *.dsl.txt path).
+#
+# File versus inline is decided by a .dsl.txt suffix on the program argument.
+# The full program is split, parsed, binding-expanded, and pivot-resolved
+# before any call dispatches. Top-level newlines sequence calls
+# (continue-on-nonzero; last status). Returns status to the caller; never exits.
+#
+# @param 1 String : DSL expression or path ending in .dsl.txt.
 # @param ... optional '--' then caller argv for pN / a / sN bindings.
 #
 # @return
-#   0 : success
-#   1 : invalid / unsupported / unknown call (no execution)
-#   $? : status of the dispatched pivot script
+#   0 : success (or last call status 0)
+#   1 : invalid / unsupported / unknown / file error (no execution)
+#   $? : status of the last dispatched pivot script
 #
 # @example
 #   f_asc_dsl 'slug(foobar)'
 #   f_asc_dsl 'slug(p1)' -- 'Foo Bar'
-#   f_asc_dsl 'slug(a)' -- one 'two three'
+#   f_asc_dsl path/to/prog.dsl.txt -- 'bound'
 #
 f_asc_dsl() {
-  local p_expr="${1-}"
+  local p_arg="${1-}"
   local asc_dsl_bound_arr=()
   local asc_dsl_bound_set=0
   local asc_dsl_call_name=''
   local asc_dsl_argv_arr=()
   local asc_dsl_script=''
+  local asc_dsl_program=''
+  local asc_dsl_exprs_arr=()
+  local asc_dsl_pre_scripts_arr=()
+  local asc_dsl_pre_argv_flat_arr=()
+  local asc_dsl_pre_argv_start_arr=()
+  local asc_dsl_pre_argv_len_arr=()
   local rc=0
+  local i
+  local start
+  local len
+  local call_rc=0
+  local asc_dsl_suffix='.dsl.txt'
+  local asc_dsl_arg_len=0
+  local asc_dsl_suf_len=0
 
   if [[ $# -lt 1 ]]; then
     f_asc_dsl_err "missing expression."
@@ -608,16 +916,66 @@ f_asc_dsl() {
     esac
   fi
 
-  if ! f_asc_dsl_parse_call "$p_expr"; then
+  # Exact suffix '.dsl.txt' only. POSIX [ = ] ignores nocasematch; [[ == ]] and
+  # case do not.
+  asc_dsl_arg_len="${#p_arg}"
+  asc_dsl_suf_len="${#asc_dsl_suffix}"
+
+  if [[ "$asc_dsl_arg_len" -ge "$asc_dsl_suf_len" ]] \
+    && [ "${p_arg:asc_dsl_arg_len - asc_dsl_suf_len}" = "$asc_dsl_suffix" ]; then
+    if ! f_asc_dsl_load_file "$p_arg"; then
+      return 1
+    fi
+  else
+    asc_dsl_program="$p_arg"
+  fi
+
+  f_asc_dsl_split_program "$asc_dsl_program"
+
+  if [[ "${#asc_dsl_exprs_arr[@]}" -eq 0 ]]; then
+    f_asc_dsl_err "expression is empty."
+
     return 1
   fi
 
-  if ! f_asc_dsl_resolve "$asc_dsl_call_name"; then
-    return 1
-  fi
+  # Preparse-all : syntax, bindings, and pivot resolve before any dispatch.
+  for i in "${!asc_dsl_exprs_arr[@]}"; do
+    asc_dsl_call_name=''
+    asc_dsl_argv_arr=()
+    asc_dsl_script=''
 
-  "$asc_dsl_script" "${asc_dsl_argv_arr[@]}"
-  rc=$?
+    if ! f_asc_dsl_parse_call "${asc_dsl_exprs_arr[i]}"; then
+      return 1
+    fi
+
+    if ! f_asc_dsl_resolve "$asc_dsl_call_name"; then
+      return 1
+    fi
+
+    asc_dsl_pre_argv_start_arr+=("${#asc_dsl_pre_argv_flat_arr[@]}")
+    asc_dsl_pre_argv_len_arr+=("${#asc_dsl_argv_arr[@]}")
+    asc_dsl_pre_argv_flat_arr+=("${asc_dsl_argv_arr[@]}")
+    asc_dsl_pre_scripts_arr+=("$asc_dsl_script")
+  done
+
+  rc=0
+
+  # Continue after nonzero under caller errexit : left-hand side of || does not
+  # abort the shell; capture the status for last-status sequencing.
+  for i in "${!asc_dsl_pre_scripts_arr[@]}"; do
+    start="${asc_dsl_pre_argv_start_arr[i]}"
+    len="${asc_dsl_pre_argv_len_arr[i]}"
+    call_rc=0
+
+    if [[ "$len" -gt 0 ]]; then
+      "${asc_dsl_pre_scripts_arr[i]}" "${asc_dsl_pre_argv_flat_arr[@]:start:len}" \
+        || call_rc=$?
+    else
+      "${asc_dsl_pre_scripts_arr[i]}" || call_rc=$?
+    fi
+
+    rc="$call_rc"
+  done
 
   return "$rc"
 }

@@ -3,14 +3,14 @@
 | Field | Value |
 |---|---|
 | Date | 2026-11-19 (revised same day: plan-review; commas + `~` pointer; NUL/CRLF; sequencing log; newline-first / `;` later) |
-| Status | **draft** (plan-review) — **not** go-ahead; do not implement under this note alone |
+| Status | **completed** (implemented 2026-11-19; gap fixes same day: single-snapshot load, bare-CR non-sequencing, exact `.dsl.txt` suffix; gates untouched) |
 | Parent | [`22-make-ds.md`](../09/22-make-ds.md) (first interpreter + `ASC_DS_EXPR` carrier) |
 | Contract | [ASC custom DSL](../../../specs/asc/dsl.md) — living notes; this plan owns the slice detail |
 | Gate | Parent row in [`gates.core.yml`](../../../../gates.core.yml) (`make ds`, `approved: "no"`, `go: "no"`). A **new child row may be needed later**; leave gates untouched until a human adds one. |
 | Authorization | Direct human go-ahead or an applicable gate flip. Status `draft` / plan-review grants neither. |
 
-Child / next-slice plan under the Make `ds` delivery work. Docs only in this
-revision. Do not commit unless asked.
+Child / next-slice plan under the Make `ds` delivery work. Implemented
+2026-11-19 under explicit human go-ahead. Do not commit unless asked.
 
 ## Intent
 
@@ -117,10 +117,11 @@ below is wrong.
 | Other combinators | Newline is **only** the sequence operator in this slice. It does not soft-wrap `;;`, `++`, or `+` without an explicit operator. |
 | Empty / blank-only program | **Error** (same family as empty expression). |
 | Empty list with only whitespace/newlines | **Valid** — same as `name()`. Proposed layout fix over today’s rejection. |
-| File detection | If the program argument **ends with `.dsl.txt`**, enter **file mode**. In file mode, missing, non-regular, and unreadable paths are **file errors** (nonzero diagnostic). **No** silent fallback to treating the string as inline DSL. If the argument does **not** end with `.dsl.txt`, treat it as inline DSL (do not open the filesystem for bare pivot names). |
+| File detection | If the program argument **ends with exact `.dsl.txt`** (case-sensitive; independent of `nocasematch`), enter **file mode**. In file mode, missing, non-regular, and unreadable paths are **file errors** (nonzero diagnostic). **No** silent fallback to treating the string as inline DSL. If the argument does **not** end with `.dsl.txt`, treat it as inline DSL (do not open the filesystem for bare pivot names). |
 | Where detection lives | Shared in **`f_asc_dsl`** (so `asc/dsl.sh` and `ASC_DS_EXPR` → `ds.make.sh` share one rule). |
 | Embedded NUL | In file mode, if the loaded bytes contain a **NUL** (`\0`), **reject before parsing** (nonzero diagnostic, no dispatch). Bash command-substitution reads can discard NUL and join surrounding text; do not parse a silently corrupted program. |
-| CRLF | Outside quotes / as line endings: treat `\r\n` like `\n` for top-level sequencing and in-paren layout (CR does not become data). **Inside single-quoted arguments: preserve CR and LF byte for byte** (quoted data is literal). |
+| CRLF | Sequence on **LF only**. CRLF works because the CR is trimmed as trailing whitespace from the preceding expression. **Bare CR does not sequence** (fails closed at parse; no dispatch). Inside `(...)`, CR is layout whitespace. **Inside single-quoted arguments: preserve CR and LF byte for byte**. |
+| File load snapshot | Record source size, copy **once** into a snapshot, then validate that buffer only (checked `tr` / `stat` statuses — failed tools are file errors, not empty-equal success). Reject when snapshot size ≠ pre-copy size (in-place truncate/extend during capture). Incomplete load → file error, no dispatch. **Writers:** prefer atomic rename into place; in-place truncate during read is unsupported and fail-closed when it changes length mid-capture. |
 | Preparse-all | **Required** for this slice (no streaming run-until-error). |
 | Bindings on unconditional sequence | Expand **all** `pN` / `a` / `sN` (and fail closed on any binding error) **before** any call dispatches — same fail-before-run family as unknown pivots / bad syntax. |
 | Sequencing evidence | Prefer **one append-only log** with distinct call IDs (exact contents asserted) over separate marker files that only prove both calls ran. |
@@ -171,25 +172,23 @@ when that token lands later):
    any call.
 5. On success: run in order; return the last expression’s status.
 
-## Tasks (implementation later)
+## Tasks
 
-Do not start while status is draft / plan-review without go-ahead.
-
-1. **Lexer / program split** — top-level newline vs in-paren vs in-quote;
+1. [x] **Lexer / program split** — top-level newline vs in-paren vs in-quote;
    blank lines; CRLF outside quotes; sequence runner for **newlines in this
    slice** (wire `;` later as the same sequencing operator).
-2. **Empty-list layout** — after `(`, skip whitespace, then `)` → empty argv.
-3. **File load** — `.dsl.txt` suffix → file mode; missing / non-regular /
+2. [x] **Empty-list layout** — after `(`, skip whitespace, then `)` → empty argv.
+3. [x] **File load** — `.dsl.txt` suffix → file mode; missing / non-regular /
    unreadable → file error; no inline fallback; **reject embedded NUL**
    before parse.
-4. **Preparse-all** — resolve pivots **and** expand bindings for every call
+4. [x] **Preparse-all** — resolve pivots **and** expand bindings for every call
    before first dispatch.
-5. **Carrier usage text** — `f_asc_dsl_usage`, `ds.make.sh` help examples for
+5. [x] **Carrier usage text** — `f_asc_dsl_usage`, `ds.make.sh` help examples for
    file paths; keep expression-not-a-goal.
-6. **Tests** — acceptance below in `asc/test/core/dsl.test.sh` (+ temp
+6. [x] **Tests** — acceptance below in `asc/test/core/dsl.test.sh` (+ temp
    `*.dsl.txt` fixtures). Use pivot **`dsl-probe`**. Prefer one append-only
    sequencing log with distinct call IDs.
-7. **Living docs** — keep [`dsl.md`](../../../specs/asc/dsl.md) observed vs
+7. [x] **Living docs** — keep [`dsl.md`](../../../specs/asc/dsl.md) observed vs
    proposed aligned when demonstrated; gate stays no/no until human review.
 
 ## Acceptance criteria
@@ -208,15 +207,15 @@ call ID**. Assert the log’s **exact contents** so order is proven and a
 duplicate dispatch is visible (repeated ID / unexpected extra line). Two
 marker files that only show both paths exist do **not** suffice.
 
-- [ ] Two-call top-level newline program: probe (or fixture) appends distinct
+- [x] Two-call top-level newline program: probe (or fixture) appends distinct
       call IDs to **one** log; assert exact log bytes/lines for order
       (e.g. `call-a` then `call-b` only). Use **two distinct statuses** via
       probe env (or equivalent) per call.
-- [ ] Status combination **`7 → 0`**: first call status 7, second 0; log shows
+- [x] Status combination **`7 → 0`**: first call status 7, second 0; log shows
       both IDs in order; function / process status is **0**.
-- [ ] Status combination **`0 → 7`**: first 0, second 7; log shows both IDs in
+- [x] Status combination **`0 → 7`**: first 0, second 7; log shows both IDs in
       order; status is **7**.
-- [ ] Run the **`7 → 0`** case in a Bash **subprocess with `errexit` enabled**
+- [x] Run the **`7 → 0`** case in a Bash **subprocess with `errexit` enabled**
       in the shell that **runs the interpreter**. Use `bash -e asc/dsl.sh …`,
       **or** bootstrap and invoke `f_asc_dsl` directly as a plain command inside
       the `bash -e` child. Do **not** treat bare `asc/dsl.sh` under a parent
@@ -225,12 +224,12 @@ marker files that only show both paths exist do **not** suffice.
       suppresses `errexit` inside the function). Capture the child’s exit status
       from the **parent**. Expect the subprocess to finish with status 0 and the
       exact two-ID log when the interpreter is correct.
-- [ ] Intervening blank line: same as two-call sequence (no empty-expression
+- [x] Intervening blank line: same as two-call sequence (no empty-expression
       error; same exact log).
 
 ### Layout and quotes
 
-- [ ] Wrapped argument list with pivot spelling `dsl-probe`:
+- [x] Wrapped argument list with pivot spelling `dsl-probe`:
 
   ```text
   dsl-probe(
@@ -240,50 +239,59 @@ marker files that only show both paths exist do **not** suffice.
   ```
 
   NUL argv is `a\0b\0`; status 0.
-- [ ] Empty list with newline only inside parens is **valid** and equivalent to
+- [x] Empty list with newline only inside parens is **valid** and equivalent to
       `dsl-probe()` (proposed layout fix).
-- [ ] Quoted newline: one argument whose value is `line1` + LF + `line2`;
+- [x] Quoted newline: one argument whose value is `line1` + LF + `line2`;
       assert via **raw NUL-delimited** capture (exactly one `\0`-terminated
       field containing the LF). Harness may build the program with a real
       newline inside quotes in a `.dsl.txt` or with Bash `$'…'` **only in the
       test harness**, not as DSL syntax.
-- [ ] Unclosed quote spanning a newline: diagnostic, nonzero, empty sequencing
+- [x] Unclosed quote spanning a newline: diagnostic, nonzero, empty sequencing
       log (no dispatch).
 
 ### Preparse-all (syntax, resolve, bindings)
 
-- [ ] Second expression unknown pivot: diagnostic, nonzero, sequencing log
+- [x] Second expression unknown pivot: diagnostic, nonzero, sequencing log
       **empty** (no first-call dispatch).
-- [ ] Second expression truncated syntax (`dsl-probe(foo`): same — empty log.
-- [ ] Second expression out-of-range positional (e.g. `dsl-probe(p2)` with only
+- [x] Second expression truncated syntax (`dsl-probe(foo`): same — empty log.
+- [x] Second expression out-of-range positional (e.g. `dsl-probe(p2)` with only
       one bound argv after `--`): diagnostic, nonzero, empty log (binding
       errors fail before any dispatch on an unconditional sequence).
 
 ### `*.dsl.txt` and Make carrier
 
-- [ ] `asc/dsl.sh "$fixture.dsl.txt"` multi-line program matches inline
+- [x] `asc/dsl.sh "$fixture.dsl.txt"` multi-line program matches inline
       equivalent (exact sequencing log + status).
-- [ ] `ASC_DS_EXPR="$fixture.dsl.txt" make ds` (sole goal) same for a
+- [x] `ASC_DS_EXPR="$fixture.dsl.txt" make ds` (sole goal) same for a
       successful multi-line fixture.
-- [ ] `ASC_DS_EXPR='slug(foobar)' make ds` regression still works.
-- [ ] Missing `ASC_DS_EXPR` still fails closed (existing diagnostic family).
-- [ ] **File errors (suffix `.dsl.txt`, file mode):** missing path, non-regular
+- [x] `ASC_DS_EXPR='slug(foobar)' make ds` regression still works.
+- [x] Missing `ASC_DS_EXPR` still fails closed (existing diagnostic family).
+- [x] **File errors (suffix `.dsl.txt`, file mode):** missing path, non-regular
       path, and unreadable path each → nonzero, diagnostic, empty sequencing
       log; **not** parsed as inline DSL.
-- [ ] **Embedded NUL:** a `.dsl.txt` fixture whose bytes contain `\0` →
+- [x] **Embedded NUL:** a `.dsl.txt` fixture whose bytes contain `\0` →
       nonzero diagnostic **before** parse/dispatch; sequencing log empty
       (proves rejection before dispatch; avoids Bash command-substitution NUL
       loss).
-- [ ] **CRLF fixture:** file uses `\r\n` between two top-level calls → same
+- [x] **CRLF fixture:** file uses `\r\n` between two top-level calls → same
       sequencing as LF (statement separation). A quoted argument whose raw
       bytes are `x\r\ny` is preserved **byte for byte** in NUL argv capture
       (exactly one field containing CR and LF).
-- [ ] Bound argv with file form:
+- [x] **Bare CR:** two calls separated only by `\r` → nonzero, empty sequencing
+      log (no dispatch); CR is not a sequence operator.
+- [x] **Single-snapshot load:** pre-copy size matches loaded length on success;
+      truncating the snapshot **between copy and validation** (simulated
+      mid-capture race) → nonzero, empty log; failed validation commands
+      (e.g. unreadable snap) → nonzero, empty log; embedded NUL still fails
+      closed with empty log (no partial prefix dispatch).
+- [x] **Exact suffix under `nocasematch`:** argument ending in `.DSL.TXT` is
+      **not** file mode (inline parse fails closed; empty log).
+- [x] Bound argv with file form:
       `asc/dsl.sh "$fixture.dsl.txt" -- 'bound'` expands `p1` inside the file.
 
 ### Replay readiness (interpreter only)
 
-- [ ] Whole-file program validated before first call (covered by preparse
+- [x] Whole-file program validated before first call (covered by preparse
       cases). **No** acceptance requirement to run `make replay` or finish
       `replay.sh` in this slice.
 
