@@ -1517,8 +1517,8 @@ and `slug('p1')` uses the literal string `p1`.
 
 - `o-m-4` = `-m 4` = any named option prefixed by a single `-`
 - `oo-max-4` = `--max 4` = any named option prefixed by a double `--`
-- `oe-max-4` = `-max=4` = any named option prefixed by a single `-` with an `=` sign before the value
-- `ooe-max-4` = `--max=4` = any named option prefixed by a double `--` with an `=` sign before the value
+- `o-max~4` = `-max=4` = any named option prefixed by a single `-` with an `=` sign before the value
+- `oo-max~4` = `--max=4` = any named option prefixed by a double `--` with an `=` sign before the value
 - `oa` = all named options prefixed by a single `-` are forwarded - and ONLY those named options
 - `ooa` = all named options prefixed by a double `--` are forwarded - and ONLY those named options
 
@@ -1635,6 +1635,42 @@ done < <(myfunc)
 ```
 
 #### "Normal" DSL example
+
+The authoritative form of expressing one's need is the following :
+
+"In order to achieve X I need: first Task 1, then Task 2, Then e.g. combinations, batch..."
+
+1. Agents skills, or even plans, may be partly or wholly expressed in *.dsl.txt
+1. The go game analogy is meant to orient the semantic space strategy in relation to human prose (like domain names, but in occupying names and verbs in this competing space for clever "namespaces"), under this undeerlying question : how is this most eloquently and naively expressed in simple english ?
+1. This is where the languages meet : prose and code, pivoted both ways.
+1. The preferred words for actions and subjects must be carefully chosen.
+1. Puns intended are welcome, if not too heavily.
+
+There may exist guidelines in docs to orient decisions, such as ordering actions by subjects - like (either) :
+
+- `$subject` / `$action`
+- `$subject` / `$object` / `$action`
+
+Example :
+
+`db-dump(path/to/foobar.sql.gz)` pivoting to `asc/extensions/db/db/dump.sh`
+
+Thanks to the magically disappearing `instance` subject (the default subject is the ASC project instance itself, in PROJECT_DOCROOT), you can get minimal things like :
+
+```text
+gen(path/to/foobar.yml)
+```
+
+Which in prose could be freely asked in chats like :
+
+For the following {{ subject }}, I need to create a new pivot with variants control for an action : {{ describe the action }}
+
+Pivoting to :
+
+```sh
+asc/extensions/builder/instance/gen.sh path/to/foobar.yml
+```
+
 
 ```text
 transcribe-file(path/to/file.mp4)
