@@ -212,6 +212,8 @@ Implications : change ASC core current files discovery mechanisms to support bot
 1. [x] ~~Refactor tests~~
 1. [ ] Complete the Builder
 1. [ ] Complete the baseline implementations
+1. [ ] Sandboxing and Permissions
+1. [ ] Containerization and Virtualization
 1. [ ] Implement agents (for now : Cursor + Codex + Ollama, next : Claude Code)
 
 &lt;proposal-2026-11-18&gt;
@@ -1655,45 +1657,44 @@ Example :
 
 `db-dump(path/to/foobar.sql.gz)` pivoting to `asc/extensions/db/db/dump.sh`
 
+Above, the path `asc/extensions/db` is the relative DSL "execution context". This could inform sandboxing and general permissions handling.
+
+Other example :
+
+`transcribe-file(path/to/file.mp4)` pivoting to `asc/extensions/transcription/transcribe/file.sh path/to/file.mp4`
+
 Thanks to the magically disappearing `instance` subject (the default subject is the ASC project instance itself, in PROJECT_DOCROOT), you can get minimal things like :
 
 `gen(path/to/foobar.yml)` pivoting to `asc/extensions/builder/instance/gen.sh path/to/foobar.yml`
 
-Combinations freely operate like :
+There are infinite examples of "normal" things like :
 
-```text
-plan-start
-goal(path/to/foobar.yml)
-need(decision(chat(agent-role(reviewer),plan-review(path/to/foobar.md))))
+`core-sync` pivoting to `asc/core/sync.sh`
+
+In DSL, combinations freely operate :
+
+```txt
+plan(
+  goal(path/to/foobar.yml)
+  idea(path/to/idea-1.md)
+  idea(path/to/idea-2.md)
+  idea(path/to/idea-3.md)
+  need(
+    decision(
+      chat(
+        plan-review(
+          agent-role(reviewer),
+          prompt-create(path/to/foobar.prompt.md)
+        )
+      )
+    )
+  )
+)
 ```
 
 But the gap remains high in prompts processing such as :
 
 For the following {{ subject }}, I need to create a new pivot with variants control for an action : {{ describe the action }}
-
-Which in prose could be freely asked in chats like :
-
-
-
-
-
-```text
-transcribe-file(path/to/file.mp4)
-```
-
-triggers the following call :
-
-```sh
-asc/extensions/transcription/transcribe/file.sh path/to/file.mp4
-```
-
-&lt;proposal-2026-11-18&gt;
-
-`transcribe-file` is an example of a pivot supplied by an enabled
-extension. Its action is currently in the
-[transcription contrib extension](scripts/asc/contrib/asc/transcription/transcribe/file.sh).
-
-&lt;/proposal-2026-11-18&gt;
 
 #### DSL in Yaml
 
