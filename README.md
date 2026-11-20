@@ -1657,19 +1657,24 @@ Example :
 
 Thanks to the magically disappearing `instance` subject (the default subject is the ASC project instance itself, in PROJECT_DOCROOT), you can get minimal things like :
 
+`gen(path/to/foobar.yml)` pivoting to `asc/extensions/builder/instance/gen.sh path/to/foobar.yml`
+
+Combinations freely operate like :
+
 ```text
-gen(path/to/foobar.yml)
+plan-start
+goal(path/to/foobar.yml)
+need(decision(chat(agent-role(reviewer),plan-review(path/to/foobar.md))))
 ```
 
-Which in prose could be freely asked in chats like :
+But the gap remains high in prompts processing such as :
 
 For the following {{ subject }}, I need to create a new pivot with variants control for an action : {{ describe the action }}
 
-Pivoting to :
+Which in prose could be freely asked in chats like :
 
-```sh
-asc/extensions/builder/instance/gen.sh path/to/foobar.yml
-```
+
+
 
 
 ```text

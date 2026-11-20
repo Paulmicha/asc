@@ -4,5 +4,12 @@
   "files.exclude": {
     "**/.git": false,
     "**/.git/objects": true
+  },
+  "files.watcherExclude": {
+    "data": true
+  },
+  "search.exclude": {
+    "data": true,
+    ".git/objects": true
   }
 }
