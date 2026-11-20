@@ -1728,7 +1728,7 @@ These may contain hook variants, answering needs such as :
 
 This is why the `core-sync` pivot exists (`asc/core/sync.sh`). Here's the crux of it :
 
-```sh
+```bash
 export instance_path="$1"
 
 if [[ -z "$instance_path" ]]; then
