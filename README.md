@@ -1726,7 +1726,46 @@ These may contain hook variants, answering needs such as :
 - ASC upstream "mother" repo instanciated on the same host ?
 - etc.
 
-This is why the `core-sync` pivot exists (`asc/core/sync.sh`).
+This is why the `core-sync` pivot exists (`asc/core/sync.sh`). Here's the crux of it :
+
+```sh
+export instance_path="$1"
+
+if [[ -z "$instance_path" ]]; then
+  instance_path="$PROJECT_DOCROOT"
+fi
+
+if [[ ! -d "$instance_path" ]]; then
+  echo >&2
+  echo "Error in $BASH_SOURCE line $LINENO: instance path does not exist." >&2
+  echo "-> Aborting (1)." >&2
+  echo >&2
+  exit 1
+fi
+
+# Instead of a full, slow "make reinit", target specific diffed trees only.
+# "Wireable" as a git hook or anything.
+asc/dsl.sh << DSL
+
+ext-sync
+cache-sync
+data-sync
+specs-sync
+providers-sync
+models-sync
+skills-sync
+host-sync
+remote-hosts-sync
+agents-sync
+docs-sync
+stack-sync
+
+DSL
+
+exit $?
+```
+
+
 
 #### DSL in Yaml
 
