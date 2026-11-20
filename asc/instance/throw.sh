@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ##
-# [abstract] ASC "exceptions" handling. Exits immediately.
+# ASC "exceptions" handling. Exits immediately.
 #
 # Mutable scoped env vars :
 #

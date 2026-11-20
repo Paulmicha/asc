@@ -15,6 +15,9 @@
 #
 # Mutable scoped env vars :
 #
+# @var ARGS : String : all arguments passed (as string).
+#   Defaults to "$@".
+#
 # @var LV : String : log level.
 #   Defaults to 'error'.
 #
@@ -27,9 +30,6 @@
 #
 # @var VARIANTS : String : space-separated hooks variants' variable names.
 #   Defaults to 'LV HANDLER HOST_TYPE'.
-#
-# @var ARGS : String : all arguments passed (as string).
-#   Defaults to "$@".
 #
 # The 'throw' action triggers a 'pre'-prefixed hook before triggering the
 # normal (unprefixed) hook. Same after ('post'-prefixed hook).
@@ -46,11 +46,12 @@
 #   throw "Hello world"
 #
 throw() {
-  export LV='error'
-  export CODE=1
-  export HANDLER='echo'
-  export VARIANTS='LV HANDLER HOST_TYPE'
   export ARGS="$@"
+
+  export LV="${LV:-'error'}"
+  export CODE=${CODE:-1}
+  export HANDLER="${HANDLER:-'echo'}"
+  export VARIANTS="${VARIANTS:-'LV HANDLER HOST_TYPE'}"
 
   hook -s 'instance' -p 'pre' -a 'throw' -v "$VARIANTS"
   hook -s 'instance' -a 'throw' -v "$VARIANTS"
