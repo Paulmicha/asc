@@ -1673,17 +1673,27 @@ There are infinite examples of "normal" things like :
 In DSL, combinations freely operate :
 
 ```txt
-plan(
-  goal(path/to/foobar.yml)
-  idea(path/to/idea-1.md)
-  idea(path/to/idea-2.md)
-  idea(path/to/idea-3.md)
-  need(
-    decision(
-      chat(
-        plan-review(
-          agent-role(reviewer),
-          prompt-create(path/to/foobar.prompt.md)
+report(
+  plan-exec(
+    plan(
+      goal(path/to/foobar.yml)
+
+      idea(path/to/idea-1.md)
+      idea(path/to/idea-2.md)
+      idea(path/to/idea-3.md)
+
+      need(plan-tests)
+      need(plan-skills)
+      need(plan-tools)
+      need(plan-guardrails)
+      need(plan-tasks)
+
+      need(
+        decision(
+          chat(
+            agent-role(reviewer)
+            prompt(path/to/foobar.prompt.md)
+          )
         )
       )
     )
