@@ -207,14 +207,13 @@ Implications : change ASC core current files discovery mechanisms to support bot
 1. [x] ~~Stabilize DSL~~
 1. [x] ~~Stabilize Yml~~
 1. [x] ~~Refactor Bootstrap~~
-1. [ ] Stabilize workflow (agent loop controls, git branching model, gates)
 1. [x] ~~Refactor core + core extensions~~
 1. [x] ~~Refactor tests~~
 1. [ ] Complete the Builder
-1. [ ] Complete the baseline implementations
 1. [ ] Sandboxing and Permissions
-1. [ ] Containerization and Virtualization
-1. [ ] Implement agents (for now : Cursor + Codex + Ollama, next : Claude Code)
+1. [ ] Stack and Host orchestration (containerization, virtualization, etc)
+1. [ ] Agents (for now : Cursor + Codex + Ollama + Ollaya, next : Claude Code)
+1. [ ] Stabilize workflow (agent loop controls, git branching model, gates)
 
 &lt;proposal-2026-11-18&gt;
 
