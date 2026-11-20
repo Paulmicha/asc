@@ -115,7 +115,7 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [Conditional execution](#conditional-execution)
     - [Redirecting](#redirecting)
     - [Iterations (= loops, foreach, for ... in)](#iterations-loops-foreach-for-in)
-    - ["Normal" DSL example](#normal-dsl-example)
+    - [DSL examples](#dsl-examples)
     - [DSL in Yaml](#dsl-in-yaml)
   - [Data dirs](#data-dirs)
     - [ASC cache : `data/asc/cache`](#asc-cache-dataasccache)
@@ -1635,7 +1635,7 @@ while read -r item; do
 done < <(myfunc)
 ```
 
-#### "Normal" DSL example
+#### DSL examples
 
 The authoritative form of expressing one's need is the following :
 
@@ -1701,9 +1701,32 @@ report(
 )
 ```
 
-But the gap remains high in prompts processing such as :
+Template processing is a good hook implementation opportunity, with any variants
+we'd like - take this string for example in hypothetical `path/to/foobar.prompt.md` :
 
-For the following {{ subject }}, I need to create a new pivot with variants control for an action : {{ describe the action }}
+"For the following '{{ subject }}', I need to create a new pivot with variants control for an action : '{{ action }}'."
+
+The prompt itself is a string template, that's why the `prompt` pivot (`asc/extensions/agent/instance/prompt.sh`) exists.
+
+Depending on the selected agent role, it may ultimately produce calls like :
+
+```txt
+make model-prompt 'codex' 'gpt-6.1-terra-high' 'worspace-foobar' 'path/to/foobar.prompt.md'
+```
+
+The "advertising" of mutable *scoped variables* remains something to be specified.
+
+These may contain hook variants, answering needs such as :
+
+- Does this host (laptop, server) have the necessary software requirements ? (variants : debian, bluefin, pi, synology, tiiny...)
+- Are the software requirements met ?
+- Is the stack started ?
+- Healthchecks ?
+- Multiple project instance on the same host (local domains centralized routing) ?
+- ASC upstream "mother" repo instanciated on the same host ?
+- etc.
+
+This is why the `core-sync` pivot exists (`asc/core/sync.sh`).
 
 #### DSL in Yaml
 
