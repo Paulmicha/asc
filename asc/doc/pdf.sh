@@ -7,7 +7,7 @@
 #   -> 'data/ideas/2026/08/Agents of Redirection (Donella Meadows, Alexandre Monnin, Pierre Lévy).pdf'
 #
 # @requires https://github.com/rbutinar/md2pdf-mermaid
-# Styled via asc/doc/md2pdf_asc.py + pdf_styles.css (Spectral, 9pt body).
+# Styled via asc/doc/md/md2pdf_asc.py + pdf_styles.css (Spectral, 9pt body).
 # Mermaid: local asc/vendor/mermaid.esm.min.mjs (offline).
 # KaTeX: local asc/vendor/katex/ (CSS + JS + auto-render, offline).
 # Graphviz: ```dot / ```graphviz / ```fdp / …  (user host dep: sudo apt install graphviz)
@@ -37,31 +37,34 @@
 #   Also rebuilds when the PDF is already newer than the source.
 #
 # @example
-#   # All *.md files found in ./data/ideas and ./docs :
-#   asc/doc/pdf_export.sh
-#
-#   # Force re-compiling already compiled pdfs :
-#   asc/doc/pdf_export.sh --force
-#
-#   # Single file :
-#   asc/doc/pdf_export.sh 'data/ideas/2026/08/Agents of Redirection.md'
-#   asc/doc/pdf_export.sh --force 'docs/asc/builder.md'
+#   make doc-pdf "'data/ideas/2026/08/Agents of Redirection.md'"
+#   # Or :
+#   asc/doc/pdf.sh 'data/ideas/2026/08/Agents of Redirection.md'
 #
 #   # All *.md files under a folder (recursive) :
-#   asc/doc/pdf_export.sh 'data/ideas/2026/08'
-#   asc/doc/pdf_export.sh --force docs/asc
+#   make doc-pdf 'data/ideas/2026/08'
+#   # Or :
+#   asc/doc/pdf.sh 'data/ideas/2026/08'
+#
+#   # Rewrite existing :
+#   make doc-pdf -- --force docs/foobar
+#   # Or :
+#   asc/doc/pdf.sh --force docs/foobar
 #
 #   # A3 landscape for one file (rebuilds a current PDF too) :
-#   asc/doc/pdf_export.sh --a3-l 'docs/foobar.md'
+#   make doc-pdf -- --a3-l 'docs/foobar.md'
+#   # Or :
+#   asc/doc/pdf.sh --a3-l 'docs/foobar.md'
 #
 #   # A3 landscape for every markdown file under a directory :
-#   asc/doc/pdf_export.sh --a3-l docs/asc
+#   make doc-pdf -- --a3-l docs/foobar
+#   # Or :
+#   asc/doc/pdf.sh --a3-l docs/foobar
 #
 #   # A3 landscape for data/ideas and docs :
-#   asc/doc/pdf_export.sh --a3-l
-#
-#   # Write that one file back to A4 portrait :
-#   asc/doc/pdf_export.sh --force 'docs/foobar.md'
+#   make doc-pdf -- --a3-l
+#   # Or :
+#   asc/doc/pdf.sh --a3-l
 #
 
 . asc/bootstrap.sh

@@ -29,10 +29,10 @@
 #   # Merges all *.md files in folder 'path/to/foobar' :
 #   make doc-md-merge path/to/foobar
 #   # Or :
-#   asc/doc/md_merge.sh path/to/foobar
+#   asc/doc/md/merge.sh path/to/foobar
 #   # -> Result : path/foobar.md
 #
-#   asc/doc/md_merge.sh --force path/to/foobar path/custom.md
+#   asc/doc/md/merge.sh --force path/to/foobar path/custom.md
 #
 
 . asc/bootstrap.sh
@@ -42,7 +42,7 @@ p_folder=''
 p_out=''
 
 u_md_merge_usage() {
-  echo "Usage: asc/doc/md_merge.sh [--force] <folder> [output.md]" >&2
+  echo "Usage: asc/doc/md/merge.sh [--force] <folder> [output.md]" >&2
 }
 
 while [[ $# -gt 0 ]]; do

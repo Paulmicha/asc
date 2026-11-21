@@ -10,9 +10,9 @@ Pipeline (do not reorder; pagination is last):
   Preview stops before paginate. Preview does not select a page.
 
 Usage:
-  asc/doc/md2pdf_asc.py input.md -o output.pdf
-  asc/doc/md2pdf_asc.py input.md -o output.pdf --no-paginate
-  asc/doc/md2pdf_asc.py input.md -o output.pdf --a3-l
+  asc/doc/md/md2pdf_asc.py input.md -o output.pdf
+  asc/doc/md/md2pdf_asc.py input.md -o output.pdf --no-paginate
+  asc/doc/md/md2pdf_asc.py input.md -o output.pdf --a3-l
 """
 from __future__ import annotations
 

@@ -4,10 +4,10 @@
 |-------|--------|
 | **Date** | 2026-09-04 |
 | **Status** | implemented (`4e770af`) |
-| **Scope** | ASC repo `/home/paul/Documents/asc` — print pipeline only: `asc/doc/md2pdf_asc.py`, `asc/doc/pdf_styles.css`, `asc/doc/pdf_export.sh`, `asc/doc/html_preview.sh`, plus new helpers under `asc/doc/`. Not the Nextcloud markdown sources. |
+| **Scope** | ASC repo `/home/paul/Documents/asc` — print pipeline only: `asc/doc/md/md2pdf_asc.py`, `asc/doc/pdf/styles.css`, `asc/doc/pdf.sh`, `asc/doc/md/to_html.sh`, plus new helpers under `asc/doc/`. Not the Nextcloud markdown sources. |
 | **Related** | `1ca680d` (exporter + Mermaid), `070d013` / `426d3a5` / `0d0e66c` (KaTeX), md2pdf-mermaid 1.4.3, Mermaid 11.16.1 (`asc/vendor/mermaid.esm.min.mjs`), KaTeX 0.16.11 (`asc/vendor/katex/`) |
 | **Lifecycle** | Shipped. Unchecked boxes below are historical plan text — do not re-run. Do not treat this file as permission to edit the AI Reviews `.md` files. |
-| **Living docs** | `asc/doc/pdf_export.sh` header (usage). No living `docs/asc/` page for print yet; add a short pointer only if the README catalog already lists the exporter. |
+| **Living docs** | `asc/doc/pdf.sh` header (usage). No living `docs/asc/` page for print yet; add a short pointer only if the README catalog already lists the exporter. |
 | **Shipped notes** | `@page` margins stay `.75cm .75cm`. Body type is **9pt** Spectral (`html` font-size); headings, code, and Mermaid labels use rem/em so they track that root. Pagination still walks layout pages (orphan table fragment first, then orphan heading); “already at the top” is `0.75em`. Mermaid `initialize` uses official `fontSize` / `flowchart.padding` / `nodeSpacing` / `wrappingWidth` derived at run time from `getComputedStyle(html).fontSize` (Mermaid’s API is pixels; 1em at 9pt = 12px). A measure-time stylesheet sets `.nodeLabel` to that same px so `foreignObject` HTML is not measured at the 16px browser default. After render, `ascFitViewBox` sets the SVG `viewBox` from `getBBox()` and `width: min(100%, <viewBox-width>px)` so a diagram never stretches past its intrinsic width (HTML preview and print). Candidate scoring still treats scale as `min(..., 1)`. Flowchart source is not rewritten (`[rect]` stays `[rect]`). Heading `id`s longer than 120 characters are shortened so Chromium PDF dest names stay within the 127-byte PDF name limit. Sequence diagrams always initialize with official `wrap: true` and `wrapPadding: 3` so long arrow labels wrap; messages that contain `;` / `--` / extra `:` are still quoted as a retry candidate. Probe heading matching prefers the PDF line whose Y matches the live layout, so a table of contents does not steal the keep-list. Failed Mermaid candidate renders leave `#dascMmd*` error SVGs in the document; those are removed so they do not print as a last-page “Syntax error in text”. Exploded `.code-line` spans no longer keep a `\n` between block lines (that doubled every tree/code line). A table spacer is not inserted when a heading plus a short intro owns that table (that was splitting §2.3). The probe keep-list counts PDF lines after a table header even when wide cells do not match full DOM row strings, so a heading that already has a full table on the probe page is not pushed. Orphan prevention includes `h1` (same 4-line rule as `h2`–`h6`). A push that overshoots the next page top no longer floors leftover spacer at one `<br>` (that printed as a blank line above the heading); `.asc-print-push + heading` also drops the extra `margin-top`. **Failed pushes clear the spacer** instead of restoring `minHeight` on the source page (that left ~8 blank lines before the Gazit preprocessing table in file 08 §13.1). |
 
 ---
@@ -24,7 +24,7 @@
 
 ## Global constraints
 
-- Engine stays Playwright/Chromium via `asc/doc/md2pdf_asc.py`. No WeasyPrint, Paged.js, or ReportLab switch.
+- Engine stays Playwright/Chromium via `asc/doc/md/md2pdf_asc.py`. No WeasyPrint, Paged.js, or ReportLab switch.
 - Do **not** edit the Nextcloud AI Reviews markdown. Fixes belong in the print pipeline so every export benefits.
 - Offline only: keep `asc/vendor/mermaid.esm.min.mjs` and `asc/vendor/katex/`. Upgrade a vendor bundle only if a named bug in this plan requires it, and record the version.
 - Pagination must **never** push an element whose rendered height exceeds one page’s content box (that recreates issue 5).
@@ -37,7 +37,7 @@
 
 ## Context (what the pipeline does today)
 
-`asc/doc/pdf_export.sh` calls `md2pdf_asc.py`. **Today** that is: protect dollars → Markdown → restore math → inject CSS/fonts/Mermaid+KaTeX boots → write HTML → Playwright wait on `__ascMermaidDone` / `__ascKatexDone` → `page.pdf()`. Independent boot flags are how the stages race. The new pipeline replaces that with one ordered boot plus a PDF-only last stage (Locked design § pipeline order).
+`asc/doc/pdf.sh` calls `md2pdf_asc.py`. **Today** that is: protect dollars → Markdown → restore math → inject CSS/fonts/Mermaid+KaTeX boots → write HTML → Playwright wait on `__ascMermaidDone` / `__ascKatexDone` → `page.pdf()`. Independent boot flags are how the stages race. The new pipeline replaces that with one ordered boot plus a PDF-only last stage (Locked design § pipeline order).
 
 Print geometry: A4, Playwright margins `top 0.6cm / right 0.7cm / bottom 1.0cm / left 0.7cm`, plus `@page { margin: .75cm }` in CSS. Body is 8pt Spectral, `line-height: 1.45` → **one line ≈ 11.6pt ≈ 4.1 mm**. Four lines ≈ 16.4 mm.
 
@@ -333,7 +333,7 @@ Repair if that ever happens: if a spacer sits *inside* a cluster, move it before
 
 Then the same `<br>` push **before the `<table>`** (not in the middle).
 
-**Where it runs:** pipeline **stage 12 only** — last DOM mutation in `html_to_pdf_playwright`, after print media + long-paragraph mark, immediately before `page.pdf()`. New module: `asc/doc/print_paginate.py`. Never call `apply_print_pushes` from the shared HTML boot (preview must not paginate).
+**Where it runs:** pipeline **stage 12 only** — last DOM mutation in `html_to_pdf_playwright`, after print media + long-paragraph mark, immediately before `page.pdf()`. New module: `asc/doc/pdf/paginate.py`. Never call `apply_print_pushes` from the shared HTML boot (preview must not paginate).
 
 **How it measures:** Playwright `page.evaluate` after `emulateMedia({ media: "print" })`, using a CSS-pixel page model:
 
@@ -532,13 +532,13 @@ Pipeline **stage 4**: run this on the HTML string after Markdown restore, **befo
 
 | File | Role |
 |------|------|
-| `asc/doc/md2pdf_asc.py` | Orchestrator: stages 1–13 in docstring order; `ascLayoutBoot` + Playwright driver; pagination is the last call before `page.pdf()` |
-| `asc/doc/print_katex.py` | Extract + extend protect/restore/`html_has_katex`; `ascRunKatex()` (stage 9, after Mermaid) |
-| `asc/doc/print_mermaid.py` | `ascRunMermaid()` (stage 8); candidate list (`flowchart_set_rank`, `wrap_long_labels`, `mermaid_candidates`); `FIT`/`SCORE` JS |
-| `asc/doc/print_code.py` | `explode_pre_code_lines(html) -> html` (stage 4, string-time) |
-| `asc/doc/print_paginate.py` | `MARK_LONG_PARAS_JS` (stage 11); `apply_print_pushes` (stage 12, PDF only) |
-| `asc/doc/pdf_styles.css` | Code fragmentation, `.asc-print-push`, `p.asc-para-long + p.asc-para-long`, Mermaid, KaTeX, `@page` margin 0 |
-| `asc/doc/html_preview.sh` | Stages 1–9 and 11; **no** stage 12 |
+| `asc/doc/md/md2pdf_asc.py` | Orchestrator: stages 1–13 in docstring order; `ascLayoutBoot` + Playwright driver; pagination is the last call before `page.pdf()` |
+| `asc/doc/formula/katex.py` | Extract + extend protect/restore/`html_has_katex`; `ascRunKatex()` (stage 9, after Mermaid) |
+| `asc/doc/diagram/mermaid.py` | `ascRunMermaid()` (stage 8); candidate list (`flowchart_set_rank`, `wrap_long_labels`, `mermaid_candidates`); `FIT`/`SCORE` JS |
+| `asc/doc/pdf/code.py` | `explode_pre_code_lines(html) -> html` (stage 4, string-time) |
+| `asc/doc/pdf/paginate.py` | `MARK_LONG_PARAS_JS` (stage 11); `apply_print_pushes` (stage 12, PDF only) |
+| `asc/doc/pdf/styles.css` | Code fragmentation, `.asc-print-push`, `p.asc-para-long + p.asc-para-long`, Mermaid, KaTeX, `@page` margin 0 |
+| `asc/doc/md/to_html.sh` | Stages 1–9 and 11; **no** stage 12 |
 | `asc/doc/fixtures/para-gap.md` | Issue 6: two long paras, then a 2-line para against a long para |
 | `asc/doc/fixtures/orphan-heading.md` | Issue 1: lone `h2` at page bottom |
 | `asc/doc/fixtures/orphan-heading-stack.md` | Issue 1: `h2` then `h3` then short body at page bottom |
@@ -591,7 +591,7 @@ Pure Python geometry tests only. Do **not** call `apply_print_pushes` from the e
 
 **Files:**
 
-- Create: `asc/doc/print_paginate.py` (pure Python first: geometry + clusters + `should_push_cluster` / `should_push_table`)
+- Create: `asc/doc/pdf/paginate.py` (pure Python first: geometry + clusters + `should_push_cluster` / `should_push_table`)
 - Create: `asc/doc/fixtures/*.md` (five files listed above)
 - Create: `asc/doc/asc/pdf.test.sh`
 - Test: `asc/doc/asc/pdf.test.sh`
@@ -722,7 +722,7 @@ def should_push_table(table_height, first_fragment_rows, first_fragment_height, 
 - [ ] **Step 6: Commit** (when asked)
 
 ```bash
-git add asc/doc/print_paginate.py asc/doc/fixtures asc/doc/asc/pdf.test.sh
+git add asc/doc/pdf/paginate.py asc/doc/fixtures asc/doc/asc/pdf.test.sh
 git commit -m "$(cat <<'EOF'
 Add PDF pagination decision helpers and print fixtures.
 
@@ -736,9 +736,9 @@ EOF
 
 **Files:**
 
-- Create: `asc/doc/print_code.py`
-- Modify: `asc/doc/pdf_styles.css` (`pre` / `pre code` / `.code-line`; `@page { margin: 0; }` to match Playwright margins)
-- Modify: `asc/doc/md2pdf_asc.py` (`markdown_to_html` wrapper calls `explode_pre_code_lines` as pipeline **stage 4**, before any Playwright work)
+- Create: `asc/doc/pdf/code.py`
+- Modify: `asc/doc/pdf/styles.css` (`pre` / `pre code` / `.code-line`; `@page { margin: 0; }` to match Playwright margins)
+- Modify: `asc/doc/md/md2pdf_asc.py` (`markdown_to_html` wrapper calls `explode_pre_code_lines` as pipeline **stage 4**, before any Playwright work)
 - Test: `asc/doc/asc/pdf.test.sh`
 
 **Interfaces:**
@@ -769,7 +769,7 @@ assert explode_pre_code_lines(mm) == mm
 - [ ] **Step 5: Export fixture** (needs Playwright):
 
 ```bash
-asc/doc/pdf_export.sh --force 'asc/doc/fixtures/long-code.md'
+asc/doc/pdf.sh --force 'asc/doc/fixtures/long-code.md'
 python3 - <<'PY'
 import subprocess
 pdf = "asc/doc/fixtures/long-code.pdf"
@@ -793,7 +793,7 @@ Expected: the fence starts on the same page as §3.1 or the immediately followin
 
 - [ ] **Step 6: Re-export the reported security PDF** (read-only check, path outside the repo):
 
-`asc/doc/pdf_export.sh --force '/mnt/78D4D83ED4D7FBF6/Nextcloud/AI Reviews/devops, linux, servers, networking, hosting, security, privacy/04-security-and-privacy-operations-secrets-keys-container-hardening-supply-chain-gdpr-lgpd.md'`
+`asc/doc/pdf.sh --force '/mnt/78D4D83ED4D7FBF6/Nextcloud/AI Reviews/devops, linux, servers, networking, hosting, security, privacy/04-security-and-privacy-operations-secrets-keys-container-hardening-supply-chain-gdpr-lgpd.md'`
 
 Confirm page 10 is no longer empty and the Compose fence starts without a blank leaf.
 
@@ -805,8 +805,8 @@ Confirm page 10 is no longer empty and the Compose fence starts without a blank 
 
 **Files:**
 
-- Create: `asc/doc/print_katex.py` (move `protect_katex_math`, `restore_katex_math`, `html_has_katex`; add `ascRunKatex` used by `ascLayoutBoot`)
-- Modify: `asc/doc/md2pdf_asc.py` (import from `print_katex`; stages 1 and 3; start `ascLayoutBoot` — `ascRunMermaid` may be a no-op stub until Task 5)
+- Create: `asc/doc/formula/katex.py` (move `protect_katex_math`, `restore_katex_math`, `html_has_katex`; add `ascRunKatex` used by `ascLayoutBoot`)
+- Modify: `asc/doc/md/md2pdf_asc.py` (import from `print_katex`; stages 1 and 3; start `ascLayoutBoot` — `ascRunMermaid` may be a no-op stub until Task 5)
 - Test: `asc/doc/asc/pdf.test.sh`
 
 **Interfaces:**
@@ -857,8 +857,8 @@ assert "/tmp/gpu_w.$$" in protected_fenced
 
 **Files:**
 
-- Modify: `asc/doc/print_katex.py` (`ascRunKatex` CSS + flatten; still **stage 9**, after Mermaid)
-- Modify: `asc/doc/pdf_styles.css` (display-math rules)
+- Modify: `asc/doc/formula/katex.py` (`ascRunKatex` CSS + flatten; still **stage 9**, after Mermaid)
+- Modify: `asc/doc/pdf/styles.css` (display-math rules)
 - Test: fixture PDF from Task 3
 
 **Interfaces:**
@@ -888,9 +888,9 @@ if err_n:
 
 **Files:**
 
-- Create: `asc/doc/print_mermaid.py` (move `mermaid_boot_script`, `patch_mermaid_as_html`; add candidate helpers + score/pick JS)
-- Modify: `asc/doc/pdf_styles.css` (drop 8pt `!important` on mermaid internals; fix `--pico-font-family-sans-serif`; keep `svg { max-width: 100%; height: auto }`)
-- Modify: `asc/doc/md2pdf_asc.py` (import boot from `print_mermaid`)
+- Create: `asc/doc/diagram/mermaid.py` (move `mermaid_boot_script`, `patch_mermaid_as_html`; add candidate helpers + score/pick JS)
+- Modify: `asc/doc/pdf/styles.css` (drop 8pt `!important` on mermaid internals; fix `--pico-font-family-sans-serif`; keep `svg { max-width: 100%; height: auto }`)
+- Modify: `asc/doc/md/md2pdf_asc.py` (import boot from `print_mermaid`)
 - Test: `asc/doc/asc/pdf.test.sh` (pure Python candidates) + `asc/doc/fixtures/mermaid-dense.md` (house + WoL state + gantt + the file 05 triage/router flowchart as control)
 
 **Interfaces:**
@@ -968,9 +968,9 @@ This task **wires** pagination. It must not run earlier in the export. Helpers f
 
 **Files:**
 
-- Modify: `asc/doc/print_paginate.py` (add `MARK_LONG_PARAS_JS`, `PAGINATE_JS`, `async def apply_print_pushes(page) -> int`)
-- Modify: `asc/doc/md2pdf_asc.py` (`html_to_pdf_playwright` follows Locked design § pipeline order stages 10–13 only)
-- Modify: `asc/doc/pdf_styles.css` (`.asc-print-push`)
+- Modify: `asc/doc/pdf/paginate.py` (add `MARK_LONG_PARAS_JS`, `PAGINATE_JS`, `async def apply_print_pushes(page) -> int`)
+- Modify: `asc/doc/md/md2pdf_asc.py` (`html_to_pdf_playwright` follows Locked design § pipeline order stages 10–13 only)
+- Modify: `asc/doc/pdf/styles.css` (`.asc-print-push`)
 - Test: fixtures `orphan-heading.md`, `orphan-heading-stack.md`, `widow-table.md`, `para-gap.md`; driver source-order test
 
 **Interfaces:**
@@ -1171,9 +1171,9 @@ await page.pdf(**pdf_options)
 
 **Files:**
 
-- Modify: `asc/doc/html_preview.sh` (still `render_html()`; stages 1–9 and 11; **no** `apply_print_pushes`)
-- Modify: `asc/doc/pdf_export.sh` (header: paste the 13-stage list)
-- Modify: `asc/doc/md2pdf_asc.py` (module docstring: same 13-stage list)
+- Modify: `asc/doc/md/to_html.sh` (still `render_html()`; stages 1–9 and 11; **no** `apply_print_pushes`)
+- Modify: `asc/doc/pdf.sh` (header: paste the 13-stage list)
+- Modify: `asc/doc/md/md2pdf_asc.py` (module docstring: same 13-stage list)
 
 - [ ] **Step 1: `html_preview.sh` on `katex-delimiters.md` and `mermaid-dense.md`** — grep the HTML for `asc-math-display`, `code-line`, `ascLayoutBoot`, and the new mermaid `fontSize: 13`. Must contain `await ascRunMermaid` before `await ascRunKatex`. Must **not** contain `apply_print_pushes` / `asc-print-push` insertion.
 

@@ -113,10 +113,10 @@ Paths are relative to `$PROJECT_DOCROOT` unless they start with `$HOME`. `make c
 | Thread lock | `data/threads/$action.lock` | `f_thread_lock_acquire` | Keep. |
 | Host thread index | `$HOME/.local/share/asc/threads/$hash.yml` | `f_thread_host_publish` | Keep while thread monitoring stays. This is `$HOME/.local/share`, a different tree from the registry’s `$HOME/.local/state`. Off when `ASC_MONITORING` or `ASC_HOST_THREAD_MONITOR` is `0`, `false`, or `off`. |
 | Agent next-steps | `NEXT_STEPS.agent.md` or `NEXT_STEPS.agent.$INSTANCE_TYPE.md` | `f_doc_next_steps_write` in `asc/doc/next_steps.sh` | Keep. The script refuses to write the human `NEXT_STEPS*.md` file and refuses to write gates. |
-| Print HTML | `data/tmp/doc-print/$name.html` | `asc/doc/md2pdf_asc.py`, `asc/doc/html_preview.sh` | Keep with the print pipeline. |
-| PDF | beside the source `*.md` | `asc/doc/pdf_export.sh` | Keep. May also install Playwright browsers under `$HOME/.cache/ms-playwright` when that directory is missing. |
-| In-place TOC | the given `*.md` | `asc/doc/md_toc.sh` | Keep. `pre-commit` can run it when the README has a `<nav>` block. |
-| Merged markdown | caller-chosen path | `asc/doc/md_merge.sh` | Keep. |
+| Print HTML | `data/tmp/doc-print/$name.html` | `asc/doc/md/md2pdf_asc.py`, `asc/doc/md/to_html.sh` | Keep with the print pipeline. |
+| PDF | beside the source `*.md` | `asc/doc/pdf.sh` | Keep. May also install Playwright browsers under `$HOME/.cache/ms-playwright` when that directory is missing. |
+| In-place TOC | the given `*.md` | `asc/doc/md/toc.sh` | Keep. `pre-commit` can run it when the README has a `<nav>` block. |
+| Merged markdown | caller-chosen path | `asc/doc/md/merge.sh` | Keep. |
 | Upgrade clone, then swaps | `data/tmp/upstream-asc`, then `asc/`, `scripts/asc/contrib/asc/`, and the four `.agents/skills/asc-*` directories, plus `AGENTS.asc.md` | `asc/core/upgrade.sh` | Keep. The instance root `AGENTS.md` stays. The `.claude/skills` symlink is commented out. |
 | Git hooks | `$PROJECT_DOCROOT/.git/hooks/$name` | `f_git_write_hooks` from `asc/git/init.hook.sh` | Writes only when `ASC_GIT_HOOKS_WIRED` is non-empty. |
 | Host shell map | `$HOME/.bash_aliases_asc` (or `.bashrc_asc` / `.profile_asc`) | `asc/host/shell/write_aliases.sh` | Explicit `make host-shell-write-aliases`. Appends a source line to an existing plug. |

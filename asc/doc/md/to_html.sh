@@ -10,15 +10,15 @@
 # pre.graphviz-error.
 #
 # @example
-#   asc/doc/html_preview.sh 'data/ideas/2026/08/Agents of Redirection (Donella Meadows, Alexandre Monnin, Pierre Lévy).md'
-#   asc/doc/html_preview.sh 'docs/asc/builder.md'
-#   asc/doc/html_preview.sh 'asc/doc/fixtures/katex-delimiters.md'
+#   asc/doc/md/to_html.sh 'data/ideas/2026/08/Agents of Redirection (Donella Meadows, Alexandre Monnin, Pierre Lévy).md'
+#   asc/doc/md/to_html.sh 'docs/asc/builder.md'
+#   asc/doc/md/to_html.sh 'asc/doc/fixtures/katex-delimiters.md'
 #
 
 . asc/bootstrap.sh
 
 if [[ $# -lt 1 ]]; then
-  echo "Usage: asc/doc/html_preview.sh <path-under-data/ideas-or-docs>.md" >&2
+  echo "Usage: asc/doc/md/to_html.sh <path-under-data/ideas-or-docs>.md" >&2
   exit 1
 fi
 

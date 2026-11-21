@@ -4,7 +4,7 @@
 |-------|--------|
 | **Date** | 2026-09-17 |
 | **Status** | implemented (`9faf10a`) |
-| **Scope** | ASC print pipeline: `asc/doc/pdf_export.sh`, `asc/doc/md2pdf_asc.py`, new `asc/doc/print_graphviz.py`, `asc/doc/print_code.py`, `asc/doc/print_paginate.py`, `asc/doc/print_katex.py` (`ignoredClasses` only), `asc/doc/pdf_styles.css`, `asc/doc/html_preview.sh`, `asc/doc/asc/pdf.test.sh`, plus a Graphviz fixture. Not conversion of consumer Markdown outside this repo. |
+| **Scope** | ASC print pipeline: `asc/doc/pdf.sh`, `asc/doc/md/md2pdf_asc.py`, new `asc/doc/graph/print_graphviz.py`, `asc/doc/pdf/code.py`, `asc/doc/pdf/paginate.py`, `asc/doc/formula/katex.py` (`ignoredClasses` only), `asc/doc/pdf/styles.css`, `asc/doc/md/to_html.sh`, `asc/doc/asc/pdf.test.sh`, plus a Graphviz fixture. Not conversion of consumer Markdown outside this repo. |
 | **Related** | [04-pdf-generation-improvements.md](04-pdf-generation-improvements.md). Comparison snapshot 2026-09-17: [sigma.js](https://github.com/jacomyal/sigma.js) v4, [graphology](https://github.com/graphology/graphology), [d3](https://github.com/d3/d3), plus Cytoscape / vis-network / ELK / Dagre / Viz.js (see § Library comparison). |
 | **Lifecycle** | Shipped. Unchecked boxes below are historical plan text — do not re-run. Do not rewrite Mermaid or change pagination order. |
 | **Host dep** | Graphviz CLI (`dot`). **User** prerequisite (`sudo apt install graphviz`); **not** an agent step. Missing `dot` never aborts export (see Global constraints). Not installed on this machine at plan time (`command -v dot` empty). |
@@ -23,7 +23,7 @@
 
 ## Global constraints
 
-- Engine stays Playwright/Chromium via `asc/doc/md2pdf_asc.py`. No WeasyPrint, Kroki, Sigma.js, D3, or Cytoscape as the print renderer. WASM Graphviz (`@viz-js/viz` / `@hpcc-js/wasm-graphviz`) is Plan B only if we drop the host binary (see § Choice).
+- Engine stays Playwright/Chromium via `asc/doc/md/md2pdf_asc.py`. No WeasyPrint, Kroki, Sigma.js, D3, or Cytoscape as the print renderer. WASM Graphviz (`@viz-js/viz` / `@hpcc-js/wasm-graphviz`) is Plan B only if we drop the host binary (see § Choice).
 - Do **not** reorder the locked print pipeline from [04-pdf-generation-improvements.md](04-pdf-generation-improvements.md). Graphviz is a **string-time** stage (with Mermaid fence patch / before Markdown). It must **not** run after pagination.
 - Offline print: no CDN. Graphviz is a **host binary**, not a vendored JS bundle.
 - **Missing `dot` never aborts export.** Same rule with or without Graphviz fences, including when every fence fails. Each Graphviz fence becomes `pre.graphviz-error` (escaped source) plus `warning: graphviz fence N failed: …` on stderr. Do **not** `sys.exit` / `exit 1` / return a failed conversion because `dot` is missing, timed out, or non-zero. Do **not** leave a leftover ```` ```dot ```` fence. Lazy host dep: exporter startup must not require `dot` (Mermaid-only docs still export).
@@ -377,14 +377,14 @@ Keep the fixture **small** (legend + a handful of sample edges: Article → Auth
 
 | File | Role |
 |------|------|
-| `asc/doc/print_graphviz.py` | Fence scan, engine map, `dot` subprocess (`runner=` / `which_dot=`), SVG sanitize (ElementTree), HTML wrap |
-| `asc/doc/md2pdf_asc.py` | Call `render_graphviz_fences` after protect math, before `orig()`; docstring stage list; Graphviz line in `main()` conversion banner (not in `render_html()`) |
-| `asc/doc/print_code.py` | Skip `graphviz-error` `<pre>`; ancestor skip for `.graphviz-wrap` (unused on success path) |
-| `asc/doc/print_paginate.py` | Skip `.graphviz-wrap` in para-mark and table-intro walk |
-| `asc/doc/print_katex.py` | `ignoredClasses`: add `graphviz-wrap`, `graphviz-error` |
-| `asc/doc/pdf_styles.css` | `.graphviz-wrap` / `pre.graphviz-error` (no `width: 100%` on SVG) |
-| `asc/doc/pdf_export.sh` | Header: Graphviz fences + host dep (lazy; no `exit 1` if `dot` missing) |
-| `asc/doc/html_preview.sh` | Header mention + preview-equivalent Graphviz note in the Python snippet (not the `main()` banner) |
+| `asc/doc/graph/print_graphviz.py` | Fence scan, engine map, `dot` subprocess (`runner=` / `which_dot=`), SVG sanitize (ElementTree), HTML wrap |
+| `asc/doc/md/md2pdf_asc.py` | Call `render_graphviz_fences` after protect math, before `orig()`; docstring stage list; Graphviz line in `main()` conversion banner (not in `render_html()`) |
+| `asc/doc/pdf/code.py` | Skip `graphviz-error` `<pre>`; ancestor skip for `.graphviz-wrap` (unused on success path) |
+| `asc/doc/pdf/paginate.py` | Skip `.graphviz-wrap` in para-mark and table-intro walk |
+| `asc/doc/formula/katex.py` | `ignoredClasses`: add `graphviz-wrap`, `graphviz-error` |
+| `asc/doc/pdf/styles.css` | `.graphviz-wrap` / `pre.graphviz-error` (no `width: 100%` on SVG) |
+| `asc/doc/pdf.sh` | Header: Graphviz fences + host dep (lazy; no `exit 1` if `dot` missing) |
+| `asc/doc/md/to_html.sh` | Header mention + preview-equivalent Graphviz note in the Python snippet (not the `main()` banner) |
 | `asc/doc/fixtures/graphviz-er.md` | Legend + small editorial ER in DOT |
 | `asc/doc/asc/pdf.test.sh` | Unit tests + optional `dot` fixture export |
 
@@ -394,7 +394,7 @@ Keep the fixture **small** (legend + a handful of sample edges: Article → Auth
 
 **Files:**
 
-- Create: `asc/doc/print_graphviz.py`
+- Create: `asc/doc/graph/print_graphviz.py`
 - Modify: `asc/doc/asc/pdf.test.sh`
 - Test: `asc/doc/asc/pdf.test.sh`
 
@@ -720,7 +720,7 @@ else:
 - [ ] **Step 6: Commit** (when asked)
 
 ```bash
-git add asc/doc/print_graphviz.py asc/doc/asc/pdf.test.sh
+git add asc/doc/graph/print_graphviz.py asc/doc/asc/pdf.test.sh
 git commit -m "$(cat <<'EOF'
 Add Graphviz fence helpers for the Markdown→PDF pipeline.
 
@@ -736,13 +736,13 @@ EOF
 
 **Files:**
 
-- Modify: `asc/doc/md2pdf_asc.py` (import + call `render_graphviz_fences`; module docstring stage list; Graphviz line in `main()` conversion banner)
-- Modify: `asc/doc/print_code.py` (skip `graphviz-error`; ancestor skip for `graphviz-wrap`)
-- Modify: `asc/doc/print_paginate.py` (para-mark + `sectionHeadForTable`)
-- Modify: `asc/doc/print_katex.py` (`ignoredClasses`: `graphviz-wrap`, `graphviz-error`)
-- Modify: `asc/doc/pdf_styles.css`
-- Modify: `asc/doc/pdf_export.sh` (header; lazy host dep)
-- Modify: `asc/doc/html_preview.sh` (header + preview-equivalent Graphviz note in the Python snippet)
+- Modify: `asc/doc/md/md2pdf_asc.py` (import + call `render_graphviz_fences`; module docstring stage list; Graphviz line in `main()` conversion banner)
+- Modify: `asc/doc/pdf/code.py` (skip `graphviz-error`; ancestor skip for `graphviz-wrap`)
+- Modify: `asc/doc/pdf/paginate.py` (para-mark + `sectionHeadForTable`)
+- Modify: `asc/doc/formula/katex.py` (`ignoredClasses`: `graphviz-wrap`, `graphviz-error`)
+- Modify: `asc/doc/pdf/styles.css`
+- Modify: `asc/doc/pdf.sh` (header; lazy host dep)
+- Modify: `asc/doc/md/to_html.sh` (header + preview-equivalent Graphviz note in the Python snippet)
 - Test: `asc/doc/asc/pdf.test.sh`
 
 **Interfaces:**
@@ -779,7 +779,7 @@ PY
 test_pipeline_mentions_graphviz() {
   "$PDF_PY" - <<'PY'
 from pathlib import Path
-src = Path("asc/doc/md2pdf_asc.py").read_text(encoding="utf-8")
+src = Path("asc/doc/md/md2pdf_asc.py").read_text(encoding="utf-8")
 assert "render_graphviz_fences" in src
 # protect → graphviz → orig (markdown/mermaid)
 fn = src.split("def markdown_to_html", 1)[1].split("hr.markdown_to_html", 1)[0]
@@ -788,18 +788,18 @@ assert fn.index("render_graphviz_fences") < fn.index("orig(")
 # Conversion banner is in main(), not render_html() / html_preview.sh.
 main = src.split("def main", 1)[1]
 assert "Graphviz" in main
-css = Path("asc/doc/pdf_styles.css").read_text(encoding="utf-8")
+css = Path("asc/doc/pdf/styles.css").read_text(encoding="utf-8")
 assert ".graphviz-wrap" in css
 assert "pre.graphviz-error" in css
 assert 'width: 100%' not in css.split(".graphviz-wrap svg", 1)[1].split("}", 1)[0]
-pag = Path("asc/doc/print_paginate.py").read_text(encoding="utf-8")
+pag = Path("asc/doc/pdf/paginate.py").read_text(encoding="utf-8")
 assert "graphviz-wrap" in pag
-katex = Path("asc/doc/print_katex.py").read_text(encoding="utf-8")
+katex = Path("asc/doc/formula/katex.py").read_text(encoding="utf-8")
 assert "graphviz-wrap" in katex and "graphviz-error" in katex
-sh = Path("asc/doc/pdf_export.sh").read_text(encoding="utf-8")
+sh = Path("asc/doc/pdf.sh").read_text(encoding="utf-8")
 assert "graphviz" in sh.lower() and "dot" in sh.lower()
 assert "fatal only" not in sh.lower()
-preview = Path("asc/doc/html_preview.sh").read_text(encoding="utf-8")
+preview = Path("asc/doc/md/to_html.sh").read_text(encoding="utf-8")
 assert "graphviz" in preview.lower()
 print("ok")
 PY
@@ -907,7 +907,7 @@ Docstrings in `md2pdf_asc.py` and `pdf_export.sh` get the Graphviz bullet in the
 
 - Create: `asc/doc/fixtures/graphviz-er.md`
 - Modify: `asc/doc/asc/pdf.test.sh` (optional Playwright/`dot` export)
-- Test: fixture PDF via `asc/doc/pdf_export.sh --force 'asc/doc/fixtures/graphviz-er.md'`
+- Test: fixture PDF via `asc/doc/pdf.sh --force 'asc/doc/fixtures/graphviz-er.md'`
 
 **Interfaces:**
 
@@ -995,7 +995,7 @@ test_graphviz_er_fixture_pdf() {
     echo "skip graphviz fixture (dot not on PATH)"
     return 0
   fi
-  ./asc/doc/pdf_export.sh --force 'asc/doc/fixtures/graphviz-er.md' || return 1
+  ./asc/doc/pdf.sh --force 'asc/doc/fixtures/graphviz-er.md' || return 1
   html="$(ls -1 data/tmp/doc-print/*graphviz-er.html 2>/dev/null | head -1)"
   [ -n "$html" ] || return 1
   grep -q 'class="graphviz-wrap"' "$html" || return 1
@@ -1026,7 +1026,7 @@ Expected when `dot` is missing: unit tests still pass; fixture PDF test skips; n
 - [ ] **Step 5: `html_preview.sh` on the fixture** (same `dot` gate)
 
 ```bash
-asc/doc/html_preview.sh 'asc/doc/fixtures/graphviz-er.md'
+asc/doc/md/to_html.sh 'asc/doc/fixtures/graphviz-er.md'
 ```
 
 Grep the written HTML under `data/tmp/doc-print/` for `class="graphviz-wrap"` and `<svg`. Must **not** contain ```` ```dot ````, `digraph`, or `fillcolor`. Must still contain `await ascRunMermaid`. Preview may print the Graphviz inline-SVG note; it will **not** print the `md2pdf_asc.py` `main()` conversion banner.
@@ -1064,7 +1064,7 @@ EOF
 1. **Consumer Markdown → DOT.** Convert dense Mermaid entity-reference maps to per-domain ```` ```dot ```` graphs (same ellipse/box fills). Keep domain splits. Do not attempt one giant Graphviz of a full inventory.
 
 ```bash
-asc/doc/pdf_export.sh --force path/to/diagram.md
+asc/doc/pdf.sh --force path/to/diagram.md
 ```
 
 2. **Interactive full-graph explorer (optional, different stack).** If a complete inventory must be browsed in one view: Graphology + Sigma.js (v3 stable, or v4 when it leaves alpha) + ForceAtlas2, or export GEXF and open [Gephi Lite](https://lite.gephi.org/) (GPL-3 app — do not vendor). Do not route that UI through `pdf_export.sh`.

@@ -25,14 +25,14 @@ test_page_css_margins_match_pre_plan() {
   "$PDF_PY" - <<'PY'
 from pathlib import Path
 import re
-css = Path("asc/doc/pdf_styles.css").read_text(encoding="utf-8")
+css = Path("asc/doc/pdf/styles.css").read_text(encoding="utf-8")
 block = re.search(r"@page\s*\{([^}]+)\}", css)
 assert block, "@page rule missing"
 body = block.group(1)
 assert "size: A4" in body
 assert re.search(r"margin:\s*\.75cm\s+\.75cm\s*;", body), body
 assert "margin: 0;" not in body
-css_full = Path("asc/doc/pdf_styles.css").read_text(encoding="utf-8")
+css_full = Path("asc/doc/pdf/styles.css").read_text(encoding="utf-8")
 assert ".code-line" in css_full
 assert ".code-line:empty::before" in css_full
 assert ".asc-print-push" in css_full
@@ -162,7 +162,7 @@ from print_paginate import (
     select_page,
 )
 
-css = Path("asc/doc/pdf_styles.css").read_text(encoding="utf-8")
+css = Path("asc/doc/pdf/styles.css").read_text(encoding="utf-8")
 a4 = css_with_page_size(css, PAGE_A4)
 a3 = css_with_page_size(css, PAGE_A3_LANDSCAPE)
 
@@ -570,7 +570,7 @@ test_pipeline_order_in_driver() {
 from pathlib import Path
 from md2pdf_asc import PDF_DEST_NAME_MAX, shorten_html_ids
 
-src = Path("asc/doc/md2pdf_asc.py").read_text(encoding="utf-8")
+src = Path("asc/doc/md/md2pdf_asc.py").read_text(encoding="utf-8")
 fn = src.split("async def html_to_pdf_playwright", 1)[1].split("hr.html_to_pdf_playwright", 1)[0]
 for a, b in [
     ("__ascLayoutReady", "emulate_media"),
@@ -581,7 +581,7 @@ for a, b in [
     assert fn.index(a) < fn.index(b), (a, b)
 boot = src.split("async function ascLayoutBoot", 1)[1]
 assert boot.index("await ascRunMermaid()") < boot.index("await ascRunKatex()")
-preview = Path("asc/doc/html_preview.sh").read_text(encoding="utf-8")
+preview = Path("asc/doc/md/to_html.sh").read_text(encoding="utf-8")
 assert "apply_print_pushes" not in preview
 
 long_id = "201-" + ("a" * 140)
@@ -961,7 +961,7 @@ test_pipeline_mentions_graphviz() {
   "$PDF_PY" - <<'PY'
 from pathlib import Path
 import re
-src = Path("asc/doc/md2pdf_asc.py").read_text(encoding="utf-8")
+src = Path("asc/doc/md/md2pdf_asc.py").read_text(encoding="utf-8")
 assert "render_graphviz_fences" in src
 # protect → graphviz → orig (markdown/mermaid)
 fn = src.split("def markdown_to_html", 1)[1].split("hr.markdown_to_html", 1)[0]
@@ -970,20 +970,20 @@ assert fn.index("render_graphviz_fences") < fn.index("orig(")
 # Conversion banner is in main(), not render_html() / html_preview.sh.
 main = src.split("def main", 1)[1]
 assert "Graphviz" in main
-css = Path("asc/doc/pdf_styles.css").read_text(encoding="utf-8")
+css = Path("asc/doc/pdf/styles.css").read_text(encoding="utf-8")
 assert ".graphviz-wrap" in css
 assert "pre.graphviz-error" in css
 gv_svg = css.split(".graphviz-wrap svg", 1)[1].split("}", 1)[0]
 assert "max-width: 100%" in gv_svg
 assert re.search(r"(?<!max-)width:\s*100%", gv_svg) is None
-pag = Path("asc/doc/print_paginate.py").read_text(encoding="utf-8")
+pag = Path("asc/doc/pdf/paginate.py").read_text(encoding="utf-8")
 assert "graphviz-wrap" in pag
-katex = Path("asc/doc/print_katex.py").read_text(encoding="utf-8")
+katex = Path("asc/doc/formula/katex.py").read_text(encoding="utf-8")
 assert "graphviz-wrap" in katex and "graphviz-error" in katex
-sh = Path("asc/doc/pdf_export.sh").read_text(encoding="utf-8")
+sh = Path("asc/doc/pdf.sh").read_text(encoding="utf-8")
 assert "graphviz" in sh.lower() and "dot" in sh.lower()
 assert "fatal only" not in sh.lower()
-preview = Path("asc/doc/html_preview.sh").read_text(encoding="utf-8")
+preview = Path("asc/doc/md/to_html.sh").read_text(encoding="utf-8")
 assert "graphviz" in preview.lower()
 print("ok")
 PY
@@ -1032,14 +1032,14 @@ PY
 
 test_a3_l_option() {
   local out status
-  out="$(./asc/doc/pdf_export.sh --a3 'docs/foobar.md' 2>&1)"
+  out="$(./asc/doc/pdf.sh --a3 'docs/foobar.md' 2>&1)"
   status=$?
   assertEquals 'short flag stays unknown' 1 "$status"
   assertTrue 'unknown --a3' "echo \"$out\" | grep -q 'Unknown option: --a3'"
 
   if command -v md2pdf >/dev/null 2>&1 &&
     [[ -f asc/vendor/mermaid.esm.min.mjs && -f asc/vendor/katex/katex.min.js ]]; then
-    out="$(./asc/doc/pdf_export.sh --a3-l 'docs/no-such-a3-flag.md' 2>&1)"
+    out="$(./asc/doc/pdf.sh --a3-l 'docs/no-such-a3-flag.md' 2>&1)"
     status=$?
     assertEquals 'known flag reaches path check' 1 "$status"
     assertTrue 'missing path' "echo \"$out\" | grep -q 'Path not found: docs/no-such-a3-flag.md'"
@@ -1049,8 +1049,8 @@ test_a3_l_option() {
 
   "$PDF_PY" - <<'PY'
 from pathlib import Path
-sh = Path("asc/doc/pdf_export.sh").read_text(encoding="utf-8")
-preview = Path("asc/doc/html_preview.sh").read_text(encoding="utf-8")
+sh = Path("asc/doc/pdf.sh").read_text(encoding="utf-8")
+preview = Path("asc/doc/md/to_html.sh").read_text(encoding="utf-8")
 # pdf_playwright_prepare contains an earlier "command -v md2pdf".
 after_loop_start = sh.split("while [[ $# -gt 0 ]]; do", 1)[1]
 parser = after_loop_start.split("\ndone\n", 1)[0]
@@ -1109,7 +1109,7 @@ PY
   printf '# Bad\n\nHello.\n' >"$tmp/a-bad.md"
   printf '# Ok\n\nHello.\n' >"$tmp/b-ok.md"
   mkdir "$tmp/a-bad.pdf"
-  ./asc/doc/pdf_export.sh --force "$tmp" >/dev/null 2>&1
+  ./asc/doc/pdf.sh --force "$tmp" >/dev/null 2>&1
   status=$?
   assertNotEquals 'tree export must fail when one conversion fails' 0 "$status"
   assertTrue 'successful sibling still exported' "[ -f \"$tmp/b-ok.pdf\" ]"
@@ -1118,7 +1118,7 @@ PY
 test_export_failure_aggregation_source() {
   "$PDF_PY" - <<'PY'
 from pathlib import Path
-sh = Path("asc/doc/pdf_export.sh").read_text(encoding="utf-8")
+sh = Path("asc/doc/pdf.sh").read_text(encoding="utf-8")
 tree = sh.split("doc_pdf_export_tree()", 1)[1].split("\n}\n", 1)[0]
 assert 'doc_pdf_export_one "$md" || rc=1' in tree
 assert 'return "$rc"' in tree
@@ -1156,8 +1156,8 @@ test_no_target_loops_propagate_failure() {
     [[ "$base" == md2pdf_asc.py || "$base" == pdf_export.sh ]] && continue
     ln -s "$item" "$tmp/asc/doc/$base"
   done
-  cp "$root/asc/doc/pdf_export.sh" "$tmp/asc/doc/pdf_export.sh"
-  cat >"$tmp/asc/doc/md2pdf_asc.py" <<'PY'
+  cp "$root/asc/doc/pdf.sh" "$tmp/asc/doc/pdf.sh"
+  cat >"$tmp/asc/doc/md/md2pdf_asc.py" <<'PY'
 import os
 import sys
 from pathlib import Path
@@ -1185,7 +1185,7 @@ PY
     cd "$tmp" || exit 1
     export EXPORT_CALL_LOG="$call_log"
     export PATH="$tmp/bin:$PATH"
-    ./asc/doc/pdf_export.sh --force
+    ./asc/doc/pdf.sh --force
   )
   status=$?
 
@@ -1218,7 +1218,7 @@ PY
 )"
   trap 'rm -rf "$tmp"; rm -f "$html"' RETURN
   cp asc/doc/fixtures/graphviz-er.md "$tmp/graphviz-er.md"
-  ./asc/doc/pdf_export.sh --force "$tmp/graphviz-er.md"
+  ./asc/doc/pdf.sh --force "$tmp/graphviz-er.md"
   status=$?
   assertEquals 'graphviz temp export failed' 0 "$status"
   assertTrue "print HTML missing: $html" "[ -f \"$html\" ]"
@@ -1320,7 +1320,7 @@ try:
 
     def export(*args: str) -> str:
         proc = subprocess.run(
-            ["./asc/doc/pdf_export.sh", *args],
+            ["./asc/doc/pdf.sh", *args],
             check=False,
             cwd=ROOT,
             text=True,
@@ -1577,7 +1577,7 @@ try:
     preview_md.write_text("# Preview probe\n\nOne paragraph.\n", encoding="utf-8")
     preview_html = print_html_for(preview_md)
     subprocess.run(
-        ["./asc/doc/html_preview.sh", str(preview_md.relative_to(ROOT))],
+        ["./asc/doc/md/to_html.sh", str(preview_md.relative_to(ROOT))],
         check=True,
         cwd=ROOT,
         text=True,

@@ -4,7 +4,7 @@
 # md_toc leaves a README.md with no <nav> block unchanged.
 #
 # @requires asc/vendor/shunit2
-# @see asc/doc/md_toc.sh
+# @see asc/doc/md/toc.sh
 #
 # @example
 #   asc/test/core/md_toc.test.sh
@@ -20,7 +20,7 @@ test_md_toc_readme_without_nav_is_unchanged() {
   printf '%s\n' '# Title' '' '## Hello' >"$readme"
   before="$(cat "$readme")"
 
-  out="$(asc/doc/md_toc.sh "$readme" 2>&1)"
+  out="$(asc/doc/md/toc.sh "$readme" 2>&1)"
   rc=$?
 
   assertEquals 'README without nav exits 0' 0 "$rc"
@@ -46,7 +46,7 @@ test_md_toc_readme_with_nav_is_updated() {
 ## Hello
 EOF
 
-  asc/doc/md_toc.sh "$readme" >/dev/null
+  asc/doc/md/toc.sh "$readme" >/dev/null
   rc=$?
 
   assertEquals 'README with nav exits 0' 0 "$rc"
@@ -62,7 +62,7 @@ test_md_toc_other_markdown_without_nav_errors() {
   printf '%s\n' '# Title' '' '## Hello' >"$notes"
   before="$(cat "$notes")"
 
-  out="$(asc/doc/md_toc.sh "$notes" 2>&1)"
+  out="$(asc/doc/md/toc.sh "$notes" 2>&1)"
   rc=$?
 
   assertEquals 'other markdown without nav exits 1' 1 "$rc"

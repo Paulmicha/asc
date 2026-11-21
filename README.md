@@ -117,7 +117,9 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [Iterations (= loops, foreach, for ... in)](#iterations-loops-foreach-for-in)
     - [DSL examples](#dsl-examples)
     - [DSL in Yaml](#dsl-in-yaml)
-  - [Data dirs](#data-dirs)
+  - [Data dirs = "data pivots"](#data-dirs-data-pivots)
+    - [ASC data convention examples](#asc-data-convention-examples)
+    - [Deployable local project instance settings (instance-level + host-level)](#deployable-local-project-instance-settings-instance-level-host-level)
     - [ASC cache : `data/asc/cache`](#asc-cache-dataasccache)
     - [Default file-based entity storage : `data/entities`](#default-file-based-entity-storage-dataentities)
       - [Queue entities : `data/entities/queue`](#queue-entities-dataentitiesqueue)
@@ -1812,26 +1814,59 @@ and discovery behavior remain open.
 
 &lt;/proposal-2026-11-18&gt;
 
-### Data dirs
+### Data dirs = "data pivots"
 
 Files placed in `data/*` are usually writeable per project instance. They are meant for ASC core, contrib and/or custom implementations.
+
+The goal is to preferably aim for mimicking the ASC file structure, swapping the
+extension points' relative dirs for `data`.
+
+This applies to both volatile / temporary *and* frozen / deployable filesystem records (or "sidecars"), scoped by ASC project instance by default.
+
+Example :
+
+- Local cache files
+- DB dumps
+- SQLite / [Turso](https://docs.turso.tech/agentfs/introduction) - like databases
+- Doc fixtures
+- Doc fonts
+- Frozen test results
+- Host-level dependencies
+- Remote instances bidirectional sync
+- etc.
+
+#### ASC data convention examples
+
+|  | Extension point | Data pivot | Customizability |
+|-------|--------|---------|
+| Doc fixtures | `INSTANCE_TYPE` | `dev` | `dev` |
+| Doc fonts | `HOST_TYPE` | `local` | `dev` |
+| Frozen test results | `STACK_VERSION` | empty (falls back to global default `v1` on init) | `dev` |
+
+#### Deployable local project instance settings (instance-level + host-level)
+
+TODO document the **sync** process separately and/or just the **spec** here ?
 
 #### ASC cache : `data/asc/cache`
 
 Lookup artifacts only. `make cc` (`asc/core/cache_clear.sh`) deletes `data/asc/cache/` and **must not** delete `data/asc/globals.sh`, `data/asc/pivots.mk`, or `.env`. Those are instance state: `make reinit` rewrites them; `make uninit` wipes them (and the cache).
 
 ```text
-data/asc/
-  global.vars.sh              ← instance env (reinit / uninit)
-  pivots.mk                   ← Make include (reinit / uninit)
-  cache/
-    core/
-      active.sh               ← discovery lists + ASC_INC (stamp-gated)
-      stamp                   ← discovery inputs (not hook file bodies)
-    hook/<canonical-key>.sh   ← hook lookup (bodies still sourced from disk)
-    pivots.sh
-    test-cases.sh
-    entities/                 ← entity load cache
+data/
+  asc/
+    global.vars.sh              ← instance env (reinit / uninit)
+    pivots.mk                   ← Make include (reinit / uninit)
+    cache/
+      tree/
+        graph.txt               ← filtered cached copy of instance filesystem
+      core/
+        active.sh               ← discovery lists + ASC_INC (stamp-gated)
+        stamp                   ← discovery inputs (not hook file bodies)
+      hook/
+        <canonical-key>.sh   ← hook lookup (bodies still sourced from disk)
+      pivots.sh
+      test-cases.sh
+      entities/                 ← entity load cache
 ```
 
 Bootstrap always sources the four kernel includes (`utils.inc.sh`, `core.inc.sh`, `hook.inc.sh`, `autoload.inc.sh`). `yml.inc.sh` is eager via `ASC_INC` (`asc/yml` is an *active dir*). Then, if `global.vars.sh` exists, it is sourced. Then `f_asc_primitives_cache_ensure`: stamp match → source `core/active.sh`; miss → `f_asc_extend`, rewrite `active.sh` + stamp, wipe `cache/hook/` only. `pre_bootstrap` / `alias` / `bootstrap` still run on both the cold and warm paths.

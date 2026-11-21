@@ -4,7 +4,7 @@
 # (re)Generates a table of contents in the given markdown file.
 #
 # Replaces the markdown list inside the first <nav> ... </nav> block.
-# ATX headings are collected fence-aware (same as asc/doc/md_merge.sh).
+# ATX headings are collected fence-aware (same as asc/doc/md/merge.sh).
 # Skips the document H1 and a "Table of contents" heading.
 # A README.md with no such block is left unchanged.
 #
@@ -13,7 +13,7 @@
 # @example
 #   make doc-md-toc 'path/to/file.md'
 #   # Or :
-#   asc/doc/md_toc.sh 'path/to/file.md'
+#   asc/doc/md/toc.sh 'path/to/file.md'
 #
 
 . asc/bootstrap.sh
@@ -21,7 +21,7 @@
 p_md=''
 
 u_md_toc_usage() {
-  echo "Usage: asc/doc/md_toc.sh <file.md>" >&2
+  echo "Usage: asc/doc/md/toc.sh <file.md>" >&2
 }
 
 while [[ $# -gt 0 ]]; do
@@ -62,7 +62,7 @@ if [[ "${p_md##*.}" != 'md' ]]; then
 fi
 
 # Emit "level<TAB>title" for each ATX heading outside fences and <nav>.
-# Same fence rules as asc/doc/md_merge.sh. Skip H1 and "Table of contents".
+# Same fence rules as asc/doc/md/merge.sh. Skip H1 and "Table of contents".
 u_md_list_headings() {
   awk '
     BEGIN { in_fence = 0; in_nav = 0 }
@@ -103,7 +103,7 @@ u_md_list_headings() {
   '
 }
 
-# GitHub-ish slug for markdown TOC anchors (same as asc/doc/md_merge.sh).
+# GitHub-ish slug for markdown TOC anchors (same as asc/doc/md/merge.sh).
 u_md_slug() {
   printf '%s' "$1" \
     | tr '[:upper:]' '[:lower:]' \

@@ -8,7 +8,7 @@
 # not already part of this commit.
 #
 # @see f_git_write_hooks() in asc/git/write_hooks.sh
-# @see asc/doc/md_toc.sh
+# @see asc/doc/md/toc.sh
 #
 
 f_git_pre_commit_readme_toc() {
@@ -36,7 +36,7 @@ f_git_pre_commit_readme_toc() {
   asc_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
   (
     cd "$asc_root" || exit 1
-    "$asc_root/asc/doc/md_toc.sh" "$readme"
+    "$asc_root/asc/doc/md/toc.sh" "$readme"
   ) || return 1
 
   git -C "$work_tree" add -- README.md

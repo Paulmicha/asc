@@ -4,7 +4,7 @@
 |---|---|
 | **Date** | 2026-11-18 |
 | **Status** | implemented |
-| **Scope** | Print pipeline in this repository: [`asc/doc/pdf_export.sh`](../../../../asc/doc/pdf_export.sh), [`asc/doc/md2pdf_asc.py`](../../../../asc/doc/md2pdf_asc.py), [`asc/doc/print_paginate.py`](../../../../asc/doc/print_paginate.py), [`asc/doc/asc/pdf.test.sh`](../../../../asc/doc/asc/pdf.test.sh). [`asc/doc/pdf_styles.css`](../../../../asc/doc/pdf_styles.css) stays `size: A4`. [`asc/doc/html_preview.sh`](../../../../asc/doc/html_preview.sh), [`asc/doc/print_mermaid.py`](../../../../asc/doc/print_mermaid.py), and the Graphviz helpers stay as they are. |
+| **Scope** | Print pipeline in this repository: [`asc/doc/pdf.sh`](../../../../asc/doc/pdf.sh), [`asc/doc/md/md2pdf_asc.py`](../../../../asc/doc/md/md2pdf_asc.py), [`asc/doc/pdf/paginate.py`](../../../../asc/doc/pdf/paginate.py), [`asc/doc/asc/pdf.test.sh`](../../../../asc/doc/asc/pdf.test.sh). [`asc/doc/pdf/styles.css`](../../../../asc/doc/pdf/styles.css) stays `size: A4`. [`asc/doc/md/to_html.sh`](../../../../asc/doc/md/to_html.sh), [`asc/doc/diagram/mermaid.py`](../../../../asc/doc/diagram/mermaid.py), and the Graphviz helpers stay as they are. |
 | **Related** | [2026-09-04 PDF generation improvements](../09/04-pdf-generation-improvements.md) (implemented). That plan locked the print pipeline order and the A4 portrait geometry this plan extends. |
 | **Checkout** | Line numbers below are from `add1f6c` on 2026-11-18. |
 | **Living docs** | Usage stays in the `pdf_export.sh` header. The README does not document exporter flags. This plan does not add a spec. |
@@ -17,7 +17,7 @@ Implemented. Keep as a historical record; do not treat the checklist as unfinish
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** `asc/doc/pdf_export.sh --a3-l docs/foobar.md` writes an A3 landscape PDF (420 mm × 297 mm) beside that markdown file, while the default export stays A4 portrait (210 mm × 297 mm).
+**Goal:** `asc/doc/pdf.sh --a3-l docs/foobar.md` writes an A3 landscape PDF (420 mm × 297 mm) beside that markdown file, while the default export stays A4 portrait (210 mm × 297 mm).
 
 **Architecture:** One `PageGeometry` value is chosen before the existing pipeline runs. Playwright `format` / `landscape`, the CSS `@page` size token baked into that export’s HTML, the viewport, Mermaid `pageW` / `pageH`, diagram fitting, and pagination all read that value. The stage order does not change. HTML preview never selects a page, so it keeps today’s A4 stylesheet and A4 Mermaid box.
 
@@ -26,18 +26,18 @@ Implemented. Keep as a historical record; do not treat the checklist as unfinish
 ## Global constraints
 
 - Default page is A4 portrait, 210 mm × 297 mm. `--a3-l` is A3 landscape, 420 mm × 297 mm. Those are the only two sizes.
-- Output path stays `${markdown%.md}.pdf` from `doc_md_to_pdf` ([`pdf_export.sh`](../../../../asc/doc/pdf_export.sh) lines 136–139). No `-a3` suffix and no second PDF.
+- Output path stays `${markdown%.md}.pdf` from `doc_md_to_pdf` ([`pdf_export.sh`](../../../../asc/doc/pdf.sh) lines 136–139). No `-a3` suffix and no second PDF.
 - `--force` still means “rebuild even when the PDF is newer than the markdown” and still means A4 portrait unless `--a3-l` is also present.
 - `--a3-l` rebuilds even when the PDF timestamp is current. It does not set the `--force` variable.
-- Pipeline order stays the header in [`pdf_export.sh`](../../../../asc/doc/pdf_export.sh) lines 20–23 and the module docstring in [`md2pdf_asc.py`](../../../../asc/doc/md2pdf_asc.py) lines 4–8: protect math → Graphviz → markdown → restore math → explode code → inject CSS/boot → fonts → Mermaid → KaTeX → emulate print → mark long paragraphs → paginate → `page.pdf`. Preview stops before paginate.
-- Margins stay as they are. CSS `@page` margin is `.75cm .75cm` ([`pdf_styles.css`](../../../../asc/doc/pdf_styles.css) lines 16–19). Playwright margins stay top `0.6cm`, right `0.7cm`, bottom `1.0cm`, left `0.7cm` ([`md2pdf_asc.py`](../../../../asc/doc/md2pdf_asc.py) lines 454–459). Content width keeps using the CSS side margin. Content height keeps using the CSS top margin and the Playwright bottom margin.
+- Pipeline order stays the header in [`pdf_export.sh`](../../../../asc/doc/pdf.sh) lines 20–23 and the module docstring in [`md2pdf_asc.py`](../../../../asc/doc/md/md2pdf_asc.py) lines 4–8: protect math → Graphviz → markdown → restore math → explode code → inject CSS/boot → fonts → Mermaid → KaTeX → emulate print → mark long paragraphs → paginate → `page.pdf`. Preview stops before paginate.
+- Margins stay as they are. CSS `@page` margin is `.75cm .75cm` ([`pdf_styles.css`](../../../../asc/doc/pdf/styles.css) lines 16–19). Playwright margins stay top `0.6cm`, right `0.7cm`, bottom `1.0cm`, left `0.7cm` ([`md2pdf_asc.py`](../../../../asc/doc/md/md2pdf_asc.py) lines 454–459). Content width keeps using the CSS side margin. Content height keeps using the CSS top margin and the Playwright bottom margin.
 - Body type stays 9pt. The 2026-09-04 plan text still mentions 8pt; the shipped pipeline is 9pt (`--asc-font-size: 9pt`). Leave that alone.
 - The 108 mm image cap in `pdf_styles.css` stays.
 - `html_preview.sh` gains no flag and no pagination. Its path allow-list stays `data/ideas/`, `docs/`, and `asc/doc/fixtures/`.
 - No new shell function in `pdf_export.sh`. No new Python dependency. No README edit.
 - These Python modules already use 4-space indents. New Python in them stays at 4 spaces so the blocks stay valid. Shell stays at 2 spaces.
 - Run PDF tests from the repository root with `bash asc/doc/asc/pdf.test.sh` (full suite) or `PDF_TEST_FILTER='test_name …' bash asc/doc/asc/pdf.test.sh` (selected cases). This suite is not wired into `make test-core`. Passing a test name as a script argument fails: vendored shUnit2 treats `$1` as a standalone script path (`shunit2:FATAL unable to read from …`). Selection uses a `suite()` in `pdf.test.sh` that validates each whitespace-separated name in `PDF_TEST_FILTER` with `declare -F` before `suite_addTest`; an unknown name prints `PDF_TEST_FILTER: unknown test function: …` and exits non-zero. When the variable is unset or empty, discovery runs every `test_*` as today. Verified on this checkout: a valid filter runs one case and exits 0; a misspelled filter exits non-zero. shUnit2 counts assertion failures (`assert*`, `fail`), not the test function’s return status: a body that only `return 1` still reports `OK` and exits 0.
-- Do not run `asc/doc/pdf_export.sh --a3-l` with no target against the real `data/ideas` and `docs` trees. That invocation rewrites every PDF there.
+- Do not run `asc/doc/pdf.sh --a3-l` with no target against the real `data/ideas` and `docs` trees. That invocation rewrites every PDF there.
 - Directory and no-target exports must not report success when any `doc_pdf_export_one` failed. See § Directory and no-target.
 - Do not commit unless the human asks.
 
@@ -45,7 +45,7 @@ Implemented. Keep as a historical record; do not treat the checklist as unfinish
 
 ## Current behavior
 
-`asc/doc/pdf_export.sh` accepts `--force` and one optional file or directory. Anything else that starts with `-` is `Unknown option` and exit 1 (lines 68–86). There is no page-size flag.
+`asc/doc/pdf.sh` accepts `--force` and one optional file or directory. Anything else that starts with `-` is `Unknown option` and exit 1 (lines 68–86). There is no page-size flag.
 
 Freshness is filename-only. `doc_pdf_needs_export` (lines 141–146) rebuilds when the PDF is missing or when the markdown is strictly newer (`-nt`). `doc_pdf_export_one` (lines 148–159) skips with `skip (up to date):` when `--force` is absent and the PDF is current. The script never reads the PDF page size. A current file is skipped whatever paper it contains.
 
@@ -59,7 +59,7 @@ Every export calls the same function:
 
 The Python wrapper then hardcodes the paper:
 
-```606:612:asc/doc/md2pdf_asc.py
+```606:612:asc/doc/md/md2pdf_asc.py
         result = convert_markdown_to_pdf_html(
             markdown_content,
             str(output_path),
@@ -70,17 +70,17 @@ The Python wrapper then hardcodes the paper:
         )
 ```
 
-`html_to_pdf_playwright` (lines 423–504) passes that `page_size` and `orientation` through to Playwright (`format`, `landscape`). The viewport does not use those arguments. It uses `content_width_px()` and `content_height_px()`, which are fixed to A4 in [`print_paginate.py`](../../../../asc/doc/print_paginate.py) lines 21–23 and 65–74:
+`html_to_pdf_playwright` (lines 423–504) passes that `page_size` and `orientation` through to Playwright (`format`, `landscape`). The viewport does not use those arguments. It uses `content_width_px()` and `content_height_px()`, which are fixed to A4 in [`print_paginate.py`](../../../../asc/doc/pdf/paginate.py) lines 21–23 and 65–74:
 
 - width 210 mm and height 297 mm, at 96 CSS px per inch
 - content width subtracts `0.75cm` on both sides
 - content height subtracts `0.75cm` on top and `1.0cm` on the bottom
 
-The same two functions are baked into the Mermaid boot from `layout_boot_script` (lines 259–260) via `mermaid_run_js(page_w, page_h)` ([`print_mermaid.py`](../../../../asc/doc/print_mermaid.py) lines 228–236). `scaleToPage` (lines 323–325) uses that box. After print emulation, `FIT_DIAGRAMS_JS` (lines 48–67, called at line 491) shrinks a diagram that is taller than `content_height_px()`. Width follows the viewport because the stylesheet uses `max-width: 100%`.
+The same two functions are baked into the Mermaid boot from `layout_boot_script` (lines 259–260) via `mermaid_run_js(page_w, page_h)` ([`print_mermaid.py`](../../../../asc/doc/diagram/mermaid.py) lines 228–236). `scaleToPage` (lines 323–325) uses that box. After print emulation, `FIT_DIAGRAMS_JS` (lines 48–67, called at line 491) shrinks a diagram that is taller than `content_height_px()`. Width follows the viewport because the stylesheet uses `max-width: 100%`.
 
-`build_style_block` (lines 216–218) embeds [`pdf_styles.css`](../../../../asc/doc/pdf_styles.css) unchanged, including:
+`build_style_block` (lines 216–218) embeds [`pdf_styles.css`](../../../../asc/doc/pdf/styles.css) unchanged, including:
 
-```16:19:asc/doc/pdf_styles.css
+```16:19:asc/doc/pdf/styles.css
 @page {
   size: A4;
   margin: .75cm .75cm;
@@ -117,7 +117,7 @@ The sibling PDF does not record which flag produced it. After `--a3-l`, the PDF 
 Return that file to A4 portrait with `--force` and without `--a3-l`:
 
 ```bash
-asc/doc/pdf_export.sh --force 'docs/foobar.md'
+asc/doc/pdf.sh --force 'docs/foobar.md'
 ```
 
 A default export also rewrites A4 when the markdown is strictly newer than the PDF, because the existing freshness rule already rebuilds and the default paper is A4.
@@ -166,13 +166,13 @@ The CSS file on disk stays `size: A4`. The export substitutes `A3 landscape` onl
 
 | File | Change |
 |---|---|
-| `asc/doc/print_paginate.py` | Add `PageGeometry`, `select_page`, `selected_page`, `css_with_page_size`. Zero-argument content box and the PDF footer cutoff follow the selection. Keep `A4_WIDTH_PX`, `A4_HEIGHT_PX`, `A4_HEIGHT_PT`. |
-| `asc/doc/md2pdf_asc.py` | `--a3-l` on the wrapper. Select the page before conversion. Substitute `@page` size. Playwright format and landscape come from the same object. |
-| `asc/doc/pdf_export.sh` | Document and parse `--a3-l`. Pass it through. Rebuild a current PDF when the flag is set. Aggregate failure status in `doc_pdf_export_tree` and both no-target loops. |
+| `asc/doc/pdf/paginate.py` | Add `PageGeometry`, `select_page`, `selected_page`, `css_with_page_size`. Zero-argument content box and the PDF footer cutoff follow the selection. Keep `A4_WIDTH_PX`, `A4_HEIGHT_PX`, `A4_HEIGHT_PT`. |
+| `asc/doc/md/md2pdf_asc.py` | `--a3-l` on the wrapper. Select the page before conversion. Substitute `@page` size. Playwright format and landscape come from the same object. |
+| `asc/doc/pdf.sh` | Document and parse `--a3-l`. Pass it through. Rebuild a current PDF when the flag is set. Aggregate failure status in `doc_pdf_export_tree` and both no-target loops. |
 | `asc/doc/asc/pdf.test.sh` | Validating `PDF_TEST_FILTER` via `suite()`. Geometry unit tests, flag tests, directory failure-propagation test, aggregation source test, real no-target branch under an isolated temp project with a stub converter, isolate `test_graphviz_er_fixture_pdf` onto a temp copy with `print_html_path_for` and shUnit2 assertions, and one live `pdfinfo` acceptance test under `data/tmp/` (Mermaid, tables, and Graphviz). |
-| `asc/doc/pdf_styles.css` | Unchanged `size: A4`. |
-| `asc/doc/html_preview.sh` | Unchanged. |
-| `asc/doc/print_mermaid.py` | Unchanged. It already takes `page_w` and `page_h`. |
+| `asc/doc/pdf/styles.css` | Unchanged `size: A4`. |
+| `asc/doc/md/to_html.sh` | Unchanged. |
+| `asc/doc/diagram/mermaid.py` | Unchanged. It already takes `page_w` and `page_h`. |
 
 Committed fixture PDFs under `asc/doc/fixtures/` stay on their current bytes for the whole suite. Live A3 exports copy `mermaid-dense.md`, `widow-table.md`, and `graphviz-er.md` into a directory created with `tempfile.mkdtemp(prefix="a3-page-size-", dir="data/tmp")`. The existing `test_graphviz_er_fixture_pdf` must stop force-exporting onto the tracked `asc/doc/fixtures/graphviz-er.pdf`; it copies that markdown into `data/tmp/`, exports the copy, and asserts on that PDF and its print HTML. `.gitignore` already ignores `/data/tmp/*` and keeps `data/tmp/README.md`. The A3 live test deletes only that unique directory, the print-HTML files whose paths it computed, and one temporary markdown file it created under `asc/doc/fixtures/` for the preview check. It does not read or write tracked fixture PDFs.
 
@@ -182,7 +182,7 @@ Committed fixture PDFs under `asc/doc/fixtures/` stay on their current bytes for
 
 **Files:**
 
-- Modify: `asc/doc/print_paginate.py` (constants around lines 21–74, `parse_pdf_lines` around lines 110–120)
+- Modify: `asc/doc/pdf/paginate.py` (constants around lines 21–74, `parse_pdf_lines` around lines 110–120)
 - Modify: `asc/doc/asc/pdf.test.sh` (add `suite()` before the final `. asc/vendor/shunit2/shunit2`; extend `test_constants_and_content_box`; add `test_page_geometry`)
 
 **Interfaces:**
@@ -272,7 +272,7 @@ from print_paginate import (
     select_page,
 )
 
-css = Path("asc/doc/pdf_styles.css").read_text(encoding="utf-8")
+css = Path("asc/doc/pdf/styles.css").read_text(encoding="utf-8")
 a4 = css_with_page_size(css, PAGE_A4)
 a3 = css_with_page_size(css, PAGE_A3_LANDSCAPE)
 
@@ -430,7 +430,7 @@ Expected: both print `ok` and shunit2 reports success (`Ran 2 tests`).
 
 **Files:**
 
-- Modify: `asc/doc/md2pdf_asc.py` (`build_style_block` lines 216–218, `html_to_pdf_playwright` lines 423–460, `main` lines 544–617)
+- Modify: `asc/doc/md/md2pdf_asc.py` (`build_style_block` lines 216–218, `html_to_pdf_playwright` lines 423–460, `main` lines 544–617)
 - Test: existing `test_pipeline_order_in_driver`
 
 **Interfaces:**
@@ -529,7 +529,7 @@ Keep `from md2pdf.html_renderer import convert_markdown_to_pdf_html` inside `mai
 Add one usage line to the module docstring:
 
 ```text
-  asc/doc/md2pdf_asc.py input.md -o output.pdf --a3-l
+  asc/doc/md/md2pdf_asc.py input.md -o output.pdf --a3-l
 ```
 
 Add one sentence under the pipeline list: page size is chosen before these stages and is not itself a stage. Preview does not select a page.
@@ -625,7 +625,7 @@ Expected: PASS. `test_pipeline_order_in_driver` still requires `__ascLayoutReady
 
 **Files:**
 
-- Modify: `asc/doc/pdf_export.sh` (header examples, the option loop lines 65–87, `doc_pdf_export_one` lines 148–159)
+- Modify: `asc/doc/pdf.sh` (header examples, the option loop lines 65–87, `doc_pdf_export_one` lines 148–159)
 - Test: `asc/doc/asc/pdf.test.sh` (`test_a3_l_option`)
 
 The action already has its own header and `. asc/bootstrap.sh`. Keep that shape. Do not add a shell function. The new array is local to `doc_pdf_export_one`.
@@ -637,14 +637,14 @@ The action already has its own header and `. asc/bootstrap.sh`. Keep that shape.
 ```bash
 test_a3_l_option() {
   local out status
-  out="$(./asc/doc/pdf_export.sh --a3 'docs/foobar.md' 2>&1)"
+  out="$(./asc/doc/pdf.sh --a3 'docs/foobar.md' 2>&1)"
   status=$?
   assertEquals 'short flag stays unknown' 1 "$status"
   assertTrue 'unknown --a3' "echo \"$out\" | grep -q 'Unknown option: --a3'"
 
   if command -v md2pdf >/dev/null 2>&1 &&
     [[ -f asc/vendor/mermaid.esm.min.mjs && -f asc/vendor/katex/katex.min.js ]]; then
-    out="$(./asc/doc/pdf_export.sh --a3-l 'docs/no-such-a3-flag.md' 2>&1)"
+    out="$(./asc/doc/pdf.sh --a3-l 'docs/no-such-a3-flag.md' 2>&1)"
     status=$?
     assertEquals 'known flag reaches path check' 1 "$status"
     assertTrue 'missing path' "echo \"$out\" | grep -q 'Path not found: docs/no-such-a3-flag.md'"
@@ -654,8 +654,8 @@ test_a3_l_option() {
 
   "$PDF_PY" - <<'PY'
 from pathlib import Path
-sh = Path("asc/doc/pdf_export.sh").read_text(encoding="utf-8")
-preview = Path("asc/doc/html_preview.sh").read_text(encoding="utf-8")
+sh = Path("asc/doc/pdf.sh").read_text(encoding="utf-8")
+preview = Path("asc/doc/md/to_html.sh").read_text(encoding="utf-8")
 # pdf_playwright_prepare contains an earlier "command -v md2pdf".
 after_loop_start = sh.split("while [[ $# -gt 0 ]]; do", 1)[1]
 parser = after_loop_start.split("\ndone\n", 1)[0]
@@ -720,16 +720,16 @@ Add examples next to the existing ones:
 
 ```text
 #   # A3 landscape for one file (rebuilds a current PDF too) :
-#   asc/doc/pdf_export.sh --a3-l 'docs/foobar.md'
+#   asc/doc/pdf.sh --a3-l 'docs/foobar.md'
 #
 #   # A3 landscape for every markdown file under a directory :
-#   asc/doc/pdf_export.sh --a3-l docs/asc
+#   asc/doc/pdf.sh --a3-l docs/asc
 #
 #   # A3 landscape for data/ideas and docs :
-#   asc/doc/pdf_export.sh --a3-l
+#   asc/doc/pdf.sh --a3-l
 #
 #   # Write that one file back to A4 portrait :
-#   asc/doc/pdf_export.sh --force 'docs/foobar.md'
+#   asc/doc/pdf.sh --force 'docs/foobar.md'
 ```
 
 Initialize `p_a3_l=0` beside `p_all=0`. Parse the flag in the existing loop. Leave the unknown-option text as the current `echo "Unknown option: $1"` and `exit 1`. Put a blank line between these multiline arms:
@@ -820,7 +820,7 @@ test_export_tree_propagates_failure() {
   printf '# Bad\n\nHello.\n' >"$tmp/a-bad.md"
   printf '# Ok\n\nHello.\n' >"$tmp/b-ok.md"
   mkdir "$tmp/a-bad.pdf"
-  ./asc/doc/pdf_export.sh --force "$tmp" >/dev/null 2>&1
+  ./asc/doc/pdf.sh --force "$tmp" >/dev/null 2>&1
   status=$?
   assertNotEquals 'tree export must fail when one conversion fails' 0 "$status"
   assertTrue 'successful sibling still exported' "[ -f \"$tmp/b-ok.pdf\" ]"
@@ -837,7 +837,7 @@ Until the tree helper aggregates status, this fails: the script exits 0 after wr
 test_export_failure_aggregation_source() {
   "$PDF_PY" - <<'PY'
 from pathlib import Path
-sh = Path("asc/doc/pdf_export.sh").read_text(encoding="utf-8")
+sh = Path("asc/doc/pdf.sh").read_text(encoding="utf-8")
 tree = sh.split("doc_pdf_export_tree()", 1)[1].split("\n}\n", 1)[0]
 assert 'doc_pdf_export_one "$md" || rc=1' in tree
 assert 'return "$rc"' in tree
@@ -860,7 +860,7 @@ PY
 
 Re-attaching `marker` keeps `local_found=0` in `no_target` / `ideas`. Checking `rc=0` in that already-extracted `ideas` portion (and its order relative to `local_found=0`) avoids a second split that would raise `IndexError`. The docs-side check still rejects a script that clears status between the trees while still containing two `|| rc=1` strings and an `exit "$rc"`.
 
-**6b. `test_no_target_loops_propagate_failure`** — runs the **real** no-target branch of a copied `pdf_export.sh` inside an isolated temporary project. Do not invoke no-target against this repository’s `data/ideas` or `docs`. Verified shape on this checkout: overlay `asc/` with symlinks, copy only `pdf_export.sh`, replace only `md2pdf_asc.py` with a controlled converter, put a fake `md2pdf` (and a `python` next to it) on `PATH`, `cd` into the temp project, and run `./asc/doc/pdf_export.sh --force` with no path argument.
+**6b. `test_no_target_loops_propagate_failure`** — runs the **real** no-target branch of a copied `pdf_export.sh` inside an isolated temporary project. Do not invoke no-target against this repository’s `data/ideas` or `docs`. Verified shape on this checkout: overlay `asc/` with symlinks, copy only `pdf_export.sh`, replace only `md2pdf_asc.py` with a controlled converter, put a fake `md2pdf` (and a `python` next to it) on `PATH`, `cd` into the temp project, and run `./asc/doc/pdf.sh --force` with no path argument.
 
 The decisive fixture fails only under `data/ideas` and lets every `docs` conversion succeed. A bug that resets `rc=0` before the docs loop would then exit 0 while still continuing; a fail-in-each-tree fixture would hide that by setting `rc` again from docs.
 
@@ -883,8 +883,8 @@ test_no_target_loops_propagate_failure() {
     [[ "$base" == md2pdf_asc.py || "$base" == pdf_export.sh ]] && continue
     ln -s "$item" "$tmp/asc/doc/$base"
   done
-  cp "$root/asc/doc/pdf_export.sh" "$tmp/asc/doc/pdf_export.sh"
-  cat >"$tmp/asc/doc/md2pdf_asc.py" <<'PY'
+  cp "$root/asc/doc/pdf.sh" "$tmp/asc/doc/pdf.sh"
+  cat >"$tmp/asc/doc/md/md2pdf_asc.py" <<'PY'
 import os
 import sys
 from pathlib import Path
@@ -912,7 +912,7 @@ PY
     cd "$tmp" || exit 1
     export EXPORT_CALL_LOG="$call_log"
     export PATH="$tmp/bin:$PATH"
-    ./asc/doc/pdf_export.sh --force
+    ./asc/doc/pdf.sh --force
   )
   status=$?
 
@@ -999,11 +999,11 @@ Expected: PASS when prerequisites for the live tree case are present. A skip of 
 
 - Modify: `asc/doc/asc/pdf.test.sh` (`test_graphviz_er_fixture_pdf`)
 
-The current case runs `./asc/doc/pdf_export.sh --force 'asc/doc/fixtures/graphviz-er.md'`, which overwrites the tracked `asc/doc/fixtures/graphviz-er.pdf` whenever `dot` is on `PATH`. That conflicts with the fixture-byte preservation rule above. Move the export onto an isolated copy.
+The current case runs `./asc/doc/pdf.sh --force 'asc/doc/fixtures/graphviz-er.md'`, which overwrites the tracked `asc/doc/fixtures/graphviz-er.pdf` whenever `dot` is on `PATH`. That conflicts with the fixture-byte preservation rule above. Move the export onto an isolated copy.
 
 - [x] **Step 1: Rewrite the fixture case to use `data/tmp`.**
 
-Derive the print-HTML path with [`print_html_path_for`](../../../../asc/doc/md2pdf_asc.py) (lines 304–313) for the temp markdown and the project root. Do not `ls`/`head` a glob of `*graphviz-er.html`; that can match a stale file from another run. Clean up that exact HTML path in the same `trap` as the temp directory. Use shUnit2 `assertTrue` / `assertFalse` / `fail` on every error path: a lone `return 1` still reports `OK` and exits 0 under this runner.
+Derive the print-HTML path with [`print_html_path_for`](../../../../asc/doc/md/md2pdf_asc.py) (lines 304–313) for the temp markdown and the project root. Do not `ls`/`head` a glob of `*graphviz-er.html`; that can match a stale file from another run. Clean up that exact HTML path in the same `trap` as the temp directory. Use shUnit2 `assertTrue` / `assertFalse` / `fail` on every error path: a lone `return 1` still reports `OK` and exits 0 under this runner.
 
 ```bash
 test_graphviz_er_fixture_pdf() {
@@ -1023,7 +1023,7 @@ PY
 )"
   trap 'rm -rf "$tmp"; rm -f "$html"' RETURN
   cp asc/doc/fixtures/graphviz-er.md "$tmp/graphviz-er.md"
-  ./asc/doc/pdf_export.sh --force "$tmp/graphviz-er.md"
+  ./asc/doc/pdf.sh --force "$tmp/graphviz-er.md"
   status=$?
   assertEquals 'graphviz temp export failed' 0 "$status"
   assertTrue "print HTML missing: $html" "[ -f \"$html\" ]"
@@ -1122,7 +1122,7 @@ try:
 
     def export(*args: str) -> str:
         proc = subprocess.run(
-            ["./asc/doc/pdf_export.sh", *args],
+            ["./asc/doc/pdf.sh", *args],
             check=True,
             cwd=ROOT,
             text=True,
@@ -1374,7 +1374,7 @@ try:
     preview_md.write_text("# Preview probe\n\nOne paragraph.\n", encoding="utf-8")
     preview_html = print_html_for(preview_md)
     subprocess.run(
-        ["./asc/doc/html_preview.sh", str(preview_md.relative_to(ROOT))],
+        ["./asc/doc/md/to_html.sh", str(preview_md.relative_to(ROOT))],
         check=True,
         cwd=ROOT,
         text=True,
