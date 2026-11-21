@@ -59,5 +59,30 @@ test_wait_for() {
     "[[ \"$output\" == *'has started'* ]]"
 }
 
+##
+# throw defaults must be bare names/values (no literal quotes in ${var:-…}).
+#
+# A quoted default inside double quotes made VARIANTS start with 'LV, which
+# broke hook cache-key indirect expansion (${!name}).
+#
+test_throw_default_variants_are_bare() {
+  local err
+
+  err="$(
+    (
+      unset LV CODE HANDLER VARIANTS ARGS
+      throw 'hello-from-throw-test' 2>&1
+    )
+    echo "status:$?"
+  )"
+
+  assertFalse 'throw must not hit invalid variable name' \
+    "[[ \"$err\" == *'invalid variable name'* ]]"
+  assertTrue 'throw echo hook should print ARGS' \
+    "[[ \"$err\" == *'hello-from-throw-test'* ]]"
+  assertTrue 'throw should exit with default CODE 1' \
+    "[[ \"$err\" == *'status:1'* ]]"
+}
+
 # Load and run shUnit2.
 . asc/vendor/shunit2/shunit2

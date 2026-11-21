@@ -40,18 +40,20 @@
 # $ make hook-debug s:instance a:throw v:LV HANDLER HOST_TYPE
 # $ make hook-debug s:instance p:post a:throw v:LV HANDLER HOST_TYPE
 #
+# @see asc/instance/throw.sh
+#
 # @example
 #   # Defaults to : echo "Hello world" >&2 ; exit 1
-#   # @see
+#   # @see asc/instance/throw.echo.hook.sh
 #   throw "Hello world"
 #
 throw() {
   export ARGS="$@"
 
-  export LV="${LV:-'error'}"
+  export LV="${LV:-error}"
   export CODE=${CODE:-1}
-  export HANDLER="${HANDLER:-'echo'}"
-  export VARIANTS="${VARIANTS:-'LV HANDLER HOST_TYPE'}"
+  export HANDLER="${HANDLER:-echo}"
+  export VARIANTS="${VARIANTS:-LV HANDLER HOST_TYPE}"
 
   hook -s 'instance' -p 'pre' -a 'throw' -v "$VARIANTS"
   hook -s 'instance' -a 'throw' -v "$VARIANTS"
