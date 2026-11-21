@@ -1844,13 +1844,17 @@ The general guideline is this :
 
 Examples :
 
-|  | Extension point | Data pivot |
-|--|-----------------|------------|
-| Core cache files | `asc/core` | `data/asc` |
-| Doc fixtures | `asc/doc` | `data/doc/fixtures` |
-| Doc fonts | `asc/doc` | `data/doc/fonts` |
-| Frozen test results | `asc/test` | `data/test/frozen` |
-| Test reports | `asc/test` | `data/test/report` |
+|  | Extension point | Data pivot | Example |
+|--|-----------------|------------|------------|
+| Core cache files | `asc/core` | `data/asc` | `data/asc/pivots.mk` |
+| Doc fixtures | `asc/doc` | `data/doc/fixtures` | `data/doc/fixtures/long-code.pdf` |
+| Doc fonts | `asc/doc` | `data/doc/fonts` | `data/doc/fonts/Spectral/Spectral-Medium.ttf` |
+| Frozen test results | `asc/test` | `data/test/frozen` | `data/test/frozen/asc.bootstrap.test_asc_autoload_override_works.txt` |
+| Test reports | `asc/test` | `data/test/report` | `data/test/report/2026/11/21-asc-tests-report.pdf` |
+| Local host(s) | `asc/host` | `data/host/local` | `data/host/local/foobar.local-domain.home.arpa.yml` |
+| Remote host(s) | `asc/extensions/remote/host` | `data/host/remote` | `data/host/remote/foobar.remote-domain.com.yml` |
+| Local project instances | `asc/instance` | `data/instance/local` | `data/instance/local/foobar.yml` |
+| Remote project instances | `asc/extensions/remote/instance` | `data/instance/remote` | `data/instance/remote/foobar.remote-domain.com/foobar.yml` |
 
 #### Deployable local project instance settings (instance-level + host-level)
 
