@@ -2,7 +2,7 @@
 
 . asc/bootstrap.sh
 
-export PYTHONPATH="asc/doc${PYTHONPATH:+:$PYTHONPATH}"
+export PYTHONPATH="asc/doc/md:asc/doc/pdf:asc/doc/formula:asc/doc/diagram:asc/doc/graph${PYTHONPATH:+:$PYTHONPATH}"
 
 PDF_PY=''
 if command -v md2pdf >/dev/null 2>&1; then
@@ -51,7 +51,7 @@ PY
 
 test_constants_and_content_box() {
   "$PDF_PY" - <<'PY'
-from print_paginate import (
+from paginate import (
     ASC_FONT_PT,
     A4_HEIGHT_PT,
     A4_HEIGHT_PX,
@@ -155,7 +155,7 @@ PY
 test_page_geometry() {
   "$PDF_PY" - <<'PY'
 from pathlib import Path
-from print_paginate import (
+from paginate import (
     PAGE_A3_LANDSCAPE,
     PAGE_A4,
     css_with_page_size,
@@ -201,7 +201,7 @@ from unittest.mock import patch
 
 import md2pdf.html_renderer
 from md2pdf_asc import main, render_html
-from print_paginate import PAGE_A3_LANDSCAPE, PAGE_A4, selected_page
+from paginate import PAGE_A3_LANDSCAPE, PAGE_A4, selected_page
 
 def at_page(html: str) -> str:
     return html.split("@page", 1)[1].split("}", 1)[0]
@@ -212,7 +212,7 @@ def assert_a4_after(src: Path) -> None:
     assert "size: A4" in page, page
     assert "A3" not in page, page
 
-src = Path("asc/doc/fixtures/para-gap.md")
+src = Path("data/doc/fixtures/para-gap.md")
 work = Path(tempfile.mkdtemp(prefix="a3-main-reset-", dir=Path("data/tmp")))
 out_pdf = work / "out.pdf"
 argv = ["md2pdf_asc.py", "--a3-l", str(src), "-o", str(out_pdf)]
@@ -262,7 +262,7 @@ PY
 
 test_fit_content_height_from_probe() {
   "$PDF_PY" - <<'PY'
-from print_paginate import (
+from paginate import (
     PT_TO_PX,
     PdfLine,
     fit_content_height_px,
@@ -304,7 +304,7 @@ PY
 
 test_page_review_heading_orphan() {
   "$PDF_PY" - <<'PY'
-from print_paginate import PdfLine, heading_keep_from_pdf, is_heading_orphan
+from paginate import PdfLine, heading_keep_from_pdf, is_heading_orphan
 
 # ## 6: two lines then the page ends; section continues.
 assert is_heading_orphan(y_on_page=900, following_lines=2, continues=True)
@@ -378,7 +378,7 @@ PY
 
 test_page_review_table_then_heading() {
   "$PDF_PY" - <<'PY'
-from print_paginate import (
+from paginate import (
     HEADING_TAGS,
     PAGINATE_JS,
     PageIssue,
@@ -473,7 +473,7 @@ PY
 
 test_protect_katex_delimiters() {
   "$PDF_PY" - <<'PY'
-from print_katex import protect_katex_math, restore_katex_math, html_has_katex
+from katex import protect_katex_math, restore_katex_math, html_has_katex
 
 md = r"Let \(\ell\) and \[ \frac{a}{b} \] and $x_1$ and $$y_2$$."
 protected, placeholders = protect_katex_math(md)
@@ -500,7 +500,7 @@ PY
 
 test_mermaid_candidates() {
   "$PDF_PY" - <<'PY'
-from print_mermaid import (
+from mermaid import (
     flowchart_set_rank,
     mermaid_candidates,
     mermaid_kind,
@@ -542,7 +542,7 @@ assert ";" not in quoted.split("H->>D:", 1)[1]
 assert "report∶ durations" in quoted
 seq_cands = mermaid_candidates(seq)
 assert any("scan — compute" in c[0] for c in seq_cands)
-from print_mermaid import mermaid_run_js
+from mermaid import mermaid_run_js
 js = mermaid_run_js(800, 1000)
 assert "error-text" in js
 assert "dascMmd" in js
@@ -967,7 +967,7 @@ assert "render_graphviz_fences" in src
 fn = src.split("def markdown_to_html", 1)[1].split("hr.markdown_to_html", 1)[0]
 assert fn.index("protect_katex_math") < fn.index("render_graphviz_fences")
 assert fn.index("render_graphviz_fences") < fn.index("orig(")
-# Conversion banner is in main(), not render_html() / html_preview.sh.
+# Conversion banner is in main(), not render_html() / md/to_html.sh.
 main = src.split("def main", 1)[1]
 assert "Graphviz" in main
 css = Path("asc/doc/pdf/styles.css").read_text(encoding="utf-8")
@@ -1153,8 +1153,14 @@ test_no_target_loops_propagate_failure() {
   done
   for item in "$root/asc/doc"/*; do
     base="$(basename "$item")"
-    [[ "$base" == md2pdf_asc.py || "$base" == pdf_export.sh ]] && continue
+    [[ "$base" == md || "$base" == pdf.sh ]] && continue
     ln -s "$item" "$tmp/asc/doc/$base"
+  done
+  mkdir -p "$tmp/asc/doc/md"
+  for item in "$root/asc/doc/md"/*; do
+    base="$(basename "$item")"
+    [[ "$base" == md2pdf_asc.py ]] && continue
+    ln -s "$item" "$tmp/asc/doc/md/$base"
   done
   cp "$root/asc/doc/pdf.sh" "$tmp/asc/doc/pdf.sh"
   cat >"$tmp/asc/doc/md/md2pdf_asc.py" <<'PY'
@@ -1217,7 +1223,7 @@ print(print_html_path_for(md, root))
 PY
 )"
   trap 'rm -rf "$tmp"; rm -f "$html"' RETURN
-  cp asc/doc/fixtures/graphviz-er.md "$tmp/graphviz-er.md"
+  cp data/doc/fixtures/graphviz-er.md "$tmp/graphviz-er.md"
   ./asc/doc/pdf.sh --force "$tmp/graphviz-er.md"
   status=$?
   assertEquals 'graphviz temp export failed' 0 "$status"
@@ -1287,7 +1293,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from print_paginate import (
+from paginate import (
     MIN_TABLE_ROWS,
     PAGE_A3_LANDSCAPE,
     content_height_px,
@@ -1314,9 +1320,9 @@ try:
     (tmp / "gv").mkdir()
     (tmp / "dir" / "one.md").write_text("# One\n\nHello one.\n", encoding="utf-8")
     (tmp / "dir" / "two.md").write_text("# Two\n\nHello two.\n", encoding="utf-8")
-    shutil.copy("asc/doc/fixtures/mermaid-dense.md", tmp / "wide" / "diagram.md")
-    shutil.copy("asc/doc/fixtures/widow-table.md", tmp / "flow" / "table.md")
-    shutil.copy("asc/doc/fixtures/graphviz-er.md", tmp / "gv" / "graphviz-er.md")
+    shutil.copy("data/doc/fixtures/mermaid-dense.md", tmp / "wide" / "diagram.md")
+    shutil.copy("data/doc/fixtures/widow-table.md", tmp / "flow" / "table.md")
+    shutil.copy("data/doc/fixtures/graphviz-er.md", tmp / "gv" / "graphviz-er.md")
 
     def export(*args: str) -> str:
         proc = subprocess.run(
@@ -1329,7 +1335,7 @@ try:
         )
         if proc.returncode != 0:
             raise AssertionError(
-                f"pdf_export.sh {' '.join(args)} failed "
+                f"pdf.sh {' '.join(args)} failed "
                 f"(exit {proc.returncode}):\n{proc.stdout}"
             )
         return proc.stdout
@@ -1572,7 +1578,7 @@ try:
         assert "```dot" not in gv_text
         assert_inside_media_box(gv_pdf)
 
-    preview_md = ROOT / "asc" / "doc" / "fixtures" / f"a3-preview-{tmp.name}.md"
+    preview_md = ROOT / "data" / "doc" / "fixtures" / f"a3-preview-{tmp.name}.md"
     extra_paths.append(preview_md)
     preview_md.write_text("# Preview probe\n\nOne paragraph.\n", encoding="utf-8")
     preview_html = print_html_for(preview_md)

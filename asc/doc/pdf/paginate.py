@@ -90,7 +90,7 @@ def css_with_page_size(css: str, page: PageGeometry) -> str:
         return css
     updated, n = _PAGE_SIZE_RE.subn(rf"\g<1>{page.css_size}", css, count=1)
     if n != 1:
-        raise RuntimeError("pdf_styles.css is missing @page size: A4")
+        raise RuntimeError("asc/doc/pdf/styles.css is missing @page size: A4")
     return updated
 
 

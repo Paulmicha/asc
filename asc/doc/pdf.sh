@@ -7,7 +7,7 @@
 #   -> 'data/ideas/2026/08/Agents of Redirection (Donella Meadows, Alexandre Monnin, Pierre Lévy).pdf'
 #
 # @requires https://github.com/rbutinar/md2pdf-mermaid
-# Styled via asc/doc/md/md2pdf_asc.py + pdf_styles.css (Spectral, 9pt body).
+# Styled via asc/doc/md/md2pdf_asc.py + asc/doc/pdf/styles.css (Spectral, 9pt body).
 # Mermaid: local asc/vendor/mermaid.esm.min.mjs (offline).
 # KaTeX: local asc/vendor/katex/ (CSS + JS + auto-render, offline).
 # Graphviz: ```dot / ```graphviz / ```fdp / …  (user host dep: sudo apt install graphviz)
@@ -144,7 +144,7 @@ pdf_md2pdf_python() {
 }
 
 PDF_MD2PDF_PY="$(pdf_md2pdf_python)"
-PDF_ASC_WRAPPER="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/md2pdf_asc.py"
+PDF_ASC_WRAPPER="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/md/md2pdf_asc.py"
 if [[ ! -f "$PDF_ASC_WRAPPER" ]]; then
   echo "ASC md2pdf wrapper not found: $PDF_ASC_WRAPPER"
   exit 1

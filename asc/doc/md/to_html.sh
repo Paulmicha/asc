@@ -2,7 +2,7 @@
 
 ##
 # Build an HTML preview of a markdown file using the same PDF pipeline
-# (pdf_styles.css + Spectral + local Mermaid.js; Graphviz via system `dot` if present).
+# (asc/doc/pdf/styles.css + Spectral + local Mermaid.js; Graphviz via system `dot` if present).
 #
 # Graphviz fences (```dot / ```graphviz / ```fdp / …) become inline SVG when `dot`
 # is on PATH. Add `labels` to the fence (```twopi labels) for the optional gvpr
@@ -12,7 +12,7 @@
 # @example
 #   asc/doc/md/to_html.sh 'data/ideas/2026/08/Agents of Redirection (Donella Meadows, Alexandre Monnin, Pierre Lévy).md'
 #   asc/doc/md/to_html.sh 'docs/asc/builder.md'
-#   asc/doc/md/to_html.sh 'asc/doc/fixtures/katex-delimiters.md'
+#   asc/doc/md/to_html.sh 'data/doc/fixtures/katex-delimiters.md'
 #
 
 . asc/bootstrap.sh
@@ -31,13 +31,13 @@ if [[ ! -f "$p_md" ]]; then
 fi
 
 case "$p_md" in
-  data/ideas/*|docs/*|asc/doc/fixtures/*) ;;
+  data/ideas/*|docs/*|data/doc/fixtures/*) ;;
   *)
     abs="$(cd "$(dirname "$p_md")" && pwd)/$(basename "$p_md")"
     case "$abs" in
-      "$PWD/data/ideas/"*|"$PWD/docs/"*|"$PWD/asc/doc/fixtures/"*) ;;
+      "$PWD/data/ideas/"*|"$PWD/docs/"*|"$PWD/data/doc/fixtures/"*) ;;
       *)
-#   Expected a markdown file under data/ideas/, docs/, or asc/doc/fixtures/: $p_md
+        echo "Expected a markdown file under data/ideas/, docs/, or data/doc/fixtures/: $p_md" >&2
         exit 1
         ;;
     esac

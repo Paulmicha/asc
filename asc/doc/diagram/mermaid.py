@@ -6,7 +6,14 @@ import html as html_lib
 import json
 import re
 
-from print_paginate import (
+import sys
+from pathlib import Path
+
+_pdf_dir = str(Path(__file__).resolve().parent.parent / "pdf")
+if _pdf_dir not in sys.path:
+    sys.path.insert(0, _pdf_dir)
+
+from paginate import (
     MERMAID_FONT_PX,
     MERMAID_LABEL_WRAP_CHARS,
     MERMAID_MAX_CANDIDATES,

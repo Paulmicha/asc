@@ -24,8 +24,15 @@ import shutil
 import sys
 from pathlib import Path
 
+# Typed helpers live beside this file under asc/doc/{pdf,formula,diagram,graph}/.
+_DOC_DIR = Path(__file__).resolve().parent.parent
+for _sub in ("pdf", "formula", "diagram", "graph"):
+    _p = str(_DOC_DIR / _sub)
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
 from print_code import explode_pre_code_lines
-from print_katex import (
+from katex import (
     KATEX_RUN_JS,
     html_has_katex,
     katex_assets_html,
@@ -33,13 +40,13 @@ from print_katex import (
     restore_katex_math,
 )
 from print_graphviz import iter_graphviz_fences, render_graphviz_fences
-from print_mermaid import (
+from mermaid import (
     inject_mermaid_candidates,
     mermaid_run_js,
     mermaid_vendor_tag,
     patch_mermaid_as_html,
 )
-from print_paginate import (
+from paginate import (
     ASC_MARK_LONG_PARAS_FN,
     MARK_LONG_PARAS_JS,
     apply_print_pushes,
@@ -72,11 +79,12 @@ FIT_DIAGRAMS_JS = """(pageHeight) => {
 }"""
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-# asc/doc -> asc -> project root (repo containing data/, docs/, asc/)
-ASC_DIR = SCRIPT_DIR.parent
+# asc/doc/md -> asc/doc -> asc -> project root (repo containing data/, docs/, asc/)
+DOC_DIR = SCRIPT_DIR.parent
+ASC_DIR = DOC_DIR.parent
 PROJECT_ROOT_DEFAULT = ASC_DIR.parent
-STYLE_CSS = SCRIPT_DIR / "pdf_styles.css"
-FONTS_DIR = SCRIPT_DIR / "fonts"
+STYLE_CSS = DOC_DIR / "pdf" / "styles.css"
+FONTS_DIR = PROJECT_ROOT_DEFAULT / "data" / "doc" / "fonts"
 FONT_DIR = FONTS_DIR / "Spectral"
 FONT_FAMILY = "Spectral"
 MONO_FONT_FAMILY = "Source Code Pro"
