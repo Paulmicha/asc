@@ -118,7 +118,7 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [DSL examples](#dsl-examples)
     - [DSL in Yaml](#dsl-in-yaml)
   - [Data dirs = "data pivots"](#data-dirs-data-pivots)
-    - [ASC data convention examples](#asc-data-convention-examples)
+    - [ASC data convention](#asc-data-convention)
     - [Deployable local project instance settings (instance-level + host-level)](#deployable-local-project-instance-settings-instance-level-host-level)
     - [ASC cache : `data/asc/cache`](#asc-cache-dataasccache)
     - [Default file-based entity storage : `data/entities`](#default-file-based-entity-storage-dataentities)
@@ -1835,7 +1835,14 @@ Example :
 - Remote instances bidirectional sync
 - etc.
 
-#### ASC data convention examples
+#### ASC data convention
+
+The general guideline is this :
+
+- In the same way actions are scoped by subjects (i.e. `$subject` / `$action`), all data read from and written to the local project instance filesystem must be also scoped by the same "by subject" organizing principle (i.e. `data/$subject`).
+- For cases like `$subject` / `$object` / `$action`, it follows : `data/$subject/$object`
+
+Examples :
 
 |  | Extension point | Data pivot | Customizability |
 |-------|--------|---------|
