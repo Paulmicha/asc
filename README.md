@@ -1846,7 +1846,7 @@ Examples :
 
 |  | Extension point | Data pivot | Example |
 |--|-----------------|------------|------------|
-| Core cache files | `asc/core` | `data/asc` | `data/asc/pivots.mk` |
+| Core cache files | `asc/core` | `data/asc/cache` | `data/asc/cache/hook/s-asc.a-bootstrap.v-v1,compose.sh` |
 | Doc fixtures | `asc/doc` | `data/doc/fixtures` | `data/doc/fixtures/long-code.pdf` |
 | Doc fonts | `asc/doc` | `data/doc/fonts` | `data/doc/fonts/Spectral/Spectral-Medium.ttf` |
 | Frozen test results | `asc/test` | `data/test/frozen` | `data/test/frozen/asc.bootstrap.test_asc_autoload_override_works.txt` |
