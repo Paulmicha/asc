@@ -63,17 +63,9 @@ f_asc_dsl_usage() {
 }
 
 ##
-# Diagnostic helper for f_asc_dsl (stderr + usage). Never exits.
+# DSL diagnostics use throw() (instance throw hook + exit). See f_asc_dsl_usage
+# for the CLI synopsis; call it before throw when a fuller help dump is wanted.
 #
-# @param 1 String : short reason.
-#
-f_asc_dsl_err() {
-  local p_reason="$1"
-
-  echo >&2
-  echo "Error in f_asc_dsl() - $BASH_SOURCE line ${BASH_LINENO[0]}: ${p_reason}" >&2
-  f_asc_dsl_usage
-}
 
 ##
 # Resolve a pivot name to an executable script path.
@@ -87,7 +79,8 @@ f_asc_dsl_err() {
 #
 # @return
 #   0 : resolved
-#   1 : unknown, ineligible, or non-executable
+#
+# On unknown, ineligible, or non-executable : throw() (does not return).
 #
 f_asc_dsl_resolve() {
   local p_name="$1"
@@ -121,15 +114,11 @@ f_asc_dsl_resolve() {
           return 0
         fi
 
-        f_asc_dsl_err "hardcoded pivot '$p_name' script '$asc_dsl_script' is missing or not executable."
-
-        return 1
+        throw "hardcoded pivot '$p_name' script '$asc_dsl_script' is missing or not executable."
       fi
     done
 
-    f_asc_dsl_err "hardcoded Make name '$p_name' is reserved and not eligible for DSL dispatch."
-
-    return 1
+    throw "hardcoded Make name '$p_name' is reserved and not eligible for DSL dispatch."
   fi
 
   pivots_arr=()
@@ -144,15 +133,11 @@ f_asc_dsl_resolve() {
         return 0
       fi
 
-      f_asc_dsl_err "pivot '$p_name' script '$asc_dsl_script' is missing or not executable."
-
-      return 1
+      throw "pivot '$p_name' script '$asc_dsl_script' is missing or not executable."
     fi
   done
 
-  f_asc_dsl_err "unknown pivot '$p_name'."
-
-  return 1
+  throw "unknown pivot '$p_name'."
 }
 
 ##
@@ -167,7 +152,8 @@ f_asc_dsl_resolve() {
 #
 # @return
 #   0 : ok
-#   1 : binding error
+#
+# On binding error : throw() (does not return).
 #
 f_asc_dsl_expand_token() {
   local p_token="$1"
@@ -184,9 +170,7 @@ f_asc_dsl_expand_token() {
   esac
 
   if [[ "$asc_dsl_bound_set" -ne 1 ]]; then
-    f_asc_dsl_err "argv binding token '$p_token' requires '--' before caller arguments."
-
-    return 1
+    throw "argv binding token '$p_token' requires '--' before caller arguments."
   fi
 
   case "$p_token" in
@@ -208,9 +192,7 @@ f_asc_dsl_expand_token() {
 
     if [[ "${#idx}" -gt "${#bound_n}" ]] \
       || { [[ "${#idx}" -eq "${#bound_n}" ]] && [[ "$idx" > "$bound_n" ]]; }; then
-      f_asc_dsl_err "positional binding '$p_token' is out of range (${bound_n} bound)."
-
-      return 1
+      throw "positional binding '$p_token' is out of range (${bound_n} bound)."
     fi
 
     asc_dsl_argv_arr+=("${asc_dsl_bound_arr[idx - 1]}")
@@ -224,9 +206,7 @@ f_asc_dsl_expand_token() {
 
     if [[ "${#drop}" -gt "${#bound_n}" ]] \
       || { [[ "${#drop}" -eq "${#bound_n}" ]] && [[ "$drop" > "$bound_n" ]]; }; then
-      f_asc_dsl_err "skip binding '$p_token' drops more than ${bound_n} bound argument(s)."
-
-      return 1
+      throw "skip binding '$p_token' drops more than ${bound_n} bound argument(s)."
     fi
 
     for ((i = drop; i < bound_n; i++)); do
@@ -236,9 +216,7 @@ f_asc_dsl_expand_token() {
     return 0
   fi
 
-  f_asc_dsl_err "unsupported binding token '$p_token'."
-
-  return 1
+  throw "unsupported binding token '$p_token'."
 }
 
 ##
@@ -253,7 +231,8 @@ f_asc_dsl_expand_token() {
 #
 # @return
 #   0 : parsed and argv expanded
-#   1 : invalid or unsupported syntax / binding error
+#
+# On invalid or unsupported syntax / binding error : throw() (does not return).
 #
 f_asc_dsl_parse_call() {
   local p_expr="$1"
@@ -280,17 +259,13 @@ f_asc_dsl_parse_call() {
   asc_dsl_argv_arr=()
 
   if [[ -z "$expr" ]]; then
-    f_asc_dsl_err "expression is empty."
-
-    return 1
+    throw "expression is empty."
   fi
 
   # Bracket function forms like [echo(...)] are not in this slice.
   case "$expr" in
     '['*)
-      f_asc_dsl_err "function / bracket forms are not supported in this DSL slice: '$p_expr'."
-
-      return 1
+      throw "function / bracket forms are not supported in this DSL slice: '$p_expr'."
       ;;
   esac
 
@@ -310,9 +285,7 @@ f_asc_dsl_parse_call() {
   done
 
   if [[ -z "$name" ]]; then
-    f_asc_dsl_err "expected a pivot name in: '$p_expr'."
-
-    return 1
+    throw "expected a pivot name in: '$p_expr'."
   fi
 
   asc_dsl_call_name="$name"
@@ -324,9 +297,7 @@ f_asc_dsl_parse_call() {
   c="${expr:i:1}"
 
   if [[ "$c" != '(' ]]; then
-    f_asc_dsl_err "unsupported syntax after pivot '$name' in: '$p_expr'."
-
-    return 1
+    throw "unsupported syntax after pivot '$name' in: '$p_expr'."
   fi
 
   i=$((i + 1))
@@ -352,9 +323,7 @@ f_asc_dsl_parse_call() {
     saw_close=1
 
     if [[ "$i" -ne "$len" ]]; then
-      f_asc_dsl_err "unsupported trailing syntax in: '$p_expr'."
-
-      return 1
+      throw "unsupported trailing syntax in: '$p_expr'."
     fi
 
     return 0
@@ -377,9 +346,7 @@ f_asc_dsl_parse_call() {
     done
 
     if [[ "$i" -ge "$len" ]]; then
-      f_asc_dsl_err "unclosed argument list in: '$p_expr'."
-
-      return 1
+      throw "unclosed argument list in: '$p_expr'."
     fi
 
     c="${expr:i:1}"
@@ -406,28 +373,20 @@ f_asc_dsl_parse_call() {
         done
 
         if [[ "$kind" != 'literal' ]]; then
-          f_asc_dsl_err "unclosed single-quoted argument in: '$p_expr'."
-
-          return 1
+          throw "unclosed single-quoted argument in: '$p_expr'."
         fi
         ;;
 
       ',')
-        f_asc_dsl_err "empty argument is written as '' in: '$p_expr'."
-
-        return 1
+        throw "empty argument is written as '' in: '$p_expr'."
         ;;
 
       ')')
-        f_asc_dsl_err "empty argument is written as '' in: '$p_expr'."
-
-        return 1
+        throw "empty argument is written as '' in: '$p_expr'."
         ;;
 
       '(')
-        f_asc_dsl_err "nested calls are not supported in this DSL slice: '$p_expr'."
-
-        return 1
+        throw "nested calls are not supported in this DSL slice: '$p_expr'."
         ;;
 
       *)
@@ -449,9 +408,7 @@ f_asc_dsl_parse_call() {
         done
 
         if [[ -z "$token" ]]; then
-          f_asc_dsl_err "invalid argument syntax near '${expr:i:1}' in: '$p_expr'."
-
-          return 1
+          throw "invalid argument syntax near '${expr:i:1}' in: '$p_expr'."
         fi
 
         if [[ "$token" == 'a' ]] \
@@ -460,9 +417,7 @@ f_asc_dsl_parse_call() {
           kind='binding'
         elif [[ "$token" =~ ^[ps][0-9]+$ ]]; then
           # Binding-shaped but invalid (leading zeroes, etc.) — never a literal.
-          f_asc_dsl_err "unsupported binding token '$token' in: '$p_expr'."
-
-          return 1
+          throw "unsupported binding token '$token' in: '$p_expr'."
         elif [[ "$token" =~ ^v-[A-Za-z_][A-Za-z0-9_]*$ ]] \
           || [[ "$token" =~ ^d[0-9]+$ ]] \
           || [[ "$token" =~ ^bb?-[A-Za-z0-9][A-Za-z0-9_-]*$ ]] \
@@ -471,9 +426,7 @@ f_asc_dsl_parse_call() {
           || [[ "$token" =~ ^oe-[A-Za-z0-9][A-Za-z0-9_-]*$ ]] \
           || [[ "$token" =~ ^o-[A-Za-z0-9][A-Za-z0-9_-]*$ ]] \
           || [[ "$token" =~ ^(ba|bba|oa|ooa)$ ]]; then
-          f_asc_dsl_err "unsupported reserved argument token '$token' in this DSL slice: '$p_expr'."
-
-          return 1
+          throw "unsupported reserved argument token '$token' in this DSL slice: '$p_expr'."
         else
           # Unquoted literal : apply % / %% substitutions.
           lit=''
@@ -508,9 +461,7 @@ f_asc_dsl_parse_call() {
         ;;
     esac
 
-    if ! f_asc_dsl_expand_token "$token" "$kind"; then
-      return 1
-    fi
+    f_asc_dsl_expand_token "$token" "$kind"
 
     # Optional whitespace before comma or close-paren.
     while [[ "$i" -lt "$len" ]]; do
@@ -528,9 +479,7 @@ f_asc_dsl_parse_call() {
     done
 
     if [[ "$i" -ge "$len" ]]; then
-      f_asc_dsl_err "unclosed argument list in: '$p_expr'."
-
-      return 1
+      throw "unclosed argument list in: '$p_expr'."
     fi
 
     c="${expr:i:1}"
@@ -541,9 +490,7 @@ f_asc_dsl_parse_call() {
 
         # Trailing comma with no further tokens must not exit the loop as success.
         if [[ "$i" -ge "$len" ]]; then
-          f_asc_dsl_err "unclosed argument list in: '$p_expr'."
-
-          return 1
+          throw "unclosed argument list in: '$p_expr'."
         fi
         ;;
 
@@ -554,23 +501,17 @@ f_asc_dsl_parse_call() {
         ;;
 
       *)
-        f_asc_dsl_err "expected ',' or ')' near '${expr:i}' in: '$p_expr'."
-
-        return 1
+        throw "expected ',' or ')' near '${expr:i}' in: '$p_expr'."
         ;;
     esac
   done
 
   if [[ "$saw_close" -ne 1 ]]; then
-    f_asc_dsl_err "unclosed argument list in: '$p_expr'."
-
-    return 1
+    throw "unclosed argument list in: '$p_expr'."
   fi
 
   if [[ "$i" -ne "$len" ]]; then
-    f_asc_dsl_err "unsupported trailing syntax (combinators / extra calls are not in this slice): '$p_expr'."
-
-    return 1
+    throw "unsupported trailing syntax (combinators / extra calls are not in this slice): '$p_expr'."
   fi
 
   return 0
@@ -596,7 +537,9 @@ f_asc_dsl_parse_call() {
 #
 # @return
 #   0 : loaded
-#   1 : file error, embedded NUL, incomplete load, or concurrent modification
+#
+# On file error, embedded NUL, incomplete load, or concurrent modification :
+# throw() (does not return).
 #
 f_asc_dsl_load_file() {
   local p_path="$1"
@@ -610,105 +553,77 @@ f_asc_dsl_load_file() {
   asc_dsl_program=''
 
   if [[ ! -e "$p_path" ]]; then
-    f_asc_dsl_err "DSL file not found: '$p_path'."
-
-    return 1
+    throw "DSL file not found: '$p_path'."
   fi
 
   if [[ ! -f "$p_path" ]]; then
-    f_asc_dsl_err "DSL path is not a regular file: '$p_path'."
-
-    return 1
+    throw "DSL path is not a regular file: '$p_path'."
   fi
 
   if [[ ! -r "$p_path" ]]; then
-    f_asc_dsl_err "DSL file is not readable: '$p_path'."
-
-    return 1
+    throw "DSL file is not readable: '$p_path'."
   fi
 
   if ! before_size="$(stat -c '%s' -- "$p_path")"; then
-    f_asc_dsl_err "DSL file size could not be read: '$p_path'."
-
-    return 1
+    throw "DSL file size could not be read: '$p_path'."
   fi
 
   # One snapshot of source bytes. Compare its size to before_size so an
   # in-place truncate/extend during cat cannot yield a partial program.
   snap="$(mktemp "${TMPDIR:-/tmp}/asc-dsl.XXXXXX")" || {
-    f_asc_dsl_err "DSL file snapshot could not be created for: '$p_path'."
-
-    return 1
+    throw "DSL file snapshot could not be created for: '$p_path'."
   }
 
   if ! cat -- "$p_path" > "$snap"; then
     rm -f "$snap"
-    f_asc_dsl_err "DSL file could not be read completely: '$p_path'."
-
-    return 1
+    throw "DSL file could not be read completely: '$p_path'."
   fi
 
   # Test-only injection point (undefined in production).
   if declare -F f_asc_dsl_test_after_snap_copy >/dev/null 2>&1; then
     if ! f_asc_dsl_test_after_snap_copy "$snap" "$p_path"; then
       rm -f "$snap"
-      f_asc_dsl_err "DSL file snapshot test hook failed: '$p_path'."
-
-      return 1
+      throw "DSL file snapshot test hook failed: '$p_path'."
     fi
   fi
 
   if ! snap_size="$(stat -c '%s' -- "$snap")"; then
     rm -f "$snap"
-    f_asc_dsl_err "DSL file snapshot size could not be read: '$p_path'."
-
-    return 1
+    throw "DSL file snapshot size could not be read: '$p_path'."
   fi
 
   if [[ "$snap_size" != "$before_size" ]]; then
     rm -f "$snap"
-    f_asc_dsl_err "DSL file changed during read (snapshot size mismatch): '$p_path'."
-
-    return 1
+    throw "DSL file changed during read (snapshot size mismatch): '$p_path'."
   fi
 
   if [[ ! -r "$snap" ]]; then
     rm -f "$snap"
-    f_asc_dsl_err "DSL file snapshot could not be validated: '$p_path'."
-
-    return 1
+    throw "DSL file snapshot could not be validated: '$p_path'."
   fi
 
   # NUL check without pipelines: each command status is checked alone. A failed
   # tr/stat must not be treated as success via empty-equal size comparison.
   stripped_file="$(mktemp "${TMPDIR:-/tmp}/asc-dsl-strip.XXXXXX")" || {
     rm -f "$snap"
-    f_asc_dsl_err "DSL file snapshot could not be validated: '$p_path'."
-
-    return 1
+    throw "DSL file snapshot could not be validated: '$p_path'."
   }
 
   if ! tr -d '\0' < "$snap" > "$stripped_file"; then
     rm -f "$snap" "$stripped_file"
-    f_asc_dsl_err "DSL file snapshot could not be validated: '$p_path'."
-
-    return 1
+    throw "DSL file snapshot could not be validated: '$p_path'."
   fi
 
   if ! stripped_size="$(stat -c '%s' -- "$stripped_file")"; then
     rm -f "$snap" "$stripped_file"
-    f_asc_dsl_err "DSL file snapshot could not be validated: '$p_path'."
-
-    return 1
+    throw "DSL file snapshot could not be validated: '$p_path'."
   fi
 
   rm -f "$stripped_file"
 
   if [[ "$snap_size" != "$stripped_size" ]]; then
     rm -f "$snap"
-    f_asc_dsl_err "DSL file contains embedded NUL: '$p_path'."
-
-    return 1
+    throw "DSL file contains embedded NUL: '$p_path'."
   fi
 
   # No NUL in the snapshot : read -d '' takes the full buffer (EOF, no delim).
@@ -718,34 +633,26 @@ f_asc_dsl_load_file() {
   # Measure loaded bytes via a checked write + stat (no wc pipeline).
   stripped_file="$(mktemp "${TMPDIR:-/tmp}/asc-dsl-strip.XXXXXX")" || {
     asc_dsl_program=''
-    f_asc_dsl_err "DSL file snapshot could not be measured after load: '$p_path'."
-
-    return 1
+    throw "DSL file snapshot could not be measured after load: '$p_path'."
   }
 
   if ! printf '%s' "$asc_dsl_program" > "$stripped_file"; then
     rm -f "$stripped_file"
     asc_dsl_program=''
-    f_asc_dsl_err "DSL file snapshot could not be measured after load: '$p_path'."
-
-    return 1
+    throw "DSL file snapshot could not be measured after load: '$p_path'."
   fi
 
   if ! loaded_size="$(stat -c '%s' -- "$stripped_file")"; then
     rm -f "$stripped_file"
     asc_dsl_program=''
-    f_asc_dsl_err "DSL file snapshot could not be measured after load: '$p_path'."
-
-    return 1
+    throw "DSL file snapshot could not be measured after load: '$p_path'."
   fi
 
   rm -f "$stripped_file"
 
   if [[ "$loaded_size" != "$snap_size" ]]; then
     asc_dsl_program=''
-    f_asc_dsl_err "DSL file could not be loaded completely: '$p_path'."
-
-    return 1
+    throw "DSL file could not be loaded completely: '$p_path'."
   fi
 
   return 0
@@ -855,15 +762,17 @@ f_asc_dsl_split_program() {
 # File versus inline is decided by a .dsl.txt suffix on the program argument.
 # The full program is split, parsed, binding-expanded, and pivot-resolved
 # before any call dispatches. Top-level newlines sequence calls
-# (continue-on-nonzero; last status). Returns status to the caller; never exits.
+# (continue-on-nonzero; last status). Diagnostics use throw() (exit). After a
+# successful preparse, returns the last dispatched pivot status to the caller.
 #
 # @param 1 String : DSL expression or path ending in .dsl.txt.
 # @param ... optional '--' then caller argv for pN / a / sN bindings.
 #
 # @return
 #   0 : success (or last call status 0)
-#   1 : invalid / unsupported / unknown / file error (no execution)
 #   $? : status of the last dispatched pivot script
+#
+# On invalid / unsupported / unknown / file error (no execution) : throw().
 #
 # @example
 #   f_asc_dsl 'slug(foobar)'
@@ -893,9 +802,7 @@ f_asc_dsl() {
   local asc_dsl_suf_len=0
 
   if [[ $# -lt 1 ]]; then
-    f_asc_dsl_err "missing expression."
-
-    return 1
+    throw "missing expression."
   fi
 
   shift
@@ -909,9 +816,7 @@ f_asc_dsl() {
         ;;
 
       *)
-        f_asc_dsl_err "unexpected argument '$1' (use '--' before caller argv, or pass only the expression)."
-
-        return 1
+        throw "unexpected argument '$1' (use '--' before caller argv, or pass only the expression)."
         ;;
     esac
   fi
@@ -923,9 +828,7 @@ f_asc_dsl() {
 
   if [[ "$asc_dsl_arg_len" -ge "$asc_dsl_suf_len" ]] \
     && [ "${p_arg:asc_dsl_arg_len - asc_dsl_suf_len}" = "$asc_dsl_suffix" ]; then
-    if ! f_asc_dsl_load_file "$p_arg"; then
-      return 1
-    fi
+    f_asc_dsl_load_file "$p_arg"
   else
     asc_dsl_program="$p_arg"
   fi
@@ -933,9 +836,7 @@ f_asc_dsl() {
   f_asc_dsl_split_program "$asc_dsl_program"
 
   if [[ "${#asc_dsl_exprs_arr[@]}" -eq 0 ]]; then
-    f_asc_dsl_err "expression is empty."
-
-    return 1
+    throw "expression is empty."
   fi
 
   # Preparse-all : syntax, bindings, and pivot resolve before any dispatch.
@@ -944,13 +845,8 @@ f_asc_dsl() {
     asc_dsl_argv_arr=()
     asc_dsl_script=''
 
-    if ! f_asc_dsl_parse_call "${asc_dsl_exprs_arr[i]}"; then
-      return 1
-    fi
-
-    if ! f_asc_dsl_resolve "$asc_dsl_call_name"; then
-      return 1
-    fi
+    f_asc_dsl_parse_call "${asc_dsl_exprs_arr[i]}"
+    f_asc_dsl_resolve "$asc_dsl_call_name"
 
     asc_dsl_pre_argv_start_arr+=("${#asc_dsl_pre_argv_flat_arr[@]}")
     asc_dsl_pre_argv_len_arr+=("${#asc_dsl_argv_arr[@]}")

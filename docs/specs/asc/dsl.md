@@ -27,7 +27,7 @@ Status: **implemented in-tree, not gate-accepted** (`approved: "no"`, `go: "no"`
 
 | Entry | Behavior in this checkout |
 |---|---|
-| [`f_asc_dsl`](../../../asc/core/dsl.manual-inc.sh) | Program (inline or `*.dsl.txt`): top-level newline sequencing, literals, exact `pN` / `a` / `sN` bindings expanded and pivots resolved for **every** call before any dispatch, last-status return (never `exit` from the function). Requires a closing `)` before each call dispatches. |
+| [`f_asc_dsl`](../../../asc/core/dsl.manual-inc.sh) | Program (inline or `*.dsl.txt`): top-level newline sequencing, literals, exact `pN` / `a` / `sN` bindings expanded and pivots resolved for **every** call before any dispatch, last-status return after a successful preparse. Diagnostics use [`throw()`](../../../asc/core/utils/shell.manual-inc.sh) (exit; no `f_asc_dsl_err`). Requires a closing `)` before each call dispatches. |
 | [`asc/dsl.sh`](../../../asc/dsl.sh) | Bootstraps ASC and passes its argv to `f_asc_dsl`; process exit status is the function status. |
 | [`make ds`](../../../asc/make/default.mk) | Hardcoded target runs [`asc/make/ds.make.sh`](../../../asc/make/ds.make.sh). Expression or `*.dsl.txt` path comes from **`ASC_DS_EXPR`** (not Make goals). Stray goals with `ds` are refused at makefile parse time. |
 | Former `asc/instance/ds.sh` | Removed in `65de058`. `f_make_generate` skips hardcoded reserved names and drops cached paths to the removed script. |
@@ -119,14 +119,16 @@ asc/dsl.sh <expression> [-- <caller-arg>...]
 
 `f_asc_dsl` parses the complete expression and resolves its static call names
 before running any branch. Invalid syntax, unsupported syntax, or unknown
-calls return nonzero with a diagnostic on stderr before execution begins.
-Values needed only by a branch are resolved when that branch runs.
+calls `throw()` (stderr diagnostic via the instance throw hook, then exit)
+before execution begins. Values needed only by a branch are resolved when that
+branch runs.
 
-The function returns the expression status to the caller. The direct script
-uses that status as its process exit status. Make reports a failing recipe and
-uses GNU Make's own exit status. In-process callers decide how to handle
-failure, including whether to return from a hook after cleanup. A `test-*`
-call follows the same rules as any other pivot, including within a chain.
+After a successful preparse, the function returns the expression status to the
+caller. The direct script uses that status as its process exit status. Make
+reports a failing recipe and uses GNU Make's own exit status. In-process
+callers that need to survive a diagnostic must run `f_asc_dsl` in a subshell.
+A `test-*` call follows the same rules as any other pivot, including within a
+chain.
 
 The interpreter is for trusted ASC callers. It dispatches parsed calls to
 script paths or explicitly listed functions or builtins and passes arguments

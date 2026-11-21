@@ -119,6 +119,12 @@ global ASC_APPS "[default]='site' [help]='ASC apps allow for example to provide 
 # @see asc/host/shell/write_aliases.sh
 global ASC_HOST_SHELL_ALIASES "[default]='ds gu gmp gacp ssk' [help]='Space-separated opt-in list of host-level global shell aliases (mapped to given ASC entry points).'"
 
+# Space-separated project-relative paths that fix-perms must keep executable.
+# Core seeds asc/dsl.sh (make ds). Extensions append custom scripts the same way.
+# @see asc/instance/fs_perms_set.hook.sh
+# @see f_instance_set_permissions() in asc/instance/instance.inc.sh
+global EXECUTABLE_FILES "[append]='asc/dsl.sh'"
+
 # Empty: instance init writes no git hooks. Append hook names to write only those.
 # @see asc/git/init.hook.sh
 global ASC_GIT_HOOKS_WIRED "[default]='' [help]='Space-separated git hooks to write: pre-commit or asc:pre-commit targets this repo; site:pre-commit targets SITE_DOCROOT. Empty writes none.'"

@@ -168,7 +168,7 @@ test_dsl_resolve_discovered_and_hardcoded() {
   # Spec: exact final-name match, independent of the caller's nocasematch.
   shopt -s nocasematch
   rc=0
-  f_asc_dsl 'SLUG(foobar)' 2>/dev/null || rc=$?
+  err="$(f_asc_dsl 'SLUG(foobar)' 2>&1 >/dev/null)" || rc=$?
   assertEquals 'nocasematch does not fold pivot names' 1 "$rc"
 
   # Token 'A' must stay a literal (not binding 'a') under nocasematch.
@@ -353,14 +353,14 @@ test_dsl_status_and_no_exec_on_error() {
   marker="$DSL_TEST_TMP/no_exec2"
   rm -f "$marker"
   rc=0
-  ASC_DSL_PROBE_MARKER="$marker" f_asc_dsl '[echo(hi)]' 2>/dev/null || rc=$?
+  err="$(ASC_DSL_PROBE_MARKER="$marker" f_asc_dsl '[echo(hi)]' 2>&1 >/dev/null)" || rc=$?
   assertEquals 'bracket form rejected' 1 "$rc"
   assertTrue 'no marker for bracket form' "[[ ! -f '$marker' ]]"
 
   marker="$DSL_TEST_TMP/no_exec3"
   rm -f "$marker"
   rc=0
-  ASC_DSL_PROBE_MARKER="$marker" f_asc_dsl 'not-a-real-pivot-xyz()' 2>/dev/null || rc=$?
+  err="$(ASC_DSL_PROBE_MARKER="$marker" f_asc_dsl 'not-a-real-pivot-xyz()' 2>&1 >/dev/null)" || rc=$?
   assertEquals 'unknown rejected' 1 "$rc"
   assertTrue 'no marker for unknown' "[[ ! -f '$marker' ]]"
 

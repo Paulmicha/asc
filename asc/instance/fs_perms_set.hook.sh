@@ -131,6 +131,7 @@ for scope in './asc' './scripts/asc'; do
     exec_files+=(
       escape.sh
       bootstrap.sh
+      dsl.sh
       make/list_entry_points.sh
       test/core.sh
     )

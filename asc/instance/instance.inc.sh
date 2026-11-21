@@ -475,7 +475,8 @@ f_instance_yaml_config_parse() {
 # Additionally, the following globals may be used to specify lists of specific
 # paths (non-mutable / declared like any other ASC global) :
 # - PROTECTED_FILES : e.g. path to sensitive settings file(s).
-# - EXECUTABLE_FILES : e.g. custom app-related scripts.
+# - EXECUTABLE_FILES : space-separated paths kept executable by fix-perms.
+#     Core seeds asc/dsl.sh (asc/core/global.vars.sh). Append more the same way.
 # - WRITEABLE_DIRS : e.g. path to folders (files_arr, tmp, private) that must be
 #     writeable by the application.
 # - WRITEABLE_FILES : additional files (outside of WRITEABLE_DIRS) that must be
