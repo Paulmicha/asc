@@ -1844,12 +1844,13 @@ The general guideline is this :
 
 Examples :
 
-|  | Extension point | Data pivot | Customizability |
-|--|-----------------|------------|-----------------|
-| Core cache files | `asc/core` | `data/asc` |  |
-| Doc fixtures | `asc/doc` | `data/doc/fixtures` |  |
-| Doc fonts | `asc/doc` | `data/doc/fonts` |  |
-| Frozen test results | `asc/test` | `data/test/frozen` |  |
+|  | Extension point | Data pivot |
+|--|-----------------|------------|
+| Core cache files | `asc/core` | `data/asc` |
+| Doc fixtures | `asc/doc` | `data/doc/fixtures` |
+| Doc fonts | `asc/doc` | `data/doc/fonts` |
+| Frozen test results | `asc/test` | `data/test/frozen` |
+| Test reports | `asc/test` | `data/test/report` |
 
 #### Deployable local project instance settings (instance-level + host-level)
 
