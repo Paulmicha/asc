@@ -1845,10 +1845,11 @@ The general guideline is this :
 Examples :
 
 |  | Extension point | Data pivot | Customizability |
-|-------|--------|---------|
-| Doc fixtures | `INSTANCE_TYPE` | `dev` | `dev` |
-| Doc fonts | `HOST_TYPE` | `local` | `dev` |
-| Frozen test results | `STACK_VERSION` | empty (falls back to global default `v1` on init) | `dev` |
+|--|-----------------|------------|-----------------|
+| Core cache files | `asc/core` | `data/asc` |  |
+| Doc fixtures | `asc/doc` | `data/doc/fixtures` |  |
+| Doc fonts | `asc/doc` | `data/doc/fonts` |  |
+| Frozen test results | `asc/test` | `data/test/frozen` |  |
 
 #### Deployable local project instance settings (instance-level + host-level)
 
