@@ -1,5 +1,0 @@
-test_sequence_join_semicolon_continues
-
-Ran 5 tests.
-
-OK

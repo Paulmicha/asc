@@ -1,4 +1,0 @@
-test_entity_cache_generate_all_purges_stale_sidecar_cache
-Clearing 'host' entity instances cache entries ...
-Clearing 'host' entity instances cache entries : done.
-

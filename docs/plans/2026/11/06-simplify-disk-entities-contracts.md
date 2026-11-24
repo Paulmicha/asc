@@ -146,7 +146,7 @@ These scripts contain writes. The extension that owns them is listed in `.asc_ex
 | Apache vhost | `/etc/apache2/sites-available/$INSTANCE_DOMAIN.conf` | `scripts/asc/contrib/asc/apache/apache.inc.sh` | `asc/apache` |
 | Transcription | `data/media/YYYY/MM/` and `transcribed.txt` | `scripts/asc/contrib/asc/transcription/transcribe/all.sh` | `asc/transcription` |
 | SSH key | `$HOME/.ssh/id_ed25519_$suffix` | `asc/extensions/ssh/ssh.opt-inc.sh` | `ssh` |
-| Test results | `data/test-results/…` | `asc/test/test.opt-inc.sh` when `ASC_TEST_RESULTS` is not `0` | core test subject. Runs when tests run. |
+| Test results | `data/test/result/…` | `asc/test/test.opt-inc.sh` when `ASC_TEST_RESULTS` is not `0` | core test subject. Runs when tests run. |
 
 `file_registry` is the one row in that table whose extension is on. It writes when `f_instance_registry_set` or `f_host_registry_set` is called, including a generated DB password on instances that enable `db`.
 

@@ -87,20 +87,6 @@ f_test_compare_expected_lookup_paths() {
 ##
 # True when result archiving is enabled.
 #
-
-##
-# Root directory for archived test results.
-#
-# Defaults to data/test-results. Override via ASC_TEST_RESULTS_ROOT (used by
-# self-tests to isolate writes under a temp dir).
-#
-# @param 1 [optional] String : output var name (default: test_results_root).
-#
-f_test_results_root() {
-  local p_output_var_name="${1:-test_results_root}"
-  printf -v "$p_output_var_name" '%s' "${ASC_TEST_RESULTS_ROOT:-data/test-results}"
-}
-
 f_test_results_enabled() {
   [[ "${ASC_TEST_RESULTS:-1}" != '0' ]]
 }
@@ -125,11 +111,10 @@ f_test_results_batch_begin() {
   test_results_partial="$partial"
   test_results_tree_new_arr=()
 
-  local root
-  f_test_results_root 'root'
-  mkdir -p "${root}/frozen"
+  mkdir -p "data/test/result"
+  mkdir -p "data/test/report"
 
-  test_results_full_output_path="${root}/frozen/${test_results_slug}.full-output.txt"
+  test_results_full_output_path="data/test/result/${test_results_slug}.full-output.txt"
 
   if [[ "$partial" -eq 1 ]]; then
     {
@@ -142,8 +127,8 @@ f_test_results_batch_begin() {
 
   if [[ "$partial" -eq 1 ]]; then
     local summary_yml summary_txt
-    summary_yml="${root}/test-${test_results_slug}.yml"
-    summary_txt="${root}/frozen/${test_results_slug}.txt"
+    summary_yml="data/test/report/${test_results_slug}.test-report.yml"
+    summary_txt="data/test/result/${test_results_slug}.txt"
     if [[ -f "$summary_yml" ]]; then
       f_test_results_tree_load "$summary_yml"
     elif [[ -f "$summary_txt" ]]; then
@@ -287,7 +272,7 @@ f_test_results_summary_status() {
 f_test_results_parse_shunit_suite() {
   local suite="$1"
   local capture="$2"
-  local test_dir case_name block status line plain root
+  local test_dir case_name block status line plain
   local in_case=0
   local current_case=''
   local test_count=0
@@ -296,8 +281,7 @@ f_test_results_parse_shunit_suite() {
     return 0
   fi
 
-  f_test_results_root 'root'
-  test_dir="${root}/frozen"
+  test_dir="data/test/frozen"
 
   while IFS= read -r line || [[ -n "$line" ]]; do
     plain="$(f_test_results_plain_line "$line")"
@@ -362,10 +346,9 @@ f_test_results_flush_case() {
   local case_name="$2"
   local block="$3"
   local status="${4:-PASS}"
-  local out_file root
+  local out_file
 
-  f_test_results_root 'root'
-  out_file="${root}/frozen/${test_results_slug}.${suite}.${case_name}.txt"
+  out_file="data/test/frozen/${test_results_slug}.${suite}.${case_name}.txt"
   printf '%s' "$block" >"$out_file"
   f_test_results_tree_put "$suite" "$case_name" "$status"
 }
@@ -377,15 +360,14 @@ f_test_results_flush_case() {
 #
 f_test_results_batch_end() {
   local batch_exit="${1:-0}"
-  local summary tree_file merged line key seen current_suite suite case_name status root
+  local summary tree_file merged line key seen current_suite suite case_name status
   local -a all_lines_arr=()
 
   if ! f_test_results_enabled || [[ "${test_results_active:-0}" -ne 1 ]]; then
     return 0
   fi
 
-  f_test_results_root 'root'
-  tree_file="${root}/test-${test_results_slug}.yml"
+  tree_file="data/test/result/${test_results_slug}.yml"
 
   for line in "${test_results_tree_loaded_arr[@]}"; do
     key="${line%% *}"
@@ -428,7 +410,7 @@ f_test_results_batch_end() {
     done < <(printf '%s\n' "${all_lines_arr[@]}" | sort)
   } >"$tree_file"
 
-  rm -f "${root}/frozen/${test_results_slug}.txt"
+  rm -f "data/test/frozen/${test_results_slug}.txt"
 
   test_results_active=0
   return 0
@@ -450,12 +432,10 @@ f_test_results_case_status() {
   local key="${suite}.${case_name}"
   local tree_file line entry_key status current_suite case_stem in_suite=0
 
-  local root
-  f_test_results_root 'root'
-  tree_file="${root}/test-${slug}.yml"
+  tree_file="data/test/result/${slug}.yml"
 
   if [[ ! -f "$tree_file" ]]; then
-    tree_file="${root}/frozen/${slug}.txt"
+    tree_file="data/test/frozen/${slug}.txt"
   fi
 
   if [[ ! -f "$tree_file" ]]; then
@@ -511,31 +491,31 @@ f_test_results_case_status() {
 }
 
 ##
-# Write browser artifact tree summary under data/test-results/browser/.
+# Write browser artifact tree summary under data/test/result/${kind}/.
 #
-# @param $1 kind headless|matrix|lighthouse
-# @param $2 env id
+# @param $1 kind browser|lighthouse
+# @param $2 instance id
 #
 f_test_results_write_browser_tree() {
   local kind="$1"
   local p_env="$2"
-  local root dest summary results_root
+  local dest summary
 
-  f_test_results_root 'results_root'
-  root="${results_root}/browser/${kind}/${p_env}"
-  summary="${results_root}/browser/${kind}/${p_env}.txt"
+  summary="data/test/result/${kind}/${p_env}.txt"
 
-  mkdir -p "$(dirname "$summary")"
+  mkdir -p "data/test/result/${kind}"
 
   {
     echo "# kind: ${kind}"
     echo "# env: ${p_env}"
     echo "# updated: $(date -Iseconds)"
     echo
-    if [[ -d "$root" ]]; then
-      find "$root" -type f | sort | sed "s|^${root}/||"
+
+    if [[ -d "data/test/result/${kind}" ]]; then
+      find "data/test/result/${kind}" -type f | sort | sed "s|^data/test/result/${kind}/||"
     fi
-  } >"$summary"
+
+  } > "$summary"
 }
 
 ##

@@ -127,7 +127,7 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [Logs : `data/logs`](#logs-datalogs)
     - [Private files : `data/private`](#private-files-dataprivate)
     - [Prompts local archive : `data/prompts`](#prompts-local-archive-dataprompts)
-    - [Test results : `data/test-results`](#test-results-datatest-results)
+    - [Test results : `data/test/result`](#test-results-datatestresult)
     - [Temporary files : `data/tmp`](#temporary-files-datatmp)
     - [Default file-based agent skills storage : `data/skills`](#default-file-based-agent-skills-storage-dataskills)
 - [Workflow](#workflow)
@@ -1418,7 +1418,7 @@ See the embedded vendor [shunit2 README](asc/vendor/shunit2/README.md) for addit
 
 #### Test results
 
-Tests results are (for now) stored in `data/test-results`. This was done to track the current status of unstable branches in git, but the decision is subject to eventually change according to future enhancements to workflow-related implementations.
+Tests results are (for now) stored in `data/test/result`. This was done to track the current status of unstable branches in git, but the decision is subject to eventually change according to future enhancements to workflow-related implementations.
 
 ### Design patterns VS anti-patterns (`builder` and `checker` core extensions)
 
@@ -1849,7 +1849,7 @@ Examples :
 | Core cache files | `asc/core` | `data/asc/cache` | `data/asc/cache/hook/s-asc.a-bootstrap.v-v1,compose.sh` |
 | Doc fixtures | `asc/doc` | `data/doc/fixtures` | `data/doc/fixtures/long-code.pdf` |
 | Doc fonts | `asc/doc` | `data/doc/fonts` | `data/doc/fonts/Spectral/Spectral-Medium.ttf` |
-| Frozen test results | `asc/test` | `data/test/frozen` | `data/test/frozen/asc.bootstrap.test_asc_autoload_override_works.txt` |
+| Frozen test results | `asc/test` | `data/test/frozen` | `data/test/frozen/core/bootstrap.test_asc_autoload_override_works.txt` |
 | Test reports | `asc/test` | `data/test/report` | `data/test/report/2026/11/21-asc-tests-report.pdf` |
 | Local host(s) | `asc/host` | `data/host/local` | `data/host/local/foobar.local-domain.home.arpa.yml` |
 | Remote host(s) | `asc/extensions/remote/host` | `data/host/remote` | `data/host/remote/foobar.remote-domain.com.yml` |
@@ -1926,7 +1926,7 @@ TODO
 
 TODO
 
-#### Test results : `data/test-results`
+#### Test results : `data/test/result`
 
 TODO
 

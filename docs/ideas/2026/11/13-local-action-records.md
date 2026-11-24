@@ -245,7 +245,7 @@ slice. The rewrite does not authorize a real long-running `agent-plan` loop.
 - Remove the obsolete `data/changes/` ignore block only alongside the data
   audit and migration decision above. Keep existing rules for instance data,
   caches, private files and scratch unless separately reviewed.
-- `data/test-results/` contains tracked frozen fixtures and has a separate
+- `data/test/result/` contains tracked frozen fixtures and has a separate
   history. Do not apply a blanket `data/` ignore or change test-result policy
   as a side effect.
 - Decide separately whether `.txt` logs need completion metadata and how long

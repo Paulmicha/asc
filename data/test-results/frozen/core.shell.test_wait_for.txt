@@ -1,5 +1,0 @@
-test_wait_for
-
-Ran 4 tests.
-
-OK

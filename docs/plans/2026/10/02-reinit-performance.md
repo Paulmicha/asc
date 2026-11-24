@@ -26,7 +26,7 @@ The mother copies of the files named here were read on 2026-10-02. The measureme
 - `php -l` on a rendered settings file. `php` is not installed in this checkout, so the token test prints `PENDING` and does not treat the skip as a pass.
 - A post-change `make reinit` timing.
 - The instance settings override.
-- `make test-core` on this checkout is not green. The archived failure in [`core.next_steps.test_gates_yml_docroot_rung.txt`](../../../../data/test-results/frozen/core.next_steps.test_gates_yml_docroot_rung.txt) is the `core` / `dev` fixture mismatch (`INSTANCE_TYPE` is `dev`; the test expects `core`). That failure is not these optimizations.
+- `make test-core` on this checkout is not green. The archived failure in [`core.next_steps.test_gates_yml_docroot_rung.txt`](../../../../data/test/frozen/core.next_steps.test_gates_yml_docroot_rung.txt) is the `core` / `dev` fixture mismatch (`INSTANCE_TYPE` is `dev`; the test expects `core`). That failure is not these optimizations.
 
 ---
 

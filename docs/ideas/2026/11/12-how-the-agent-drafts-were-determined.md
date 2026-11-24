@@ -249,7 +249,7 @@ The home rules file contains a block describing a rented server (address, hardwa
 ### 4.6 What was deliberately not reviewed
 
 - The body of every dated plan from September. The index was listed. Only the files in §4.1 were opened.
-- Test fixtures under `data/test-results/frozen/`.
+- Test fixtures under `data/test/frozen/`.
 - `asc/vendor/**`.
 - Product transcript contents. Path patterns and one description of line shape from the worker.
 - Whether `foobar` in the README and the host-entity filename are the same string. Left as a human check.

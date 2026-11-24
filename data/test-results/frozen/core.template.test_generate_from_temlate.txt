@@ -1,5 +1,0 @@
-test_generate_from_temlate
-
-Ran 1 test.
-
-OK

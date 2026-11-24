@@ -1,1 +1,0 @@
-test_f_asc_extensions_discovers_contrib

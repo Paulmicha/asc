@@ -1,1 +1,0 @@
-test_asc_cache_stamp_includes_instance_identity

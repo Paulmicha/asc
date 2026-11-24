@@ -324,39 +324,6 @@ test_f_str_basic_auth_credentials() {
 }
 
 ##
-# Output-var paths for waves 1–3 migrated scalars (no caller capture).
-# @see docs/plans/2026/07/31-subshell-printf-v-candidates.md
-#
-test_f_migrated_scalar_output_vars() {
-  local software_scalar='' cron_scalar='' test_results_root='' out=''
-
-  # shellcheck disable=SC1091
-  . asc/extensions/software/host/provision.opt-inc.sh
-  # shellcheck disable=SC1091
-  . asc/extensions/crontab/crontab.inc.sh
-  if [[ "$(type -t f_test_results_root)" != function ]]; then
-    # shellcheck disable=SC1091
-    . asc/test/test.opt-inc.sh
-  fi
-
-  f_software_scalar '"quoted"' 'out'
-  assertEquals 'f_software_scalar strips double quotes' 'quoted' "$out"
-  f_software_scalar "'quoted'"
-  assertEquals 'f_software_scalar default var' 'quoted' "$software_scalar"
-
-  f_cron_scalar '  spaced  ' 'out'
-  assertEquals 'f_cron_scalar trims' 'spaced' "$out"
-  f_cron_scalar '"cron"'
-  assertEquals 'f_cron_scalar default var' 'cron' "$cron_scalar"
-
-  ASC_TEST_RESULTS_ROOT='/tmp/asc-test-results-fixture' f_test_results_root 'out'
-  assertEquals 'f_test_results_root honors env' '/tmp/asc-test-results-fixture' "$out"
-  unset ASC_TEST_RESULTS_ROOT
-  f_test_results_root
-  assertEquals 'f_test_results_root default path' 'data/test-results' "$test_results_root"
-}
-
-##
 # Wave 4: software status enums write via printf -v.
 # @see docs/plans/2026/07/31-subshell-printf-v-candidates.md
 #

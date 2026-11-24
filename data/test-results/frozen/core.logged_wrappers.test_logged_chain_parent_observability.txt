@@ -1,1 +1,0 @@
-test_logged_chain_parent_observability

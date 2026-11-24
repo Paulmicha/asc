@@ -1,1 +1,0 @@
-test_logged_pipe_shell_stages_observability

@@ -1,1 +1,0 @@
-test_logged_batch_parent_observability

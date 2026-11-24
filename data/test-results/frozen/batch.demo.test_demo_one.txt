@@ -1,6 +1,0 @@
-test_demo_one
-line one
-
-Ran 1 test.
-
-OK

@@ -123,15 +123,6 @@ These functions already write via `printf -v` (33 occurrences across 12 files). 
 | **Fit** | **Excellent** — identical to `f_software_scalar` |
 | **Caveats** | Lines 415–417 are **codegen**, not live shell; migration must update the heredoc template |
 
-### `f_test_results_root` — 12 capture sites
-
-| | |
-|---|---|
-| **Definition** | `asc/test/test.inc.sh:96–97` — already `printf '%s'` (no subshell in callee, but callers still fork) |
-| **Call sites** | `test.inc.sh:124,126,139,140,242,301,320,363,385,388,454,455` |
-| **Fit** | **Excellent** — trivial constant path |
-| **Caveats** | Often embedded in path concatenation; `printf -v root …` then `"${root}/frozen/…"` is clean |
-
 ### `f_fs_get_most_recent` — 12 capture sites
 
 | | |
@@ -310,7 +301,6 @@ As of 2026-09-22, callers use the output-var form (`f_yaml_parse path prefix 'pa
 
 | Function | Line | Captures | Returns | Fit |
 |----------|------|----------|---------|-----|
-| `f_test_results_root` | 96 | 12 | path | Excellent (see A) |
 | `f_test_case_stem_to_suffix` | 495 | 1 (via `f_test_case_make_target`) | string | Excellent |
 | `f_test_case_make_target` | 506 | 1 (`make.inc.sh:435`) | string | Excellent — nested `$()` |
 | `f_test_case_runner_path` | 520 | 1 | path | Excellent |
@@ -363,15 +353,14 @@ Not `f_*` captures, but common in ASC — usually **not** `printf -v` candidates
 
 ## Recommended migration order
 
-1. ~~**Leaf scalars with highest fan-out:** `f_software_scalar`, `f_cron_scalar`, `f_test_results_root`~~ **done**
-2. ~~**Str utilities with existing TODO:** `f_str_append_once`, `f_str_sed_escape`, `f_str_trim`, then fix `fs.opt-inc.sh` callers~~ **done**
-3. ~~**Path constants:** `f_cron_project_marker`, `f_software_managed_path`, `f_hook_resolve_source_path`~~ **done** (also `f_software_expand_path`)
-4. **Status enums:** `f_software_*_status` → **done** (2026-09-22). Optional last arg + defaults `software_apt_status` / `software_pipx_status` / … Callers in `provision.opt-inc.sh` use output vars (no `$(f_software_*_status …)`).
-5. **Filesystem:** `f_fs_get_most_recent` → **done** (2026-09-22). 5th arg output var (default `fs_most_recent`). Unblocks `f_db_get_dump` / restore / remote upload callers.
-6. **Host/shell:** `f_print_current_user`, `f_host_os`, `f_host_ip` → **done** (2026-09-22). `f_str_slug` was already output-var. Bootstrap `global HOST_OS "$(f_host_os)"` / traefik `TRAEFIK_SYSTEMD_USER` stay category G.
-7. **Git wrappers:** `f_git_get_staged_files` / `f_git_get_unmerged_paths` → **done** (2026-09-22). Collapse `echo "$(f_git_wrapper …)"`; 3rd arg output var.
-8. **Test helpers:** batch helpers in `test.opt-inc.sh` → **done** (2026-09-22). `f_test_case_*` / `f_test_batch_dir_from_script` / `f_test_read_manifest_cases`; `make/generate.sh` updated.
-9. **Defer:** `f_yaml_parse` / eval **implementation** (design done 2026-09-22), `f_remote_exec_wrapper`, bootstrap `global.vars.sh` literals
+1. ~~**Str utilities with existing TODO:** `f_str_append_once`, `f_str_sed_escape`, `f_str_trim`, then fix `fs.opt-inc.sh` callers~~ **done**
+1. ~~**Path constants:** `f_cron_project_marker`, `f_software_managed_path`, `f_hook_resolve_source_path`~~ **done** (also `f_software_expand_path`)
+1. **Status enums:** `f_software_*_status` → **done** (2026-09-22). Optional last arg + defaults `software_apt_status` / `software_pipx_status` / … Callers in `provision.opt-inc.sh` use output vars (no `$(f_software_*_status …)`).
+1. **Filesystem:** `f_fs_get_most_recent` → **done** (2026-09-22). 5th arg output var (default `fs_most_recent`). Unblocks `f_db_get_dump` / restore / remote upload callers.
+1. **Host/shell:** `f_print_current_user`, `f_host_os`, `f_host_ip` → **done** (2026-09-22). `f_str_slug` was already output-var. Bootstrap `global HOST_OS "$(f_host_os)"` / traefik `TRAEFIK_SYSTEMD_USER` stay category G.
+1. **Git wrappers:** `f_git_get_staged_files` / `f_git_get_unmerged_paths` → **done** (2026-09-22). Collapse `echo "$(f_git_wrapper …)"`; 3rd arg output var.
+1. **Test helpers:** batch helpers in `test.opt-inc.sh` → **done** (2026-09-22). `f_test_case_*` / `f_test_batch_dir_from_script` / `f_test_read_manifest_cases`; `make/generate.sh` updated.
+1. **Defer:** `f_yaml_parse` / eval **implementation** (design done 2026-09-22), `f_remote_exec_wrapper`, bootstrap `global.vars.sh` literals
 
 ### Waves 1–3 implementation notes (2026-07-31)
 

@@ -1,5 +1,0 @@
-test_remote_instance_load_wraps_entity_load
-
-Ran 17 tests.
-
-OK

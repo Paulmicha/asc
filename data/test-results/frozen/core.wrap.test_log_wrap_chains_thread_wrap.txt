@@ -1,5 +1,0 @@
-test_log_wrap_chains_thread_wrap
-
-Ran 3 tests.
-
-OK
