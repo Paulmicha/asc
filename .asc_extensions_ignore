@@ -9,7 +9,6 @@ memory
 remote
 remote_db
 remote_instance
-rules
 software
 ssh
 workflow
