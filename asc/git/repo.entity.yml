@@ -1,8 +1,0 @@
-repo:
-  depends_on:
-    entity:
-      - file
-      - folder
-      - relation
-  url:
-    field: str.url
