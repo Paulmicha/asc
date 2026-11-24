@@ -1827,8 +1827,10 @@ Examples :
 | Core cache files | `asc/core` | `data/asc/cache` | `data/asc/cache/hook/s-asc.a-bootstrap.v-v1,compose.sh` |
 | Doc fixtures | `asc/doc` | `data/doc/fixtures` | `data/doc/fixtures/long-code.pdf` |
 | Doc fonts | `asc/doc` | `data/doc/fonts` | `data/doc/fonts/Spectral/Spectral-Medium.ttf` |
-| Frozen test results | `asc/test` | `data/test/frozen` | `data/test/frozen/core/bootstrap.test_asc_autoload_override_works.txt` |
-| Test reports | `asc/test` | `data/test/report` | `data/test/report/2026/11/21-asc-tests-report.pdf` |
+| Local Frozen test results | `asc/test` | `data/test/frozen` | `data/test/frozen/local/core/bootstrap.test_asc_autoload_override_works.txt` |
+| Remote Frozen test results (ex: `preprod` remote) | `asc/test` | `data/test/frozen` | `data/test/frozen/preprod/core/bootstrap.test_asc_autoload_override_works.txt` |
+| Local Test reports | `asc/test` | `data/test/report` | `data/test/report/local/2026/11/21-asc-tests-report.pdf` |
+| Remote Test reports (ex: `preprod` remote) | `asc/test` | `data/test/report` | `data/test/report/preprod/2026/11/21-asc-tests-report.pdf` |
 | Local host(s) | `asc/host` | `data/host/local` | `data/host/local/foobar.local-domain.home.arpa.yml` |
 | Remote host(s) | `asc/extensions/remote/host` | `data/host/remote` | `data/host/remote/foobar.remote-domain.com.yml` |
 | Local project instances | `asc/instance` | `data/instance/local` | `data/instance/local/foobar.yml` |
