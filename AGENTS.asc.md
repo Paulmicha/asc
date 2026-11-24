@@ -21,8 +21,8 @@ authorization to implement their proposals.
 
 For ASC documentation, README proposals, changelogs, and project instructions,
 read and follow [.agents/skills/asc-author-docs/SKILL.md](.agents/skills/asc-author-docs/SKILL.md).
-Preserve human-written README text through adjacent dated proposals unless the
-user explicitly authorizes a direct rewrite.
+For the mother repository's main README, preserve human-written text through
+adjacent dated proposals unless the user explicitly authorizes a direct rewrite.
 
 Before changing or publishing public mother content, or preparing a transfer
 from a client instance, read and follow

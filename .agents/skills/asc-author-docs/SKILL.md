@@ -6,8 +6,8 @@ description: "Use when writing, editing, or reviewing ASC documentation, README 
 # Write ASC documentation from its maintained concepts
 
 Paths below are relative to the project root containing `asc/bootstrap.sh`.
-Read the relevant README sections and `.editorconfig` before editing. The README
-owns ASC concepts and scope; report material inconsistencies instead of silently
+Read the relevant README sections and `.editorconfig` before editing. The mother
+README owns ASC concepts and scope; report material inconsistencies instead of silently
 redefining concepts in another document. Label proposed behavior as proposed and
 verify paths before describing them as existing implementations.
 
@@ -18,6 +18,9 @@ apply it without assuming that an instance has already migrated its existing
 files. If the specification is unavailable, report that limitation.
 
 ## README proposals
+
+This section applies only to the ASC mother repository's main README. Other ASC
+project instances set their own rules for their main README.
 
 Preserve human-written README text. Unless the user explicitly authorizes a
 direct rewrite, put proposed wording beside the relevant passage inside escaped
