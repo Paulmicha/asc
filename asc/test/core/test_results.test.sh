@@ -7,16 +7,11 @@
 #
 
 . asc/bootstrap.sh
-if [[ "$(type -t f_test_batch_exec)" != function ]]; then
-  # shellcheck disable=SC1091
-  . asc/test/test.opt-inc.sh
-fi
 
 test_results_self_tmp=''
 
 oneTimeSetUp() {
   test_results_self_tmp="$(mktemp -d)"
-  export ASC_TEST_RESULTS_ROOT="${test_results_self_tmp}/test-results"
   export ASC_TEST_RESULTS=1
 }
 
@@ -30,7 +25,7 @@ test_u_test_results_parse_shunit_suite() {
   local batch_dir capture suite_dir
   local tree_file
 
-  batch_dir="${ASC_TEST_RESULTS_ROOT}/batch"
+  batch_dir="data/test/result/archiving-test"
   mkdir -p "$batch_dir"
   capture="$(mktemp)"
 
@@ -54,15 +49,21 @@ EOF
   f_test_results_batch_end 0
 
   assertTrue "missing case one output" \
-    "[ -f '${ASC_TEST_RESULTS_ROOT}/frozen/batch.demo.test_demo_one.txt' ]"
-  assertTrue "missing case two output" \
-    "[ -f '${ASC_TEST_RESULTS_ROOT}/frozen/batch.demo.test_demo_two.txt' ]"
+    "[ -f '$batch_dir/batch.demo.test_demo_one.txt' ]"
 
-  tree_file="${ASC_TEST_RESULTS_ROOT}/test-batch.yml"
+  assertTrue "missing case two output" \
+    "[ -f '$batch_dir/batch.demo.test_demo_two.txt' ]"
+
+  tree_file="$batch_dir/test-batch.yml"
+
   assertTrue "missing tree file" "[ -f '${tree_file}' ]"
+
   grep -A5 '^demo:$' "$tree_file" | grep -q 'test_demo_one: PASS'
+
   assertEquals "case one should PASS" 0 "$?"
+
   grep -A5 '^demo:$' "$tree_file" | grep -q 'test_demo_two: FAIL'
+
   assertEquals "case two should FAIL" 0 "$?"
 
   rm -f "$capture"
@@ -81,17 +82,21 @@ _u_archived_status() {
   local case_name="$3"
   local batch_dir capture tree_file line
 
-  batch_dir="${ASC_TEST_RESULTS_ROOT}/${name}"
+  batch_dir="$batch_dir/${name}"
   mkdir -p "$batch_dir"
   capture="$(mktemp)"
+
   printf '%s\n' "$body" >"$capture"
+
   f_test_results_batch_begin "$batch_dir" 0
   f_test_results_parse_shunit_suite 'suite' "$capture"
   f_test_results_batch_end 0
+
   rm -f "$capture"
 
-  tree_file="${ASC_TEST_RESULTS_ROOT}/test-${name}.yml"
+  tree_file="$batch_dir/test-${name}.yml"
   line="$(grep -E "^[[:space:]]+${case_name}: " "$tree_file" | head -n 1)"
+
   printf '%s' "${line##*: }"
 }
 

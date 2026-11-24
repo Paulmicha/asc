@@ -114,21 +114,23 @@ f_test_results_batch_begin() {
   mkdir -p "data/test/result"
   mkdir -p "data/test/report"
 
-  test_results_full_output_path="data/test/result/${test_results_slug}.full-output.txt"
+  test_results_full_output_path="data/test/result/${test_results_slug}/output.txt"
 
   if [[ "$partial" -eq 1 ]]; then
     {
       echo
       echo "# --- partial run $(date -Iseconds) ---"
-    } >>"$test_results_full_output_path"
+    } >> "$test_results_full_output_path"
   else
-    : >"$test_results_full_output_path"
+    : > "$test_results_full_output_path"
   fi
 
   if [[ "$partial" -eq 1 ]]; then
     local summary_yml summary_txt
-    summary_yml="data/test/report/${test_results_slug}.test-report.yml"
-    summary_txt="data/test/result/${test_results_slug}.txt"
+
+    summary_yml="data/test/result/${test_results_slug}/summary.yml"
+    summary_txt="data/test/result/${test_results_slug}/summary.txt"
+
     if [[ -f "$summary_yml" ]]; then
       f_test_results_tree_load "$summary_yml"
     elif [[ -f "$summary_txt" ]]; then
@@ -348,8 +350,12 @@ f_test_results_flush_case() {
   local status="${4:-PASS}"
   local out_file
 
-  out_file="data/test/frozen/${test_results_slug}.${suite}.${case_name}.txt"
-  printf '%s' "$block" >"$out_file"
+  mkdir -p "data/test/result/${test_results_slug}"
+
+  out_file="data/test/result/${test_results_slug}/${suite}.${case_name}.txt"
+
+  printf '%s' "$block" > "$out_file"
+
   f_test_results_tree_put "$suite" "$case_name" "$status"
 }
 

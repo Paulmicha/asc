@@ -58,8 +58,6 @@ The main README (this file) is authoritative on the meaning associated with ASC 
   - [General notes](#general-notes)
   - [Vendor (= third-party) libs](#vendor-third-party-libs)
   - [Genericity (scale)](#genericity-scale)
-    - [Primordial](#primordial)
-    - [Primitives](#primitives)
     - [Core](#core)
     - [Extensions](#extensions)
       - [Enabling and disabling extensions](#enabling-and-disabling-extensions)
@@ -327,26 +325,10 @@ Vendor libs should generally not be added into ASC project instances repositorie
 
 Two axes. This list is **kind**. Lookup lists later (extension points, active dirs, collisions) are **which file wins** — not this scale. `$object` is nesting, not a rung. **Kernel** means the five always-sourced includes, not Core.
 
-1. **Primordial** = the unique Yaml file at the top of the Yaml inclusion chain : `yml.yml` (akin to the very first living cell that existed on earth),
-2. **Primitives** = Yaml files defining "low-level" structural stuff (like : which root properties the including Yaml files can use to specify things),
-3. **Core** = "generic" implementations that are systematically relevant across all projects using ASC (some of which - the core extensions themselves - are opt-in),
-4. **Extensions** = namespaced bundles of actions by subjects and/or objects (including contrib, as in the Drupal ecosystem),
-5. **Overrides** = alterations of implementations provided by core and/or extensions,
-6. **Specifics** = implementations with low or no potential for reuse outside the current project ASC is used for.
-
-#### Primordial
-
-The **primordial** file is `asc/extensions/entity/asc/yml.yml`. It defines basic synonyms. They are interchangeable words used across all Yaml files.
-
-#### Primitives
-
-**Primitives** include :
-
-- `entity.entity.yml` defining the structure of *entities* (i.e. it specifies, for instance, that every `*.entity.yml` can have the root props `entity`, `required`, `optional`) — `asc/extensions/entity/asc/entity.entity.yml` ;
-- `able.able.yml` defining the structure of *contracts* (= *skills* or *capabilities*) — `asc/extensions/entity/asc/able.able.yml` ;
-- and perhaps other use cases may warrant interventions on that level in other projects using ASC (the door remains open).
-
-Runtime discovery (`ASC_SUBJECTS` / `ASC_ACTIONS`, `data/asc/cache/core/active.sh`) is Core, not this rung.
+1. **Core** = "generic" implementations that are systematically relevant across all projects using ASC (some of which - the core extensions themselves - are opt-in),
+1. **Extensions** = namespaced bundles of actions by subjects and/or objects (including contrib, as in the Drupal ecosystem),
+1. **Overrides** = alterations of implementations provided by core and/or extensions,
+1. **Specifics** = implementations with low or no potential for reuse outside the current project ASC is used for.
 
 #### Core
 
@@ -358,19 +340,15 @@ Runtime discovery (`ASC_SUBJECTS` / `ASC_ACTIONS`, `data/asc/cache/core/active.s
 - Generic utilities (a few basic shell scripting utilities - arrays, strings, filesystem-related, ssh-related, templating-related, git-related, yml-related - see `asc/vendor/bash-yaml`, etc.),
 - A few opt-in extensions :
     - `asc/extensions/agent` : wraps and chains LLMs prompts (with pre- and post- process hooks), and provides generic abstractions to manage things like `SKILL.md` (see [pi](https://github.com/earendil-works/pi)) / `CLAUDE.md` / Cursor rules
-    - `asc/extensions/apt` : default Debian-based Linux host-level dependencies operations
     - `asc/extensions/builder` : minimalist ASC "clean" code generator
-    - `asc/extensions/checker` : anti-pattern catalog compared to staged file contents. Complements `builder`.
     - `asc/extensions/compose` : default Docker compose - related implementations
     - `asc/extensions/crontab` : default crontab-related implementations
     - `asc/extensions/db` : generic abstract placeholders (hooks) for database-related operations
-    - `asc/extensions/entity` : things like remote instances, databases, etc. all share some amount of expectations in terms of operations, prerequisites, etc. That's what the "entity" extension attempts to provide : a standard way to specify such things (in Yaml) in all projects using ASC.
     - `asc/extensions/file_registry` : minimalist local file-based key/value store (supports host-level and instance-level scopes). Host scope defaults to `$HOME/.local/state/asc/registry`.
     - `asc/extensions/interaction` : generic abstract placeholders (hooks) for interaction-related operations (like triggering input devices actions - e.g. mouse, keyboard, touch events, etc.)
     - `asc/extensions/memory` : generic abstract placeholders (hooks) for memory-related operations (like : find out if and where something is stored, using which storage, etc.)
     - `asc/extensions/remote` : default implementations related to remote communication (ssh, etc)
     - `asc/extensions/remote_instance` : implementations related to remote ASC project instances
-    - `asc/extensions/rules` : generic abstract placeholders (hooks) for implementing conditionally executed actions based on occurring events (known as reactive or ECA rules)
     - `asc/extensions/software` : default implementations for managing software - usually dependencies, i.e. : updates, configuration, (un)installation, etc.
     - `asc/extensions/workflow` : default implementations for streamlining work processes, kinda like a minimalist and simpler implementation of [superpowers](https://github.com/obra/superpowers) for projects using ASC (complements the `rules` extension)
 
