@@ -59,7 +59,7 @@ This direction is proposed. It becomes a deletion only after review.
 | `data/asc/registry/` and `$HOME/.local/state/asc/registry/` | One string per key. The host path is the accepted decision in the 2026-09-22 note. |
 | `data/logs/`, `data/threads/` | Run records. |
 | The four `SKILL.md` directories | Procedures. Hand-written. |
-| `data/entities/anti-pattern/**/*.md` | Authoring catalog. A path under `data/entities/` with a Markdown body. The checker scripts that would parse it are still TODO. The files stay. |
+| `asc/extensions/builder/anti-pattern/**/*.md` | Authoring catalog. A path under `data/entities/` with a Markdown body. The checker scripts that would parse it are still TODO. The files stay. |
 | `gates.core.yml`, `SPECIMEN.gates.yml`, `SPECIMEN.env.yml` | Human approval registry and the copy models. |
 
 ### What the proposed picture retires
@@ -187,7 +187,7 @@ There is no variable named `ASC_CACHE` and no generic `DATA_DIR`. Project paths 
 | `data/asc/cache/core/`, `data/asc/cache/hook/`, `data/asc/cache/pivots.sh`, `data/asc/cache/test-cases.sh` | Accepted 2026-09-11 layout. | Keep. |
 | `data/asc/cache/entities/$type/$id.sh` | Load cache. | Tied to the entity loader. |
 | `data/entities/$type/$id.yml` | Sidecar input. Only types whose `include:` chain names `sidecar.able`. | One real file: `data/entities/host/foobar.home.arpa.yml`. |
-| `data/entities/anti-pattern/$group/*.md` | Catalog. Discovery globs `*.yml` only, so these files are outside the entity loader. | Keep the Markdown. A later path rename is a separate README proposal. |
+| `asc/extensions/builder/anti-pattern/$group/*.md` | Catalog. Discovery globs `*.yml` only, so these files are outside the entity loader. | Keep the Markdown. A later path rename is a separate README proposal. |
 | `data/asc/registry/.$slug.reg` | Instance registry. | Keep. |
 | `$HOME/.local/state/asc/registry/host/.$slug.reg` | Host registry. Accepted 2026-09-24. | Keep. |
 | `data/logs/`, `data/threads/` | Run records. | Keep. The README data-dir heading `data/entities/thread` and the file-tree comment that calls `data/entities/` the log place describe other paths. |
@@ -338,7 +338,7 @@ Do not recreate `asc/sidecar/sidecar.able.yml`, `asc/core/contract.entity.yml`, 
 - `.env-local.yml` and `SPECIMEN.env.yml`
 - Crontab YAML, for instances that enable `crontab`
 - The shell tests named in the table above
-- `data/entities/anti-pattern/**/*.md`, as authoring rules the checker does not yet execute
+- `asc/extensions/builder/anti-pattern/**/*.md`, as authoring rules the checker does not yet execute
 
 ## 7. Drafts that describe the schema
 
@@ -376,7 +376,7 @@ README edits that follow are dated proposals beside the Entities, Data dirs, and
 1. **Host specimen.** Keep `host.entity.yml` and `data/entities/host/foobar.home.arpa.yml` as the regression fixture, or delete the loader in the same slice and drop `entity_discover.test.sh` with it?
 2. **Skill schema.** Keep `skill.entity.yml` for `skill_entity.test.sh`, or treat the four `SKILL.md` files as the only skill source and retire the test with the schema?
 3. **Remote.** The remote compiler is a real writer and it ignores `remote_instance.entity.yml`. Leave that compiler untouched until `remote` is enabled somewhere, which is the proposal here?
-4. **Anti-pattern path.** Leave the Markdown under `data/entities/anti-pattern/`, or move it beside `asc/extensions/checker/` in a later rename?
+4. **Anti-pattern path.** Leave the Markdown under `asc/extensions/builder/anti-pattern/`, or move it beside `asc/extensions/checker/` in a later rename?
 5. **Ignored extension trees.** Delete empty YAML now, and leave `hardware`, `software`, `memory`, and `workflow` directories in place until each extension is either implemented or removed as a whole?
 6. **Index.** The frontier paragraph in `changelog/README.md` still describes 2026-09-21. Rewriting that paragraph is its own edit. This note only adds a 2026-11 row.
 

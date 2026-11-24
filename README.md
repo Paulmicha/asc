@@ -1439,7 +1439,7 @@ A design pattern is a folder or string template. `asc/extensions/builder` genera
 
 &lt;proposal-2026-09-26&gt;
 
-An anti-pattern is one record in this catalog. `asc/extensions/checker` keeps it. The core group is `asc` (`ASC_ANTI_PATTERN_TYPES`): the list for an ASC project instance, read from `data/entities/anti-pattern/asc`.
+An anti-pattern is one record in this catalog. `asc/extensions/checker` keeps it. The core group is `asc` (`ASC_ANTI_PATTERN_TYPES`): the list for an ASC project instance, read from `asc/extensions/builder/anti-pattern/asc`.
 
 - `make anti-pattern` records one.
 - `code-smell` is a synonym. That substitution also turns `anti-pattern-list` into `code-smell-list`, which loads the group for that commit.

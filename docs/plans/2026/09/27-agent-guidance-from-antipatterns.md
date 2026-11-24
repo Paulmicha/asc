@@ -26,7 +26,7 @@ Four roles:
 | Role | Where it lives | What it is |
 |------|----------------|------------|
 | Design | This changelog, and [26-patterns-and-antipatterns.md](26-patterns-and-antipatterns.md) | Why the split exists. A historical note can stay tentative. It is not the generator input. |
-| Guidance | `data/entities/anti-pattern/<group>/*.md` | A constraint or convention: what to avoid, what to prefer, and why. |
+| Guidance | `asc/extensions/builder/anti-pattern/<group>/*.md` | A constraint or convention: what to avoid, what to prefer, and why. |
 | Shape | `asc/extensions/builder/subject/*.tpl.sh` | The canonical file an agent copies from when the guidance names a template. |
 | Procedure | `data/entities/skill/<id>.yml` | One task. It names the records and the templates. It is not a second copy of either. |
 
@@ -44,11 +44,11 @@ Sixteen Markdown records. Each already has `description` and `globs`. The other 
 | `general` | `breathing_line_breaks`, `editorconfig` |
 | `python` | `dependencies` |
 
-`data/entities/anti-pattern/asc/shell_conditions.md` still has TODO examples. It stays `draft`. `data/entities/anti-pattern/general/breathing_line_breaks.md` is hundreds of lines of examples. A generator that copied the whole body would publish that file as a rule.
+`asc/extensions/builder/anti-pattern/asc/shell_conditions.md` still has TODO examples. It stays `draft`. `asc/extensions/builder/anti-pattern/general/breathing_line_breaks.md` is hundreds of lines of examples. A generator that copied the whole body would publish that file as a rule.
 
 | Existing file | Role in this note |
 |---------------|-------------------|
-| `data/entities/anti-pattern/asc/shell_function_existence.md` | Guidance: a function needs a reason to exist. The preferred alternative is the direct call. |
+| `asc/extensions/builder/anti-pattern/asc/shell_function_existence.md` | Guidance: a function needs a reason to exist. The preferred alternative is the direct call. |
 | `asc/extensions/builder/subject/action.tpl.sh` | Shape for an action script. Placeholders: `{{ docblock }}`, `{{ example }}`, `{{ slot }}`. |
 | `asc/extensions/builder/subject/subject.opt-inc.tpl.sh` | Shape for an optional include. `subject.inc.tpl.sh` is the eager shape `inc_vs_opt-inc` argues against. |
 | `asc/extensions/agent/skill/skill.entity.yml` | A task, independent of Cursor, Codex, or Claude. Fields today: required `description` and `task`, optional `body`. Instances would be `data/entities/skill/<id>.yml`. None exist yet. |
@@ -165,7 +165,7 @@ The generator copies the body of the record's `## Guidance` section as text. It 
 
 The section is plain prose. It has no Markdown link (`](...)`) and no `@` path. A repository-relative path may appear as text. The renderer appends the source link, and the template link when `instead` is set, after the copied prose. Those appended links are the ones rewritten for the output file: one `../` per directory between that file and the project docroot, plus the same path as text. In a Cursor rule the text form is also an `@` path, which Cursor resolves from the workspace root. A link that lives inside `## Guidance` would still be resolved from the generated file, so a record that contains one cannot be `ready`.
 
-References stored in records and skill sidecars are repository-relative (`data/entities/anti-pattern/asc/inc_vs_opt-inc.md`).
+References stored in records and skill sidecars are repository-relative (`asc/extensions/builder/anti-pattern/asc/inc_vs_opt-inc.md`).
 
 A record with no `## Guidance` section cannot be `ready`. Selecting it fails the run. The failure is a report. The tree stays as it is.
 
@@ -304,7 +304,7 @@ templates:
 | `GUIDANCE_DESCRIPTION` | The record description, raw |
 | `GUIDANCE_GLOBS` | The projected glob string |
 | `GUIDANCE_BODY` | The `## Guidance` section body, without the heading |
-| `GUIDANCE_SOURCE` | `data/entities/anti-pattern/asc/inc_vs_opt-inc.md` |
+| `GUIDANCE_SOURCE` | `asc/extensions/builder/anti-pattern/asc/inc_vs_opt-inc.md` |
 | `GUIDANCE_INSTEAD` | The template path, or empty |
 | `GUIDANCE_TMP` | An empty directory for this record |
 | `GUIDANCE_MODE` | `check` or `write` |
@@ -378,9 +378,9 @@ alwaysApply: false
 
 Do not add an eager `*.inc.sh` without a strong reason. Those files load in every ASC-bootstrapped shell. Prefer `*.opt-inc.sh`. A helper used by one action can stay in that action, or be sourced as a `*.manual-inc.sh`.
 
-Source: [data/entities/anti-pattern/asc/inc_vs_opt-inc.md](../../../../data/entities/anti-pattern/asc/inc_vs_opt-inc.md)
+Source: [asc/extensions/builder/anti-pattern/asc/inc_vs_opt-inc.md](../../../../asc/extensions/builder/anti-pattern/asc/inc_vs_opt-inc.md)
 
-@data/entities/anti-pattern/asc/inc_vs_opt-inc.md
+@asc/extensions/builder/anti-pattern/asc/inc_vs_opt-inc.md
 
 Template: [asc/extensions/builder/subject/subject.opt-inc.tpl.sh](../../../../asc/extensions/builder/subject/subject.opt-inc.tpl.sh)
 ```
@@ -395,10 +395,10 @@ Skill: [.agents/skills/asc-author-shell/SKILL.md](.agents/skills/asc-author-shel
 
 Records:
 
-- [data/entities/anti-pattern/asc/action_script_existence.md](data/entities/anti-pattern/asc/action_script_existence.md)
-- [data/entities/anti-pattern/asc/inc_vs_opt-inc.md](data/entities/anti-pattern/asc/inc_vs_opt-inc.md)
-- [data/entities/anti-pattern/asc/shell_function_existence.md](data/entities/anti-pattern/asc/shell_function_existence.md)
-- [data/entities/anti-pattern/asc/hook_call_existence.md](data/entities/anti-pattern/asc/hook_call_existence.md)
+- [asc/extensions/builder/anti-pattern/asc/action_script_existence.md](asc/extensions/builder/anti-pattern/asc/action_script_existence.md)
+- [asc/extensions/builder/anti-pattern/asc/inc_vs_opt-inc.md](asc/extensions/builder/anti-pattern/asc/inc_vs_opt-inc.md)
+- [asc/extensions/builder/anti-pattern/asc/shell_function_existence.md](asc/extensions/builder/anti-pattern/asc/shell_function_existence.md)
+- [asc/extensions/builder/anti-pattern/asc/hook_call_existence.md](asc/extensions/builder/anti-pattern/asc/hook_call_existence.md)
 <!-- asc-agent-guidance:end -->
 ```
 
@@ -459,7 +459,7 @@ Markdown stays the canonical anti-pattern format. Skill entities compose task pr
 
 ## Tasks
 
-- [x] Sixteen Markdown records exist under `data/entities/anti-pattern/{asc,general,python}/`. They already carry `description` and `globs`.
+- [x] Sixteen Markdown records exist under `asc/extensions/builder/anti-pattern/{asc,general,python}/`. They already carry `description` and `globs`.
 - [x] Skill render writes three private copies (`.cursor/skills/`, `.codex/skills/`, `.claude/skills/`). No `.agents/skills/` writer yet. Descriptions are interpolated raw.
 - [x] `stage-inspect` is still a comment. This note does not fill it.
 - [ ] Add `status`, optional `instead`, and a short `## Guidance` section. Missing `status` means `draft`. Mark the four first-slice records `ready`. Leave `shell_conditions` in `draft`.

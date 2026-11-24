@@ -429,7 +429,7 @@ One extension may be enough; split host-ingress and backend-specific adapters on
 - Preserve the existing CA initially. Certificate replacement/renewal and provider-specific reload behavior need tests. Do not translate a successful host-browser test into assumed PHP/Java/Node trust.
 - Keep explicit `extra_hosts` only where the chosen container-caller path needs them; they override DNS aliases. Do not weaken certificate checks to mask routing/trust failures.
 
-Before code is written, recheck the [builder subject templates](../../../../asc/extensions/builder/subject), the [anti-pattern catalog](../../../../data/entities/anti-pattern), and the ASC authoring skills. Actions, hook implementations, and optional includes must justify their existence; this plan does not call for new eager helpers, a second registry, or a generic orchestration framework.
+Before code is written, recheck the [builder subject templates](../../../../asc/extensions/builder/subject), the [anti-pattern catalog](../../../../asc/extensions/builder/anti-pattern), and the ASC authoring skills. Actions, hook implementations, and optional includes must justify their existence; this plan does not call for new eager helpers, a second registry, or a generic orchestration framework.
 
 ## Proposed experiments and acceptance evidence
 

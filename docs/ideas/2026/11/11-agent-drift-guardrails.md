@@ -29,7 +29,7 @@ Each was a reasonable next step for whoever wrote it. The sum is a system that d
 2. **A file map.** The same plan lists every file to touch. Anything else in the diff is a question.
 3. **Selection through what exists.** "Use `hook_ms` variants; no new selection API" closed a whole class of proposals in one sentence.
 4. **Existence rules in the authoring skill.** A hook call needs an implementation; a function needs a caller.
-5. **Anti-pattern records with a "don't" and a "do"** (`data/entities/anti-pattern/`), read before and after editing.
+5. **Anti-pattern records with a "don't" and a "do"** (`asc/extensions/builder/anti-pattern/`), read before and after editing.
 
 ## What the reviews add
 

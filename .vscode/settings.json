@@ -6,10 +6,11 @@
     "**/.git/objects": true
   },
   "files.watcherExclude": {
-    "data": true
+    "data": true,
+    "**/.git/objects": true
   },
   "search.exclude": {
     "data": true,
-    ".git/objects": true
+    "**/.git/objects": true
   }
 }

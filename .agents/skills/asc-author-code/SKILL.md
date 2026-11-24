@@ -72,8 +72,8 @@ a change to core.
 1. Read the relevant concepts, scope, and naming conventions in `README.md`,
    plus `.editorconfig` for the files being changed.
 2. Read the anti-pattern catalog before choosing a shape. The maintained
-   catalog is `data/entities/anti-pattern/` in the ASC tree being edited.
-   When that directory is absent, read `$reg_val/data/entities/anti-pattern/`
+   catalog is `asc/extensions/builder/anti-pattern/` in the ASC tree being edited.
+   When that directory is absent, read `$reg_val/asc/extensions/builder/anti-pattern/`
    after `f_host_registry_get asc_mother_repo_path`. When `$reg_val` is empty,
    use `$HOME/Documents/asc` if that tree contains `asc/bootstrap.sh`.
    Records that exist in the tree being edited still apply. Read each record
