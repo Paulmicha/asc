@@ -84,7 +84,6 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [Most specific hooks (`hook_ms()`) lookup and collisions](#most-specific-hooks-hookms-lookup-and-collisions)
   - [Hosts](#hosts)
   - [(Projet) Instance(s)](#projet-instances)
-    - [Reusable Yaml blocks (`includes` : plural)](#reusable-yaml-blocks-includes-plural)
     - [Instanciation ("concrete" entity instances)](#instanciation-concrete-entity-instances)
       - [Example of a concrete entity discovery → cache → load](#example-of-a-concrete-entity-discovery-cache-load)
     - [Linking, adressing (relationships, references)](#linking-adressing-relationships-references)
@@ -809,12 +808,9 @@ TODO
 
 ### (Projet) Instance(s)
 
-TODO
+TODO local vs remote
 
-#### Reusable Yaml blocks (`includes` : plural)
-
-- `include` is about loading other Yaml files with the mechanism explained above
-- `includes` make possible to reuse blocks of Yaml in the same file like this :
+`includes` make possible to reuse blocks of Yaml in the same file like this :
 
 ```yml
 includes:

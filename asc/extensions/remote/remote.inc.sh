@@ -514,14 +514,14 @@ f_remote_definition_tokens_replace() {
 #   f_remote_instances_setup
 #
 #   # Will (re)generate the following files :
-#   # - data/asc/cache/entities/remote_instance/dev.sh
-#   # - data/asc/cache/entities/remote_instance/dev_node.sh
-#   # - data/asc/cache/entities/remote_instance/staging.sh
-#   # - data/asc/cache/entities/remote_instance/staging_node.sh
-#   # - data/asc/cache/entities/remote_instance/prod.sh
-#   # - data/asc/cache/entities/remote_instance/prod_node.sh
+#   # - data/instance/remote/dev.sh
+#   # - data/instance/remote/dev_node.sh
+#   # - data/instance/remote/staging.sh
+#   # - data/instance/remote/staging_node.sh
+#   # - data/instance/remote/prod.sh
+#   # - data/instance/remote/prod_node.sh
 #
-#   # Example content - e.g. of file data/asc/cache/entities/remote_instance/dev.sh :
+#   # Example content - e.g. of file data/instance/remote/dev.sh :
 #   export REMOTE_INSTANCE_DOCROOT='/var/www/drupal/root'
 #   export REMOTE_INSTANCE_DOMAIN='dev.foobar.com'
 #   export REMOTE_INSTANCE_DUMPS_DEFAULT_BASE_DIR='/var/www/drupal/dump'
@@ -556,15 +556,15 @@ f_remote_instances_setup() {
     return
   fi
 
-  local cache_dir='data/asc/cache/entities/remote_instance'
-  local parsed_file="${cache_dir}/_parsed.sh"
+  local cache_dir='data/instance/remote'
+  local parsed_file="data/instance/remote_parsed.sh"
 
   if [[ ! -d "$cache_dir" ]]; then
     mkdir -p "$cache_dir"
 
     if [[ $? -ne 0 ]]; then
       echo >&2
-      echo "Error in $BASH_SOURCE line $LINENO: failed to create missing required dir ${cache_dir}." >&2
+      echo "Error in $BASH_SOURCE line $LINENO: failed to create missing required dir data/instance/remote." >&2
       echo "-> Aborting (1)." >&2
       echo >&2
       return 1
@@ -717,7 +717,7 @@ EOF
       fi
 
       # Finally, create the resulting definition file.
-      local conf="${cache_dir}/${remote_id}.sh"
+      local conf="data/instance/remote/${remote_id}.sh"
 
       cat > "$conf" <<EOF
 #!/usr/bin/env bash
@@ -894,7 +894,7 @@ f_remote_definition_get_key() {
 #
 # @param 1 [optional] String : remote instance's id (short name, no space,
 #   _a-zA-Z0-9 only). Defaults to the first *.sh file found in folder :
-#   data/asc/cache/entities/remote_instance (skips types.sh, instances.sh,
+#   data/instance/remote (skips types.sh, instances.sh,
 #   _parsed.sh).
 #
 # @example
@@ -923,8 +923,32 @@ f_remote_instance_load() {
 #   f_remote_purge_instances
 #
 f_remote_purge_instances() {
-  rm -f data/asc/cache/remote_instance_ids.sh
-  f_entity_cache_purge remote_instance
+  rm -f data/instance/remote_ids.sh
+
+  echo "Clearing data/instance/remote ..."
+
+  if [[ ! -d "$cache_dir" ]]; then
+    echo "Clearing data/instance/remote : done."
+    echo
+    return 0
+  fi
+
+  f_fs_file_list 'data/instance/remote'
+
+  for file in "${file_list_arr[@]}"; do
+    rm "data/instance/remote/${file}"
+
+    if [[ $? -ne 0 ]]; then
+      echo >&2
+      echo "Error in f_remote_purge_instances() - $BASH_SOURCE line $LINENO: failed to remove locally generated entity instance '$file' (in data/instance/remote)." >&2
+      echo "-> Aborting (1)." >&2
+      echo >&2
+      return 1
+    fi
+  done
+
+  echo "Clearing data/instance/remote : done."
+  echo
 }
 
 ##
@@ -946,14 +970,14 @@ f_remote_get_instances() {
   local file=''
 
   # Cache results.
-  if [[ -f data/asc/cache/remote_instance_ids.sh ]]; then
-    . data/asc/cache/remote_instance_ids.sh
+  if [[ -f data/instance/remote_ids.sh ]]; then
+    . data/instance/remote_ids.sh
   else
     local file
     local remote_id
     local remote_instance_ids_cache_str=''
 
-    f_fs_file_list 'data/asc/cache/entities/remote_instance'
+    f_fs_file_list 'data/instance/remote'
 
     for file in "${file_list_arr[@]}"; do
       case "$file" in _parsed.sh) continue ;; esac
@@ -964,7 +988,7 @@ f_remote_get_instances() {
     done
 
     mkdir -p data/asc/cache
-    cat > data/asc/cache/remote_instance_ids.sh <<CACHE
+    cat > data/instance/remote_ids.sh <<CACHE
 #!/usr/bin/env bash
 
 ##
