@@ -23,7 +23,7 @@
 #   asc/extensions/db/db/routine_backup.sh 'custom_db_id'
 #
 #   # Resulting dump file path example :
-#   # data/db-dumps/local/default/2024-08-08.17-25-29_local-default.paul.sql
+#   # data/db/dumps/local/default/2024-08-08.17-25-29_local-default.paul.sql
 #
 
 . asc/bootstrap.sh

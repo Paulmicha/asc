@@ -536,7 +536,7 @@ f_db_restore_last() {
 #   echo "routine_dump_file = $routine_dump_file"
 #
 #   # Resulting dump file path example :
-#   # data/db-dumps/local/default/2024-08-08.17-25-29_local-default.paul.sql
+#   # data/db/dumps/local/default/2024-08-08.17-25-29_local-default.paul.sql
 #
 f_db_routine_backup() {
   local p_db_id="$1"

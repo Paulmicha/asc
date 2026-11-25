@@ -36,9 +36,9 @@
 #   asc/extensions/remote_db/remote/db_upload.sh 'dev' 'prod'
 #
 #   # Uploads a specific 'default' DB dump file to the 'staging' remote :
-#   make remote-db-upload 'staging' 'local' 'default' data/db-dumps/local/default/2024-08-07-13-45-34_site_foobar.localhost.sql.gz
+#   make remote-db-upload 'staging' 'local' 'default' data/db/dumps/local/default/2024-08-07-13-45-34_site_foobar.localhost.sql.gz
 #   # Or :
-#   asc/extensions/remote_db/remote/db_upload.sh 'staging' 'paul' 'default' data/db-dumps/local/default/2024-08-07-13-45-34_site_foobar.localhost.sql.gz
+#   asc/extensions/remote_db/remote/db_upload.sh 'staging' 'paul' 'default' data/db/dumps/local/default/2024-08-07-13-45-34_site_foobar.localhost.sql.gz
 #
 
 . asc/bootstrap.sh

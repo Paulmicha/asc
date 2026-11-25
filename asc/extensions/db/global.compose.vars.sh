@@ -11,7 +11,7 @@
 # TODO document the dir used by default. It is meant to be bind mounted, e.g. :
 # volumes:
 #   - ./$ASC_DB_DUMPS_DIR:$ASC_DB_DUMPS_DIR_C
-global ASC_DB_DUMPS_DIR_C "[default]=/asc/data/db-dumps [help]='Same as ASC_DB_DUMPS_DIR but within containers.'"
+global ASC_DB_DUMPS_DIR_C "[default]=/asc/data/db/dumps [help]='Same as ASC_DB_DUMPS_DIR but within containers.'"
 
 for db_id in $ASC_DB_IDS; do
   f_str_uppercase "$db_id" 'DB_ID'

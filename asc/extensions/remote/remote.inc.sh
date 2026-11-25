@@ -903,19 +903,17 @@ f_remote_definition_get_key() {
 #
 f_remote_instance_load() {
   local p_id="$1"
-  local cache_dir='data/asc/cache/entities/remote_instance'
+  local cache="data/remote/instance/${p_id}.sh"
 
-  if [[ -z "$p_id" ]]; then
-    local file=''
-    f_fs_file_list "$cache_dir" '*.sh'
-    for file in "${file_list_arr[@]}"; do
-      case "$file" in types.sh|instances.sh|_parsed.sh) continue ;; esac
-      p_id="${file%.sh}"
-      break
-    done
+  if [[ ! -f "$cache" ]]; then
+    echo >&2
+    echo "Error in f_remote_instance_load() - $BASH_SOURCE line $LINENO: file '$cache' not found." >&2
+    echo "-> Aborting (1)." >&2
+    echo >&2
+    return 1
   fi
 
-  f_entity_load remote_instance "$p_id"
+  . "$cache"
 }
 
 ##

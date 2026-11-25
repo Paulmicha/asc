@@ -284,7 +284,7 @@ f_fs_relative_path() {
     p_source="${PROJECT_DOCROOT:=$PWD}"
   fi
 
-  # Project-relative paths (e.g. data/db-dumps) are resolved against docroot first.
+  # Project-relative paths (e.g. data/db/dumps) are resolved against docroot first.
   if [[ "$p_target" != /* ]]; then
     p_target="$p_source/${p_target#./}"
   fi

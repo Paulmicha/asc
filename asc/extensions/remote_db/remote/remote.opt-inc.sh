@@ -38,11 +38,11 @@
 #
 # @update dumps dir structure now have +1 subdir per DB ID, i.e. :
 # Before :
-#   data/db-dumps/local/2024-08-07.15-34-23_site_foobar.localhost.sql.gz
-#   data/db-dumps/prod/2023-10-12.10-09-12_site_foobar.com.sql.gz
+#   data/db/dumps/local/2024-08-07.15-34-23_site_foobar.localhost.sql.gz
+#   data/db/dumps/prod/2023-10-12.10-09-12_site_foobar.com.sql.gz
 # -> After :
-#   data/db-dumps/local/default/2024-08-07.15-34-23_site_foobar.localhost.sql.gz
-#   data/db-dumps/prod/default/2023-10-12.10-09-12_site_foobar.com.sql.gz
+#   data/db/dumps/local/default/2024-08-07.15-34-23_site_foobar.localhost.sql.gz
+#   data/db/dumps/prod/default/2023-10-12.10-09-12_site_foobar.com.sql.gz
 #
 # @update and instead of a datestamp filter for actions like upload or download,
 # we now use absolute or relative file paths instead.

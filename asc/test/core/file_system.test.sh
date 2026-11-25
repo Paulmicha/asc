@@ -111,8 +111,8 @@ test_f_fs_relative_path() {
   assertEquals 'sibling trees' '../../var/www/yetetets/testtset/fdsf.fd' "$relative_path"
 
   relative_path=''
-  f_fs_relative_path 'data/db-dumps/foo.sql' '/project'
-  assertEquals 'project-relative target' 'data/db-dumps/foo.sql' "$relative_path"
+  f_fs_relative_path 'data/db/dumps/foo.sql' '/project'
+  assertEquals 'project-relative target' 'data/db/dumps/foo.sql' "$relative_path"
 }
 
 ##

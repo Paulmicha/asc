@@ -82,14 +82,8 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [Git-ignored, "private" _globals_](#git-ignored-private-globals)
   - [Hooks (and variants)](#hooks-and-variants)
     - [Most specific hooks (`hook_ms()`) lookup and collisions](#most-specific-hooks-hookms-lookup-and-collisions)
-  - [Entities](#entities)
-    - [Custom Yaml syntax (with collisions)](#custom-yaml-syntax-with-collisions)
-      - [Reserved root-level keys](#reserved-root-level-keys)
-      - [Special notations](#special-notations)
-    - [Definition and storage](#definition-and-storage)
-    - [Field vs Prop](#field-vs-prop)
-    - [Contracts (= capabilities = abilities = skills ~= SKILL.md blueprints)](#contracts-capabilities-abilities-skills-skillmd-blueprints)
-    - [Combination (= inclusion), Overriding (= replacement), Alteration (= merging), Appending (= incrementing)](#combination-inclusion-overriding-replacement-alteration-merging-appending-incrementing)
+  - [Hosts](#hosts)
+  - [(Projet) Instance(s)](#projet-instances)
     - [Reusable Yaml blocks (`includes` : plural)](#reusable-yaml-blocks-includes-plural)
     - [Instanciation ("concrete" entity instances)](#instanciation-concrete-entity-instances)
       - [Example of a concrete entity discovery → cache → load](#example-of-a-concrete-entity-discovery-cache-load)
@@ -119,15 +113,12 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [ASC data convention](#asc-data-convention)
     - [Deployable local project instance settings (instance-level + host-level)](#deployable-local-project-instance-settings-instance-level-host-level)
     - [ASC cache : `data/asc/cache`](#asc-cache-dataasccache)
-    - [Default file-based entity storage : `data/entities`](#default-file-based-entity-storage-dataentities)
-      - [Queue entities : `data/entities/queue`](#queue-entities-dataentitiesqueue)
-      - [Thread entities : `data/entities/thread`](#thread-entities-dataentitiesthread)
-    - [Logs : `data/logs`](#logs-datalogs)
-    - [Private files : `data/private`](#private-files-dataprivate)
-    - [Prompts local archive : `data/prompts`](#prompts-local-archive-dataprompts)
-    - [Test results : `data/test/result`](#test-results-datatestresult)
+    - [Logs : `data/log`](#logs-datalog)
+    - [Test `data/test`](#test-datatest)
+      - [Results `data/test/result`](#results-datatestresult)
+      - ["Frozen" results `data/test/frozen`](#frozen-results-datatestfrozen)
+      - [Reports `data/test/report`](#reports-datatestreport)
     - [Temporary files : `data/tmp`](#temporary-files-datatmp)
-    - [Default file-based agent skills storage : `data/skills`](#default-file-based-agent-skills-storage-dataskills)
 - [Workflow](#workflow)
   - [Host copies and storage](#host-copies-and-storage)
   - [(re)Search](#research)
@@ -812,376 +803,13 @@ Yields (from fewer to more variant tokens = from least to most "specific") :
 
 TODO include `hook_ms()` explanation + score-based specificity calculations example.
 
-### Entities
+### Hosts
 
-In the context of ASC projects, entities are *manipulable representations of objects* that are *structured* and *combinable*. Because the whole point of ASC is to provide minimalist, thin wrappers around virtually any CLI via entry points (= actions = named pivots), entities can essentially be seen as **specifications** meant to express in a *generic* and *standardized* way :
+TODO
 
-- **tools calls** (skills - see section *"Contracts (= capabilities = abilities = skills ~= SKILL.md blueprints)"*),
-- **discovery** (declaration, detection - see section *"Instanciation ("concrete" entity instances)"*),
-- and **targeting** (identity - see section *"Linking, adressing (relationships, references)"*).
+### (Projet) Instance(s)
 
-In order to explicitly describe how they work and how to use them, we'll take the following objects as examples throughout the explanations below :
-
-- **Host** : represents a local or remote device where a human or agent works (i.e. a laptop, a server, any device usually - but not obligatorily - connected to a network),
-- *(project)* **Instance** : represents a single application, workspace, or any bundle of one or more softwares ; usually an ASC project instance (with or without a stack composed by one or more services).
-
-#### Custom Yaml syntax (with collisions)
-
-Same as the `env.yml` files used to define env vars (see  the [environment variables (*env vars*)](#environment-variables-env-vars) section). Those are equivalent notations having the same result :
-
-```yaml
-foo:
-  bar:
-    value: the value
-```
-
-```yaml
-foo_bar:
-  value: the value
-```
-
-```yaml
-# We could spot and hard fail potentially unintended collisions, but for now :
-# No warning - all is merged and potentially lost (in reading order).
-foo:
-  bar_value: the value
-```
-
-```yaml
-foo_bar_value: the value
-```
-
-##### Reserved root-level keys
-
-For ASC entities and abilities Yaml files (`*.entity.yml` and `*.able.yml`), there are **reserved root-level keys** :
-
-- `include` : loads (= merges) other `*.yml` files into the current file
-- `includes` : defines blocks of Yaml that can be reused elsewhere in the same Yaml file
-- `synonym` : defines equivalent props and/or fields names
-- `required` : this exists to ensure expectations are met (e.g. for entities, this allows to spot incorrect declarations or outdated instances in case of contract or specification changes)
-- `optional` : for entities, this allows to list what fields and/or props may optionally be used
-- `append` / `alter` / `override` : only applies to entity declarations that include other *contracts* and/or *entity declarations* - i.e. instead of *replacing* a whole root-level property, it either *appends* more values to its inherited parent(s) declaration(s) on the given prop(s) (listed in this `append` root prop), or *alters* (= merges) its sub-props, or only *overrides* (= selectively replaces) one or more targeted sub-props. See the *"Combination (= inclusion), Overriding (= replacement), Alteration (= merging), Appending (= incrementing)"* section below.
-- `map` : for entities, defines where specific field value(s) come from - e.g. for for `host` and `remote_host` entities (both sidecar.able entities), it allows to define that the concrete entity file name is the `hostname` value
-
-Aside from those, (almost) anything goes, really. Bear in mind the limitations of the simplified (but sufficient for our use cases here) Bash Yaml parser in use : [`asc/vendor/bash-yaml`](https://github.com/jasperes/bash-yaml)
-
-##### Special notations
-
-For convenience, the following notations are complementing the DSL syntax (see the *"ASC domain-specific language : DSL syntax"* section). These special notations are supported in any ASC entities and abilities Yaml files (`*.entity.yml` and `*.able.yml`), and also in concrete entity instances files (= sidecars) :
-
-| Notation | Example | Result |
-|----------|---------|--------|
-| `entity.type` | `path/to/foobar.entity.yml` | `foobar` |
-| `file.name` | `path/to/foo.bar-baz_123.yml` | `foo.bar-baz_123.yml` |
-| `file.path` | `path/to/foo.bar-baz_123.yml` | `path/to` |
-| `file.dir` | `path/to/foo.bar-baz_123.yml` | `to` |
-
-Also : `d0`, `d1`, `d2`, etc. = the prop name in current Yaml file at depth 0, 1, 2, etc. of the current branch. Example :
-
-```yml
-foo:
-  bar:
-    tools:
-      run: service-run(d1,a)
-```
-
-Here, the `run` tool DSL would be pre-processed as `service-run(bar,a)`, and would utlimately yield the following call :
-
-```sh
-make service-run 'bar' "$@"
-# Equivalent to :
-asc/extensions/compose/service/run.sh 'bar' "$@"
-```
-
-&lt;proposal-2026-11-18&gt;
-
-The proposed YAML caller supplies `d1` as `bar` and binds its own argv for
-`a`. The interpreter would invoke the script resolved for `service-run`.
-The [DSL spec](docs/specs/asc/dsl.md#arguments-proposed) describes these bindings.
-
-&lt;/proposal-2026-11-18&gt;
-
-#### Definition and storage
-
-Entities are defined using a single Yaml file named like `$type.entity.yml` (e.g. the file `host.entity.yml` declares the `host` entity *type*). These declarations can reside in any ASC active dir following the double extension naming convention `*.entity.yml`. Their instances can be stored in file sidecars (placed in `data/entities`) or even use other storage types, like databases (sqlite, postgres, arcadedb, etc.)
-
-Some implementations can dynamically assign an appropriate storage (e.g. file sidecars or database entries) given expected volume (= size) of entity instances.
-
-The file sidecar is one of the many storage method that can be used : see `asc/extensions/memory/store/store.able.yml` for criterias of assignation to different kinds of storage.
-
-#### Field vs Prop
-
-**field** = *values* stored by entity *instances* (*concrete* entities)
-
---vs--
-
-**prop** = Yaml *keys* shared by all those *instances* + inherited by all (*abstract*) entity *definitions* that include other entities definitions.
-
-- Example of property : `*.entity.yml` all have `required` and `optional` root-level keys ;
-- Example of field : the `host` entity has a `hostname` field to store its address (string), defaulting to "localhost".
-
-`field` declarations are either placed inside `required` or `optional` props, and follow a common structure :
-
-- `is` : string (= `str`), integer (= `int`), float, entity (for referencing other entities)
-- `unit` (optional) : either a measurable *quantity* like number of characters / words / tokens, weight, size (kg, ko, mb, g, cm, mm, km...), contenance (l), consumption or rate (w/h, tok/s), or a *number of items* (or proportion) for enumerable content (in this case, *unitless*)
-- `size` : expected *volume* of field data (and/or *number of items*) to store ; either a range (`$min - $max`), or a single *min* or *max* **limit** (`> $max`, `>= $max`, `< $max`, `<= $max`), or an exact size (the actual unitless value provided)
-- `allowed` : optionally defines a fixed list of allowed values
-- `validate` : optional DSL string that defines the validation mechanism to run when testing the local project instance
-- `default` : the default (fallback) value - for `optional` fields only
-- `storage` : references a specific store (sidecar, database...)
-
-Example :
-
-```yml
-required:
-  field:
-    hostname:
-      is: string
-      size: 1 - 999
-      default: localhost
-      validate: test-hostname(p1)
-```
-
-#### Contracts (= capabilities = abilities = skills ~= SKILL.md blueprints)
-
-Their job is to express how to use the **tools** that are *wrapped* (or "pivoted") in ASC *project instances*. It structures in a standardized way **how to implement** and/or how to *do* things (**tasks**). Those Yaml files essentially point at ASC entry points, DSL, etc.
-
-Let's take the `host` entity as an example. It uses (= loads = includes) the following capabilities :
-
-| Label (designation) | Description | Path |
-|---------------------|-------------|------|
-| sidecar.able | Means that a local Yaml file can be used to represent a single "concrete" host - e.g. the local host, a dedicated server, a (Docker) container, etc. with any number of custom, specific fields like name, state, OS, etc. | `asc/sidecar/sidecar.able.yml` |
-| provision.able | Means that the entity can have installed softwares, drivers, etc. It can be tracked against a manifest to know its state (e.g. : provisionned, missing dependencies, etc.) | `asc/host/provision.able.yml` |
-| synchronize.able | This capability definition allows to specify things like : how is this host receiving updates from its upstream git repo (e.g. `post-merge` git hook), etc. | `asc/host/synchronize.able.yml` |
-| ssh.able | Means that the entity being represented can be connected to using SSH (details may include : address, port, ssh key, ssh user, etc.) | `asc/host/ssh.able.yml` |
-| nest.able | Means that the entity can contain other instances of itself, like : one or more VMs, (Docker) containers, etc. | `asc/host/nest.able.yml` |
-
-The capabilities can include other capabilities, so it is possible to create inheritance chains of contracts - like : shell.able → ssh.able (i.e. `ssh.able.yml` has the `shell.able.yml` item in its `include` root prop list).
-
-Any entity using any of these contracts would inherit the whole chain, e.g. for the `remote_host` entity, the default inclusion chain as implemented in "ASC core" is :
-
-1. *entity.entity* (the primitive entity specification inherited - or shared by - every entities : cf. `asc/extensions/entity/asc/entity.entity.yml`)
-1. *able.able* (the primitive ability spec inherited - or shared by - every skill : cf. `asc/extensions/entity/asc/able.able.yml`)
-1. **sidecar.able** (the "concrete" *instances* of the *remote_host* entities may be stored locally as Yaml files in `data/entities` : cf. `asc/sidecar/sidecar.able.yml`)
-1. **shell.able** (expresses a skill e.g. where a specific tool (here, a terminal) is used to interact with the shell : cf. `asc/host/shell.able.yml`)
-1. **ssh.able** (this contract further specifies that the shell of a remote host can be reached using the ssh program : cf. `asc/host/ssh.able.yml`)
-1. **host** entity (because a *remote host* is a specific kind of *host* : cf. `asc/host/host.entity.yml`)
-1. Then finally, the **remote_host** entity ("self" : cf. `asc/extensions/remote/host/remote_host.entity.yml`)
-
-#### Combination (= inclusion), Overriding (= replacement), Alteration (= merging), Appending (= incrementing)
-
-Yaml `override:` **replaces** included props. That is not Overrides (`scripts/asc/override`).
-
-Nothing forbids the inclusion of any Yaml file. So it is theoretically possible (but not necessarily a good idea) to do things like including concrete entity instances definitions. See the *builder* extension :
-
-- `asc/extensions/builder/template/core/[subject]/[able].able.yml`
-- `asc/extensions/builder/template/core/[subject]/[entity].entity.yml`
-
-This system even allows to produce Yaml files that match other specs, such as valid Docker compose files :
-
-- `scripts/asc/contrib/asc/drupalwt_d4d/stack/compose.yml`
-- `scripts/asc/contrib/asc/drupalwt_d4d/stack/compose.override.local.dev.yml`
-
-In fact, the hooks used in the entity instanciation process (= agregation ~= compilation) even make it possible to output other file formats, so the same mechanism makes theoretically possible to produce specs in Toml, Json, JsonL, XML, Html, or even Markdown.
-
-The inclusion is declared like this, e.g. in any `*.entity.yml` or `*.able.yml` :
-
-```yml
-include:
-  - foo.entity
-  - bar.able
-```
-
-When a Yaml specification is included, all its props are copied into the current (self) spec. Collisions occur when the same *root* prop(s) is/are present both in the included declaration(s) and in the current definition. There are 3 ways collisions are handled :
-
-1. Any identical root-level prop **gets entirely replaced**, *discarding* whatever was included on that root-level prop ;
-1. Specific "per Yaml depth level" sub-props may be targeted :
-    1. inside the `override` root-level prop, the *entire* declaration *at that depth level only* get **replaced** ;
-    1. inside the `append` root-level prop, those entries get **added** ;
-    1. and inside the `merge` root-level prop, they get selectively **altered**.
-
-Here is how the mechanism works  :
-
-1. Define from which entity it is based on, e.g. :
-    ```yml
-    include:
-      - remote_host.entity
-    ```
-1. Identify the prop you want to inherit only partially or differently, e.g. take the following included declaration :
-    ```yml
-    required:
-      field:
-        uuid:
-          is: string
-          size: 64
-        hostname:
-          is: string
-          size: 1 - 999
-          default: localhost
-          validate: test-hostname(p1)
-    ```
-1. Now, either :
-    - **Replace** the whole contents of `required` - in the following example : only keep 1 `field` in `required`, effectively **discarding** anything inherited inside the `required` prop *from all of the inclusion chain* :
-        ```yml
-        required:
-          field:
-            hostname:
-              is: foobar
-              size: 3
-              default: toto
-              validate: test-foobar(p1)
-        ```
-        Here, the result is : no more `uuid` field at all.
-    - Or only **replace** a specific sub-prop on a specific level - in the following example : only override the **level 1** `field` sub-prop (level 0 being the `required` prop) in `required`, meaning **all** the fields are *entirely replaced* by a single `foo` field :
-        ```yml
-        override:
-          d1:
-            required:
-              field:
-                foo:
-                  is: bar
-        ```
-    - Only **replace** the **level 2** `field` sub-prop in `required`, meaning : the `hostname` field declaration is *replaced* (any other inherited `field` items in `required` are *preserved*) :
-        ```yml
-        override:
-          d2:
-            required:
-              field:
-                hostname:
-                  is: foobar
-                  size: 3
-                  default: toto
-                  validate: test-foobar(p1)
-        ```
-        So here, the `uuid` field is left untouched.
-    - Now, in this next example, there is no difference between **replacing** and **altering** a single **level 3** property - i.e. those are strictly equivalent declarations :
-        ```yml
-        override:
-          d3:
-            required:
-              field:
-                hostname:
-                  size: 1
-        ```
-        And :
-        ```yml
-        alter:
-          required:
-            field:
-              hostname:
-                size: 1
-        ```
-        Because the **level 3** `size` sub-prop is targeted, there is no difference between overriding and altering (both change the resulting value at this specific leaf in the Yaml tree).
-    - When only **modifications** are needed instead of replacing entire trees, the `alter` root-level prop allows to do many alterations at once without losing any other part of the trees. Unlike `override`, it only overrides specific inherited values in the exact target leaves only - e.g. :
-        ```yml
-        alter:
-          required:
-            field:
-              hostname:
-                default: foobar
-                validate: test-hostname-foobar-alternative(p1)
-              uuid:
-                size: 128
-        ```
-        Here, both fields inherit all the other sub-props values, and only change those explicitly defined inside the `alter` roo-level prop.
-    - Finally, if any list needs incrementing, like adding a new `required` field, we can use the `append` root-level prop :
-        ```yml
-        append:
-          required:
-            field:
-              foo:
-                is: bar
-        ```
-        Here, the result would have 3 `required` fields : `uuid`, `hostname`, and `foo`.
-
-**Appending** (= *incrementing*) works on the first missing prop on the deepest level of the inherited tree. So, starting from the same previous included Yaml example :
-
-```yml
-required:
-  field:
-    uuid:
-      is: string
-      size: 64
-    hostname:
-      is: string
-      size: 1 - 999
-      default: localhost
-      validate: test-hostname(p1)
-```
-
-1. If you have :
-    ```yml
-    append:
-      optional:
-        field:
-          foo:
-            is: bar
-    ```
-    Then the result would be :
-    ```yml
-      required:
-        field:
-          uuid:
-            is: string
-            size: 64
-          hostname:
-            is: string
-            size: 1 - 999
-            default: localhost
-            validate: test-hostname(p1)
-      optional:
-        field:
-          foo:
-            is: bar
-      ```
-1. But if you have :
-    ```yml
-    append:
-      required:
-        field:
-          uuid:
-            validate: test-uuid(p1)
-    ```
-    Then the result would be :
-    ```yml
-      required:
-        field:
-          uuid:
-            is: string
-            size: 64
-            validate: test-uuid(p1)
-          hostname:
-            is: string
-            size: 1 - 999
-            default: localhost
-            validate: test-hostname(p1)
-      ```
-    Here, the result is equivalent to `alter` (which will fill the gap just like `append` adds the new sub-prop at that level in the tree).
-
-Finally, `append` works on lists like :
-
-```yml
-foobar:
-  - item 1
-  - item 2
-```
-
-If you do :
-
-```yml
-append:
-  foobar:
-    - item 3
-```
-
-The result would be :
-
-```yml
-foobar:
-  - item 1
-  - item 2
-  - item 3
-```
+TODO
 
 #### Reusable Yaml blocks (`includes` : plural)
 
@@ -1879,42 +1507,28 @@ After `make cc`, the next bootstrap is a stamp miss: one `f_asc_extend`, then ho
 
 See `docs/plans/2026/09/11-bootstrap-cache-layout-and-invalidation.md`.
 
-#### Default file-based entity storage : `data/entities`
-
-TODO
-
-##### Queue entities : `data/entities/queue`
-
-TODO
-
-##### Thread entities : `data/entities/thread`
-
-TODO
-
-#### Logs : `data/logs`
+#### Logs : `data/log`
 
 TODO
 
 - `logged-*` prefix ? (logged-thread, logged-batch...)
 - stdout / stderr / both ?
 
-#### Private files : `data/private`
+#### Test `data/test`
+
+##### Results `data/test/result`
 
 TODO
 
-#### Prompts local archive : `data/prompts`
+##### "Frozen" results `data/test/frozen`
 
 TODO
 
-#### Test results : `data/test/result`
+##### Reports `data/test/report`
 
 TODO
 
 #### Temporary files : `data/tmp`
-
-TODO
-
-#### Default file-based agent skills storage : `data/skills`
 
 TODO
 

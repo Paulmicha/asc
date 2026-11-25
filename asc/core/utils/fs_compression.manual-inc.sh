@@ -120,9 +120,9 @@ f_fs_compress_in_place() {
 #
 # @example
 #   uncompressed_file=''
-#   f_fs_trim_compression_ext 'data/db-dumps/prod/default/2024-08-07.16-41-31_site_foobar.com.sql.gz'
+#   f_fs_trim_compression_ext 'data/db/dumps/prod/default/2024-08-07.16-41-31_site_foobar.com.sql.gz'
 #   echo "uncompressed_file = $uncompressed_file"
-#   # Yields 'data/db-dumps/prod/default/2024-08-07.16-41-31_site_foobar.com.sql'
+#   # Yields 'data/db/dumps/prod/default/2024-08-07.16-41-31_site_foobar.com.sql'
 #
 f_fs_trim_compression_ext() {
   local p_filepath="$1"
