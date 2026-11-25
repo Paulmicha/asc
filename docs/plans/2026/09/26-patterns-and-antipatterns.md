@@ -53,7 +53,7 @@ A host shell that copies a `templates/` directory and rewrites `{{ NAME }}` toke
 | `anti/pattern/list.sh` | Comment only. Intended pivot `anti-pattern-list`. The synonym replaces the substring, so the short name is `code-smell-list`. Loads the list for the repository being committed. |
 | `stage/inspect.sh` | Comment only. Intended pivot `stage-inspect`. Reads each staged blob (`git show :path`) and compares those contents to the list. The path was `diff/inspect.sh`. The human moved it on 2026-09-26. |
 
-The core group `asc` is the list for an ASC project instance. The list stub names `asc/extensions/builder/anti-pattern/asc`. README now says that path. The entity plan's instance file is `data/entities/<type>/<id>.yml`, so the spelling to settle is `asc.yml` versus a directory of one file per anti-pattern. The stub has no `.yml`.
+The core group `asc` is the list for an ASC project instance. The list stub names `docs/anti-patterns/asc`. README now says that path. The entity plan's instance file is `data/entities/<type>/<id>.yml`, so the spelling to settle is `asc.yml` versus a directory of one file per anti-pattern. The stub has no `.yml`.
 
 `pattern.sh` says "registry entry or entity instance". `inspect.sh` says it reads "the registry". The only concrete path in the stubs is the entity one. Use that. `file_registry` stays one string per key (a flag, a docroot list). An anti-pattern record is not that string. In this note, registry means the checker catalog.
 
@@ -129,7 +129,7 @@ The commit gate is `pre-commit`. Git invokes it for `git commit`. A non-zero sta
 | `post-checkout`, `post-merge` | After the worktree already changed | No | A printout of what now applies. A poor gate. |
 | `post-receive` | On the remote, after refs are updated, cwd is `$GIT_DIR` | No. The update already happened. | Do not bootstrap ASC on the server from this hook. |
 
-`post-commit`, `post-merge`, and `post-checkout` are the wrong place to start. They cannot reject the operation that just finished. `post-receive` would run the catalog on a machine that is not the instance that owns `asc/extensions/builder/anti-pattern/`.
+`post-commit`, `post-merge`, and `post-checkout` are the wrong place to start. They cannot reject the operation that just finished. `post-receive` would run the catalog on a machine that is not the instance that owns `docs/anti-patterns/`.
 
 ### The bytes `stage-inspect` reads
 
@@ -152,7 +152,7 @@ Two directories are in play.
 
 | Directory | What it is |
 |-----------|------------|
-| `$PROJECT_DOCROOT` | The ASC instance. Bootstrap runs here. The catalog path `asc/extensions/builder/anti-pattern/asc` is relative to here. |
+| `$PROJECT_DOCROOT` | The ASC instance. Bootstrap runs here. The catalog path `docs/anti-patterns/asc` is relative to here. |
 | `$APP_DOCROOT` | The application repository, when the instance keeps application source in a second git dir. |
 
 The generated script `cd`s to `$PROJECT_DOCROOT` before `hook` runs. Git's own hook starts at the root of the work tree whose `.git/hooks` fired, and git sets `GIT_DIR` for the hook. After the `cd`, a bare `git diff` follows `GIT_DIR` if it is still set, and follows the new cwd if it is not. Whether bootstrap preserves `GIT_DIR` is unverified. A listener that does not record `GIT_DIR` and the starting work tree will inspect whichever repository the shell happens to be in.
@@ -289,7 +289,7 @@ Concert order stands. Sidecar path template first, registry left as it is, disco
 ## Tasks
 
 - [x] Human placed design patterns on `builder` and anti-patterns on `checker`.
-- [x] README names both, including the core-group path `asc/extensions/builder/anti-pattern/asc`.
+- [x] README names both, including the core-group path `docs/anti-patterns/asc`.
 - [x] Git-hook and Cursor wiring recorded as design. No listener, no wired-list change, no generated rule.
 - [x] `write_hooks.sh` comment: `pre-applypatch` is `git am`. `pre-commit` is the `git commit` gate. The empty-argument default still includes `pre-applypatch`.
 - [ ] Settle `asc.yml` versus a directory of one file per anti-pattern.

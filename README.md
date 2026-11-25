@@ -49,11 +49,16 @@ The main README (this file) is authoritative on the meaning associated with ASC 
 - [Current status of the ASC project](#current-status-of-the-asc-project)
 - [Documentation](#documentation)
   - [Skills, Instructions, Capabilities (`AGENTS.md` & `SKILL.md`)](#skills-instructions-capabilities-agentsmd-skillmd)
+  - [Design patterns vs. Anti-patterns](#design-patterns-vs-anti-patterns)
+    - [Design patterns : DOS / HOWTOS](#design-patterns-dos-howtos)
+    - [Anti-patterns : DONTS](#anti-patterns-donts)
+    - [Enforcement, "alignment" (drift control)](#enforcement-alignment-drift-control)
+    - [Guards, "gates"](#guards-gates)
   - [Specs, Contracts, Living Docs (SPECS)](#specs-contracts-living-docs-specs)
   - [Changes, Implementation Steps, Execution Plans (PLANS)](#changes-implementation-steps-execution-plans-plans)
   - [Problems, Improvements (ISSUES)](#problems-improvements-issues)
   - [Priorities (NEXT_STEPS)](#priorities-nextsteps)
-  - [Guards, "gates"](#guards-gates)
+  - [Guards, "gates"](#guards-gates-1)
 - [ASC concepts](#asc-concepts)
   - [General notes](#general-notes)
   - [Vendor (= third-party) libs](#vendor-third-party-libs)
@@ -89,9 +94,6 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [ASC core tests](#asc-core-tests)
     - [Pre and post test suite execution (shunit2) functions](#pre-and-post-test-suite-execution-shunit2-functions)
     - [Test results](#test-results)
-  - [Design patterns VS anti-patterns (`builder` core extension)](#design-patterns-vs-anti-patterns-builder-core-extension)
-    - [Design patterns](#design-patterns)
-    - [Anti-patterns](#anti-patterns)
   - [ASC domain-specific language : *DSL* syntax](#asc-domain-specific-language-dsl-syntax)
     - [Entry points](#entry-points)
     - [Arguments](#arguments)
@@ -196,28 +198,14 @@ Implications : change ASC core current files discovery mechanisms to support bot
 1. [x] ~~Refactor Bootstrap~~
 1. [x] ~~Refactor core + core extensions~~
 1. [x] ~~Refactor tests~~
-1. [ ] Complete the Builder
-1. [ ] Sandboxing and Permissions
-1. [ ] Stack and Host orchestration (containerization, virtualization, etc)
-1. [ ] Agents (for now : Cursor + Codex + Ollama + Ollaya, next : Claude Code)
+1. [ ] Complete the Builder core extension
+1. [ ] Complete DSL interpreter
+1. [ ] Complete all synchronization entry points (instance, host, data)
+1. [ ] Stabilize Stack and Host orchestration (containerization, virtualization, etc)
+1. [ ] Stabilize docs and skills
 1. [ ] Stabilize workflow (agent loop controls, git branching model, gates)
-
-&lt;proposal-2026-11-18&gt;
-
-The DSL checklist records a design milestone. The entry points are wired
-to a TODO stub. The [draft DSL spec](docs/specs/asc/dsl.md) tracks the
-interpreter contract and remaining design decisions.
-
-&lt;/proposal-2026-11-18&gt;
-
-&lt;proposal-2026-11-19&gt;
-
-The DSL checklist still records a design milestone. A first-slice
-interpreter is in-tree (`f_asc_dsl`, `asc/dsl.sh`, `ASC_DS_EXPR='…' make ds`)
-and is not gate-accepted yet. The [draft DSL spec](docs/specs/asc/dsl.md)
-tracks the contract and remaining design decisions.
-
-&lt;/proposal-2026-11-19&gt;
+1. [ ] Agents (for now : Cursor + Codex + Ollama + Ollaya, next : Claude Code)
+1. [ ] Sandboxing and Permissions ?
 
 ## Documentation
 
@@ -225,9 +213,22 @@ At the time of writing (mostly july to october 2026), there seems to be emerging
 
 ASC attemtps to unify humans and AI agents use of "prose" by using distinct types of documents while leveraging those emergent patterns where appropriate.
 
+The [Diátaxis compass](https://diataxis.fr/compass/#compass) is a useful reference here. It breaks down documentation files into 4 types (*user* can also be an **agent** in our case) :
+
+| If the content… | …and serves the user’s… | …then it must belong to… |
+|-----------------|-------------------------|--------------------------|
+| informs *action* | *acquisition* of skill | a **tutorial** |
+| informs *action* | *application* of skill | a **how-to guide** |
+| informs *cognition* | *application* of skill | **reference** |
+| informs *cognition* | *acquisition* of skill | **explanation** |
+
+In projects using ASC, we aim to follow this categorization whenever a documentation file (in the `docs` folder) is created.
+
+TODO 2026-11-25 : Decide if we want strict paths enforcement like docs/tutorials, docs/howtos, docs/references, docs/explanations, or keep the current "loose" organization of (usually markdown) prose documents. We can even think about extending the structure to things like docs/dos and docs/donts, but I think the "gains" of enforcing such rigidity deserves scrutiny. We may not need that level of detail in the organization of documentation files.
+
 ### Skills, Instructions, Capabilities (`AGENTS.md` & `SKILL.md`)
 
-ASC core (this repo = "mother" ASC repo) contains an `AGENTS.md` document pointing at 3 skills :
+ASC core (this repo = "mother" ASC repo) contains an `AGENTS.md` document pointing at the following skills :
 
 - `.agents/skills/asc-actions-priority` prioritizes the use of local project instance ASC entry points defined as preferred alternatives compared to custom scripts and commands (e.g. like Docker compose, see the corresponding ASC extension) ;
 - `.agents/skills/asc-author-docs` tells which documents are used to describe which rules, constraints, instructions, etc. - and what agents are allowed and not allowed to do in those docs ;
@@ -260,6 +261,26 @@ The upgrade script `asc/core/upgrade.sh` copies from the selected upstream branc
 The practical arrangement is therefore: **keep the mother as the maintained source, distribute its skills into each ASC instance, and treat the home instance’s copies as globally discoverable on this laptop.** Project-level copies and `AGENTS.md` remain valuable for other machines, collaborators, and remote agents.
 
 &lt;/proposal-2026-10-30&gt;
+
+### Design patterns vs. Anti-patterns
+
+TODO Introduction paragraph. Skills need to be aware of such docs (markdown prose, eventual frontmatter spec). 
+
+#### Design patterns : DOS / HOWTOS
+
+TODO see `asc/extensions/builder` + decide if we need a more "controlled" vocabulary like [Atomic Design](https://atomicdesign.bradfrost.com/chapter-2/).
+
+#### Anti-patterns : DONTS
+
+TODO see `docs/anti-patterns` + decide **how to "wire" these with agents skills**, perhaps as a generic hook that generates skills and/or docs somewhere gitignored (like the `data` folder).
+
+#### Enforcement, "alignment" (drift control)
+
+TODO 
+
+#### Guards, "gates"
+
+TODO
 
 ### Specs, Contracts, Living Docs (SPECS)
 
@@ -952,33 +973,6 @@ See the embedded vendor [shunit2 README](asc/vendor/shunit2/README.md) for addit
 #### Test results
 
 Tests results are (for now) stored in `data/test/result`. This was done to track the current status of unstable branches in git, but the decision is subject to eventually change according to future enhancements to workflow-related implementations.
-
-### Design patterns VS anti-patterns (`builder` core extension)
-
-ASC provides the (opt-in) `builder` extension where both design patterns and anti-patterns are defined :
-
-- A design pattern (see `asc/extensions/builder/design-pattern`) repeats a shape by generating code from templates.
-- An antipattern (see `asc/extensions/builder/anti-pattern`) names and describes a shape staged contents should not contain.
-
-#### Design patterns
-
-&lt;proposal-2026-09-26&gt;
-
-A design pattern is a folder or string template. `asc/extensions/builder` generates ASC code from it. Example: `asc/extensions/builder/template/core/`.
-
-&lt;/proposal-2026-09-26&gt;
-
-#### Anti-patterns
-
-&lt;proposal-2026-09-26&gt;
-
-An anti-pattern is one record in this catalog. `asc/extensions/checker` keeps it. The core group is `asc` (`ASC_ANTI_PATTERN_TYPES`): the list for an ASC project instance, read from `asc/extensions/builder/anti-pattern/asc`.
-
-- `make anti-pattern` records one.
-- `code-smell` is a synonym. That substitution also turns `anti-pattern-list` into `code-smell-list`, which loads the group for that commit.
-- `make stage-inspect` reads the staged blob of each committed path (`git show :path`) and compares those contents to the list.
-
-&lt;/proposal-2026-09-26&gt;
 
 ### ASC domain-specific language : *DSL* syntax
 

@@ -178,7 +178,7 @@ The prefix/variant product is rebuilt for every namespace and action inside one 
 
 - Modify: `scripts/asc/contrib/asc/drupalwt/app/fs_perms_set.hook.sh`
 - Create: `scripts/asc/contrib/asc/drupalwt/test/core.hook.sh`
-- Create: `scripts/asc/contrib/asc/drupalwt/test/core/fs_perms_set.test.sh` (case shape in `asc/extensions/builder/anti-pattern/asc/tests.md` and `asc/extensions/builder/subject/core/test_case.test.tpl.sh`)
+- Create: `scripts/asc/contrib/asc/drupalwt/test/core/fs_perms_set.test.sh` (case shape in `docs/anti-patterns/asc/tests.md` and `asc/extensions/builder/subject/core/test_case.test.tpl.sh`)
 
 `fs_perms_set.hook.sh` loads sites, skips `default`, and for every remaining site calls `f_dwt_get_sites_writeable_paths`. On the measured tree the temporary directory and the private directory resolved to the same paths for every non-default site. Each pass runs `find` twice on each path (`-type f` with `FS_W_FILES`, `-type d` with `FS_W_DIRS`). Warmup then repeated the whole hook; task 1 removes that repeat. This task removes the per-site repeat inside one pass.
 

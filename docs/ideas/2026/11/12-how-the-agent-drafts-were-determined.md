@@ -129,7 +129,7 @@ Code read or searched:
 - `asc/thread/thread.entity.yml`, `sidecar.able.yml`, `sidecar.sh` are empty.
 - `scripts/asc/contrib/asc/{claude,codex,cursor,ollama,ollaya}/` contain only `.gitkeep`.
 - `asc/core/global.vars.sh` synonym list: `logged-thread/lt`, `logged-batch/lb`, `logged-chain/lc`, `logged-sequence/ls`, `logged-loop/ll`, `logged-pipe/lp`.
-- `asc/extensions/builder/anti-pattern/asc/hook_call_existence.md`, opening only, to see the "don't / do" shape.
+- `docs/anti-patterns/asc/hook_call_existence.md`, opening only, to see the "don't / do" shape.
 - `data/` top level: `asc`, `entities`, `logs`, `test-results`, `threads`, `tmp`. No `data/entities/queue/`, no `data/entities/thread/`, no `data/skills/`.
 
 Not read as prose, though named by the README or by plans: `asc/make/call_wrap.make.sh` beyond what the agent-plan document quotes about quote stripping; `asc/core/hook.manual-inc.sh`; the body of `thread-pipe` and `thread-sequence`; `asc/extensions/workflow/` entity files. The plans spec does not claim behavior for those beyond what the agent-plan document already states.

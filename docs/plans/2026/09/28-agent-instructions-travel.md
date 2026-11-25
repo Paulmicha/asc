@@ -56,7 +56,7 @@ Line counts below are `wc -l` on that date.
 
 | Path | Lines | How Cursor treats it |
 |------|------:|----------------------|
-| `.agents/skills/asc-author-code/SKILL.md` | 69 | Agent skill. Procedure for writing ASC code. Points at `README.md`, `asc/extensions/builder/anti-pattern/`, and `asc/extensions/builder/subject/`. |
+| `.agents/skills/asc-author-code/SKILL.md` | 69 | Agent skill. Procedure for writing ASC code. Points at `README.md`, `docs/anti-patterns/`, and `asc/extensions/builder/subject/`. |
 | `.agents/skills/asc-author-docs/SKILL.md` | 43 | Agent skill. Procedure for README proposals, changelogs, and ASC prose. |
 | `.agents/skills/asc-mother-guard/SKILL.md` | 42 | Agent skill. Procedure before a mother write. |
 | `AGENTS.md` | 36 | Project index. This mother loads it as an always-on workspace rule. It tells the agent to read the three skills. |
