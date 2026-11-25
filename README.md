@@ -84,9 +84,6 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [Most specific hooks (`hook_ms()`) lookup and collisions](#most-specific-hooks-hookms-lookup-and-collisions)
   - [Hosts](#hosts)
   - [(Projet) Instance(s)](#projet-instances)
-    - [Instanciation ("concrete" entity instances)](#instanciation-concrete-entity-instances)
-      - [Example of a concrete entity discovery → cache → load](#example-of-a-concrete-entity-discovery-cache-load)
-    - [Linking, adressing (relationships, references)](#linking-adressing-relationships-references)
   - [ASC discovery recap](#asc-discovery-recap)
   - [Tests](#tests)
     - [ASC core tests](#asc-core-tests)
@@ -106,8 +103,8 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [Conditional execution](#conditional-execution)
     - [Redirecting](#redirecting)
     - [Iterations (= loops, foreach, for ... in)](#iterations-loops-foreach-for-in)
+    - [Filename-safety](#filename-safety)
     - [DSL examples](#dsl-examples)
-    - [DSL in Yaml](#dsl-in-yaml)
   - [Data dirs = "data pivots"](#data-dirs-data-pivots)
     - [ASC data convention](#asc-data-convention)
     - [Deployable local project instance settings (instance-level + host-level)](#deployable-local-project-instance-settings-instance-level-host-level)
@@ -398,7 +395,6 @@ Examples :
 
 This overriding mechanism is not to be confused with :
 
-- Yaml `override:` : see *entities*
 - `env.yml` files : see *env vars*
 - `compose.override*.yml` : see (docker) *compose* extension
 
@@ -487,8 +483,6 @@ Specific individual steps may be separately run :
 
 - TODO only reinit env vars
 - TODO only rebuild hook cache
-- TODO only rebuild entity types discovery
-- TODO only rebuild discovered entity instances (1 or some or all types, such as e.g. hosts and/or remote hosts)
 
 Some convenience entry points exist for tasks that usually run together, like `make rere` = `make reinit` then `make restart`.
 
@@ -882,64 +876,6 @@ dev:
     hostname: www.dev.specimen.home.arpa
 ```
 
-#### Instanciation ("concrete" entity instances)
-
-Entities are discovered using the following lookup mechanism. It runs for all (enabled) entity declarations, per entity *type* :
-
-1. All `*.entity.yml` in all *active dirs* are discovered and cached during *instance (re)init* in the "normal" (file-based) ASC cache, i.e. in `data/asc/cache`.
-1. Once all active entity types are discovered, the *instance (re)init* post-processing *discovers* all the **concrete entity instances**.
-1. For *sidecar.able* entities, all manually created or generated instances are to be placed in paths like (for ex. for the `host` entity *type*) : `data/entities/host/foobar.home.arpa.yml`.
-1. The discovered concrete entity instances may either be written to the "normal" (file-based) ASC cache (in `data/asc/cache/entities/$type/...`), or - depending on the entity spec itself which may define a specific storage type like databse - in any other available storage mechanism (whose read / write / etc. operations are wrapped in ASC entry points or pivots), like databases.
-
-Once the local ASC project instance is initialized, any operation that interacts with one or more concrete entities can have their field values loaded in the shell scope of the entry point used using `f_entity_load()`.
-
-##### Example of a concrete entity discovery → cache → load
-
-(re)init lanches in that order :
-
-- `f_entity_types_discover`
-- `f_entity_instances_discover`
-- `f_entity_cache_generate_all`
-
-TODO decide on synonyms or keep distinct the following concepts to be referenced in prose notations : `$skill.able.yml`, `$tool.able.yml`, etc. This will determine the pivots names and arguments structure to be implemented in ASC core "agent" extension. The ASC contrib implementations live in contrib extensions like cursor, codex, claude, ollama.
-
-&lt;proposal-2026-09-22&gt;
-
-**sidecar.able** is a contract, never a type name.
-
-Load: `f_entity_load host foobar.home.arpa`. `f_remote_instance_load` wraps `f_entity_load remote_instance <id>`. Same `include: host.entity` shape: `asc/extensions/remote/host/remote_host.entity.yml`.
-
-
-| Kind | Path | On disk |
-|------|------|---------|
-| Type | `asc/host/host.entity.yml` | `include: sidecar.able`; `map.hostname: filename`; `required.field.hostname` |
-| Instance | `data/entities/host/foobar.home.arpa.yml` | `include: host.entity` |
-| Cache | `data/asc/cache/entities/host/foobar.home.arpa.sh` | `HOST_ID` / `HOST_HOSTNAME` = `foobar.home.arpa` |
-
-&lt;/proposal-2026-09-22&gt;
-
-#### Linking, adressing (relationships, references)
-
-There are 2 kinds of references (= links = relationships) between entities :
-
-1. Direct references : `subject--object`
-1. Triples : `subject--predicate--object`
-
-Here, `predicate` and `object` can either refer to entity types (`*.entity.yml`) or abilities (`*.able.yml`). The notation to use in Yaml specs is e.g `host.entity` or `field.able` :
-
-```yml
-required:
-  field:
-    foobar:
-      reference: field.able
-    host:
-      reference: host.entity
-      validate: test-host-is(p1,ssh.able)
-    needs:
-      reference: software.entity
-      validate: test-software-state(p1,test-and(installed,running))
-```
-
 ### ASC discovery recap
 
 In the following list, `$ext` means any one of these extension points (paths) :
@@ -956,16 +892,11 @@ The following naming conventions will get automatically discovered :
 - ✅ `$ext/$subject/$object/$action.sh` = entry points = pivots *regrouped* (by object)
 - ✅ `$ext/$subject/global.vars.sh` = constants declarations
 - ✅ `$ext/$subject/*.hook.sh` = (default) hook implementations
-- ✅ `$ext/$subject/$type.entity.yml` = entity specs (= entity *type* definitions / declarations)
-- ✅ `$ext/$subject/*.able.yml` = ability (= contract = skill)
-- ✅ `data/entities/$type/*.yml` = *concrete* (sidecar.able) entity *instances* definitions
 
 But not :
 
 - ❌ `$ext/$subject/$object/global.vars.sh`
 - ❌ `$ext/$subject/$object/*.hook.sh`
-- ❌ `$ext/$subject/$object/*.entity.yml`
-- ❌ `$ext/$subject/$object/*.able.yml`
 
 Also, there are cases where hook calls may specify any file extensions, like :
 
@@ -1051,12 +982,7 @@ An anti-pattern is one record in this catalog. `asc/extensions/checker` keeps it
 
 ### ASC domain-specific language : *DSL* syntax
 
-This is more of a convenience shortcut to simplified ASC implementations. It allows things like :
-
-- Agent harness: `make agent-start` → `hook_ms -s agent -a start` (`asc/extensions/agent/agent/start.sh`). Contrib (Extension) is the most-specific match; it shares `agent.entity.yml`.
-- One-liner entity field values validation
-- Basic pre-processing tests
-- Faster prototypes to evaluate, compare, measure implementation ideas
+TODO rewrite DSL intro.
 
 #### Entry points
 
@@ -1239,6 +1165,21 @@ while read -r item; do
 done < <(myfunc)
 ```
 
+#### Filename-safety
+
+DSL syntax is filename-safe (Linux, Windows, IOS) in order to allow for simple actions or combinations to be expressed in the filename itself, e.g :
+
+```text
+*/$subject/transcribe-file(v-input_file_path).pre-index.hook.sh
+```
+
+&lt;proposal-2026-11-18&gt;
+
+The filename example is a proposed hook convention. Its supported grammar
+and discovery behavior remain open.
+
+&lt;/proposal-2026-11-18&gt;
+
 #### DSL examples
 
 The authoritative form of expressing one's need is the following :
@@ -1369,53 +1310,6 @@ DSL
 exit $?
 ```
 
-
-
-#### DSL in Yaml
-
-In a Yaml file `foobar.entity.yml` specifying a `foobar` entity definition with a `toto` field, the "validate" entry specifies that the `toto` field value must respect either URL slug or snake case formats :
-
-```yml
-required:
-  field:
-    toto:
-      validate: test-in(p1,slug(p1),snake(p1))
-```
-
-That DSL syntax example translates to :
-
-```sh
-[[ asc/test/in.sh 'foo-bar' "$(asc/instance/slug.sh 'foo-bar')" "$(asc/instance/snake.sh 'foo-bar')" ]] || exit 1
-# ... where 'foo-bar' would be the entity "toto" field value declared in its "*.entity.yml" specification file.
-```
-
-This is used during basic validations, such as tiny automated tests automatically executed upon initializing newly added entity declarations in a local project instance.
-
-NB : any DSL starting with `test-*` translates to e.g. `[[ */test/*.sh ]] || exit 1` for convenience.
-
-&lt;proposal-2026-11-18&gt;
-
-The YAML example describes planned validation. `asc/test/in.sh` is empty,
-and Bash `[[ … ]]` does not invoke a script. The proposed interpreter runs
-the resolved test action and returns the expression status. An embedding
-can use `|| exit 1` when it owns the process. See the
-[DSL spec](docs/specs/asc/dsl.md#invocation-and-status-proposed).
-
-&lt;/proposal-2026-11-18&gt;
-
-DSL syntax must remain filename-safe (Linux, Windows, IOS), so we could have files implementing hooks like :
-
-```text
-*/$subject/transcribe-file(v-input_file_path).pre-index.hook.sh
-```
-
-&lt;proposal-2026-11-18&gt;
-
-The filename example is a proposed hook convention. Its supported grammar
-and discovery behavior remain open.
-
-&lt;/proposal-2026-11-18&gt;
-
 ### Data dirs = "data pivots"
 
 Files placed in `data/*` are usually writeable per project instance. They are meant for ASC core, contrib and/or custom implementations.
@@ -1483,7 +1377,6 @@ data/
         <canonical-key>.sh   ← hook lookup (bodies still sourced from disk)
       pivots.sh
       test-cases.sh
-      entities/                 ← entity load cache
 ```
 
 Bootstrap always sources the four kernel includes (`utils.inc.sh`, `core.inc.sh`, `hook.inc.sh`, `autoload.inc.sh`). `yml.inc.sh` is eager via `ASC_INC` (`asc/yml` is an *active dir*). Then, if `global.vars.sh` exists, it is sourced. Then `f_asc_primitives_cache_ensure`: stamp match → source `core/active.sh`; miss → `f_asc_extend`, rewrite `active.sh` + stamp, wipe `cache/hook/` only. `pre_bootstrap` / `alias` / `bootstrap` still run on both the cold and warm paths.
