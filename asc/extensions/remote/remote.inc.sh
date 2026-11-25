@@ -549,7 +549,7 @@ f_remote_instances_setup() {
     -t -r
 
   # Purge existing remotes first.
-  f_remote_purge_instances
+  f_remote_purge_instances || return $?
 
   # Having remotes is not required for all instance types.
   if [[ ! -f "$most_specific_match" ]]; then
@@ -903,7 +903,7 @@ f_remote_definition_get_key() {
 #
 f_remote_instance_load() {
   local p_id="$1"
-  local cache="data/remote/instance/${p_id}.sh"
+  local cache="data/instance/remote/${p_id}.sh"
 
   if [[ ! -f "$cache" ]]; then
     echo >&2
@@ -923,11 +923,11 @@ f_remote_instance_load() {
 #   f_remote_purge_instances
 #
 f_remote_purge_instances() {
-  rm -f data/instance/remote_ids.sh
+  rm -f data/instance/remote_ids.sh || return $?
 
-  echo "Clearing data/instance/remote ..."
+  echo "Clearing data/instance/remote contents ..."
 
-  if [[ ! -d "$cache_dir" ]]; then
+  if [[ ! -d data/instance/remote ]]; then
     echo "Clearing data/instance/remote : done."
     echo
     return 0
@@ -947,7 +947,7 @@ f_remote_purge_instances() {
     fi
   done
 
-  echo "Clearing data/instance/remote : done."
+  echo "Clearing data/instance/remote contents : done."
   echo
 }
 

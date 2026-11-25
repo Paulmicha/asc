@@ -131,8 +131,6 @@ applicable record read. Which new functions can be replaced by direct
 expressions without losing substantial behavior? Remove those before delivery.
 Correct other violations introduced by this work, check that no template
 placeholders remain, and run checks appropriate to the change.
-Do not describe a stub checker as verification. `asc/extensions/checker/stage/inspect.sh`
-does not enforce these records while it is still a TODO.
 A syntax check of this skill is not evidence the function rule holds. After a
 change to this guidance, replay a small representative shell task in a fresh
 agent session and read the functions it created.
