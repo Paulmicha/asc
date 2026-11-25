@@ -53,12 +53,11 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [Design patterns : DOS / HOWTOS](#design-patterns-dos-howtos)
     - [Anti-patterns : DONTS](#anti-patterns-donts)
     - [Enforcement, "alignment" (drift control)](#enforcement-alignment-drift-control)
-    - [Guards, "gates"](#guards-gates)
   - [Specs, Contracts, Living Docs (SPECS)](#specs-contracts-living-docs-specs)
   - [Changes, Implementation Steps, Execution Plans (PLANS)](#changes-implementation-steps-execution-plans-plans)
   - [Problems, Improvements (ISSUES)](#problems-improvements-issues)
   - [Priorities (NEXT_STEPS)](#priorities-nextsteps)
-  - [Guards, "gates"](#guards-gates-1)
+  - [Guards, "gates"](#guards-gates)
 - [ASC concepts](#asc-concepts)
   - [General notes](#general-notes)
   - [Vendor (= third-party) libs](#vendor-third-party-libs)
@@ -275,10 +274,6 @@ TODO see `asc/extensions/builder` + decide if we need a more "controlled" vocabu
 TODO see `docs/anti-patterns` + decide **how to "wire" these with agents skills**, perhaps as a generic hook that generates skills and/or docs somewhere gitignored (like the `data` folder).
 
 #### Enforcement, "alignment" (drift control)
-
-TODO 
-
-#### Guards, "gates"
 
 TODO
 
