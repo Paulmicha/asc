@@ -89,9 +89,9 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [ASC core tests](#asc-core-tests)
     - [Pre and post test suite execution (shunit2) functions](#pre-and-post-test-suite-execution-shunit2-functions)
     - [Test results](#test-results)
-  - [Design patterns VS anti-patterns (`builder` and `checker` core extensions)](#design-patterns-vs-anti-patterns-builder-and-checker-core-extensions)
-    - [Builder extension : patterns](#builder-extension-patterns)
-    - [Checker extension : anti-patterns (registry)](#checker-extension-anti-patterns-registry)
+  - [Design patterns VS anti-patterns (`builder` core extension)](#design-patterns-vs-anti-patterns-builder-core-extension)
+    - [Design patterns](#design-patterns)
+    - [Anti-patterns](#anti-patterns)
   - [ASC domain-specific language : *DSL* syntax](#asc-domain-specific-language-dsl-syntax)
     - [Entry points](#entry-points)
     - [Arguments](#arguments)
@@ -953,14 +953,14 @@ See the embedded vendor [shunit2 README](asc/vendor/shunit2/README.md) for addit
 
 Tests results are (for now) stored in `data/test/result`. This was done to track the current status of unstable branches in git, but the decision is subject to eventually change according to future enhancements to workflow-related implementations.
 
-### Design patterns VS anti-patterns (`builder` and `checker` core extensions)
+### Design patterns VS anti-patterns (`builder` core extension)
 
-ASC provides 2 (opt-in) extensions :
+ASC provides the (opt-in) `builder` extension where both design patterns and anti-patterns are defined :
 
-- `builder` repeats a shape by generating code from templates.
-- `checker` names and describes a shape staged contents should not contain.
+- A design pattern (see `asc/extensions/builder/design-pattern`) repeats a shape by generating code from templates.
+- An antipattern (see `asc/extensions/builder/anti-pattern`) names and describes a shape staged contents should not contain.
 
-#### Builder extension : patterns
+#### Design patterns
 
 &lt;proposal-2026-09-26&gt;
 
@@ -968,7 +968,7 @@ A design pattern is a folder or string template. `asc/extensions/builder` genera
 
 &lt;/proposal-2026-09-26&gt;
 
-#### Checker extension : anti-patterns (registry)
+#### Anti-patterns
 
 &lt;proposal-2026-09-26&gt;
 
