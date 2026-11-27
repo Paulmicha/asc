@@ -1,14 +1,14 @@
 agent
 compose
-crontab
+cron
 db
 hardware
 hosts_file
 interaction
 memory
 remote
+remote_asc
 remote_db
-remote_instance
 software
 ssh
 workflow
@@ -17,6 +17,7 @@ asc/apt
 asc/arcadedb
 asc/claude
 asc/codex
+asc/crontab
 asc/cursor
 asc/docker
 asc/docling
