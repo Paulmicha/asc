@@ -40,5 +40,5 @@ if [[ -z "$p_new_type" ]]; then
   p_new_type='prod'
 fi
 
-. asc/extensions/remote_asc/remote/exec.sh "$p_remote_id" \
+. asc/extensions/remote/remote/exec.sh "$p_remote_id" \
   "asc/instance/switch_type.sh $p_new_type && asc/instance/restart.sh"

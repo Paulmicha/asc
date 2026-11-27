@@ -55,6 +55,7 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [REVIEWS : Enforcement, "alignment" (drift control)](#reviews--enforcement-alignment-drift-control)
   - [Contracts, Living SPECS](#contracts-living-specs)
   - [PLANS : Changes, Implementation Steps, Execution Plans](#plans--changes-implementation-steps-execution-plans)
+  - [IDEAS : Comparing Options vs Custom implementations](#ideas--comparing-options-vs-custom-implementations)
   - [ISSUES : Problems, Improvements](#issues--problems-improvements)
   - [NEXT_STEPS : Priorities](#next_steps--priorities)
 - [ASC concepts](#asc-concepts)
@@ -115,6 +116,8 @@ The main README (this file) is authoritative on the meaning associated with ASC 
       - [Reports `data/test/report`](#reports-datatestreport)
     - [Temporary files : `data/tmp`](#temporary-files--datatmp)
 - [Workflow](#workflow)
+  - [Usual steps order](#usual-steps-order)
+  - [Quick mode](#quick-mode)
   - [Host copies and storage](#host-copies-and-storage)
   - [(re)Search](#research)
   - [Ideas](#ideas)
@@ -303,6 +306,10 @@ Currently, the ASC main README file (this file) is serving as the main source of
 &lt;/proposal-2026-10-02&gt;
 
 ### PLANS : Changes, Implementation Steps, Execution Plans
+
+TODO [wip]
+
+### IDEAS : Comparing Options vs Custom implementations
 
 TODO [wip]
 
@@ -874,12 +881,17 @@ prod:
   domain: example.com
 ```
 
-`includes` merges named blocks into each remote id. **Today**, refresh means
+`includes` merges named blocks into each remote id. Refresh means
 `f_remote_instances_setup` regenerates `data/instance/remote/<id>.sh` from that
 YAML — also reached by `make remote-definitions-update` and by the remote
-post-init hook when that hook is discoverable. That path currently purges and
-rewrites without a generated-file ownership check (see the remote lifecycle
-remediation plans). Do not read “owned definitions only” as current behavior.
+post-init hook when that hook is discoverable. A destination is owned only when
+it is a non-symlink regular file containing the exact line
+`# ASC generated remote instance`. Refresh replaces owned definitions and leaves
+every other file in that directory in place. If a destination already exists and
+is not owned, refresh stops before the purge, reports that path, removes
+`data/instance/remote_ids.sh`, and leaves `data/instance/remote_refresh_failed`.
+Load and enumeration fail while that marker remains. A refresh that finds no
+YAML match purges owned definitions only and then clears the marker.
 
 The previous stack-style `front` / `api` / `hostname` tree under this heading
 was not a working instance contract.
@@ -1502,17 +1514,34 @@ TODO
 
 ## Workflow
 
-ASC provides a minimal, customizable and extensible workflow meant to be implementable by either humans or agents.
+The default *ASC way* of doing things is following a documentation-based cycle in order to keep a dated record of the steps taken, and a state easily kept in sync.
 
-Overrides remain path-level file swaps (see Genericity). Branching and forking — including agent-delegated git workflows across mother, buffer, and machine branches — belong here, not in the Overrides definition.
+Something like :
 
-The project docroot file `gates.yml` is a `hook_ms()` implementation (like `env.yml`) that contains pointers to current project instance changelog files.
+### Usual steps order
+
+TODO git branching and/or forking deserves explanation. But the general shape
+looks something like this :
+
+1. Ideation (iterates on `docs/ideas/YYYY/MM/DD-<file_name>.md` sidecars)
+1. Specification (iterates on `docs/specs/**/<file_name>.md` sidecars)
+1. Planning (iterates on `docs/plan/YYYY/MM/DD-<file_name>.md` sidecars)
+1. Execution
+1. Review (`data/<subject>/review.md`, `data/<subject>/<object>/review.md`)
+1. Issues sync
+1. Next steps sync
+1. Ideation
+
+### Quick mode
+
+1. Planning (iterates on `docs/plan/YYYY/MM/DD-<file_name>.md` sidecars)
+1. Execution
 
 &lt;proposal-2026-09-22&gt;
 
-`hook_ms` returns the live gates file. `SPECIMEN.gates.yml` is the anonymized copy model. This checkout uses `gates.core.yml` when `INSTANCE_TYPE` is `core`.
+The project docroot file `gates.yml` is a `hook_ms()` implementation (like `env.yml`) that contains pointers to current project instance changelog files.
 
-&lt;/proposal-2026-09-22&gt;
+`hook_ms` returns the live gates file. `SPECIMEN.gates.yml` is the anonymized copy model. This checkout uses `gates.core.yml` when `INSTANCE_TYPE` is `core`.
 
 Whenever a human pushes a change to that file, the "next step tasks list" may need to launch new workers.
 
@@ -1522,8 +1551,6 @@ This is a job for any of those extension points :
 - Proposed next-step / priority chaining (DSL + `gates.yml`, storage still open: registry or another store). The former `rules` extension is removed; do not treat it as a live extension point.
 
 TODO settle the "next step tasks list" storage.
-
-&lt;proposal-2026-09-22&gt;
 
 Every local ASC project instance takes upstream updates from the ASC mother project instance. One repo shared by several machines keeps a common branch as the buffer they pull and push. A machine branch is a child of that branch, and that machine pulls the buffer current before it pushes. A change shared by those machines moves up onto the buffer. A change shared by every instance moves up into the mother. Example: the linux home-directory instance, branch `debian-13`.
 

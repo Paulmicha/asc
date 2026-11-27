@@ -31,7 +31,7 @@ if [[ -z "$1" ]]; then
 fi
 
 domain=''
-f_remote_definition_get_key "$remote_id" 'domain'
+f_remote_definition_get_key "$remote_id" 'domain' || exit $?
 
 if [[ -n "$domain" ]]; then
   f_remote_exec_wrapper "$remote_id" drush --uri="$domain" $@

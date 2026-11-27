@@ -40,7 +40,7 @@ f_remote_check_id "$remote_id"
 
 echo "Fetching files from '$remote_id' remote ..."
 
-f_remote_instance_load "$remote_id"
+f_remote_instance_load "$remote_id" || exit $?
 
 for suffix in $ASC_REMOTE_FILES_SUFFIXES; do
   if [[ -n "$files_type" ]]; then
@@ -69,11 +69,11 @@ for suffix in $ASC_REMOTE_FILES_SUFFIXES; do
   fi
 
   tokens_replaced=''
-  f_remote_definition_tokens_replace "$remote_id" "$remote_dir"
+  f_remote_definition_tokens_replace "$remote_id" "$remote_dir" || exit $?
   remote_dir="$tokens_replaced"
 
   tokens_replaced=''
-  f_remote_definition_tokens_replace "$remote_id" "$local_dir"
+  f_remote_definition_tokens_replace "$remote_id" "$local_dir" || exit $?
   local_dir="$tokens_replaced"
 
   # Debug.

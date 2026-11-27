@@ -139,6 +139,7 @@ test_doc_next_steps_docroot_rung() {
   local before
   local after
   local human
+  local next_steps_changelog_dir='docs/plans'
 
   if [[ -z "${INSTANCE_TYPE:-}" ]]; then
     INSTANCE_TYPE=core

@@ -191,7 +191,7 @@ f_remote_db_get_latest_dump() {
   fi
 
   local dumps_dir=''
-  f_remote_definition_get_key "$p_remote_id" "dumps_${p_db_id}_base_dir" 'dumps_dir'
+  f_remote_definition_get_key "$p_remote_id" "dumps_${p_db_id}_base_dir" 'dumps_dir' || return $?
 
   if [[ -z "$dumps_dir" ]]; then
     echo >&2
@@ -201,7 +201,8 @@ f_remote_db_get_latest_dump() {
     exit 1
   fi
 
-  local remote_file="$(f_remote_exec_wrapper "$p_remote_id" "find $dumps_dir/$p_subfolder/$p_db_id -maxdepth 1 -type f -name '*.gz' -exec ls -1t '{}' + | head -n1")"
+  local remote_file
+  remote_file="$(f_remote_exec_wrapper "$p_remote_id" "find $dumps_dir/$p_subfolder/$p_db_id -maxdepth 1 -type f -name '*.gz' -exec ls -1t '{}' + | head -n1")" || return $?
 
   # Debug.
   # echo "remote_file = '$remote_file'"
@@ -254,7 +255,7 @@ f_remote_db_prepare_dumps() {
   local p_remote_id="$1"
   local p_db_id="$2"
 
-  f_remote_db_read_definition "$p_remote_id" "$p_db_id"
+  f_remote_db_read_definition "$p_remote_id" "$p_db_id" || return $?
 
   local db_id=''
   local db_ids_arr=()
@@ -450,7 +451,7 @@ f_remote_db_prepare_downloads() {
     return 1
   fi
 
-  f_remote_db_read_definition "$p_remote_id" "$p_db_id"
+  f_remote_db_read_definition "$p_remote_id" "$p_db_id" || return $?
 
   local db_id=''
   local db_ids_arr=()
@@ -509,7 +510,7 @@ f_remote_db_prepare_downloads() {
     else
       local latest_dump=''
 
-      f_remote_db_get_latest_dump "$p_remote_id" "$db_id"
+      f_remote_db_get_latest_dump "$p_remote_id" "$db_id" || return $?
 
       if [[ -z "$latest_dump" ]]; then
         echo >&2
@@ -569,10 +570,7 @@ f_remote_db_read_definition() {
     p_remote_id='prod'
   fi
 
-  # Only load remote instance definitions if necessary.
-  if [[ -z "$REMOTE_INSTANCE_ID" || "$REMOTE_INSTANCE_ID" != "$p_remote_id" ]]; then
-    f_remote_instance_load "$p_remote_id"
-  fi
+  f_remote_instance_load "$p_remote_id" || return $?
 
   local db_id=''
   local db_ids_arr=()
@@ -660,7 +658,7 @@ f_remote_db_read_definition() {
       esac
 
       tokens_replaced=''
-      f_remote_definition_tokens_replace "$p_remote_id" "$val"
+      f_remote_definition_tokens_replace "$p_remote_id" "$val" || return $?
 
       # Debug.
       # echo "$var = $val"

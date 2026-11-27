@@ -62,7 +62,7 @@ local_dir=''
 # Note that "$remote_subfolder" == "$remote_id" means : upload dumps created on
 # that same remote instance (hence, the remote subfolder name will be 'local').
 instance_ids_arr=()
-f_remote_get_instances
+f_remote_get_instances || exit $?
 
 for instance_id in "${instance_ids_arr[@]}"; do
   case "$remote_subfolder" in "$instance_id")
@@ -82,7 +82,7 @@ declare -A dumps_dict
 # When we only read the 'base_dir' from definitions, we get exactly 1 key per
 # DB ID (and if we don't specify a DB ID, we get the base dirs of all DB defined
 # on that remote by default).
-f_remote_db_read_definition "$remote_id" "$db_id" 'base_dir'
+f_remote_db_read_definition "$remote_id" "$db_id" 'base_dir' || exit $?
 
 for key in "${!dumps_dict[@]}"; do
   db_id="${key%.base_dir}"
@@ -128,12 +128,12 @@ for key in "${!dumps_dict[@]}"; do
 
   # Make sure remote dir exists.
   f_remote_exec_wrapper "$remote_id" \
-    "mkdir -p $remote_dir"
+    "mkdir -p $remote_dir" || exit $?
 
   f_remote_upload "$remote_id" \
     "$local_file" \
     "$remote_dir/" \
-    --ignore-existing
+    --ignore-existing || exit $?
 done
 
 echo "Uploading DB dump(s) to remote instance $remote_id in $remote_subfolder : done."

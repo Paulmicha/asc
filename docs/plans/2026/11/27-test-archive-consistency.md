@@ -1,13 +1,12 @@
 # Test archive: summary paths, readers, distinct batch keys
 
-Status: draft
+Status: completed
 
 Make full and partial test result archives consistent: one summary contract for
 every reader, create batch directories before writing `output.txt`, give batches
 distinct keys, keep archive self-tests inside their fixture directory, and
 record **per-case statuses** that match case-level evidence (not aggregate
-failure assigned to the last case). This plan describes proposed work; it does
-not claim implementation or authorize commit.
+failure assigned to the last case). The outcome is recorded below.
 
 **Authority:** [docs/instance/review.md](../../../instance/review.md) owns
 remediation decisions (what and why). This plan owns steps and acceptance for
@@ -99,3 +98,9 @@ In `asc/test/test.opt-inc.sh` and `asc/test/core/test_results.test.sh`:
 
 Independent of remote and cron plans; useful before trusting archived suite
 results as a gate.
+
+## Implementation and verification (27 November)
+
+The new evidence format uses opt-in shUnit2 case boundaries, including setup and teardown, and records unknown when case evidence is insufficient. Legacy summaries without provenance are discarded. A partial rerun invalidates the attempted suite before merging and preserves other valid suites. Frozen fallback is removed only after the replacement summary is written successfully. Isolated tests cover mixed outcomes, setup failure, nested runners, suite-name round trips and write failures.
+
+The integrated `make test-core` passed in an initialized disposable checkout with the remote extension enabled. This was local fixture acceptance; no live remote, database, or host crontab operation was performed.

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ##
-# Dump effective crontab definitions (regenerates first).
+# [abstract] Run the cron settings operation.
 #
 # @example
 #   make cron-settings
@@ -9,24 +9,13 @@
 
 . asc/bootstrap.sh
 
-f_cron_settings_setup || exit 1
+p_entry="${1:-}"
 
-echo
-echo "=== Effective crontab definitions ==="
-echo
+hook_ms 'dry-run' -s 'cron' -a 'settings' -v 'STACK_VERSION PROVISION_USING HOST_TYPE HOST_OS'
 
-shopt -s nullglob
-for f in data/asc/cron/*.sh; do
-  # shellcheck disable=SC1090
-  . "$f"
-  echo "entry      : $ASC_CRON_ENTRY"
-  echo "  preset   : $ASC_CRON_PRESET"
-  echo "  enabled  : $ASC_CRON_ENABLED"
-  echo "  schedule : $ASC_CRON_SCHEDULE"
-  echo "  wrap     : $ASC_CRON_WRAP"
-  echo "  lock     : $ASC_CRON_LOCK"
-  echo "  retry    : max=$ASC_CRON_RETRY_MAX delay=$ASC_CRON_RETRY_DELAY"
-  echo "  cmd      : $ASC_CRON_CMD"
-  echo "  source   : $ASC_CRON_SOURCE"
-  echo
-done
+if [[ -z "$most_specific_match" || ! -f "$most_specific_match" ]]; then
+  echo "Error in $BASH_SOURCE: no cron settings implementation found." >&2
+  exit 1
+fi
+
+hook_ms -s 'cron' -a 'settings' -v 'STACK_VERSION PROVISION_USING HOST_TYPE HOST_OS'

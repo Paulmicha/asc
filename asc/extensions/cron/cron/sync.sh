@@ -1,18 +1,33 @@
 #!/usr/bin/env bash
 
 ##
-# Sync host crontab from generated definitions.
+# [abstract] Run the cron sync operation.
+#
+# @var VARIANTS : String : space-separated hooks variants' variable names.
+#   Defaults to 'STACK_VERSION PROVISION_USING HOST_TYPE HOST_OS'.
 #
 # @example
+#   # Default cron-sync call (no variant) :
+#   # e.g. scripts/asc/contrib/asc/crontab/cron/sync.hook.sh
 #   make cron-sync
-#   make cron-sync e:insta-save
+#
+#   # Only executes a specific arbitrary namespace in discoverable cron-sync
+#   # hooks implementations :
+#   # e.g. scripts/asc/contrib/asc/crontab/cron/sync.foobar.hook.sh
+#   make cron-sync foobar
 #
 
 . asc/bootstrap.sh
 
-# Ensure generated defs exist.
-if [[ ! -d data/asc/cron ]] || [[ -z "$(echo data/asc/cron/*.sh 2>/dev/null)" ]]; then
-  f_cron_settings_setup || exit 1
+p_entry="${1:-}"
+
+export VARIANTS="${VARIANTS:-STACK_VERSION PROVISION_USING HOST_TYPE HOST_OS}"
+
+hook_ms 'dry-run' -s 'cron' -a 'sync' -v "$VARIANTS"
+
+if [[ -z "$most_specific_match" || ! -f "$most_specific_match" ]]; then
+  echo "Error in $BASH_SOURCE: no cron sync implementation found." >&2
+  exit 1
 fi
 
-f_cron_sync "$@"
+hook_ms -s 'cron' -a 'sync' -v "$VARIANTS"

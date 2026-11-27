@@ -168,9 +168,9 @@ EOF
 ##
 # Crontab base templates load via f_yaml_parse output var.
 #
-test_f_cron_load_base_templates() {
-  . asc/extensions/crontab/crontab.inc.sh
-  f_cron_load_base_templates
+test_f_crontab_load_base_templates() {
+  . scripts/asc/contrib/asc/crontab/cron/cron.opt-inc.sh
+  f_crontab_load_base_templates
   assertEquals 'cron default enabled' 'true' "$cron_tpl_defaults_enabled"
   assertEquals 'cron default wrap' 'lt' "$cron_tpl_defaults_wrap"
 }
@@ -260,6 +260,19 @@ EOF
   eval "$parsed"
   assertEquals 'monitor docroot' '/tmp/nftascymlhnc' "$thread_host_docroot"
   assertEquals 'monitor entry' 'nftascymlhnc' "$thread_host_entry"
+}
+
+##
+# A failed parser pipeline must not be masked by its last command.
+#
+test_f_yaml_parse_propagates_pipeline_failure() {
+  local status
+  ( parse_yaml() { false | true; }; f_yaml_parse ignored prefix parsed )
+  status=$?
+  assertNotEquals 'output-variable parsing propagates pipeline failure' 0 "$status"
+  ( parse_yaml() { false | true; }; f_yaml_parse ignored prefix )
+  status=$?
+  assertNotEquals 'stdout parsing propagates pipeline failure' 0 "$status"
 }
 
 . asc/vendor/shunit2/shunit2

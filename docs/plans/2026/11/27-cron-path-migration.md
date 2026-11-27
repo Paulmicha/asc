@@ -1,13 +1,12 @@
 # Complete the cron path migration
 
-Status: draft
+Status: completed
 
 Finish moving cron loading, discovery, contrib, tests, host hooks, and the
 `cron-run` entry point onto the `cron` / `*.cron.yml` layout in this tree, with
 discovery limited to **enabled** extensions and subjects, defined duplicate-job
 handling, and normal `hook_ms` dispatch (not dry-run lookup plus manual
-sourcing). This plan describes proposed work; it does not claim implementation
-or authorize commit.
+sourcing). The outcome is recorded below.
 
 **Authority:** [docs/instance/review.md](../../../instance/review.md) owns
 remediation decisions (what and why). This plan owns steps and acceptance for
@@ -116,3 +115,21 @@ job files left in other ASC project instances.
 
 Independent of remote ownership and archive work; after globals fixture if
 running full `make test-core` as the gate.
+
+## Implementation and verification (27 November)
+
+Cron discovery and dispatch use the current extension layout. Refresh uses a lock and staged generation; a failed installation rolls back, while an interrupted swap preserves recovery files and the lock for manual inspection. Isolated tests exercise discovery, duplicate and invalid jobs, dispatch, host-write failures, rollback and interruption; no host crontab was changed.
+
+The integrated `make test-core` passed in an initialized disposable checkout with the remote extension enabled. This was local fixture acceptance; no live remote, database, or host crontab operation was performed.
+
+### Backend boundary follow-up
+
+The generic `cron-*` actions now dispatch to cron hook implementations. The
+crontab-specific templates, generation, host operations and runner are owned by
+`scripts/asc/contrib/asc/crontab`; the earlier core paths in this historical
+plan no longer describe their locations. The backend now stores its generated
+definitions under `data/asc/crontab`; old `data/asc/cron` files are not removed
+by this migration. Generic job declarations use the
+backend-neutral `defaults` include. Isolated fixtures exercise an alternative
+backend, missing backend, crontab success and failure, and preservation of
+unrelated crontab lines.

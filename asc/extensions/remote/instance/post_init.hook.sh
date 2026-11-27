@@ -16,7 +16,7 @@
 
 echo "Writing generated remote instance definitions ..."
 
-f_remote_instances_setup
+f_remote_instances_setup || exit $?
 
 echo "Writing generated remote instance definitions : done."
 echo

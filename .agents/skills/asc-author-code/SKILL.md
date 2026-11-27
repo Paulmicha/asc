@@ -60,6 +60,14 @@ Another vendor: `scripts/asc/contrib/$vendor/`. One project:
 `scripts/asc/extend/`. Rank is `f_hook_ms_measure` in
 `asc/core/hook.manual-inc.sh`.
 
+When an abstract namespace delegates to a tool or backend, trace each public
+action through dispatch and classify its implementation by owner. Keep
+backend-specific commands, data formats, dependencies, and lifecycle logic in
+that backend extension; the generic action exposes the contract and dispatches
+its hook. Verify an alternate backend can be selected without loading or
+invoking the first backend, and check the no-implementation behavior. Do not
+move a tool-specific function into the abstract namespace for convenience.
+
 Before proposing selection logic or a core hook extension, check whether existing
 `hook_ms` variants already express the needed distinction. Pass variant variable
 names to `-v` and preserve normal unqualified fallback, combinations, ranking,

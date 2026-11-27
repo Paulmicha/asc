@@ -31,7 +31,7 @@ if [[ -n "$p_key" ]]; then
   public_key_path="$p_key"
 fi
 
-f_remote_instance_load "$p_id"
+f_remote_instance_load "$p_id" || exit $?
 
 if [[ -z "$REMOTE_INSTANCE_SSH_CONNECT_CMD" ]]; then
   echo >&2

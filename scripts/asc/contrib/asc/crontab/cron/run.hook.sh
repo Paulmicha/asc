@@ -4,15 +4,34 @@
 # Implements hook -s 'cron' -a 'run'
 #
 # Default cron runner: honor ASC_CRON_* exports, apply wrap/lock, execute.
-# @see asc/extensions/crontab/cron/run.sh
+# @see asc/extensions/cron/cron/run.sh
 #
 
-f_cron_run_default() {
+if ! f_crontab_entry_load "$p_entry"; then
+  # Attempt regenerate once if missing.
+  f_crontab_settings_setup || true
+  if ! f_crontab_entry_load "$p_entry"; then
+    echo >&2 "Error: no generated cron definition for '$p_entry'."
+    echo >&2 'Add a $ext/$subject/$action.$preset.cron.yml beside the entry script, then reinit.'
+    exit 1
+  fi
+fi
+
+if [[ "${ASC_CRON_ENABLED}" != 'true' ]]; then
+  echo "Cron entry '$p_entry' is disabled; skipping."
+  exit 0
+fi
+
+
+f_crontab_run_default() {
   local cmd
   local lock_mode="${ASC_CRON_LOCK:-skip}"
   local entry="${ASC_CRON_ENTRY:-}"
   local yml="data/threads/${entry}.yml"
   local run_id="${ASC_CRON_RUN:-}"
+  local interval="${ASC_CRON_SUBMINUTE:-}"
+  local runs=1
+  local run_index=0
 
   # Thread-monitor style extras (optional).
   case "${ASC_CRON_MONITOR_MARK_STALE:-}" in true|TRUE|1)
@@ -71,7 +90,21 @@ f_cron_run_default() {
   fi
 
   echo "Cron run: $cmd"
-  eval "$cmd"
+
+  # Empty or whole-minute values run once per crontab tick. A shorter interval
+  # that divides 60 repeats inside that tick.
+  if [[ "$interval" =~ ^[0-9]+$ ]] && [[ "$interval" -gt 0 ]] && [[ "$interval" -lt 60 ]] && [[ $((60 % interval)) -eq 0 ]]; then
+    runs=$((60 / interval))
+  fi
+
+  while [[ "$run_index" -lt "$runs" ]]; do
+    if [[ "$run_index" -gt 0 ]]; then
+      sleep "$interval" || return $?
+    fi
+
+    eval "$cmd" || return $?
+    run_index=$((run_index + 1))
+  done
 }
 
-f_cron_run_default
+f_crontab_run_default

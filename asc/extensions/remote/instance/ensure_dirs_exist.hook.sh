@@ -9,5 +9,5 @@
 
 if [[ ! -d "data/instance/remote" ]]; then
   echo "Creating required dir data/instance/remote"
-  mkdir -p "data/instance/remote"
+  mkdir -p "data/instance/remote" || exit $?
 fi

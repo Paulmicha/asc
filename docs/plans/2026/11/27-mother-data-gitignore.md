@@ -1,14 +1,13 @@
 # Mother `.gitignore`: `/data` parent rule and trackable exceptions
 
-Status: draft
+Status: completed
 
 Reconcile the mother ignore rules with commit `007a0c5`, which already ignores
 generated data under `/data` but also prunes the parent so nested README
 exceptions never take effect. Inventory trackable paths from
 `git ls-files data`, verify maintained paths and generated neighbors with
 `git check-ignore --no-index`, and land with remote ownership as **one**
-criterion. This plan describes proposed work; it does not claim implementation
-or authorize commit.
+criterion. The outcome is recorded below.
 
 **Authority:** [docs/instance/review.md](../../../instance/review.md) owns
 remediation decisions (what and why). This plan owns steps and acceptance for
@@ -111,3 +110,61 @@ relocation, failure propagation, ID-list accuracy, and this ignore parent-rule
 / trackable inventory land together so maintained remote README exceptions and
 generated remote ignores agree. Independent of cron, archive, and globals
 fixture work.
+
+## Implementation and verification (27 November)
+
+The parent rule is `/data/*`. Maintained `data/doc` fixtures and fonts, local host and instance READMEs, and the listed existing README exceptions are reopened; remote definitions and metadata remain ignored. All paths below were inventoried with `git ls-files data` and checked with `git check-ignore --no-index`. Representative generated log, thread, dump, private, file and remote paths remained ignored.
+
+```text
+data/asc/README.md
+data/cron/README.md
+data/db/dumps/local/README.md
+data/doc/fixtures/graphviz-er.md
+data/doc/fixtures/graphviz-er.pdf
+data/doc/fixtures/katex-delimiters.md
+data/doc/fixtures/katex-delimiters.pdf
+data/doc/fixtures/long-code.md
+data/doc/fixtures/long-code.pdf
+data/doc/fixtures/mermaid-dense.md
+data/doc/fixtures/mermaid-dense.pdf
+data/doc/fixtures/orphan-heading-stack.md
+data/doc/fixtures/orphan-heading-stack.pdf
+data/doc/fixtures/orphan-heading.md
+data/doc/fixtures/orphan-heading.pdf
+data/doc/fixtures/para-gap.md
+data/doc/fixtures/para-gap.pdf
+data/doc/fixtures/widow-table.md
+data/doc/fixtures/widow-table.pdf
+data/doc/fonts/SourceCodePro-Powerline-Awesome-Regular.ttf
+data/doc/fonts/SourceSans3/OFL.txt
+data/doc/fonts/SourceSans3/README.md
+data/doc/fonts/SourceSans3/SourceSans3-Bold.ttf
+data/doc/fonts/SourceSans3/SourceSans3-BoldItalic.ttf
+data/doc/fonts/SourceSans3/SourceSans3-Italic.ttf
+data/doc/fonts/SourceSans3/SourceSans3-Regular.ttf
+data/doc/fonts/Spectral/OFL.txt
+data/doc/fonts/Spectral/README.md
+data/doc/fonts/Spectral/Spectral-Bold.ttf
+data/doc/fonts/Spectral/Spectral-BoldItalic.ttf
+data/doc/fonts/Spectral/Spectral-ExtraBold.ttf
+data/doc/fonts/Spectral/Spectral-ExtraBoldItalic.ttf
+data/doc/fonts/Spectral/Spectral-ExtraLight.ttf
+data/doc/fonts/Spectral/Spectral-ExtraLightItalic.ttf
+data/doc/fonts/Spectral/Spectral-Italic.ttf
+data/doc/fonts/Spectral/Spectral-Light.ttf
+data/doc/fonts/Spectral/Spectral-LightItalic.ttf
+data/doc/fonts/Spectral/Spectral-Medium.ttf
+data/doc/fonts/Spectral/Spectral-MediumItalic.ttf
+data/doc/fonts/Spectral/Spectral-Regular.ttf
+data/doc/fonts/Spectral/Spectral-SemiBold.ttf
+data/doc/fonts/Spectral/Spectral-SemiBoldItalic.ttf
+data/host/local/README.md
+data/instance/local/README.md
+data/log/README.md
+data/test/frozen/local/README.md
+data/test/report/local/README.md
+data/test/result/local/README.md
+data/thread/README.md
+```
+
+The integrated `make test-core` passed in an initialized disposable checkout with the remote extension enabled. This was local fixture acceptance; no live remote, database, or host crontab operation was performed.

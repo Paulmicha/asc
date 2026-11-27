@@ -1,6 +1,13 @@
 # Reply to review of `main` @ `5dc602b` (24–27 Nov)
 
 Status: draft reply  
+
+Implementation update, 27 November: the five remediation items below have been
+implemented locally. Their linked plans record the changes, fixture checks and
+limits. The integrated core suite passed in an initialized disposable checkout;
+live remote, database and host crontab operations were not exercised. The
+findings and verdict below describe the reviewed revisions, not the current
+working tree.
 Scope: response to the 23-commit review ending at `5dc602b`  
 Reviewed revision: `5dc602b1bfe840c915bd59420e89bb290cd357e5` (checkout has since advanced; this reply refers to the checks done at that tip)
 

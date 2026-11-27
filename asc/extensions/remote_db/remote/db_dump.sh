@@ -43,8 +43,8 @@ f_remote_check_id "$remote_id"
 
 echo "Creating DB dumps on remote instance '$remote_id' ..."
 
-f_remote_instance_load "$remote_id"
-f_remote_db_prepare_dumps "$remote_id" "$db_id"
+f_remote_instance_load "$remote_id" || exit $?
+f_remote_db_prepare_dumps "$remote_id" "$db_id" || exit $?
 
 # We no longer require the argument "$2" from here, so it's fine to reuse this
 # var name.

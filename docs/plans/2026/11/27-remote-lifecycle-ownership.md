@@ -1,14 +1,13 @@
 # Remote lifecycle: ownership, hooks, ID list, ignore coordination
 
-Status: draft
+Status: completed
 
 Make remote definition cleanup safe, restore discoverable lifecycle hooks, keep
 the remote ID list accurate, apply ownership on load, propagate lifecycle
 failures on both hook-cache paths, and coordinate with mother ignore rules so
 generated remotes stay ignored while maintained files can remain trackable.
 Land as **one coherent change set** with
-[27-mother-data-gitignore.md](27-mother-data-gitignore.md). This plan describes
-proposed work; it does not claim implementation or authorize commit.
+[27-mother-data-gitignore.md](27-mother-data-gitignore.md). The outcome is recorded below.
 
 **Authority:** [docs/instance/review.md](../../../instance/review.md) owns
 remediation decisions (what and why). This plan owns steps and acceptance for
@@ -232,3 +231,9 @@ ID-list accuracy, and the ignore parent-rule / trackable inventory must land
 together. Before relying on remote DB actions in
 [27-remote-db-action-loading.md](27-remote-db-action-loading.md) if those
 tests need a working remote lifecycle.
+
+## Implementation and verification (27 November)
+
+Generated definitions use an explicit marker; older unmarked files are preserved as conflicts and must be reviewed and moved aside before regeneration. A failed refresh blocks loading and enumeration until a successful refresh. Successful loads clear prior `REMOTE_INSTANCE_*` values. A refresh invalidates its YAML lookup cache to pick up added or removed variants. Isolated tests cover collisions, failed parsing, successive loads, included defaults and variant fallback; public cold and warm hook aborts and cold and warm uninit failure were checked in a disposable initialized checkout.
+
+The integrated `make test-core` passed in an initialized disposable checkout with the remote extension enabled. This was local fixture acceptance; no live remote, database, or host crontab operation was performed.

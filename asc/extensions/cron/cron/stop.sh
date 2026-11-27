@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
 
 ##
-# Remove host crontab lines for one entry (YAML def kept_arr).
+# [abstract] Run the cron stop operation.
 #
 # @example
-#   make cron-stop e:insta-save
+#   make cron-stop
 #
 
 . asc/bootstrap.sh
 
 p_entry="${1:-}"
-if [[ -z "$p_entry" ]]; then
-  echo >&2 "Error: e:<entry> required."
+
+hook_ms 'dry-run' -s 'cron' -a 'stop' -v 'STACK_VERSION PROVISION_USING HOST_TYPE HOST_OS'
+
+if [[ -z "$most_specific_match" || ! -f "$most_specific_match" ]]; then
+  echo "Error in $BASH_SOURCE: no cron stop implementation found." >&2
   exit 1
 fi
 
-f_cron_stop_entry "$p_entry"
+hook_ms -s 'cron' -a 'stop' -v 'STACK_VERSION PROVISION_USING HOST_TYPE HOST_OS'

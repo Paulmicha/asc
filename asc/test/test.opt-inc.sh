@@ -106,13 +106,15 @@ f_test_results_batch_begin() {
     return 0
   fi
 
-  test_results_slug="${p_dir##*/}"
+  p_dir="${p_dir#./}"
+  p_dir="${p_dir%/}"
+  test_results_slug="${p_dir##*/}-$(printf '%s' "$p_dir" | sha256sum | cut -d' ' -f1)"
   test_results_active=1
   test_results_partial="$partial"
   test_results_tree_new_arr=()
 
-  mkdir -p "data/test/result"
-  mkdir -p "data/test/report"
+  mkdir -p "data/test/result/${test_results_slug}" || return $?
+  mkdir -p "data/test/report" || return $?
 
   test_results_full_output_path="data/test/result/${test_results_slug}/output.txt"
 
@@ -120,21 +122,18 @@ f_test_results_batch_begin() {
     {
       echo
       echo "# --- partial run $(date -Iseconds) ---"
-    } >> "$test_results_full_output_path"
+    } >> "$test_results_full_output_path" || return $?
   else
-    : > "$test_results_full_output_path"
+    : > "$test_results_full_output_path" || return $?
   fi
 
   if [[ "$partial" -eq 1 ]]; then
-    local summary_yml summary_txt
+    local summary_yml
 
     summary_yml="data/test/result/${test_results_slug}/summary.yml"
-    summary_txt="data/test/result/${test_results_slug}/summary.txt"
 
-    if [[ -f "$summary_yml" ]]; then
+    if [[ -f "$summary_yml" ]] && grep -qx 'evidence: case-v1' "$summary_yml"; then
       f_test_results_tree_load "$summary_yml"
-    elif [[ -f "$summary_txt" ]]; then
-      f_test_results_tree_load "$summary_txt"
     else
       test_results_tree_loaded_arr=()
     fi
@@ -160,21 +159,21 @@ f_test_results_tree_load() {
   while IFS= read -r line || [[ -n "$line" ]]; do
     [[ "$line" =~ ^# ]] && continue
     [[ -z "$line" ]] && continue
-    [[ "$line" =~ ^(batch|updated|exit): ]] && continue
+    [[ "$line" =~ ^(batch|updated|exit|evidence): ]] && continue
     [[ "$line" =~ ^cases:[[:space:]]*$ ]] && continue
 
-    if [[ "$line" =~ ^([a-zA-Z0-9_]+):[[:space:]]*$ ]]; then
+    if [[ "$line" =~ ^([a-zA-Z0-9_.-]+):[[:space:]]*$ ]]; then
       current_suite="${BASH_REMATCH[1]}"
       continue
     fi
 
-    if [[ "$line" =~ ^[[:space:]]+([^:]+):[[:space:]]*(PASS|FAIL|SKIP)[[:space:]]*$ ]]; then
+    if [[ "$line" =~ ^[[:space:]]+([^:]+):[[:space:]]*(PASS|FAIL|SKIP|UNKNOWN)[[:space:]]*$ ]]; then
       case_name="$(echo "${BASH_REMATCH[1]}" | xargs)"
       status="${BASH_REMATCH[2]}"
       if [[ "$case_name" == *.* ]]; then
         key="$case_name"
       elif [[ -n "$current_suite" ]]; then
-        key="${current_suite}.${case_name}"
+        key="${current_suite}/${case_name}"
       else
         key="$case_name"
       fi
@@ -199,7 +198,7 @@ f_test_results_tree_put() {
   local suite="$1"
   local case_name="$2"
   local status="$3"
-  local key="${suite}.${case_name}"
+  local key="${suite}/${case_name}"
   local line="${key} ${status}"
   local i existing_key
 
@@ -227,116 +226,73 @@ f_test_results_plain_line() {
 }
 
 ##
-# Classify one shunit2 summary line.
+# Parse opt-in shunit2 case boundary evidence and archive each case.
+# Missing or incomplete markers leave the case status UNKNOWN.
 #
-# SKIP is only for a file that contains one test function. An aggregate
-# OK (skipped=N) on a multi-function file stays PASS. shunit2 omits the
-# skip counter when nothing was skipped, so both FAILED shapes are FAIL.
-#
-# @param $1 String : summary line with color sequences removed.
-# @param $2 Int : number of test_* functions in the capture.
-#
-# @echo PASS, FAIL, SKIP, or empty when the line is not a summary.
-#
-f_test_results_summary_status() {
-  local plain="$1"
-  local test_count="$2"
-
-  if [[ "$plain" =~ ^FAILED ]]; then
-    echo 'FAIL'
-    return 0
-  fi
-
-  if [[ "$plain" == 'OK' ]]; then
-    echo 'PASS'
-    return 0
-  fi
-
-  if [[ "$plain" =~ ^OK\ \(skipped=[1-9][0-9]*\)$ ]]; then
-    if [[ "$test_count" -eq 1 ]]; then
-      echo 'SKIP'
-    else
-      echo 'PASS'
-    fi
-
-    return 0
-  fi
-
-  echo ''
-}
-
-##
-# Parse shunit2 suite stdout and write per-case archives.
-#
-# @param $1 suite stem
-# @param $2 captured stdout file
+# @param 1 String : suite stem.
+# @param 2 String : captured stdout file.
 #
 f_test_results_parse_shunit_suite() {
   local suite="$1"
   local capture="$2"
-  local test_dir case_name block status line plain
-  local in_case=0
-  local current_case=''
-  local test_count=0
+  local case_name='' block='' line plain status='UNKNOWN'
+  local case_success skipped assertions marker_pid='' marked=0
 
   if ! f_test_results_enabled || [[ "${test_results_active:-0}" -ne 1 ]]; then
     return 0
   fi
 
-  test_dir="data/test/frozen"
-
   while IFS= read -r line || [[ -n "$line" ]]; do
     plain="$(f_test_results_plain_line "$line")"
 
-    if [[ "$plain" =~ ^test_[a-zA-Z0-9_]+$ ]]; then
-      test_count=$((test_count + 1))
-    fi
-  done <"$capture"
-
-  while IFS= read -r line || [[ -n "$line" ]]; do
-    plain="$(f_test_results_plain_line "$line")"
-
-    if [[ "$plain" =~ ^test_[a-zA-Z0-9_]+$ ]]; then
-      if [[ -n "$current_case" ]]; then
-        f_test_results_flush_case "$suite" "$current_case" "$block"
-      fi
-
-      current_case="$plain"
-      block="$plain"$'\n'
-      in_case=1
-
-      continue
-    fi
-
-    if [[ "$in_case" -eq 1 ]]; then
-      block+="$line"$'\n'
-
-      if [[ "$plain" =~ ^Ran\ [0-9]+\ test ]]; then
+    if [[ "$plain" =~ ^__ASC_CASE_BEGIN__\ ([0-9]+)\ (test_[a-zA-Z0-9_]+)$ ]]; then
+      if [[ "$marked" -eq 1 && "${BASH_REMATCH[1]}" != "$marker_pid" ]]; then
+        block+="$line"$'\n'
         continue
       fi
 
-      status="$(f_test_results_summary_status "$plain" "$test_count")"
+      if [[ -n "$case_name" ]]; then
+        f_test_results_flush_case "$suite" "$case_name" "$block" 'UNKNOWN' || return $?
+      fi
 
-      if [[ -n "$status" ]]; then
-        f_test_results_flush_case "$suite" "$current_case" "$block" "$status"
+      marker_pid="${BASH_REMATCH[1]}"
+      case_name="${BASH_REMATCH[2]}"
+      block="$line"$'\n'
+      marked=1
+    elif [[ "$marked" -eq 0 && "$plain" =~ ^test_[a-zA-Z0-9_]+$ ]]; then
+      if [[ -n "$case_name" ]]; then
+        f_test_results_flush_case "$suite" "$case_name" "$block" 'UNKNOWN' || return $?
+      fi
 
-        current_case=''
+      case_name="$plain"
+      block="$line"$'\n'
+    elif [[ -n "$case_name" ]]; then
+      block+="$line"$'\n'
+
+      if [[ "$marked" -eq 1 && "$plain" =~ ^__ASC_CASE_END__\ ([0-9]+)\ (test_[a-zA-Z0-9_]+)\ ([01])\ ([0-9]+)\ ([0-9]+)$ ]] && [[ "${BASH_REMATCH[1]}" == "$marker_pid" && "${BASH_REMATCH[2]}" == "$case_name" ]]; then
+        case_success="${BASH_REMATCH[3]}"
+        skipped="${BASH_REMATCH[4]}"
+        assertions="${BASH_REMATCH[5]}"
+        status='UNKNOWN'
+
+        if [[ "$case_success" -ne 0 ]]; then
+          status='FAIL'
+        elif [[ "$skipped" -eq 0 ]]; then
+          status='PASS'
+        elif [[ "$skipped" -eq "$assertions" ]]; then
+          status='SKIP'
+        fi
+
+        f_test_results_flush_case "$suite" "$case_name" "$block" "$status" || return $?
+        case_name=''
         block=''
-        in_case=0
+        marked=0
       fi
     fi
-  done <"$capture"
+  done < "$capture"
 
-  if [[ -n "$current_case" ]]; then
-    plain="$(printf '%s' "$block" | sed -e '/^$/d' | tail -n 1)"
-    plain="$(f_test_results_plain_line "$plain")"
-    status="$(f_test_results_summary_status "$plain" "$test_count")"
-
-    if [[ -z "$status" ]]; then
-      status='PASS'
-    fi
-
-    f_test_results_flush_case "$suite" "$current_case" "$block" "$status"
+  if [[ -n "$case_name" ]]; then
+    f_test_results_flush_case "$suite" "$case_name" "$block" 'UNKNOWN' || return $?
   fi
 }
 
@@ -350,11 +306,11 @@ f_test_results_flush_case() {
   local status="${4:-PASS}"
   local out_file
 
-  mkdir -p "data/test/result/${test_results_slug}"
+  mkdir -p "data/test/result/${test_results_slug}" || return $?
 
   out_file="data/test/result/${test_results_slug}/${suite}.${case_name}.txt"
 
-  printf '%s' "$block" > "$out_file"
+  printf '%s' "$block" > "$out_file" || return $?
 
   f_test_results_tree_put "$suite" "$case_name" "$status"
 }
@@ -366,14 +322,14 @@ f_test_results_flush_case() {
 #
 f_test_results_batch_end() {
   local batch_exit="${1:-0}"
-  local summary tree_file merged line key seen current_suite suite case_name status
+  local summary tree_file temp_file merged line key seen current_suite suite case_name status
   local -a all_lines_arr=()
 
   if ! f_test_results_enabled || [[ "${test_results_active:-0}" -ne 1 ]]; then
     return 0
   fi
 
-  tree_file="data/test/result/${test_results_slug}.yml"
+  tree_file="data/test/result/${test_results_slug}/summary.yml"
 
   for line in "${test_results_tree_loaded_arr[@]}"; do
     key="${line%% *}"
@@ -397,7 +353,10 @@ f_test_results_batch_end() {
     fi
   done
 
+  temp_file="$(mktemp "data/test/result/${test_results_slug}/.summary.XXXXXXXX")" || return 1
+
   {
+    echo "evidence: case-v1"
     echo "batch: ${test_results_slug}"
     echo "updated: $(date -Iseconds)"
     echo "exit: ${batch_exit}"
@@ -406,17 +365,25 @@ f_test_results_batch_end() {
       [[ -z "$line" ]] && continue
       key="${line%% *}"
       status="${line#* }"
-      suite="${key%%.*}"
-      case_name="${key#*.}"
+      suite="${key%%/*}"
+      case_name="${key#*/}"
       if [[ "$suite" != "$current_suite" ]]; then
         echo "${suite}:"
         current_suite="$suite"
       fi
       echo "  ${case_name}: ${status}"
     done < <(printf '%s\n' "${all_lines_arr[@]}" | sort)
-  } >"$tree_file"
+  } > "$temp_file" || {
+    rm -f "$temp_file"
+    return 1
+  }
 
-  rm -f "data/test/frozen/${test_results_slug}.txt"
+  if ! mv -fT "$temp_file" "$tree_file"; then
+    rm -f "$temp_file"
+    return 1
+  fi
+
+  rm -f "data/test/frozen/${test_results_slug}.txt" || return 1
 
   test_results_active=0
   return 0
@@ -438,7 +405,7 @@ f_test_results_case_status() {
   local key="${suite}.${case_name}"
   local tree_file line entry_key status current_suite case_stem in_suite=0
 
-  tree_file="data/test/result/${slug}.yml"
+  tree_file="data/test/result/${slug}/summary.yml"
 
   if [[ ! -f "$tree_file" ]]; then
     tree_file="data/test/frozen/${slug}.txt"
@@ -449,22 +416,27 @@ f_test_results_case_status() {
     return 0
   fi
 
+  if ! grep -qx 'evidence: case-v1' "$tree_file"; then
+    echo 'UNKNOWN'
+    return 0
+  fi
+
   current_suite=''
 
   while IFS= read -r line || [[ -n "$line" ]]; do
     [[ "$line" =~ ^# ]] && continue
     [[ -z "$line" ]] && continue
-    [[ "$line" =~ ^(batch|updated|exit): ]] && continue
+    [[ "$line" =~ ^(batch|updated|exit|evidence): ]] && continue
     [[ "$line" =~ ^cases:[[:space:]]*$ ]] && continue
 
-    if [[ "$line" =~ ^([a-zA-Z0-9_]+):[[:space:]]*$ ]]; then
+    if [[ "$line" =~ ^([a-zA-Z0-9_.-]+):[[:space:]]*$ ]]; then
       current_suite="${BASH_REMATCH[1]}"
       in_suite=0
       [[ "$current_suite" == "$suite" ]] && in_suite=1
       continue
     fi
 
-    if [[ "$line" =~ ^[[:space:]]+([^:]+):[[:space:]]*(PASS|FAIL|SKIP)[[:space:]]*$ ]]; then
+    if [[ "$line" =~ ^[[:space:]]+([^:]+):[[:space:]]*(PASS|FAIL|SKIP|UNKNOWN)[[:space:]]*$ ]]; then
       entry_key="$(echo "${BASH_REMATCH[1]}" | xargs)"
       status="${BASH_REMATCH[2]}"
 
@@ -713,13 +685,32 @@ f_test_file_exec() {
 
   if f_test_results_enabled && [[ "${test_results_active:-0}" -eq 1 ]]; then
     local tmp suite_stem
-    tmp="$(mktemp)"
+    local -a capture_status
+    tmp="$(mktemp)" || return $?
     suite_stem="${test_name%.test.sh}"
 
-    "$test_file" 2>&1 | tee "$tmp" | tee -a "${test_results_full_output_path}"
-    exit_code=${PIPESTATUS[0]}
+    if [[ "${test_results_partial:-0}" -eq 1 ]]; then
+      local line
+      local -a retained_arr=()
 
-    f_test_results_parse_shunit_suite "$suite_stem" "$tmp"
+      for line in "${test_results_tree_loaded_arr[@]}"; do
+        [[ "$line" == "$suite_stem/"* ]] || retained_arr+=("$line")
+      done
+
+      test_results_tree_loaded_arr=("${retained_arr[@]}")
+    fi
+
+    ASC_TEST_CASE_EVIDENCE=1 "$test_file" 2>&1 | tee "$tmp" | tee -a "${test_results_full_output_path}"
+    capture_status=("${PIPESTATUS[@]}")
+    exit_code=${capture_status[0]}
+
+    if [[ ${capture_status[1]} -ne 0 || ${capture_status[2]} -ne 0 ]]; then
+      rm -f "$tmp"
+      echo "Error in f_test_file_exec(): failed to capture output for '$test_file'." >&2
+      return 1
+    fi
+
+    f_test_results_parse_shunit_suite "$suite_stem" "$tmp" || { rm -f "$tmp"; return 1; }
     rm -f "$tmp"
   else
     "$test_file"
@@ -849,7 +840,7 @@ f_test_run_case() {
   f_test_case_runner_path "$batch_dir" 'runner'
 
   if f_test_results_enabled; then
-    f_test_results_batch_begin "$batch_dir" 1
+    f_test_results_batch_begin "$batch_dir" 1 || return $?
   fi
 
   case "$mode" in
@@ -858,7 +849,7 @@ f_test_run_case() {
         bash "$runner" "$p_env" "$case_stem"
         exit_code=$?
         if f_test_results_enabled && [[ "${test_results_active:-0}" -eq 1 ]]; then
-          f_test_results_batch_end "$exit_code"
+          f_test_results_batch_end "$exit_code" || return $?
         fi
         return "$exit_code"
       fi
@@ -872,7 +863,7 @@ f_test_run_case() {
         bash "$runner" "$p_env" "$case_stem"
         exit_code=$?
         if f_test_results_enabled && [[ "${test_results_active:-0}" -eq 1 ]]; then
-          f_test_results_batch_end "$exit_code"
+          f_test_results_batch_end "$exit_code" || return $?
         fi
         return "$exit_code"
       fi
@@ -880,7 +871,7 @@ f_test_run_case() {
       f_test_file_exec "$test_file"
       exit_code=$?
       if f_test_results_enabled && [[ "${test_results_active:-0}" -eq 1 ]]; then
-        f_test_results_batch_end "$exit_code"
+        f_test_results_batch_end "$exit_code" || return $?
       fi
       return "$exit_code"
       ;;
@@ -889,7 +880,7 @@ f_test_run_case() {
       f_test_file_exec "$test_file"
       exit_code=$?
       if f_test_results_enabled && [[ "${test_results_active:-0}" -eq 1 ]]; then
-        f_test_results_batch_end "$exit_code"
+        f_test_results_batch_end "$exit_code" || return $?
       fi
       return "$exit_code"
       ;;
@@ -961,7 +952,7 @@ f_test_batch_exec() {
     exit 1
   fi
 
-  f_test_results_batch_begin "$p_dir" 0
+  f_test_results_batch_begin "$p_dir" 0 || return $?
 
   f_fs_file_list "$p_dir" '*.test.sh'
 
@@ -973,7 +964,7 @@ f_test_batch_exec() {
     fi
   done
 
-  f_test_results_batch_end "$batch_exit"
+  f_test_results_batch_end "$batch_exit" || return $?
 
   return "$batch_exit"
 }

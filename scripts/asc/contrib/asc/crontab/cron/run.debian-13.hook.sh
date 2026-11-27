@@ -6,4 +6,4 @@
 # Same behavior as the default run hook (reserved for host-specific tweaks).
 #
 
-. asc/extensions/crontab/cron/run.hook.sh
+. scripts/asc/contrib/asc/crontab/cron/run.hook.sh

@@ -53,7 +53,7 @@ declare -A dumps_dict
 # When we only read the 'base_dir' from definitions, we get exactly 1 key per
 # DB ID (and if we don't specify a DB ID, we get the base dirs of all DB defined
 # on that remote by default).
-f_remote_db_read_definition "$remote_id" "$db_id" 'base_dir'
+f_remote_db_read_definition "$remote_id" "$db_id" 'base_dir' || exit $?
 
 for key in "${!dumps_dict[@]}"; do
   db_id="${key%.base_dir}"

@@ -27,7 +27,7 @@
 !/scripts/asc/local/README.md
 
 # /data contents are gitignored by default.
-/data
+/data/*
 
 # ASC project instance generated data (cache, env vars, make targets, etc.)
 !/data/asc
@@ -45,6 +45,23 @@
 !/data/db/dumps/local
 /data/db/dumps/local/*
 !/data/db/dumps/local/README.md
+!/data/doc/
+/data/doc/*
+!/data/doc/fixtures/
+!/data/doc/fonts/
+!/data/host/
+/data/host/*
+!/data/host/local/
+/data/host/local/*
+!/data/host/local/README.md
+!/data/instance/
+/data/instance/*
+!/data/instance/local/
+/data/instance/local/*
+!/data/instance/local/README.md
+!/data/instance/remote/
+/data/instance/remote/*
+!/data/instance/remote/README.md
 !/data/log
 /data/log/*
 !/data/log/README.md

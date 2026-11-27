@@ -9,16 +9,23 @@
 #
 # @param 1 String : the remote id.
 # @param 2 [optional] String : path to dump file override or 'new' to create one.
+# @param 3 [optional] String : database ID. Defaults to 'default'.
+# @param 4 [optional] String : force reload flag for database credentials.
+#
+# Make cannot preserve an empty second argument. Use the direct action when
+# specifying a DB ID with the default dump selection.
 #
 # @example
-#   make db-sync-to dev
-#   make db-sync-to dev new
-#   make db-sync-to dev path/to/local/dump/file.sql.tgz
+#   make remote-db-sync-to dev
+#   make remote-db-sync-to dev new
+#   make remote-db-sync-to dev path/to/local/dump/file.sql.tgz
 #   # Or :
-#   asc/extensions/remote_asc/db/sync_to.sh dev
-#   asc/extensions/remote_asc/db/sync_to.sh dev new
-#   asc/extensions/remote_asc/db/sync_to.sh dev path/to/local/dump/file.sql.tgz
+#   asc/extensions/remote_asc/remote/db/sync_to.sh fixture '' separate
+#   asc/extensions/remote_asc/remote/db/sync_to.sh dev
+#   asc/extensions/remote_asc/remote/db/sync_to.sh dev new
+#   asc/extensions/remote_asc/remote/db/sync_to.sh dev path/to/local/dump/file.sql.tgz
 #
 
 . asc/bootstrap.sh
-f_remote_sync_db_to $@
+. asc/extensions/remote_asc/remote/db/db.opt-inc.sh
+f_remote_sync_db_to "$@"

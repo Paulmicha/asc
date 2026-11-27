@@ -878,6 +878,14 @@ _shunit_execSuite() {
     # Disable skipping.
     endSkipping
 
+    # ASC archives need boundaries around setup, test, and teardown. Keep the
+    # upstream output unchanged unless the archive runner requests evidence.
+    if [ "${ASC_TEST_CASE_EVIDENCE:-0}" = 1 ]; then
+      _asc_asserts_before_=${__shunit_assertsTotal}
+      _asc_skipped_before_=${__shunit_assertsSkipped}
+      printf '__ASC_CASE_BEGIN__ %s %s\n' "$$" "${_shunit_test_}"
+    fi
+
     # Execute the per-test setup function.
     setUp
 
@@ -887,6 +895,13 @@ _shunit_execSuite() {
 
     # Execute the per-test tear-down function.
     tearDown
+
+    if [ "${ASC_TEST_CASE_EVIDENCE:-0}" = 1 ]; then
+      printf '__ASC_CASE_END__ %s %s %s %s %s\n' "$$" "${_shunit_test_}" \
+        "${__shunit_testSuccess}" \
+        "$((__shunit_assertsSkipped - _asc_skipped_before_))" \
+        "$((__shunit_assertsTotal - _asc_asserts_before_))"
+    fi
 
     # Update stats.
     if \[ ${__shunit_testSuccess} -eq ${SHUNIT_TRUE} ]; then

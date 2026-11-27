@@ -99,9 +99,11 @@ f_yaml_parse() {
   fi
 
   if [[ -n "$p_output_var_name" ]]; then
-    printf -v "$p_output_var_name" '%s' "$(parse_yaml "$p_yml_file" "$p_prefix")"
+    local yaml_parse_result
+    yaml_parse_result="$(set -o pipefail; parse_yaml "$p_yml_file" "$p_prefix")" || return $?
+    printf -v "$p_output_var_name" '%s' "$yaml_parse_result"
   else
-    parse_yaml "$p_yml_file" "$p_prefix"
+    ( set -o pipefail; parse_yaml "$p_yml_file" "$p_prefix" )
   fi
 }
 

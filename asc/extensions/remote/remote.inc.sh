@@ -44,7 +44,7 @@ f_remote_download() {
   local p_local_path="$3"
   shift 3
 
-  f_remote_instance_load "$p_id"
+  f_remote_instance_load "$p_id" || return $?
 
   if [[ -z "$REMOTE_INSTANCE_SSH_CONNECT_CMD" ]]; then
     echo >&2
@@ -131,7 +131,7 @@ f_remote_upload() {
   local p_remote_path="$3"
   shift 3
 
-  f_remote_instance_load "$p_id"
+  f_remote_instance_load "$p_id" || return $?
 
   if [[ -z "$REMOTE_INSTANCE_SSH_CONNECT_CMD" ]]; then
     echo >&2
@@ -197,7 +197,7 @@ f_remote_exec_wrapper() {
   local p_id="$1"
   shift 1
 
-  f_remote_instance_load "$p_id"
+  f_remote_instance_load "$p_id" || return $?
 
   if [[ -z "$REMOTE_INSTANCE_SSH_CONNECT_CMD" ]]; then
     echo >&2
@@ -307,10 +307,7 @@ f_remote_definition_tokens_replace() {
     p_circuit_breaker=$3
   fi
 
-  # Only load remote instance definitions if necessary.
-  if [[ -z "$REMOTE_INSTANCE_ID" ]] || [[ "$REMOTE_INSTANCE_ID" != "$p_remote_id"  ]]; then
-    f_remote_instance_load "$p_remote_id"
-  fi
+  f_remote_instance_load "$p_remote_id" || return $?
 
   # Start with the raw input, which we will gradually transform below.
   tokens_replaced="$p_input_str"
@@ -397,7 +394,7 @@ f_remote_definition_tokens_replace() {
     # Up to 9 recursions is probably more than enough.
     if [[ $p_circuit_breaker -lt 10 ]]; then
       p_circuit_breaker+=1
-      f_remote_definition_tokens_replace "$p_remote_id" "$tokens_replaced" $p_circuit_breaker
+      f_remote_definition_tokens_replace "$p_remote_id" "$tokens_replaced" $p_circuit_breaker || return $?
     else
       echo >&2
       echo "Error : breaking out of f_remote_definition_tokens_replace() recursion." >&2
@@ -416,6 +413,13 @@ f_remote_definition_tokens_replace() {
 # calling f_remote_instance_load(). They export variables with a specific
 # naming convention. They are not the same as "globals" i.e. not read-only, and
 # not exported in .env file(s).
+#
+# Generated definitions carry the exact marker '# ASC generated remote instance'.
+# Unmarked files are preserved and a declared ID colliding with one aborts the
+# refresh. Definitions from older versions without the marker must be reviewed
+# and moved aside before regeneration. On failure, definitions may remain but
+# loading and enumeration are blocked until a successful refresh. IDs contain
+# only ASCII letters, digits and underscores.
 #
 # To read the generated remote instance definition(s) :
 # @see f_remote_instance_load()
@@ -539,8 +543,21 @@ f_remote_definition_tokens_replace() {
 #   export REMOTE_INSTANCE_SSH_EXEC_PREFIX='[ -f ~/.bashrc ] && . ~/.bashrc ;'
 #   export REMOTE_INSTANCE_SSH_USER='paul'
 #
-f_remote_instances_setup() {
+f_remote_instances_setup() (
+  mkdir -p data/instance || return $?
+  : > data/instance/remote_refresh_failed || return $?
+  rm -f data/instance/remote_ids.sh || return $?
   most_specific_match=''
+
+  # A refresh must discover added or removed YAML variants, rather than reuse
+  # an earlier dry-run match list. Compute the same cache key as hook().
+  local o_actions_filter='remote_instances'
+  local o_variants_filter='HOST_TYPE INSTANCE_TYPE'
+  local o_custom_filter='yml'
+  local o_subjects_filter='' o_prefixes_filter='' o_extensions_filter=''
+  local b_dry_run=1 b_root_lookup=1 hook_cache_key
+  f_hook_cache_key
+  rm -f "data/asc/cache/hook/${hook_cache_key}.sh" || return $?
 
   hook_ms 'dry-run' \
     -a 'remote_instances' \
@@ -548,16 +565,19 @@ f_remote_instances_setup() {
     -v 'HOST_TYPE INSTANCE_TYPE' \
     -t -r
 
-  # Purge existing remotes first.
-  f_remote_purge_instances || return $?
-
   # Having remotes is not required for all instance types.
   if [[ ! -f "$most_specific_match" ]]; then
-    return
+    f_remote_purge_instances || return $?
+    rm -f data/instance/remote_refresh_failed
+    return $?
   fi
 
   local cache_dir='data/instance/remote'
-  local parsed_file="data/instance/remote_parsed.sh"
+  mkdir -p "$cache_dir" data/asc/cache || return $?
+  local staging_dir
+  staging_dir="$(mktemp -d data/asc/cache/remote-refresh.XXXXXXXX)" || return $?
+  trap 'rm -rf "$staging_dir"' EXIT
+  local parsed_file="$staging_dir/parsed.vars"
 
   if [[ ! -d "$cache_dir" ]]; then
     mkdir -p "$cache_dir"
@@ -588,15 +608,25 @@ f_remote_instances_setup() {
 #
 
 EOF
+  if [[ $? -ne 0 ]]; then
+    echo "Error in f_remote_instances_setup(): could not write '$parsed_file'." >&2
+    return 1
+  fi
 
   # Write remotes definitions.
   local parsed_yaml_remotes=''
-  f_yaml_parse "$most_specific_match" 'ascri_' 'parsed_yaml_remotes'
-  echo "$parsed_yaml_remotes" >> "$parsed_file"
+  local parsed_var
+
+  while IFS= read -r parsed_var; do
+    unset "$parsed_var"
+  done < <(compgen -A variable ascri_)
+
+  f_yaml_parse "$most_specific_match" 'ascri_' 'parsed_yaml_remotes' || return $?
+  echo "$parsed_yaml_remotes" >> "$parsed_file" || return $?
 
   # Process & adapt parsed result for use with f_remote_instance_load().
   if [[ -f "$parsed_file" ]]; then
-    . "$parsed_file"
+    . "$parsed_file" || return $?
 
     local remote_id
     local var_prefix
@@ -608,13 +638,18 @@ EOF
 
     f_remote_definition_get_keys
 
-    f_yaml_get_root_keys "$most_specific_match"
+    f_yaml_get_root_keys "$most_specific_match" || return $?
 
     for remote_id in "${yaml_keys_arr[@]}"; do
       # "includes" is a reserved keyword.
       case "$remote_id" in 'includes')
         continue
       esac
+
+      if [[ ! "$remote_id" =~ ^[a-zA-Z0-9_]+$ ]]; then
+        echo "Error in f_remote_instances_setup(): invalid remote ID '$remote_id'." >&2
+        return 1
+      fi
 
       var_prefix="ascri_${remote_id}"
 
@@ -717,10 +752,11 @@ EOF
       fi
 
       # Finally, create the resulting definition file.
-      local conf="data/instance/remote/${remote_id}.sh"
+      local conf="$staging_dir/${remote_id}.sh"
 
       cat > "$conf" <<EOF
 #!/usr/bin/env bash
+# ASC generated remote instance
 
 ##
 # '$remote_id' remote instance definition file.
@@ -730,6 +766,10 @@ EOF
 #
 
 EOF
+      if [[ $? -ne 0 ]]; then
+        echo "Error in f_remote_instances_setup(): could not write '$conf'." >&2
+        return 1
+      fi
       # Write (append) to the generated definition file, escaping single quotes
       # because it's a plain bash script that will be sourced.
       # Sort keys to output a more readable generated file.
@@ -745,11 +785,37 @@ EOF
         # @link https://stackoverflow.com/a/1250279/2592338
         val="${val//\'/\'\"\'\"\'}"
 
-        printf "%s\n" "export $var='$val'" >> "$conf"
+        printf "%s\n" "export $var='$val'" >> "$conf" || return $?
       done
     done
   fi
-}
+
+  local staged destination
+
+  for staged in "$staging_dir"/*.sh; do
+    [[ "$staged" == "$parsed_file" ]] && continue
+    [[ -f "$staged" ]] || continue
+    destination="$cache_dir/${staged##*/}"
+
+    if [[ -e "$destination" || -L "$destination" ]]; then
+      if [[ ! -f "$destination" || -L "$destination" ]] || ! grep -Fxq '# ASC generated remote instance' "$destination"; then
+        echo "Error in f_remote_instances_setup(): unowned destination '$destination'." >&2
+        rm -f data/instance/remote_ids.sh
+        return 1
+      fi
+    fi
+  done
+
+  f_remote_purge_instances || return $?
+
+  for staged in "$staging_dir"/*.sh; do
+    [[ "$staged" == "$parsed_file" ]] && continue
+    [[ -f "$staged" ]] || continue
+    mv "$staged" "$cache_dir/${staged##*/}" || return $?
+  done
+
+  rm -f data/instance/remote_refresh_failed
+)
 
 ##
 # Produces an array of keys for remote instance definitions.
@@ -857,9 +923,9 @@ f_remote_definition_get_key() {
     p_rdgk_var="$p_key"
   fi
 
-  # Only load the remote instance definition if not already loaded.
-  if [[ -z "$REMOTE_INSTANCE_ID" || "$REMOTE_INSTANCE_ID" != "$p_remote_id" ]]; then
-    f_remote_instance_load "$p_remote_id"
+  if ! f_remote_instance_load "$p_remote_id"; then
+    printf -v "$p_rdgk_var" '%s' ''
+    return 1
   fi
 
   local var=''
@@ -880,7 +946,7 @@ f_remote_definition_get_key() {
   # Replace tokens.
   if [[ -z "$p_skip_token_replacement" ]]; then
     local tokens_replaced=''
-    f_remote_definition_tokens_replace "$p_remote_id" "$val"
+    f_remote_definition_tokens_replace "$p_remote_id" "$val" || return $?
 
     # Write result to var in calling scope.
     printf -v "$p_rdgk_var" '%s' "$tokens_replaced"
@@ -892,10 +958,10 @@ f_remote_definition_get_key() {
 ##
 # Gets remote instance config.
 #
-# @param 1 [optional] String : remote instance's id (short name, no space,
-#   _a-zA-Z0-9 only). Defaults to the first *.sh file found in folder :
-#   data/instance/remote (skips types.sh, instances.sh,
-#   _parsed.sh).
+# Every load clears the previous REMOTE_INSTANCE_* values first. Only marked
+# definitions are sourced; a failed refresh blocks loading until repaired.
+#
+# @param 1 String : remote instance ID (ASCII letters, digits and underscores).
 #
 # @example
 #   # Only need to call the function for exporting globals in current shell :
@@ -904,10 +970,15 @@ f_remote_definition_get_key() {
 f_remote_instance_load() {
   local p_id="$1"
   local cache="data/instance/remote/${p_id}.sh"
+  local remote_var
 
-  if [[ ! -f "$cache" ]]; then
+  while IFS= read -r remote_var; do
+    unset "$remote_var"
+  done < <(compgen -A variable REMOTE_INSTANCE_)
+
+  if [[ -f data/instance/remote_refresh_failed || ! "$p_id" =~ ^[a-zA-Z0-9_]+$ || ! -f "$cache" || -L "$cache" ]] || ! grep -Fxq '# ASC generated remote instance' "$cache"; then
     echo >&2
-    echo "Error in f_remote_instance_load() - $BASH_SOURCE line $LINENO: file '$cache' not found." >&2
+    echo "Error in f_remote_instance_load() - $BASH_SOURCE line $LINENO: invalid ID, unowned or missing definition '$cache', or incomplete refresh." >&2
     echo "-> Aborting (1)." >&2
     echo >&2
     return 1
@@ -936,6 +1007,8 @@ f_remote_purge_instances() {
   f_fs_file_list 'data/instance/remote'
 
   for file in "${file_list_arr[@]}"; do
+    [[ "$file" == *.sh && -f "data/instance/remote/$file" && ! -L "data/instance/remote/$file" ]] || continue
+    grep -Fxq '# ASC generated remote instance' "data/instance/remote/$file" || continue
     rm "data/instance/remote/${file}"
 
     if [[ $? -ne 0 ]]; then
@@ -969,6 +1042,11 @@ f_remote_purge_instances() {
 f_remote_get_instances() {
   local file=''
 
+  if [[ -f data/instance/remote_refresh_failed ]]; then
+    echo "Error in f_remote_get_instances(): remote refresh did not complete." >&2
+    return 1
+  fi
+
   # Cache results.
   if [[ -f data/instance/remote_ids.sh ]]; then
     . data/instance/remote_ids.sh
@@ -980,8 +1058,10 @@ f_remote_get_instances() {
     f_fs_file_list 'data/instance/remote'
 
     for file in "${file_list_arr[@]}"; do
-      case "$file" in _parsed.sh) continue ;; esac
+      [[ "$file" == *.sh && -f "data/instance/remote/$file" && ! -L "data/instance/remote/$file" ]] || continue
+      grep -Fxq '# ASC generated remote instance' "data/instance/remote/$file" || continue
       remote_id="${file%.sh}"
+      [[ "$remote_id" =~ ^[a-zA-Z0-9_]+$ ]] || continue
       instance_ids_arr+=("$remote_id")
       remote_instance_ids_cache_str+="instance_ids_arr+=('$remote_id')
 "
@@ -1024,7 +1104,7 @@ f_remote_check_id() {
   local instance_ids_arr=()
   local ko=1
 
-  f_remote_get_instances
+  f_remote_get_instances || exit $?
 
   for instance_id in "${instance_ids_arr[@]}"; do
     case "$p_remote_id" in "$instance_id")

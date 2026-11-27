@@ -30,8 +30,10 @@ YAML, DSL, TOC, and Git ignore.
 - TOC hrefs use GitHub slugs; `u_md_slug` strips Markdown emphasis, keeps
   literal underscores (e.g. `NEXT_STEPS`), and keeps double hyphens
   (`md_toc` covers Plans, Next Steps, and `_Entry points_` emphasis).
-- Remote refresh prose describes **today’s** `f_remote_instances_setup` /
-  `remote-definitions-update` path (not ownership-safe refresh).
+- Remote refresh prose matches `f_remote_instances_setup`: owned definitions
+  (non-symlink regular file with the generated marker) are replaced, other
+  files stay, and an unowned collision aborts before the purge while
+  `data/instance/remote_refresh_failed` remains.
 - Unsupported DSL sketches labeled where they appear (options, `;` / parallel /
   pipe, Variables `v-`, Functions `[]`, Conditional `++`, Redirecting,
   Iterations). Arguments example uses working `slug(…)` pivot.

@@ -89,6 +89,7 @@ EOF
   cat > "asc/extensions/nftascgevdehnc/global.vars.sh" <<'EOF'
 #!/usr/bin/env bash
 global NFTASCGEVHNC_VAR_1 'test'
+global ASC_SYNONYMS "[append]='anti-pattern/code-smell'"
 EOF
 
   cat > "asc/extensions/nftascgevdehnc/instance/global.vars.sh" <<'EOF'

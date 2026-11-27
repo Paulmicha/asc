@@ -1,22 +1,21 @@
 #!/usr/bin/env bash
 
 ##
-# Install/sync host crontab including given entry (full enabled set).
+# [abstract] Run the cron start operation.
 #
 # @example
-#   make cron-start e:insta-save
+#   make cron-start
 #
 
 . asc/bootstrap.sh
 
 p_entry="${1:-}"
-if [[ -z "$p_entry" ]]; then
-  echo >&2 "Error: e:<entry> required."
+
+hook_ms 'dry-run' -s 'cron' -a 'start' -v 'STACK_VERSION PROVISION_USING HOST_TYPE HOST_OS'
+
+if [[ -z "$most_specific_match" || ! -f "$most_specific_match" ]]; then
+  echo "Error in $BASH_SOURCE: no cron start implementation found." >&2
   exit 1
 fi
 
-if [[ ! -d data/asc/cron ]]; then
-  f_cron_settings_setup || exit 1
-fi
-
-f_cron_start_entry "$p_entry"
+hook_ms -s 'cron' -a 'start' -v 'STACK_VERSION PROVISION_USING HOST_TYPE HOST_OS'

@@ -31,5 +31,5 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
-asc/extensions/remote_asc/remote/exec.sh "$1" \
+asc/extensions/remote/remote/exec.sh "$1" \
   'asc/instance/start.sh && asc/app/install.sh'

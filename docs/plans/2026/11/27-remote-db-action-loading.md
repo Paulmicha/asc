@@ -1,14 +1,13 @@
 # Remote DB actions: opt-inc loading and `remote-exec`
 
-Status: draft
+Status: completed
 
 Repair `remote-db-sync-to`, `remote-db-sync-from`, and `remote-db-dl-from` so
 bootstrap loads their helpers, callers use the existing `remote-exec` action,
 arguments survive forwarding (including an empty second argument before an
 explicit DB ID), and fixtures verify **completion and failure** at the actual
 dump and restore operations — not merely that a stub was reached or that
-`f_db_set` selected a DB in the calling shell. This plan describes proposed
-work; it does not claim implementation or authorize commit.
+`f_db_set` selected a DB in the calling shell. The outcome is recorded below.
 
 **Authority:** [docs/instance/review.md](../../../instance/review.md) owns
 remediation decisions (what and why). This plan owns steps and acceptance for
@@ -158,3 +157,9 @@ After
 [27-remote-lifecycle-ownership.md](27-remote-lifecycle-ownership.md) if the
 fixture needs a working remote lifecycle; otherwise can proceed once opt-inc
 and `remote-exec` wiring are the only blockers under test.
+
+## Implementation and verification (27 November)
+
+All three actions load their dependencies and forward the selected DB to the relevant dump and restore operations. Explicit remote source paths are downloaded by basename into the selected remote/DB directory; explicit local uploads use the selected remote DB directory. Isolated action fixtures cover both DBs and injected failures; no real SSH or database operation was run.
+
+The integrated `make test-core` passed in an initialized disposable checkout with the remote extension enabled. This was local fixture acceptance; no live remote, database, or host crontab operation was performed.

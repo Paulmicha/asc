@@ -1,19 +1,21 @@
 #!/usr/bin/env bash
 
 ##
-# Restart one cron host entry (stop then start/sync).
+# [abstract] Run the cron restart operation.
 #
 # @example
-#   make cron-restart e:insta-save
+#   make cron-restart
 #
 
 . asc/bootstrap.sh
 
 p_entry="${1:-}"
-if [[ -z "$p_entry" ]]; then
-  echo >&2 "Error: e:<entry> required."
+
+hook_ms 'dry-run' -s 'cron' -a 'restart' -v 'STACK_VERSION PROVISION_USING HOST_TYPE HOST_OS'
+
+if [[ -z "$most_specific_match" || ! -f "$most_specific_match" ]]; then
+  echo "Error in $BASH_SOURCE: no cron restart implementation found." >&2
   exit 1
 fi
 
-f_cron_stop_entry "$p_entry"
-f_cron_start_entry "$p_entry"
+hook_ms -s 'cron' -a 'restart' -v 'STACK_VERSION PROVISION_USING HOST_TYPE HOST_OS'

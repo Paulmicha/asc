@@ -1,12 +1,11 @@
 # Globals test: fixture-owned synonym
 
-Status: ready
+Status: completed
 
 Unblock `make test-core` by giving the globals aggregation test a
 fixture-owned `anti-pattern/code-smell` synonym. The synonym approach was
 verified in a disposable checkout against `12d6a6b1` (all six globals tests
-passed). This plan does not claim the change is committed in the mother tree
-or authorize commit.
+passed). The outcome is recorded below.
 
 **Authority:** [docs/instance/review.md](../../../instance/review.md) owns
 remediation decisions; this plan owns steps and acceptance. Other ASC project
@@ -45,3 +44,9 @@ The suite already creates a temporary extension under
 
 Land first among the [review remediation items](../../../instance/review.md);
 independent of remote, cron, and archive work.
+
+## Implementation and verification (27 November)
+
+The fixture now declares its own synonym. The six-test globals suite passes in an initialized disposable checkout.
+
+The integrated `make test-core` passed in an initialized disposable checkout with the remote extension enabled. This was local fixture acceptance; no live remote, database, or host crontab operation was performed.

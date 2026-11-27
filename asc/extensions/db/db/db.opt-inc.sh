@@ -134,6 +134,7 @@ f_db_exec() {
   local db_dump_dir
   local db_dump_file
   local leaf
+  local db_exec_status=0
 
   if [[ ! -f "$p_dump_file_path" ]]; then
     echo >&2
@@ -143,7 +144,7 @@ f_db_exec() {
     exit 1
   fi
 
-  f_db_set "$p_db_id" "$p_force_reload_flag"
+  f_db_set "$p_db_id" "$p_force_reload_flag" || return $?
 
   db_dump_file="$p_dump_file_path"
 
@@ -195,7 +196,7 @@ f_db_exec() {
 
   # Implementations MUST use var $db_dump_file as input path (source file).
   if [[ -z "$ASC_DB_DEBUG" ]]; then
-    hook_ms -s 'db' -a 'exec' -v 'DB_DRIVER DB_ID INSTANCE_TYPE PROVISION_USING'
+    hook_ms -s 'db' -a 'exec' -v 'DB_DRIVER DB_ID INSTANCE_TYPE PROVISION_USING' || db_exec_status=$?
   fi
 
   # Remove uncompressed version of the dump when we're done.
@@ -212,6 +213,8 @@ f_db_exec() {
       exit 3
     fi
   fi
+
+  return "$db_exec_status"
 }
 
 ##
@@ -307,7 +310,7 @@ f_db_dump() {
   local db_dump_file
   local db_dump_file_name
 
-  f_db_set "$p_db_id" "$p_force_reload_flag"
+  f_db_set "$p_db_id" "$p_force_reload_flag" || return $?
 
   db_dump_file="$p_dump_file_path"
   db_dump_dir="${db_dump_file%/${db_dump_file##*/}}"
@@ -341,7 +344,7 @@ f_db_dump() {
     echo "  DB_HOST = $DB_HOST"
     echo "  DB_NAME = $DB_NAME"
   else
-    hook_ms -s 'db' -a 'dump' -v 'DB_DRIVER DB_ID INSTANCE_TYPE'
+    hook_ms -s 'db' -a 'dump' -v 'DB_DRIVER DB_ID INSTANCE_TYPE' || return $?
   fi
 
   if [ ! -f "$db_dump_file" ]; then
@@ -408,7 +411,7 @@ f_db_clear() {
   local p_db_id="$1"
   local p_force_reload_flag="$2"
 
-  f_db_set "$p_db_id" "$p_force_reload_flag"
+  f_db_set "$p_db_id" "$p_force_reload_flag" || return $?
 
   # Only attempt to clear if DB exists.
   if ! f_db_exists "$DB_NAME" "$p_db_id"; then
@@ -453,8 +456,8 @@ f_db_restore() {
     exit 1
   fi
 
-  f_db_clear "$p_db_id" "$p_force_reload_flag"
-  f_db_exec "$p_dump_file_path" "$p_db_id" "$p_force_reload_flag"
+  f_db_clear "$p_db_id" "$p_force_reload_flag" || return $?
+  f_db_exec "$p_dump_file_path" "$p_db_id" "$p_force_reload_flag" || return $?
 }
 
 ##
@@ -560,7 +563,7 @@ f_db_routine_backup() {
     exit 2
   fi
 
-  f_db_set "$p_db_id" "$p_force_reload_flag"
+  f_db_set "$p_db_id" "$p_force_reload_flag" || return $?
 
   local db_routine_new_backup_file
   local db_backup_file_middle
@@ -592,10 +595,10 @@ f_db_routine_backup() {
   f_db_dump \
     "$ASC_DB_DUMPS_DIR/local/$DB_ID/$db_routine_new_backup_file" \
     "$p_db_id" \
-    "$p_force_reload_flag"
+    "$p_force_reload_flag" || return $?
 
   # Some tasks need the generated dump file path.
-  routine_dump_file="${db_routine_new_backup_file}.gz"
+  routine_dump_file="$ASC_DB_DUMPS_DIR/local/$DB_ID/${db_routine_new_backup_file}.gz"
 }
 
 ##
@@ -615,6 +618,9 @@ f_db_routine_backup() {
 # @param 4 [optional] String : force reload flag (bypasses optimization) if the
 #   DB credentials vars are already exported in current shell scope.
 #   TODO deprecate this argument and export a specific variable instead.
+#
+# Creating a new dump writes progress to stderr. Standard output is the dump
+# path alone when that file exists.
 #
 # @example
 #   most_recent_dump_file="$(f_db_get_dump)"
@@ -652,9 +658,9 @@ f_db_get_dump() {
       ;;
 
     # The 'new' option means create immediately a new routine dump and return
-    # its file path.
+    # its file path. Progress from that creation is not part of the path.
     'new')
-      f_db_routine_backup "$p_db_id" "$p_force_reload_flag"
+      f_db_routine_backup "$p_db_id" "$p_force_reload_flag" >&2 || return $?
       dump_to_return="$routine_dump_file"
       ;;
 
@@ -736,7 +742,7 @@ f_db_setup() {
 
   # Only move on to the initial DB import if configured to do so.
   case "$ASC_DB_INITIAL_IMPORT" in true)
-    f_db_restore_any "$DB_ID"
+    f_db_restore_any "$DB_ID" || return $?
   esac
 
   # Flag the DB as already setup.
@@ -775,7 +781,7 @@ f_db_restore_any() {
   local p_db_id="$1"
   local p_force_reload_flag="$2"
 
-  f_db_set "$p_db_id" "$p_force_reload_flag"
+  f_db_set "$p_db_id" "$p_force_reload_flag" || return $?
 
   # Debug.
   if [[ -n "$ASC_DB_DEBUG" ]]; then
@@ -799,7 +805,7 @@ f_db_restore_any() {
   local instance_ids_arr=()
 
   if type f_remote_get_instances >/dev/null 2>&1 ; then
-    f_remote_get_instances
+    f_remote_get_instances || return $?
   fi
 
   if [[ -n "${instance_ids_arr[@]}" ]]; then

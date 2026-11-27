@@ -23,7 +23,7 @@ remote_id="$1"
 f_remote_check_id "$remote_id"
 shift
 
-f_remote_instance_load "$remote_id"
+f_remote_instance_load "$remote_id" || exit $?
 
 if [[ -z "$REMOTE_INSTANCE_SSH_CONNECT_CMD" ]]; then
   echo >&2
@@ -115,5 +115,5 @@ REMOTECMD
 # Workaround : launch the "init" action separately. Fixes unknown issue where
 # running this inside the "inline" command above appeared to be skipped on first
 # call.
-. asc/extensions/remote_asc/remote/exec.sh "$remote_id" \
+. asc/extensions/remote/remote/exec.sh "$remote_id" \
   "asc/instance/init.sh -y -h 'remote' $@"

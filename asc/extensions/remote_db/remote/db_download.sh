@@ -42,7 +42,7 @@ echo "Downloading DB dumps from remote instance '$remote_id' ..."
 
 declare -A dumps_dict
 
-f_remote_db_prepare_downloads "$remote_id" "$db_id" "$remote_file"
+f_remote_db_prepare_downloads "$remote_id" "$db_id" "$remote_file" || exit $?
 
 db_id=''
 db_ids_arr=()
@@ -80,7 +80,7 @@ for db_id in "${db_ids_arr[@]}"; do
 
   f_remote_download "$remote_id" \
     "${dumps_dict[${db_id}.remote_dump_file_path]}" \
-    "${dumps_dict[${db_id}.local_dump_dir]}/"
+    "${dumps_dict[${db_id}.local_dump_dir]}/" || exit $?
 
   if [[ ! -f "${dumps_dict[${db_id}.local_dump_file_path]}" ]]; then
     echo >&2
