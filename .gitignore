@@ -26,21 +26,29 @@
 /scripts/asc/local/*
 !/scripts/asc/local/README.md
 
+# /data contents are gitignored by default.
+/data
+
 # ASC project instance generated data (cache, env vars, make targets, etc.)
+!/data/asc
 /data/asc/*
 !/data/asc/README.md
 
 # ASC core file sidecars.
+!/data/cron
 /data/cron/*
 !/data/cron/README.md
+!/data/db
 /data/db/*
 !/data/db/dumps
 /data/db/dumps/*
 !/data/db/dumps/local
 /data/db/dumps/local/*
 !/data/db/dumps/local/README.md
+!/data/log
 /data/log/*
 !/data/log/README.md
+!/data/test
 /data/test/*
 !/data/test/frozen
 /data/test/frozen/*
@@ -57,8 +65,10 @@
 !/data/test/result/local
 /data/test/result/local/*
 !/data/test/result/local/README.md
+!/data/thread
 /data/thread/*
 !/data/thread/README.md
+!/data/tmp
 /data/tmp/*
 !/data/tmp/README.md
 
