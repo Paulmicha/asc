@@ -327,7 +327,7 @@ Two axes. This list is **kind**. Lookup lists later (extension points, active di
 
 1. **Core** = "generic" implementations that are systematically relevant across all projects using ASC (some of which - the core extensions themselves - are opt-in),
 1. **Extensions** = namespaced bundles of actions by subjects and/or objects (including contrib, as in the Drupal ecosystem),
-1. **Overrides** = alterations of implementations provided by core and/or extensions,
+1. **Overrides** = alterations of implementations provided by core and/or extensions + opportunity for a good git branching and/or forking workflow delegated to agents,
 1. **Specifics** = implementations with low or no potential for reuse outside the current project ASC is used for.
 
 #### Core
