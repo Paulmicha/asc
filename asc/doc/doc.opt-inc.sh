@@ -48,6 +48,6 @@ doc() {
   export VARIANTS="${VARIANTS:-STACK_VERSION PROVISION_USING HOST_TYPE}"
 
   hook -s 'doc' -p 'pre' -a "$EXT" -v "$VARIANTS"
-  hook -s 'doc' -a "$EXT" -v "$VARIANTS"
+  hook_ms -s 'doc' -a "$EXT" -v "$VARIANTS"
   hook -s 'doc' -p 'post' -a "$EXT" -v "$VARIANTS"
 }
