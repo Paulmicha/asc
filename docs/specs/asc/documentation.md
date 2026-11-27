@@ -4,7 +4,7 @@ Status: current
 
 This specification defines a common documentation convention for ASC projects.
 Projects can add categories and need not create empty directories or optional
-files. The [ASC README](../../README.md) remains authoritative for the meaning
+files. The [ASC README](../../../README.md) remains authoritative for the meaning
 and purpose of ASC concepts; instance-specific documentation belongs in its own
 project.
 
@@ -61,7 +61,7 @@ derived index or status dashboard.
 
 This convention is the shared documentation model, not a claim that every ASC
 instance already has every file or has migrated its history. The mother
-checkout's [completed migration plan](../plans/2026/11/10-changelog-refactor.md)
+checkout's [completed migration plan](../../plans/2026/11/10-changelog-refactor.md)
 records the move of dated legacy notes to `docs/plans/`; it did not migrate
 other instances or implement all categories. Its retained
 [legacy index](../../../CHANGELOG.md) preserves historical context.
@@ -69,4 +69,4 @@ other instances or implement all categories. Its retained
 The mother README still describes `changelog/` as a home for past or planned
 work. Its historical wording and this convention have not yet been reconciled.
 The next-steps scanner's legacy default and related workflow are addressed by
-the separate [gates and next-steps idea](../ideas/2026/11/10-gates-and-next-steps.md).
+the separate [gates and next-steps idea](../../ideas/2026/11/10-gates-and-next-steps.md).

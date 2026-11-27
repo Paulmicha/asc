@@ -1,13 +1,16 @@
 # Globals test: fixture-owned synonym
 
-Status: draft
+Status: ready
 
 Unblock `make test-core` by giving the globals aggregation test a
-fixture-owned `anti-pattern/code-smell` synonym. This plan describes proposed
-work; it does not claim implementation or authorize commit.
+fixture-owned `anti-pattern/code-smell` synonym. The synonym approach was
+verified in a disposable checkout against `12d6a6b1` (all six globals tests
+passed). This plan does not claim the change is committed in the mother tree
+or authorize commit.
 
-**Authority:** [docs/instance/review.md](../../../instance/review.md) is the
-source of truth. Other ASC project instance compatibility is out of scope.
+**Authority:** [docs/instance/review.md](../../../instance/review.md) owns
+remediation decisions; this plan owns steps and acceptance. Other ASC project
+instance compatibility is out of scope.
 
 ## Context
 
