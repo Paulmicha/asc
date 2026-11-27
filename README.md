@@ -45,21 +45,21 @@ The main README (this file) is authoritative on the meaning associated with ASC 
   - [Non-goals ("out of scope"s)](#non-goals-out-of-scopes)
 - [Purpose](#purpose)
 - [How (concepts in brief)](#how-concepts-in-brief)
-- [Example project (demo / case study)](#example-project-demo-case-study)
+- [Example project (demo / case study)](#example-project-demo--case-study)
 - [Current status of the ASC project](#current-status-of-the-asc-project)
 - [Documentation](#documentation)
-  - [Skills, Instructions, Capabilities (`AGENTS.md` & `SKILL.md`)](#skills-instructions-capabilities-agentsmd-skillmd)
+  - [Skills, Instructions, Capabilities (`AGENTS.md` & `SKILL.md`)](#skills-instructions-capabilities-agentsmd--skillmd)
   - [Design patterns vs. Anti-patterns](#design-patterns-vs-anti-patterns)
-    - [Design patterns : DOS / HOWTOS, tutorials](#design-patterns-dos-howtos-tutorials)
-    - [Anti-patterns : DONTS / GUARDS, "gates"](#anti-patterns-donts-guards-gates)
-    - [REVIEWS : Enforcement, "alignment" (drift control)](#reviews-enforcement-alignment-drift-control)
+    - [Design patterns : DOS / HOWTOS, tutorials](#design-patterns--dos--howtos-tutorials)
+    - [Anti-patterns : DONTS / GUARDS, "gates"](#anti-patterns--donts--guards-gates)
+    - [REVIEWS : Enforcement, "alignment" (drift control)](#reviews--enforcement-alignment-drift-control)
   - [Contracts, Living SPECS](#contracts-living-specs)
-  - [PLANS : Changes, Implementation Steps, Execution Plans](#plans-changes-implementation-steps-execution-plans)
-  - [ISSUES : Problems, Improvements](#issues-problems-improvements)
-  - [NEXT_STEPS : Priorities](#nextsteps-priorities)
+  - [PLANS : Changes, Implementation Steps, Execution Plans](#plans--changes-implementation-steps-execution-plans)
+  - [ISSUES : Problems, Improvements](#issues--problems-improvements)
+  - [NEXT_STEPS : Priorities](#next_steps--priorities)
 - [ASC concepts](#asc-concepts)
   - [General notes](#general-notes)
-  - [Vendor (= third-party) libs](#vendor-third-party-libs)
+  - [Vendor (= third-party) libs](#vendor--third-party-libs)
   - [Genericity (scale)](#genericity-scale)
     - [Core](#core)
     - [Extensions](#extensions)
@@ -67,24 +67,24 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [Overrides](#overrides)
     - [Project-specific implementations](#project-specific-implementations)
   - [Bootstrap (ASC-bootstrapped context)](#bootstrap-asc-bootstrapped-context)
-    - [Initial (= cold) VS initialized (= warm) VS "out of sync" (= stale) contexts](#initial-cold-vs-initialized-warm-vs-out-of-sync-stale-contexts)
-    - [Always (= eager) VS conditionally (= lazy) sourced includes](#always-eager-vs-conditionally-lazy-sourced-includes)
+    - [Initial (= cold) VS initialized (= warm) VS "out of sync" (= stale) contexts](#initial--cold-vs-initialized--warm-vs-out-of-sync--stale-contexts)
+    - [Always (= eager) VS conditionally (= lazy) sourced includes](#always--eager-vs-conditionally--lazy-sourced-includes)
       - [Exceptions](#exceptions)
       - [Recap](#recap)
   - [Project instance (re)initialization process](#project-instance-reinitialization-process)
-    - [Cold → Warm : the initialization process](#cold-warm-the-initialization-process)
-    - [Stale → Warm : drift re-alignment](#stale-warm-drift-re-alignment)
-    - [(any state) → Cold](#any-state-cold)
+    - [Cold → Warm : the initialization process](#cold--warm--the-initialization-process)
+    - [Stale → Warm : drift re-alignment](#stale--warm--drift-re-alignment)
+    - [(any state) → Cold](#any-state--cold)
     - [Interdependence](#interdependence)
   - [Extension Point](#extension-point)
   - [Active Dir](#active-dir)
-  - [Actions = (make) _Entry points_](#actions-make-entry-points)
+  - [Actions = (make) _Entry points_](#actions--make-entry-points)
   - [Environment variables (*env vars*)](#environment-variables-env-vars)
-    - [Declaring globals (= constants)](#declaring-globals-constants)
+    - [Declaring globals (= constants)](#declaring-globals--constants)
     - [Interactive terminal prompts during (instance) init](#interactive-terminal-prompts-during-instance-init)
     - [Git-ignored, "private" _globals_](#git-ignored-private-globals)
   - [Hooks (and variants)](#hooks-and-variants)
-    - [Most specific hooks (`hook_ms()`) lookup and collisions](#most-specific-hooks-hookms-lookup-and-collisions)
+    - [Most specific hooks (`hook_ms()`) lookup and collisions](#most-specific-hooks-hook_ms-lookup-and-collisions)
   - [Hosts](#hosts)
   - [(Projet) Instance(s)](#projet-instances)
   - [ASC discovery recap](#asc-discovery-recap)
@@ -92,8 +92,7 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [ASC core tests](#asc-core-tests)
     - [Pre and post test suite execution (shunit2) functions](#pre-and-post-test-suite-execution-shunit2-functions)
     - [Test results](#test-results)
-  - [ASC domain-specific language : *DSL* syntax](#asc-domain-specific-language-dsl-syntax)
-    - [Entry points](#entry-points)
+  - [ASC domain-specific language : *DSL* syntax](#asc-domain-specific-language--dsl-syntax)
     - [Arguments](#arguments)
     - [Variables](#variables)
     - [Functions](#functions)
@@ -102,19 +101,19 @@ The main README (this file) is authoritative on the meaning associated with ASC 
     - [Piping](#piping)
     - [Conditional execution](#conditional-execution)
     - [Redirecting](#redirecting)
-    - [Iterations (= loops, foreach, for ... in)](#iterations-loops-foreach-for-in)
+    - [Iterations (= loops, foreach, for ... in)](#iterations--loops-foreach-for--in)
     - [Filename-safety](#filename-safety)
     - [DSL examples](#dsl-examples)
-  - [Data dirs = "data pivots"](#data-dirs-data-pivots)
+  - [Data dirs = "data pivots"](#data-dirs--data-pivots)
     - [ASC data convention](#asc-data-convention)
-    - [Deployable local project instance settings (instance-level + host-level)](#deployable-local-project-instance-settings-instance-level-host-level)
-    - [ASC cache : `data/asc/cache`](#asc-cache-dataasccache)
-    - [Logs : `data/log`](#logs-datalog)
+    - [Deployable local project instance settings (instance-level + host-level)](#deployable-local-project-instance-settings-instance-level--host-level)
+    - [ASC cache : `data/asc/cache`](#asc-cache--dataasccache)
+    - [Logs : `data/log`](#logs--datalog)
     - [Test `data/test`](#test-datatest)
       - [Results `data/test/result`](#results-datatestresult)
       - ["Frozen" results `data/test/frozen`](#frozen-results-datatestfrozen)
       - [Reports `data/test/report`](#reports-datatestreport)
-    - [Temporary files : `data/tmp`](#temporary-files-datatmp)
+    - [Temporary files : `data/tmp`](#temporary-files--datatmp)
 - [Workflow](#workflow)
   - [Host copies and storage](#host-copies-and-storage)
   - [(re)Search](#research)
@@ -124,7 +123,7 @@ The main README (this file) is authoritative on the meaning associated with ASC 
 - [Naming convention](#naming-convention)
   - [File names](#file-names)
   - [Coding style](#coding-style)
-- [Usage / Getting started](#usage-getting-started)
+- [Usage / Getting started](#usage--getting-started)
   - [Prerequisites](#prerequisites)
   - [Placement](#placement)
   - [Step by step](#step-by-step)
@@ -220,7 +219,20 @@ The [Diátaxis compass](https://diataxis.fr/compass/#compass) is a useful refere
 | informs *cognition* | *application* of skill | **reference** |
 | informs *cognition* | *acquisition* of skill | **explanation** |
 
-In projects using ASC, we aim to follow this categorization whenever a documentation file (in the `docs` folder) is created.
+In projects using ASC, we aim to follow this Diátaxis categorization for reader
+intent (tutorial / how-to / reference / explanation) whenever a documentation
+file under `docs/` is created.
+
+&lt;proposal-2026-11-27&gt;
+
+**Where to put the file** is defined by the ASC
+[documentation specification](docs/specs/asc/documentation.md) document homes
+(`docs/plans/`, `docs/specs/`, `docs/decisions/`, `docs/guides/`, `docs/ideas/`,
+…), not by a mandatory `docs/tutorials` / `docs/howtos` / … tree. Use Diátaxis
+to choose the reader intent; use that specification to choose the path. Strict
+Diátaxis directory names remain optional and undecided.
+
+&lt;/proposal-2026-11-27&gt;
 
 TODO 2026-11-25 : Decide if we want strict paths enforcement like docs/tutorials, docs/howtos, docs/references, docs/explanations, or keep the current "loose" organization of (usually markdown) prose documents. We can even think about extending the structure to things like docs/dos and docs/donts, but I think the "gains" of enforcing such rigidity deserves scrutiny. We may not need that level of detail in the organization of documentation files.
 
@@ -327,7 +339,7 @@ Two axes. This list is **kind**. Lookup lists later (extension points, active di
 
 1. **Core** = "generic" implementations that are systematically relevant across all projects using ASC (some of which - the core extensions themselves - are opt-in),
 1. **Extensions** = namespaced bundles of actions by subjects and/or objects (including contrib, as in the Drupal ecosystem),
-1. **Overrides** = alterations of implementations provided by core and/or extensions + opportunity for a good git branching and/or forking workflow delegated to agents,
+1. **Overrides** = file replacements of implementations provided by core and/or extensions (swap a path under `scripts/asc/override/`),
 1. **Specifics** = implementations with low or no potential for reuse outside the current project ASC is used for.
 
 #### Core
@@ -348,9 +360,18 @@ Two axes. This list is **kind**. Lookup lists later (extension points, active di
     - `asc/extensions/interaction` : generic abstract placeholders (hooks) for interaction-related operations (like triggering input devices actions - e.g. mouse, keyboard, touch events, etc.)
     - `asc/extensions/memory` : generic abstract placeholders (hooks) for memory-related operations (like : find out if and where something is stored, using which storage, etc.)
     - `asc/extensions/remote` : default implementations related to remote communication (ssh, etc)
-    - `asc/extensions/remote_instance` : implementations related to remote ASC project instances
+    - `asc/extensions/remote_asc` : implementations related to remote ASC project instances (sync, init, DB helpers)
     - `asc/extensions/software` : default implementations for managing software - usually dependencies, i.e. : updates, configuration, (un)installation, etc.
-    - `asc/extensions/workflow` : default implementations for streamlining work processes, kinda like a minimalist and simpler implementation of [superpowers](https://github.com/obra/superpowers) for projects using ASC (complements the `rules` extension)
+    - `asc/extensions/workflow` : default implementations for streamlining work processes, kinda like a minimalist and simpler implementation of [superpowers](https://github.com/obra/superpowers) for projects using ASC
+
+&lt;proposal-2026-11-27&gt;
+
+Extension inventory names must match directories that exist under
+`asc/extensions/` (`remote_asc`, not the removed `remote_instance`). The
+former `rules` extension is gone; do not cite it as a live complement of
+`workflow`.
+
+&lt;/proposal-2026-11-27&gt;
 
 #### Extensions
 
@@ -462,8 +483,17 @@ Here are a few examples to illustrate how this works :
 | (any) | eager | `asc/extensions/compose/compose.inc.sh` | ✅ yes | `asc/extensions/compose` is an *extension point* and `compose.inc.sh` matches its name |
 | (any) | eager | `asc/core/utils/fs.manual-inc.sh` | ✅ yes | The hardcoded kernel "hub" include file `utils.manual-inc.sh` always includes it ; it is not "autoloaded". |
 | (any) | manual | `asc/core/utils/fs_compression.manual-inc.sh` | ❌ not unless a caller manually sources it | not a name match, not caller-dir |
-| `make db-sync-to` | subject-lazy | `asc/extensions/remote_instance/db/db.opt-inc.sh` | ✅ yes | Caller dir `db/` → 2-level `$subject` `db`. |
-| `make git-write-hooks` | subject-lazy | `asc/extensions/remote_instance/db/db.opt-inc.sh` | ❌ no | Wrong caller. Caller opt-inc only looks next to `BASH_SOURCE[1]`. |
+| `make remote-db-sync-to` | subject-lazy | `asc/extensions/remote_asc/remote/remote.opt-inc.sh` (when present) or the subject-level include bootstrap resolves for `$ext/remote/db/sync_to.sh` | ✅ when wired | 3-level `$subject/$object/$action` → subject `remote` under `remote_asc`. |
+| `make git-write-hooks` | subject-lazy | `asc/extensions/remote_asc/remote/db/db.opt-inc.sh` | ❌ no | Wrong caller. Caller opt-inc only looks next to `BASH_SOURCE[1]`. |
+
+&lt;proposal-2026-11-27&gt;
+
+The lazy-include rows above replace the deleted
+`asc/extensions/remote_instance/…` paths. Until subject-level wiring for
+`remote-db-*` lands, treat the “✅ when wired” cell as the intended lookup,
+not a claim that every checkout already sources `db.opt-inc.sh` automatically.
+
+&lt;/proposal-2026-11-27&gt;
 
 ### Project instance (re)initialization process
 
@@ -817,77 +847,44 @@ TODO
 
 TODO local vs remote
 
-`includes` make possible to reuse blocks of Yaml in the same file like this :
+&lt;proposal-2026-11-27&gt;
+
+Remote instance declarations use a `remote_instances` YAML hook (most specific
+`remote_instances*.yml` via `hook_ms`). The working shape is documented on
+`f_remote_instances_setup` in `asc/extensions/remote/remote.inc.sh`. Shortened
+example (`remote_instances.local.yml`):
 
 ```yml
 includes:
-  default:
-    shell: ash
-    tools:
-      run: service-run(d1,a)
-  front:
-    docroot: /var/www/html
-    logs: /var/log/apache2
-  api:
-    docroot: /var/www/api
-    logs: /var/log/api
-  auth:
-    docroot: /opt/keycloak
-    logs: /var/log/auth
-  index:
-    docroot: /opt/search
-    logs: /var/log/search
+  common:
+    ssh:
+      user: paul
+      exec_prefix: '[ -f ~/.bashrc ] && . ~/.bashrc ;'
+  app:
+    docroot: /var/www/app
 
 dev:
-  site:
-    includes: default front
-    hostname: www.dev.specimen.home.arpa
-  api:
-    includes: default api
-    hostname: api.dev.specimen.home.arpa
-  auth:
-    includes: default auth
-    hostname: auth.dev.specimen.home.arpa
-  search:
-    includes: default index
-    hostname: search.dev.specimen.home.arpa
+  includes: common app
+  host: 1.2.3.4
+  domain: dev.example.com
 
 prod:
-  site:
-    includes: default front
-    hostname: www.prod.specimen.home.arpa
-  api:
-    includes: default api
-    hostname: api.prod.specimen.home.arpa
-  auth:
-    includes: default auth
-    hostname: auth.prod.specimen.home.arpa
-  search:
-    includes: default index
-    hostname: search.prod.specimen.home.arpa
+  includes: common app
+  host: 5.6.7.8
+  domain: example.com
 ```
 
-The result is that every place where `includes` is specified, the space-separated list of targeted resusable blocks will be placed in the tree, e.g. :
+`includes` merges named blocks into each remote id. **Today**, refresh means
+`f_remote_instances_setup` regenerates `data/instance/remote/<id>.sh` from that
+YAML — also reached by `make remote-definitions-update` and by the remote
+post-init hook when that hook is discoverable. That path currently purges and
+rewrites without a generated-file ownership check (see the remote lifecycle
+remediation plans). Do not read “owned definitions only” as current behavior.
 
-```yml
-dev:
-  site:
-    includes: default front
-    hostname: www.dev.specimen.home.arpa
-```
+The previous stack-style `front` / `api` / `hostname` tree under this heading
+was not a working instance contract.
 
-... becomes :
-
-```yml
-dev:
-  site:
-    shell: ash
-    tools:
-      run: service-run(d1,a)
-    docroot: /var/www/html
-    logs: /var/log/apache2
-    hostname: www.dev.specimen.home.arpa
-```
+&lt;/proposal-2026-11-27&gt;
 
 ### ASC discovery recap
 
@@ -964,34 +961,45 @@ See the embedded vendor [shunit2 README](asc/vendor/shunit2/README.md) for addit
 
 #### Test results
 
-Tests results are (for now) stored in `data/test/result`. This was done to track the current status of unstable branches in git, but the decision is subject to eventually change according to future enhancements to workflow-related implementations.
+&lt;proposal-2026-11-27&gt;
+
+Test results are written under `data/test/result`. That tree is **Git-ignored**
+in the mother (parent `/data` / nested rules); it is not a tracked archive of
+unstable-branch status. Workflow may later change where results live; do not
+assume commits pick up those files unless an ignore exception says so.
+
+&lt;/proposal-2026-11-27&gt;
 
 ### ASC domain-specific language : *DSL* syntax
 
-TODO rewrite DSL intro.
+&lt;proposal-2026-11-27&gt;
 
-#### Entry points
+Working interface (in this tree; gate acceptance is separate — see
+[DSL spec](docs/specs/asc/dsl.md)):
 
-As in `make`. Ex :
+- Direct: `asc/dsl.sh '<expression>'` (in-process: `f_asc_dsl`)
+- Make: `ASC_DS_EXPR='<expression>' make ds` — the expression is never a Make goal
 
-- `start` = `make start` = `asc/instance/start.sh`
-- `service-rebuild` = `make service-rebuild` = `asc/extensions/compose/service/rebuild.sh`
-- etc.
+Pivot entry points remain ordinary Make actions (not the DSL carrier), e.g.
+`start` → `make start` → `asc/instance/start.sh`. Open DSL grammar and
+combinators stay in the spec and dated proposals below. **Mark unsupported
+examples where they appear:** boolean/named option sketches, `;` / parallel /
+pipe combinators, and filename embedding are deferred or proposed — not the
+working newline-sequenced pivot/`pN` slice described in the DSL spec.
+
+&lt;/proposal-2026-11-27&gt;
 
 &lt;proposal-2026-11-18&gt;
 
-`asc/dsl.sh` and the hardcoded `make ds` target reach the `f_asc_dsl` stub.
-The proposed direct interface is `asc/dsl.sh '<expression>'`. Make expands
-its goals into a shell recipe, so the supported Make quoting and argument
-rules still need verification. See the [DSL spec](docs/specs/asc/dsl.md).
+Older note: `asc/dsl.sh` / `make ds` wiring and Make quoting verification.
+Superseded for the lead paragraph by `proposal-2026-11-27`; kept for history.
 
 &lt;/proposal-2026-11-18&gt;
 
 &lt;proposal-2026-11-19&gt;
 
-Direct calls use `asc/dsl.sh '<expression>'` (and in-process `f_asc_dsl`).
-The Make carrier is `ASC_DS_EXPR='<expression>' make ds` — the expression is
-never a Make goal. See the [DSL spec](docs/specs/asc/dsl.md).
+Older note: same working interface as above (`asc/dsl.sh`, `ASC_DS_EXPR`).
+Superseded for section lead by `proposal-2026-11-27`; kept for history.
 
 &lt;/proposal-2026-11-19&gt;
 
@@ -999,7 +1007,7 @@ never a Make goal. See the [DSL spec](docs/specs/asc/dsl.md).
 
 Arguments are specified using `()` and are separated by `,` :
 
-- `test-in(foobar,bar,baz)` -> `asc/test/in.sh 'foobar' 'bar' 'baz'`
+- `slug(foobar,bar,baz)` → `asc/instance/slug.sh 'foobar' 'bar' 'baz'`
 
 Special characters are usually forbidden, but the DSL supports the following custom substitutions :
 
@@ -1025,12 +1033,27 @@ and `slug('p1')` uses the literal string `p1`.
 
 **Boolean options :** (shrink all `--` to `-` in prefixed syntax)
 
+&lt;proposal-2026-11-27&gt;
+
+**Unsupported / deferred** in the working interpreter (options slice not landed).
+Sketches only:
+
+&lt;/proposal-2026-11-27&gt;
+
 - `b-y` = `-y` = any boolean option prefixed by a single `-`
 - `bb-oneline` = `--oneline` = any boolean option prefixed by a double `--`
 - `ba` = all boolean options prefixed by a single `-` are forwarded - and ONLY those boolean options
 - `bba` = all boolean options prefixed by a double `--` are forwarded - and ONLY those boolean options
 
 **Named options :**
+
+&lt;proposal-2026-11-27&gt;
+
+**Unsupported / deferred** as hyphen-attached sketches; see the 2026-11-19
+proposal and DSL spec for the proposed comma / `~` contract. The parser still
+rejects `~`.
+
+&lt;/proposal-2026-11-27&gt;
 
 - `o-m-4` = `-m 4` = any named option prefixed by a single `-`
 - `oo-max-4` = `--max 4` = any named option prefixed by a double `--`
@@ -1060,6 +1083,13 @@ The current parser still rejects `~` until an options slice lands.
 
 #### Variables
 
+&lt;proposal-2026-11-27&gt;
+
+**Proposed / unsupported** in the working interpreter (`v-` bindings are
+rejected today). Sketches only:
+
+&lt;/proposal-2026-11-27&gt;
+
 **Any bash var in (hook) calling scope :**
 
 Using the `v-` prefix :
@@ -1069,6 +1099,13 @@ Using the `v-` prefix :
 This is useful for the example mentionned below : `*/$subject/transcribe-file(v-input_file_path).pre-index.hook.sh`
 
 #### Functions
+
+&lt;proposal-2026-11-27&gt;
+
+**Proposed / unsupported** in the working interpreter (bracketed function calls
+are rejected today). Sketches only:
+
+&lt;/proposal-2026-11-27&gt;
 
 **Any (whitelisted) bash function :**
 
@@ -1094,6 +1131,13 @@ covers nested failures and the open function list.
 
 #### Chaining
 
+&lt;proposal-2026-11-27&gt;
+
+**Unsupported / deferred:** the `;` token and related combinators are not in
+the working newline-sequenced slice. Examples below are sketches only.
+
+&lt;/proposal-2026-11-27&gt;
+
 - `[echo(v-baz)];echo(foobar)` = calls `echo "$baz" ; echo 'foobar'`
 - `[echo(v-baz)];;echo(foobar)` = calls `echo "$baz" && echo 'foobar'`
 
@@ -1106,13 +1150,31 @@ Each listed function or builtin call carries brackets, as in
 
 #### Parallel
 
+&lt;proposal-2026-11-27&gt;
+
+**Unsupported / deferred** combinator sketch:
+
+&lt;/proposal-2026-11-27&gt;
+
 - `[echo(v-baz)]-;-echo(foobar)` = calls `echo "$baz" & echo 'foobar' ; wait`
 
 #### Piping
 
+&lt;proposal-2026-11-27&gt;
+
+**Unsupported / deferred** combinator sketch:
+
+&lt;/proposal-2026-11-27&gt;
+
 - `[echo(v-baz)]+grep(foobar)` = calls `echo "$baz" | grep 'foobar'`
 
 #### Conditional execution
+
+&lt;proposal-2026-11-27&gt;
+
+**Proposed / unsupported** (`++` fallback is rejected today). Sketch only:
+
+&lt;/proposal-2026-11-27&gt;
 
 - `[echo(v-baz)]++[exit(1)]` = calls `echo "$baz" || exit 1`
 
@@ -1126,10 +1188,22 @@ then exit or run cleanup.
 
 #### Redirecting
 
+&lt;proposal-2026-11-27&gt;
+
+**Proposed / unsupported** redirect sketches:
+
+&lt;/proposal-2026-11-27&gt;
+
 - `[echo(v-baz)]--v-output_file_path` = calls `echo "$baz" > "$output_file_path"`
 - `[echo(v-baz)]---v-output_file_path` = calls `echo "$baz" >> "$output_file_path"`
 
 #### Iterations (= loops, foreach, for ... in)
+
+&lt;proposal-2026-11-27&gt;
+
+**Proposed / unsupported** iteration sketches:
+
+&lt;/proposal-2026-11-27&gt;
 
 Loop on **array items** :
 
@@ -1153,11 +1227,20 @@ done < <(myfunc)
 
 #### Filename-safety
 
-DSL syntax is filename-safe (Linux, Windows, IOS) in order to allow for simple actions or combinations to be expressed in the filename itself, e.g :
+&lt;proposal-2026-11-27&gt;
+
+**Proposed**, not current contract: embedding DSL-like call syntax in a
+filename so a simple action or combination is expressed in the path itself.
+Multi-OS filename safety (Linux, Windows, iOS) and hook discovery for that
+shape are unverified. Example of the proposed idea only:
 
 ```text
 */$subject/transcribe-file(v-input_file_path).pre-index.hook.sh
 ```
+
+Supported grammar and discovery remain open (see also `proposal-2026-11-18`).
+
+&lt;/proposal-2026-11-27&gt;
 
 &lt;proposal-2026-11-18&gt;
 
@@ -1331,14 +1414,24 @@ Examples :
 | Core cache files | `asc/core` | `data/asc/cache` | `data/asc/cache/hook/s-asc.a-bootstrap.v-v1,compose.sh` |
 | Doc fixtures | `asc/doc` | `data/doc/fixtures` | `data/doc/fixtures/long-code.pdf` |
 | Doc fonts | `asc/doc` | `data/doc/fonts` | `data/doc/fonts/Spectral/Spectral-Medium.ttf` |
-| Local Frozen test results | `asc/test` | `data/test/frozen` | `data/test/frozen/local/core/bootstrap.test_asc_autoload_override_works.txt` |
-| Remote Frozen test results (ex: `preprod` remote) | `asc/test` | `data/test/frozen` | `data/test/frozen/preprod/core/bootstrap.test_asc_autoload_override_works.txt` |
-| Local Test reports | `asc/test` | `data/test/report` | `data/test/report/local/2026/11/21-asc-tests-report.pdf` |
-| Remote Test reports (ex: `preprod` remote) | `asc/test` | `data/test/report` | `data/test/report/preprod/2026/11/21-asc-tests-report.pdf` |
-| Local host(s) | `asc/host` | `data/host/local` | `data/host/local/foobar.local-domain.home.arpa.yml` |
-| Remote host(s) | `asc/extensions/remote/host` | `data/host/remote` | `data/host/remote/foobar.remote-domain.com.yml` |
-| Local project instances | `asc/instance` | `data/instance/local` | `data/instance/local/foobar.yml` |
-| Remote project instances | `asc/extensions/remote/instance` | `data/instance/remote` | `data/instance/remote/foobar.remote-domain.com/foobar.yml` |
+| Local Frozen test results | `asc/test` | `data/test/frozen` | `data/test/frozen/local/…` (**proposed** layout; dirs ship README placeholders, tests do not write these example files) |
+| Remote Frozen test results (ex: `preprod` remote) | `asc/test` | `data/test/frozen` | `data/test/frozen/preprod/…` (**proposed** host-qualified layout) |
+| Local Test reports | `asc/test` | `data/test/report` | `data/test/report/local/…` (**proposed** layout; README placeholders only today) |
+| Remote Test reports (ex: `preprod` remote) | `asc/test` | `data/test/report` | `data/test/report/preprod/…` (**proposed** host-qualified layout) |
+| Local host(s) | `asc/host` | `data/host/local` | `data/host/local/foobar.local-domain.home.arpa.yml` (**proposed** layout) |
+| Remote host(s) | `asc/extensions/remote/host` | `data/host/remote` | `data/host/remote/….yml` (**proposed** layout) |
+| Local project instances | `asc/instance` | `data/instance/local` | `data/instance/local/foobar.yml` (**proposed** layout) |
+| Remote project instances | `asc/extensions/remote` | `data/instance/remote` | Generated: `data/instance/remote/<id>.sh` (**current**). Nested `…/foobar.remote-domain.com/foobar.yml` is **proposed**, not the flat generated path. |
+
+&lt;proposal-2026-11-27&gt;
+
+Active producers still use plural paths such as `data/logs/` and `data/threads/`
+(not only the singular trees listed elsewhere). Label local and host-qualified
+frozen/report archive paths as proposed (README placeholders; tests do not write
+the example files). Generated remote definitions today are flat
+`data/instance/remote/<id>.sh`.
+
+&lt;/proposal-2026-11-27&gt;
 
 #### Deployable local project instance settings (instance-level + host-level)
 
@@ -1411,6 +1504,8 @@ TODO
 
 ASC provides a minimal, customizable and extensible workflow meant to be implementable by either humans or agents.
 
+Overrides remain path-level file swaps (see Genericity). Branching and forking — including agent-delegated git workflows across mother, buffer, and machine branches — belong here, not in the Overrides definition.
+
 The project docroot file `gates.yml` is a `hook_ms()` implementation (like `env.yml`) that contains pointers to current project instance changelog files.
 
 &lt;proposal-2026-09-22&gt;
@@ -1424,7 +1519,7 @@ Whenever a human pushes a change to that file, the "next step tasks list" may ne
 This is a job for any of those extension points :
 
 - ASC core "agent" extension and contrib provider extensions: the proposed [agent-plan design](docs/ideas/2026/11/10-agent-plan-cursor-codex-ollaya.md) describes the planned chat, readiness, and orchestration entry points and their provider hooks.
-- ASC core "rules" extension : next step chains supporting DSL with constant readjustment updates for correct priority queuing based on gates.yml and the "next steps" storage system eventually chosen (either reg-set / reg-get or entities)
+- Proposed next-step / priority chaining (DSL + `gates.yml`, storage still open: registry or another store). The former `rules` extension is removed; do not treat it as a live extension point.
 
 TODO settle the "next step tasks list" storage.
 
@@ -1693,7 +1788,7 @@ The `changelog/` dir tipically contains files like :
 docs/plans/YYYY/MM/DD-<file_name>.md
 ```
 
-Ex : `changelog/2026/07/17-implement-new-ollama-subject.md`
+Ex : `docs/plans/2026/07/17-implement-new-ollama-subject.md`
 
 Generated (do not hand-edit):
 

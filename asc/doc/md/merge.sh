@@ -171,11 +171,18 @@ u_md_list_headings() {
   '
 }
 
-# GitHub-ish slug for markdown TOC anchors.
+# GitHub-style slug for markdown TOC anchors (same as asc/doc/md/toc.sh).
+# Strip Markdown emphasis first; keep non-emphasis underscores; keep hyphen runs.
 u_md_slug() {
-  printf '%s' "$1" \
-    | tr '[:upper:]' '[:lower:]' \
-    | sed -e 's/[^[:alnum:][:space:]-]//g' -e 's/[[:space:]]\+/-/g' -e 's/-\+/-/g' -e 's/^-//' -e 's/-$//'
+  local s
+  s="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"
+  s="$(printf '%s' "$s" | sed -E \
+    -e 's/\*\*([^*]+)\*\*/\1/g' \
+    -e 's/__([^_]+)__/\1/g' \
+    -e 's/(^|[^[:alnum:]])\*([^*]+)\*([^[:alnum:]]|$)/\1\2\3/g' \
+    -e 's/(^|[^[:alnum:]])_([^_]+)_([^[:alnum:]]|$)/\1\2\3/g')"
+  printf '%s' "$s" \
+    | sed -e 's/[^[:alnum:]_[:space:]-]//g' -e 's/[[:space:]]/-/g' -e 's/^-*//' -e 's/-*$//'
 }
 
 u_md_write_toc() {

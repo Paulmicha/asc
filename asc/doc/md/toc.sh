@@ -103,11 +103,23 @@ u_md_list_headings() {
   '
 }
 
-# GitHub-ish slug for markdown TOC anchors (same as asc/doc/md/merge.sh).
+# GitHub-style slug for markdown TOC anchors (same as asc/doc/md/merge.sh).
+# Build from rendered heading text: strip Markdown emphasis delimiters first
+# (*…* / _…_ / **…** / __…__), keep literal underscores that are not emphasis
+# (e.g. NEXT_STEPS), drop other punctuation, map each whitespace to one hyphen,
+# and do not collapse hyphen runs ("PLANS : …" → plans--…).
+# @see https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#section-links
 u_md_slug() {
-  printf '%s' "$1" \
-    | tr '[:upper:]' '[:lower:]' \
-    | sed -e 's/[^[:alnum:][:space:]-]//g' -e 's/[[:space:]]\+/-/g' -e 's/-\+/-/g' -e 's/^-//' -e 's/-$//'
+  local s
+  s="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"
+  # Emphasis only at non-identifier boundaries (mid-word _ in next_steps stays).
+  s="$(printf '%s' "$s" | sed -E \
+    -e 's/\*\*([^*]+)\*\*/\1/g' \
+    -e 's/__([^_]+)__/\1/g' \
+    -e 's/(^|[^[:alnum:]])\*([^*]+)\*([^[:alnum:]]|$)/\1\2\3/g' \
+    -e 's/(^|[^[:alnum:]])_([^_]+)_([^[:alnum:]]|$)/\1\2\3/g')"
+  printf '%s' "$s" \
+    | sed -e 's/[^[:alnum:]_[:space:]-]//g' -e 's/[[:space:]]/-/g' -e 's/^-*//' -e 's/-*$//'
 }
 
 u_md_write_toc() {

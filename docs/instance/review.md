@@ -10,6 +10,18 @@ Reviewed revision: `5dc602b1bfe840c915bd59420e89bb290cd357e5` (checkout has sinc
 
 Thank you for the thorough pass. The findings match what was on disk at that tip: the entity removal and path migrations left several consumers half-moved, and the scratch-checkout failures you listed are real blockers. This reply accepts each comment, records confirmation, and states the intended fix direction. It does not claim the fixes are implemented yet.
 
+Derived plans (implement this reply; not a second authority):
+
+1. [27-globals-test-fixture-synonym.md](../plans/2026/11/27-globals-test-fixture-synonym.md)
+2. [27-remote-lifecycle-ownership.md](../plans/2026/11/27-remote-lifecycle-ownership.md)
+3. [27-mother-data-gitignore.md](../plans/2026/11/27-mother-data-gitignore.md)
+4. [27-cron-path-migration.md](../plans/2026/11/27-cron-path-migration.md)
+5. [27-test-archive-consistency.md](../plans/2026/11/27-test-archive-consistency.md)
+6. [27-remote-db-action-loading.md](../plans/2026/11/27-remote-db-action-loading.md)
+
+Related README labeling work (separate from this code reply):
+[27-readme-proposed-as-current.md](../plans/2026/11/27-readme-proposed-as-current.md).
+
 Background only (not authority over this reply):
 
 - [24-deprecate-entity-related-abstractions.md](../plans/2026/11/24-deprecate-entity-related-abstractions.md) — remote ownership / purge / enumeration context
@@ -17,7 +29,7 @@ Background only (not authority over this reply):
 
 ## Verdict
 
-Agree with severity and ordering, with one correction to the remote remediation sequence: **make cleanup safe before restoring lifecycle hooks.** Restoring hooks alone would let `reinit` call the unsafe purge again. Ownership checks, Git exclusions for generated output, and hook relocation land together. The four P1 items remain the blockers; the P2 items are confirmed. The globals synonym is the cheapest independent unblocker for `make test-core`.
+Agree with severity and ordering, with one correction to the remote remediation sequence: **make cleanup safe before restoring lifecycle hooks.** Restoring hooks alone would let `reinit` call the unsafe purge again. Ownership checks, failure propagation on refresh/`reinit`, hook relocation, and the mother ignore parent-rule fix (`/data` → `/data/*`) land together. After `007a0c5`, generated data is already ignored; the ignore P1 is restoring effective README/maintained exceptions without un-ignoring producers. The four P1 items remain the blockers; the P2 items are confirmed. The globals synonym is the cheapest independent unblocker for `make test-core`.
 
 Convention check is correct: several moves put hooks under an object directory, optional includes beside the wrong level, and discovery globs on the old filename suffix. Shell syntax (`bash -n`) passing does not catch any of that.
 
@@ -42,6 +54,7 @@ This is the most urgent regression. Refreshing remote definitions must not be a 
 
 - Seed a maintained README and an unrelated sibling; run refresh/purge twice; assert those files survive while only owned generated definitions are removed.
 - Same-ID collision: place a maintained file whose name matches a declared remote ID; run refresh; assert the operation **reports failure** and **neither deletes nor overwrites** that file.
+- Propagate that failure through the public path: `remote-definitions-update` and `reinit` (post-init) must exit **nonzero**, must not print success/`done` when setup failed, and must preserve the maintained file. Today both print `done` and exit zero when setup returns nonzero (reproduced with setup stubbed to return 7).
 - Enumerate generated definitions only; invalidate the ID-list cache on remove and regeneration (see P2 ID-list item — same ownership rule).
 
 ---
@@ -68,23 +81,21 @@ Discoverable shape (extension’s `instance` subject):
 
 ## [P1] Restore Git exclusions for local data
 
-**Accepted.** The mother `.gitignore` after `aee5a425` covers several *new* singular trees (`data/log/`, `data/thread/`, `data/db/…`) while active producers in this tree still write other paths. Inventory for the mother (other-instance upgrade leftovers are out of scope):
+**Accepted — and updated for `007a0c5`.** That commit already ignores generated data via a parent `/data` rule. The same rule **prunes** the directory, so nested README exceptions below it never take effect. In a Git fixture, `/data/*` restored those nested exceptions while dumps and logs stayed ignored.
 
-| Path | Role | Mother rule today |
-| --- | --- | --- |
-| `data/logs/` | Active: `asc/log/storage.hook.sh`, rotate/wrap | only `/data/log/*` |
-| `data/threads/` | Active: `asc/thread/thread.inc.sh`, wrap/list/monitor | only `/data/thread/*` |
-| `data/db/dumps/` | Current DB default (`ASC_DB_DUMPS_DIR` → `data/db/dumps`) | `/data/db/…` present; confirm compressed dumps (`.sql.tgz` / `.gz`) stay excluded |
-| `data/private/` | Drupal private files (README / contrib default) | prior exclusion removed |
-| `data/files/` | Moodle contrib defaults (`MOODLE_PHPUNITDATA_DIR`, behat data/faildumps under `data/files/…`) | prior exclusion removed |
-| `data/instance/remote/<id>.sh` | Generated per-ID remote definitions | **not ignored** |
-| `data/instance/remote_ids.sh`, `data/instance/remote_parsed.sh` (and any other generated remote metadata beside the per-ID files) | Generated remote metadata / caches | **not ignored** (must be covered with the ownership design; must not be enumerated as remote IDs) |
+Coverage of producers and generated remotes is therefore largely present; the remaining ignore work is to **stop pruning** so intentional exceptions work, and to **record** which maintained paths under `data/instance` and `data/doc` must stay trackable. Verify with `git check-ignore --no-index -v`.
 
-So Git ignore checks that show active log, thread, private-file, Moodle `data/files`, and generated remote paths as stageable are correct.
+| Concern | Role after `007a0c5` |
+| --- | --- |
+| Parent `/data` | Ignores all of `data/` including generated remotes, logs, dumps, private, Moodle `data/files` — and also hides README exceptions |
+| Nested `!/data/…/README.md` etc. | Present in the file but ineffective while `/data` prunes |
+| Active producers (`data/logs`, `data/threads`, `data/db/dumps`, …) | Ignored by parent; keep ignored after switching to `/data/*` |
+| Generated remotes / metadata | Ignored by parent; keep ignored; ownership still decides purge/enumerate |
+| Maintained under `data/instance`, `data/doc` | Must be listed explicitly and proven trackable after the parent-rule fix |
 
-**Intended fix:** restore mother `.gitignore` exclusions for the paths above that producers still use; keep intentional README exceptions. Decide remote generated-file and metadata ignore together with ownership (blanket `*.sh` under `data/instance/remote` is too wide). Do not design install-time propagation or repair of other projects’ `.gitignore` files.
+**Intended fix:** change `/data` to `/data/*` (or equivalent non-pruning parent); keep generated producers ignored; record and verify trackable maintained paths. Coordinate with remote ownership (blanket `*.sh` under `data/instance/remote` remains too wide). Do not design install-time propagation into other projects.
 
-Land this together with remote ownership and hook relocation so generated output is ignored before reinit starts rewriting definitions again.
+Land with remote ownership and hook relocation so maintained remote README exceptions and generated ignores agree.
 
 ---
 
@@ -101,13 +112,14 @@ Land this together with remote ownership and hook relocation so generated output
    - YAML test: `test_f_cron_load_base_templates` in `asc/test/core/yml.test.sh` still sources `asc/extensions/crontab/crontab.inc.sh`.
    - Debian 13 run hook: `asc/extensions/cron/cron/run.debian-13.hook.sh` still sources `asc/extensions/crontab/cron/run.hook.sh`.
 
-**Intended fix:** update loading, discovery, contrib, tests, and host hooks together in this tree:
+**Intended fix:** update loading, discovery, contrib, tests, host hooks, and `cron-run` together in this tree:
 
 - Wire the opt-inc so `cron-settings` and sibling actions source it.
 - Point the base template at `asc/extensions/cron/base_settings.cron.yml`.
-- Discover `*.cron.yml` only (no dual-suffix / legacy `*.crontab.yml` compatibility layer).
+- Discover `*.cron.yml` only (no dual-suffix / legacy `*.crontab.yml` compatibility layer). Job files are `$ext/$subject/$action.$preset.cron.yml`.
 - Refresh the contrib post-init include, the YAML test, and the Debian 13 run hook.
-- Acceptance: `cron-settings` with `cron` enabled; generated entries for log-rotate and thread-monitor.
+- Update the `cron-run` missing-job diagnostic (still says `.crontab.yml`) to that `.cron.yml` shape.
+- Acceptance: `cron-settings` with `cron` enabled; generated entries for log-rotate and thread-monitor; a harmless `cron-run` fixture that selects the Debian 13 hook so dispatch is covered, not only generation.
 
 ---
 
@@ -139,7 +151,8 @@ Call sites under `remote_asc` still reference `asc/extensions/remote_asc/remote/
 
 - Restore subject-level loading for the DB helpers (subject `remote.opt-inc.sh` that sources the db include, or relocate the include to the path bootstrap already resolves).
 - Point sync-from / dl-from (and other `remote_asc` callers) at **`remote-exec`**, not a missing `remote_asc/remote/exec.sh`.
-- Fixtures: a `remote-db-sync-to` case that checks helper loading without a live remote; a stubbed `remote-db-sync-from` or `remote-db-dl-from` case that checks the exec path is the real `remote-exec` action (and fails clearly if still missing).
+- Enable **`db`** in the fixture as well: with only `remote` and `remote_asc`, a repaired include can define `f_remote_sync_db_to` while `f_db_set` remains missing.
+- Fixtures: `remote-db-sync-to` must reach a stubbed expected operation with the expected arguments (not only “first missing helper gone”); stubbed `remote-db-sync-from` or `remote-db-dl-from` checks the exec path is the real `remote-exec` action.
 
 ---
 
@@ -154,14 +167,15 @@ Call sites under `remote_asc` still reference `asc/extensions/remote_asc/remote/
 | Status lookup stale path | `f_test_results_case_status` also reads `data/test/result/${slug}.yml` (then frozen fallback) — every archive reader must follow the same contract when the summary moves. |
 | Dropped earlier cases | A full run then a partial run never reloads the written summary, so prior cases disappear from the merged tree. |
 | Colliding batch keys | `test_results_slug="${p_dir##*/}"` — ASC core and extension batches both named `core` share one archive. |
-| Archive self-test | Needs the helper include and path assertions updated to the same contract. |
+| Archive self-test escapes fixture | Suite creates `test_results_self_tmp`, but helpers bypass it. `_u_archived_status` builds from an unset local `batch_dir`, so the test tries to create `/plain-ok` and similar paths. |
 
 **Intended fix:**
 
 - One summary location used by writer, partial loader, **and** `f_test_results_case_status`.
 - Create the batch directory before opening `output.txt`.
 - Give batches **distinct keys** (not only the directory basename) so ASC core and extension `core` suites do not clobber each other.
-- Acceptance: full run followed by partial run keeps earlier cases; two batches with the same basename get distinct archives; archive self-test updated.
+- Keep archive self-tests inside `test_results_self_tmp` (fix `_u_archived_status`).
+- Acceptance: full run followed by partial run keeps earlier cases; two batches with the same basename get distinct archives; archive self-test updated and fixture-isolated.
 
 ---
 
@@ -184,10 +198,10 @@ Same ownership rule as the P1 purge fix must drive enumeration: **generated defi
 ## Proposed remediation order
 
 1. Globals fixture synonym in the existing `nftascgevdehnc` temporary extension — unblock `make test-core`.
-2. **Remote ownership + purge/enumerate/remove/cache + lifecycle hook relocation + Git exclusions for generated remotes/metadata** — one coherent change set. Safe cleanup first; hooks restored in the same land so reinit cannot call the unsafe purge. Fixture covers maintained siblings, same-ID collision (refresh fails without delete/overwrite), and ID-list accuracy.
-3. Mother Git ignore restoration for active producers — `data/logs`, `data/threads`, `data/db/dumps`, `data/private`, Moodle `data/files` (no other-instance ignore policy).
-4. Cron opt-inc + `*.cron.yml` discovery/template + contrib post-init + YAML test + Debian 13 run hook — restore `cron-settings`, log-rotate, thread-monitor (`*.cron.yml` only).
-5. Test archive path consistency — every reader (`batch_begin` partial load, `batch_end` writer, `f_test_results_case_status`), distinct batch keys, full-then-partial and same-basename batch cases.
-6. `remote-db-sync-to` / `remote-db-sync-from` / `remote-db-dl-from` opt-inc wiring + point callers at existing `remote-exec`.
+2. **Remote ownership + purge/enumerate/remove/cache + failure propagation + lifecycle hook relocation**, coordinated with mother ignore parent-rule fix — one coherent change set. Safe cleanup first; hooks restored in the same land so reinit cannot call the unsafe purge. Fixture covers maintained siblings, same-ID collision (public refresh and `reinit` nonzero, no false `done`), and ID-list accuracy.
+3. Mother `.gitignore`: replace pruning `/data` with `/data/*` (or equivalent); keep producers/generated ignored; record and verify trackable paths under `data/instance` and `data/doc` with `git check-ignore --no-index`.
+4. Cron opt-inc + `*.cron.yml` discovery/template + contrib post-init + YAML test + Debian 13 run hook + `cron-run` diagnostic/dispatch fixture — `$ext/$subject/$action.$preset.cron.yml` only.
+5. Test archive path consistency — every reader, distinct batch keys, full-then-partial and same-basename cases, self-tests confined to `test_results_self_tmp`.
+6. `remote-db-sync-to` / `remote-db-sync-from` / `remote-db-dl-from` opt-inc wiring + `remote-exec` + fixture with **`db`** enabled through stubbed expected operation.
 
-Items in step 2 must not be split so that hooks return before ownership and ignore rules protect maintained files and generated output.
+Items in step 2 must not be split so that hooks return before ownership protects maintained files; step 3 must agree on which `data/instance` paths stay trackable.
