@@ -50,14 +50,13 @@ The main README (this file) is authoritative on the meaning associated with ASC 
 - [Documentation](#documentation)
   - [Skills, Instructions, Capabilities (`AGENTS.md` & `SKILL.md`)](#skills-instructions-capabilities-agentsmd-skillmd)
   - [Design patterns vs. Anti-patterns](#design-patterns-vs-anti-patterns)
-    - [Design patterns : DOS / HOWTOS](#design-patterns-dos-howtos)
-    - [Anti-patterns : DONTS](#anti-patterns-donts)
-    - [Enforcement, "alignment" (drift control)](#enforcement-alignment-drift-control)
-  - [Specs, Contracts, Living Docs (SPECS)](#specs-contracts-living-docs-specs)
-  - [Changes, Implementation Steps, Execution Plans (PLANS)](#changes-implementation-steps-execution-plans-plans)
-  - [Problems, Improvements (ISSUES)](#problems-improvements-issues)
-  - [Priorities (NEXT_STEPS)](#priorities-nextsteps)
-  - [Guards, "gates"](#guards-gates)
+    - [Design patterns : DOS / HOWTOS, tutorials](#design-patterns-dos-howtos-tutorials)
+    - [Anti-patterns : DONTS / GUARDS, "gates"](#anti-patterns-donts-guards-gates)
+    - [REVIEW : Enforcement, "alignment" (drift control)](#review-enforcement-alignment-drift-control)
+  - [Contracts, Living SPECS](#contracts-living-specs)
+  - [PLANS : Changes, Implementation Steps, Execution Plans](#plans-changes-implementation-steps-execution-plans)
+  - [ISSUES : Problems, Improvements](#issues-problems-improvements)
+  - [NEXT_STEPS : Priorities](#nextsteps-priorities)
 - [ASC concepts](#asc-concepts)
   - [General notes](#general-notes)
   - [Vendor (= third-party) libs](#vendor-third-party-libs)
@@ -265,19 +264,19 @@ The practical arrangement is therefore: **keep the mother as the maintained sour
 
 TODO Introduction paragraph. Skills need to be aware of such docs (markdown prose, eventual frontmatter spec). 
 
-#### Design patterns : DOS / HOWTOS
+#### Design patterns : DOS / HOWTOS, tutorials
 
 TODO see `asc/extensions/builder` + decide if we need a more "controlled" vocabulary like [Atomic Design](https://atomicdesign.bradfrost.com/chapter-2/).
 
-#### Anti-patterns : DONTS
+#### Anti-patterns : DONTS / GUARDS, "gates"
 
 TODO see `docs/anti-patterns` + decide **how to "wire" these with agents skills**, perhaps as a generic hook that generates skills and/or docs somewhere gitignored (like the `data` folder).
 
-#### Enforcement, "alignment" (drift control)
+#### REVIEW : Enforcement, "alignment" (drift control)
 
-TODO
+TODO ASC pre- and post-processing hook variants potential.
 
-### Specs, Contracts, Living Docs (SPECS)
+### Contracts, Living SPECS
 
 Currently, the ASC main README file (this file) is serving as the main source of truth for all ASC-related implementations. It is entirely human-written, with eventual LLM-generated prose clearly delimited by escaped tags like `<proposal-2026-10-02>` and `</proposal-2026-10-02>` for marking what is currently being reviewed and rewritten.
 
@@ -291,23 +290,21 @@ Currently, the ASC main README file (this file) is serving as the main source of
 
 &lt;/proposal-2026-10-02&gt;
 
-### Changes, Implementation Steps, Execution Plans (PLANS)
+### PLANS : Changes, Implementation Steps, Execution Plans
 
 TODO [wip]
 
-### Problems, Improvements (ISSUES)
+### ISSUES : Problems, Improvements
 
 TODO [wip]
 
-### Priorities (NEXT_STEPS)
-
-TODO [wip]
-
-### Guards, "gates"
+### NEXT_STEPS : Priorities
 
 TODO [wip]
 
 ## ASC concepts
+
+TODO Task-oriented vs Knowledge-oriented as an abstract core binarism "namespace squatting" opportunity (implementable by extensions like ollaya).
 
 ### General notes
 
