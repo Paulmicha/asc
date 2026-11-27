@@ -342,7 +342,7 @@ Two axes. This list is **kind**. Lookup lists later (extension points, active di
     - `asc/extensions/agent` : wraps and chains LLMs prompts (with pre- and post- process hooks), and provides generic abstractions to manage things like `SKILL.md` (see [pi](https://github.com/earendil-works/pi)) / `CLAUDE.md` / Cursor rules
     - `asc/extensions/builder` : minimalist ASC "clean" code generator
     - `asc/extensions/compose` : default Docker compose - related implementations
-    - `asc/extensions/crontab` : default crontab-related implementations
+    - `asc/extensions/cron` : generic abstract placeholders for cron-related operations
     - `asc/extensions/db` : generic abstract placeholders (hooks) for database-related operations
     - `asc/extensions/file_registry` : minimalist local file-based key/value store (supports host-level and instance-level scopes). Host scope defaults to `$HOME/.local/state/asc/registry`.
     - `asc/extensions/interaction` : generic abstract placeholders (hooks) for interaction-related operations (like triggering input devices actions - e.g. mouse, keyboard, touch events, etc.)
