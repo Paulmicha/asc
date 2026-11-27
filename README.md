@@ -52,7 +52,7 @@ The main README (this file) is authoritative on the meaning associated with ASC 
   - [Design patterns vs. Anti-patterns](#design-patterns-vs-anti-patterns)
     - [Design patterns : DOS / HOWTOS, tutorials](#design-patterns-dos-howtos-tutorials)
     - [Anti-patterns : DONTS / GUARDS, "gates"](#anti-patterns-donts-guards-gates)
-    - [REVIEW : Enforcement, "alignment" (drift control)](#review-enforcement-alignment-drift-control)
+    - [REVIEWS : Enforcement, "alignment" (drift control)](#reviews-enforcement-alignment-drift-control)
   - [Contracts, Living SPECS](#contracts-living-specs)
   - [PLANS : Changes, Implementation Steps, Execution Plans](#plans-changes-implementation-steps-execution-plans)
   - [ISSUES : Problems, Improvements](#issues-problems-improvements)
@@ -272,7 +272,7 @@ TODO see `asc/extensions/builder` + decide if we need a more "controlled" vocabu
 
 TODO see `docs/anti-patterns` + decide **how to "wire" these with agents skills**, perhaps as a generic hook that generates skills and/or docs somewhere gitignored (like the `data` folder).
 
-#### REVIEW : Enforcement, "alignment" (drift control)
+#### REVIEWS : Enforcement, "alignment" (drift control)
 
 TODO ASC pre- and post-processing hook variants potential.
 
