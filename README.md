@@ -386,7 +386,7 @@ Here :
 | Specification | ✔️ | `docs/specs/**/*.md` | `data/chat/**/*.md`, `data/prompt/**/*.md`  |  |
 | Planning | ✔️ | `docs/plan/YYYY/MM/DD-*.md` | `data/chat/**/*.md`, `data/prompt/**/*.md`  |  |
 | Execution | ✔️ | `docs/plan/YYYY/MM/DD-$file_name.md` | `data/$scope/review.md` + variants | ❌ |
-| Issues sync | ❌ | `data/$scope/issues.md` + variants | ✔️ |
+| Issues sync | ❌ |  | `data/$scope/issues.md` + variants | ❌ |
 | Living docs/sidecars sync | ❌ | `docs/**/*.md` | `data/$scope/*.*` + variants | mixed |
 | Next steps sync | ❌ | TODO deprecate `NEXT_STEPS.md` + variants ? | TODO `data/next-steps/**/*.yml` + variants ? | ❌ |
 
