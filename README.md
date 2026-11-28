@@ -52,7 +52,8 @@ The main README (this file) is authoritative on the meaning associated with ASC 
   - [Design patterns vs. Anti-patterns](#design-patterns-vs-anti-patterns)
     - [Design patterns : DOS / HOWTOS, tutorials](#design-patterns--dos--howtos-tutorials)
     - [Anti-patterns : DONTS / GUARDS, "gates"](#anti-patterns--donts--guards-gates)
-    - [REVIEWS : Enforcement, "alignment" (drift control)](#reviews--enforcement-alignment-drift-control)
+  - [Correlation](#correlation)
+  - [REVIEWS, GOALS : Enforcement, "alignment" (drift control), completion / progress](#reviews-goals--enforcement-alignment-drift-control-completion--progress)
   - [Contracts, Living SPECS](#contracts-living-specs)
   - [PLANS : Changes, Implementation Steps, Execution Plans](#plans--changes-implementation-steps-execution-plans)
   - [IDEAS : Comparing Options vs Custom implementations](#ideas--comparing-options-vs-custom-implementations)
@@ -62,7 +63,7 @@ The main README (this file) is authoritative on the meaning associated with ASC 
   - [Typical steps](#typical-steps)
     - [Non-trivial tasks](#non-trivial-tasks)
     - [Quick mode (one-shots)](#quick-mode-one-shots)
-  - [Correlation](#correlation)
+  - [Correlation](#correlation-1)
 - [ASC concepts](#asc-concepts)
   - [General notes](#general-notes)
   - [Vendor (= third-party) libs](#vendor--third-party-libs)
@@ -308,7 +309,26 @@ Every local ASC project instance takes upstream updates from the ASC mother proj
 
 &lt;/proposal-2026-09-22&gt;
 
-#### REVIEWS : Enforcement, "alignment" (drift control)
+### Correlation
+
+Here :
+
+- scope (DSL) = subject-action or subject-object-action
+- `$scope` (variable name as used below) = `"$subject/$action"` or `"$subject/$object/$action"`
+- tpl = `asc/extensions/builder/instance/tpl.sh`
+- str = `asc/extensions/builder/instance/str.sh`
+- gen = `asc/extensions/builder/instance/gen.sh`
+- fork = `asc/extensions/builder/instance/fork.sh`
+- branch = `asc/extensions/builder/instance/branch.sh`
+- override = `asc/extensions/builder/instance/override.sh`
+- `$builder` = **tpl** | **str** | **gen** | **fork** | **branch** | **override**
+
+|  | Docs | Sidecars | Gitignored |
+|--|------|----------|------------|
+| Design patterns |  | potential `data/$scope/$builder.*` + variants | ❌ |
+| Anti-patterns | `docs/anti-patterns/$scope/*.md` |  |  |
+
+### REVIEWS, GOALS : Enforcement, "alignment" (drift control), completion / progress
 
 TODO ASC pre- and post-processing hook variants potential.
 
