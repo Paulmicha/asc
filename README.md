@@ -48,11 +48,12 @@ The main README (this file) is authoritative on the meaning associated with ASC 
 - [Example project (demo / case study)](#example-project-demo--case-study)
 - [Current status of the ASC project](#current-status-of-the-asc-project)
 - [Documentation](#documentation)
+  - [Agnostic "namespaces"](#agnostic-namespaces)
   - [Skills, Instructions, Capabilities (`AGENTS.md` & `SKILL.md`)](#skills-instructions-capabilities-agentsmd--skillmd)
   - [Design patterns vs. Anti-patterns](#design-patterns-vs-anti-patterns)
     - [Design patterns : DOS / HOWTOS, tutorials](#design-patterns--dos--howtos-tutorials)
     - [Anti-patterns : DONTS / GUARDS, "gates"](#anti-patterns--donts--guards-gates)
-  - [Correlation](#correlation)
+  - [Correlations between the `data/` and `docs/` files](#correlations-between-the-data-and-docs-files)
   - [REVIEWS, GOALS : Enforcement, "alignment" (drift control), completion / progress](#reviews-goals--enforcement-alignment-drift-control-completion--progress)
   - [Contracts, Living SPECS](#contracts-living-specs)
   - [PLANS : Changes, Implementation Steps, Execution Plans](#plans--changes-implementation-steps-execution-plans)
@@ -63,7 +64,7 @@ The main README (this file) is authoritative on the meaning associated with ASC 
   - [Typical steps](#typical-steps)
     - [Non-trivial tasks](#non-trivial-tasks)
     - [Quick mode (one-shots)](#quick-mode-one-shots)
-  - [Correlation](#correlation-1)
+  - [Correlation](#correlation)
 - [ASC concepts](#asc-concepts)
   - [General notes](#general-notes)
   - [Vendor (= third-party) libs](#vendor--third-party-libs)
@@ -229,6 +230,26 @@ In projects using ASC, we aim to follow this Diátaxis categorization for reader
 intent (tutorial / how-to / reference / explanation) whenever a documentation
 file under `docs/` is created.
 
+### Agnostic "namespaces"
+
+It would be excessive to enforce names such as :
+
+- `docs/tutorials`
+- `docs/howtos`
+- `docs/references`
+- `docs/explanations`
+- `docs/dos`
+- `docs/donts`
+
+The "gains" of enforcing strict naming and path rules deserves scrutiny. We may never need that level of control at all in the organization of documentation files.
+
+The absence of strict naming and path enforcement rules is the point of seeing pivots as internet domain names, but in a semantic, "scoped" namespace (hence the Go game metaphore). We can formulate it as a guideline :
+
+Whenever possible, the goal is to prefer simple english terms, always striving to choose extension points at their adequate abstraction level. 2 rules for what we refer to as *scope* in ASC instances :
+
+- Action by subject (`$subject` / `$action`) and/or by object (`$subject` / `$object` / `$action`)
+- Any verb or thing (as long as properly scoped)
+
 &lt;proposal-2026-11-27&gt;
 
 **Where to put the file** is defined by the ASC
@@ -239,8 +260,6 @@ to choose the reader intent; use that specification to choose the path. Strict
 Diátaxis directory names remain optional and undecided.
 
 &lt;/proposal-2026-11-27&gt;
-
-TODO 2026-11-25 : Decide if we want strict paths enforcement like docs/tutorials, docs/howtos, docs/references, docs/explanations, or keep the current "loose" organization of (usually markdown) prose documents. We can even think about extending the structure to things like docs/dos and docs/donts, but I think the "gains" of enforcing such rigidity deserves scrutiny. We may not need that level of detail in the organization of documentation files.
 
 ### Skills, Instructions, Capabilities (`AGENTS.md` & `SKILL.md`)
 
@@ -309,9 +328,9 @@ Every local ASC project instance takes upstream updates from the ASC mother proj
 
 &lt;/proposal-2026-09-22&gt;
 
-### Correlation
+### Correlations between the `data/` and `docs/` files
 
-Here :
+TODO diagram this ?
 
 - scope (DSL) = subject-action or subject-object-action
 - `$scope` (variable name as used below) = `"$subject/$action"` or `"$subject/$object/$action"`
@@ -322,11 +341,6 @@ Here :
 - branch = `asc/extensions/builder/instance/branch.sh`
 - override = `asc/extensions/builder/instance/override.sh`
 - `$builder` = **tpl** | **str** | **gen** | **fork** | **branch** | **override**
-
-|  | Docs | Sidecars | Gitignored |
-|--|------|----------|------------|
-| Design patterns |  | potential `data/$scope/$builder.*` + variants | ❌ |
-| Anti-patterns | `docs/anti-patterns/$scope/*.md` |  |  |
 
 ### REVIEWS, GOALS : Enforcement, "alignment" (drift control), completion / progress
 
