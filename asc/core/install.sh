@@ -130,5 +130,8 @@ else
   echo "  -> compare with upstream temporary copy : '$p_instance_path/Makefile.asc-upstream-copy'."
 fi
 
+# Maintain a local copy of ASC upstream README in each synced instance.
+cp -f "README.md" "$p_instance_path/README.asc.md"
+
 echo "Copy ASC core files : done."
 echo

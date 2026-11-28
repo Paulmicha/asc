@@ -330,7 +330,17 @@ Every local ASC project instance takes upstream updates from the ASC mother proj
 
 ### Correlations between the `data/` and `docs/` files
 
-TODO diagram this ?
+
+Anti-patterns : DONTS / GUARDS, "gates"
+
+|  | Design patterns : DOS / HOWTOS, tutorials | Anti-patterns : DONTS / GUARDS, "gates" |
+|--|-------------------------------------------|-----------------------------------------|
+| Docs | todo | todo |
+| Sidecars | todo | todo |
+| Scopes (abstract pivots) | todo | todo |
+| Mutable env vars | todo | todo |
+| Variants (hooks) | todo | todo |
+| Concrete examples | todo | todo |
 
 - scope (DSL) = subject-action or subject-object-action
 - `$scope` (variable name as used below) = `"$subject/$action"` or `"$subject/$object/$action"`
